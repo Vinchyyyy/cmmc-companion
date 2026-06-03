@@ -12,6 +12,7 @@ import {
   downloadProjectJson,
   SCHEMA_VERSION,
 } from '../utils/projectState'
+import { readExportMeta, writeExportMeta, buildExportFilename } from '../utils/exportMeta'
 
 const KNOWN_CONTROL_IDS = new Set(controls.map((c) => c.id))
 
@@ -137,7 +138,7 @@ function todayStamp() {
   return `${yyyy}-${mm}-${dd}`
 }
 
-function handleCsvExport() {
+function handleCsvExport(filename) {
   const headers = ['Control ID', 'Family', 'Title', 'Status', 'Notes']
   const rows = controls.map((c) => [
     c.id, c.family, c.title, readStatus(c.id), readNote(c.id),
@@ -147,7 +148,7 @@ function handleCsvExport() {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `cmmc-status-export-${todayStamp()}.csv`
+  link.download = filename ?? `cmmc-status-export-${todayStamp()}.csv`
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
@@ -220,6 +221,14 @@ function Home() {
   const [jsonResult, setJsonResult] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedFamily, setSelectedFamily] = useState('All')
+  // exportDialog: null (closed) | { mode: 'csv'|'json', osc: string, assessment: string }
+  const [exportDialog, setExportDialog] = useState(null)
+
+  const openExportDialog = (mode) => {
+    const meta = readExportMeta()
+    setExportDialog({ mode, osc: meta.osc, assessment: meta.assessment })
+  }
+  const closeExportDialog = () => setExportDialog(null)
 
   // -----------------------------------------------------------------------
   // Progress stats — recomputed on every render (refreshKey forces re-render
@@ -252,6 +261,22 @@ function Home() {
   // -----------------------------------------------------------------------
   // CSV handlers
   // -----------------------------------------------------------------------
+
+  const confirmExport = () => {
+    const { mode, osc, assessment } = exportDialog
+    writeExportMeta(osc, assessment)
+    if (mode === 'csv') {
+      const filename = buildExportFilename(osc, assessment, 'AssessmentProgress', 'csv')
+      handleCsvExport(filename)
+      setCsvResult(null)
+    } else {
+      const filename = buildExportFilename(osc, assessment, 'ProjectBackup', 'json')
+      const state = exportProjectState(controls)
+      downloadProjectJson(state, filename)
+      setJsonResult({ ok: true, message: `Project exported — ${controls.length} controls, schema v${SCHEMA_VERSION}.` })
+    }
+    closeExportDialog()
+  }
 
   const handleCsvImportClick = () => csvFileRef.current?.click()
 
@@ -305,12 +330,6 @@ function Home() {
   // -----------------------------------------------------------------------
   // JSON project state handlers
   // -----------------------------------------------------------------------
-
-  const handleJsonExport = () => {
-    const state = exportProjectState(controls)
-    downloadProjectJson(state)
-    setJsonResult({ ok: true, message: `Project exported — ${controls.length} controls, schema v${SCHEMA_VERSION}.` })
-  }
 
   const handleJsonImportClick = () => jsonFileRef.current?.click()
 
@@ -514,7 +533,7 @@ function Home() {
           Status CSV
         </p>
         <div className="button-group">
-          <button onClick={handleCsvExport}>Export CSV</button>
+          <button onClick={() => openExportDialog('csv')}>Export CSV</button>
           <button onClick={handleCsvImportClick}>Import CSV</button>
           <input ref={csvFileRef} type="file" accept=".csv,text/csv" onChange={handleCsvFileChange} style={{ display: 'none' }} />
         </div>
@@ -533,7 +552,7 @@ function Home() {
           Project Backup
         </p>
         <div className="button-group">
-          <button onClick={handleJsonExport}>Export Project JSON</button>
+          <button onClick={() => openExportDialog('json')}>Export Project JSON</button>
           <button onClick={handleJsonImportClick}>Import Project JSON</button>
           <input ref={jsonFileRef} type="file" accept=".json,application/json" onChange={handleJsonFileChange} style={{ display: 'none' }} />
         </div>
@@ -555,6 +574,46 @@ function Home() {
         Example deep link:{' '}
         <Link to="/controls/AC.L1-3.1.1" className="mono">/controls/AC.L1-3.1.1</Link>
       </p>
+
+      {exportDialog && (
+        <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="export-dialog-title">
+          <div className="confirm-dialog">
+            <h2 id="export-dialog-title">
+              {exportDialog.mode === 'csv' ? 'Export Assessment Progress' : 'Create Project Backup'}
+            </h2>
+            <p>These fields are optional. If left blank, a generic filename will be used.</p>
+            <div className="export-dialog-fields">
+              <label className="export-dialog-label">
+                OSC / Client Name
+                <input
+                  type="text"
+                  className="export-dialog-input"
+                  placeholder="e.g. Acme Corp"
+                  value={exportDialog.osc}
+                  onChange={(e) => setExportDialog((d) => ({ ...d, osc: e.target.value }))}
+                  autoFocus
+                />
+              </label>
+              <label className="export-dialog-label">
+                Assessment Name <span className="muted">(optional)</span>
+                <input
+                  type="text"
+                  className="export-dialog-input"
+                  placeholder="e.g. Q2 2026"
+                  value={exportDialog.assessment}
+                  onChange={(e) => setExportDialog((d) => ({ ...d, assessment: e.target.value }))}
+                />
+              </label>
+            </div>
+            <div className="confirm-dialog-buttons">
+              <button onClick={closeExportDialog}>Cancel</button>
+              <button onClick={confirmExport}>
+                {exportDialog.mode === 'csv' ? 'Export CSV' : 'Create Backup'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

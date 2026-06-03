@@ -137,9 +137,9 @@ export function importProjectState(projectJson, controls) {
 // Download helper (browser only)
 // =========================================================================
 
-export function downloadProjectJson(projectJson) {
+export function downloadProjectJson(projectJson, filename) {
   const date = new Date().toISOString().split('T')[0]
-  const filename = `cmmc-project-${date}.json`
+  const resolvedFilename = filename ?? `cmmc-project-${date}.json`
   const blob = new Blob(
     [JSON.stringify(projectJson, null, 2)],
     { type: 'application/json;charset=utf-8;' }
@@ -147,7 +147,7 @@ export function downloadProjectJson(projectJson) {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = filename
+  link.download = resolvedFilename
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
