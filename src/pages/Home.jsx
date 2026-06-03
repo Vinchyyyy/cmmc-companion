@@ -13,6 +13,7 @@ import {
   SCHEMA_VERSION,
 } from '../utils/projectState'
 import { readExportMeta, writeExportMeta, buildExportFilename } from '../utils/exportMeta'
+import { THEME_LIGHT, THEME_DARK, readTheme, writeTheme, applyTheme } from '../utils/theme'
 
 const KNOWN_CONTROL_IDS = new Set(controls.map((c) => c.id))
 
@@ -223,6 +224,14 @@ function Home() {
   const [selectedFamily, setSelectedFamily] = useState('All')
   // exportDialog: null (closed) | { mode: 'csv'|'json', osc: string, assessment: string }
   const [exportDialog, setExportDialog] = useState(null)
+  const [theme, setTheme] = useState(() => readTheme())
+
+  const toggleTheme = () => {
+    const next = theme === THEME_LIGHT ? THEME_DARK : THEME_LIGHT
+    writeTheme(next)
+    applyTheme(next)
+    setTheme(next)
+  }
 
   const openExportDialog = (mode) => {
     const meta = readExportMeta()
@@ -570,10 +579,20 @@ function Home() {
         </p>
       </section>
 
-      <p className="muted">
-        Example deep link:{' '}
-        <Link to="/controls/AC.L1-3.1.1" className="mono">/controls/AC.L1-3.1.1</Link>
-      </p>
+      <div className="home-footer-row">
+        <p className="muted" style={{ margin: 0 }}>
+          Example deep link:{' '}
+          <Link to="/controls/AC.L1-3.1.1" className="mono">/controls/AC.L1-3.1.1</Link>
+        </p>
+        <button
+          className="theme-toggle"
+          onClick={toggleTheme}
+          aria-label={theme === THEME_LIGHT ? 'Switch to dark mode' : 'Switch to light mode'}
+          title={theme === THEME_LIGHT ? 'Switch to dark mode' : 'Switch to light mode'}
+        >
+          {theme === THEME_LIGHT ? 'Dark' : 'Light'}
+        </button>
+      </div>
 
       {exportDialog && (
         <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="export-dialog-title">
