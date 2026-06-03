@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import controls from '../data/controls/index'
-import { STATUSES, readStatus, STATUS_BADGE_CLASS } from '../utils/status'
+import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
 import { readNote, writeNote } from '../utils/notes'
 import { hasObjectiveNotes, writeObjectiveNote } from '../utils/objectiveNotes'
 import {
@@ -68,6 +68,7 @@ function ControlLibrary() {
   const [searchInput, setSearchInput] = useState(urlSearch)
   const [selected, setSelected]       = useState(new Set())
   const [updateKey, setUpdateKey]     = useState(0)
+  const [confirmClear, setConfirmClear] = useState(false)
   const forceUpdate = () => setUpdateKey((k) => k + 1)
 
   useEffect(() => { setSearchInput(urlSearch) }, [urlSearch])
@@ -266,7 +267,7 @@ function ControlLibrary() {
             <option value="" disabled>Set inheritance…</option>
             {INHERITANCE_VALUES.map((v) => <option key={v} value={v}>{v}</option>)}
           </select>
-          <button className="bulk-toolbar-danger" onClick={bulkClearData}
+          <button className="bulk-toolbar-danger" onClick={() => setConfirmClear(true)}
             title="Reset status, inheritance, and all notes for selected controls">
             Clear Data
           </button>
@@ -343,6 +344,28 @@ function ControlLibrary() {
             </div>
           ))}
         </>
+      )}
+      {confirmClear && (
+        <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+          <div className="confirm-dialog">
+            <h2 id="confirm-title">Clear selected control data?</h2>
+            <p>This will reset the selected controls to:</p>
+            <ul>
+              <li>Status: Not Started</li>
+              <li>Inheritance: None</li>
+              <li>Control notes: deleted</li>
+              <li>Objective notes: deleted</li>
+            </ul>
+            <p>Scoring metadata, POA&amp;M eligibility, control text, evidence mappings, and relationships will not be changed.</p>
+            <p>This only affects data stored in this browser.</p>
+            <div className="confirm-dialog-buttons">
+              <button onClick={() => setConfirmClear(false)}>Cancel</button>
+              <button className="bulk-toolbar-danger" onClick={() => { bulkClearData(); setConfirmClear(false) }}>
+                Clear Data
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
