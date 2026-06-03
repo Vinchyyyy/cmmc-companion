@@ -513,11 +513,15 @@ function Home() {
         <p className="muted" style={{ marginBottom: 'var(--space-1)', fontSize: 'var(--text-xs)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
           Status CSV
         </p>
-        <div className="button-group" style={{ marginBottom: 'var(--space-4)' }}>
+        <div className="button-group">
           <button onClick={handleCsvExport}>Export CSV</button>
           <button onClick={handleCsvImportClick}>Import CSV</button>
           <input ref={csvFileRef} type="file" accept=".csv,text/csv" onChange={handleCsvFileChange} style={{ display: 'none' }} />
         </div>
+        <p className="io-description">
+          <strong>Export CSV</strong> — Export assessment progress including statuses, inheritance selections, and notes. Useful for sharing assessment progress or reviewing data in Excel.<br />
+          <strong>Import CSV</strong> — Import a previously exported assessment CSV to restore statuses, inheritance selections, and notes.
+        </p>
         {csvResult && (
           <p className={`feedback ${csvResult.ok ? 'feedback--ok' : 'feedback--error'}`}>
             {csvResult.message}
@@ -533,11 +537,18 @@ function Home() {
           <button onClick={handleJsonImportClick}>Import Project JSON</button>
           <input ref={jsonFileRef} type="file" accept=".json,application/json" onChange={handleJsonFileChange} style={{ display: 'none' }} />
         </div>
+        <p className="io-description">
+          <strong>Export Project JSON</strong> — Create a complete project backup including statuses, inheritance, control notes, and objective notes. Recommended before major changes or clearing browser data.<br />
+          <strong>Import Project JSON</strong> — Restore a complete project backup. This replaces current project data with the contents of the selected backup file.
+        </p>
         {jsonResult && (
           <p className={`feedback ${jsonResult.ok ? 'feedback--ok' : 'feedback--error'}`}>
             {jsonResult.message}
           </p>
         )}
+        <p className="io-description">
+          Tip: CSV exports are best for sharing assessment progress. JSON exports are intended for full project backup and recovery.
+        </p>
       </section>
 
       <p className="muted">
