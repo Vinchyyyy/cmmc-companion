@@ -1,4 +1,42 @@
 
+## Version 1.0.1 — First Production Deployment
+Date: June 3, 2026
+
+### Summary
+First production deployment of CMMC Companion. GitHub repository established, Cloudflare Pages configured, and CI/CD pipeline verified. Includes a bug fix that corrected a silent failure in the bulk Clear Data and bulk Set Status actions.
+
+### Fixes
+- **Bulk Clear Data was silently broken** — `writeStatus` was never imported in `ControlLibrary.jsx`; calls to it in `bulkClearData` and `bulkSetStatus` threw a `ReferenceError` at runtime and wrote nothing to localStorage. Added `writeStatus` to the existing status import.
+- **Bulk Set Status was silently broken** — same root cause; fixed by the same import correction.
+- **Clear Data had no confirmation guard** — clicking Clear Data immediately discarded all selected control data with no warning. Added a confirmation dialog before any data is modified.
+
+### Features Added
+- **Clear Data confirmation dialog** — modal overlay with explicit description of what will and will not be cleared: status, inheritance, control notes, and objective notes are reset; scoring metadata, POA&M eligibility, control definitions, evidence, and relationships are untouched. Buttons: Cancel (no-op) and Clear Data (confirms and executes).
+
+### Infrastructure
+- GitHub repository connected: `Vinchyyyy/cmmc-companion`
+- Cloudflare Pages project configured: framework preset Vite, build command `npm run build`, output directory `dist`
+- `public/_redirects` (`/* /index.html 200`) confirmed working — SPA deep-link routing verified on Cloudflare Pages
+- Automatic deployment pipeline verified: push to `main` triggers build and deploy
+- Production deployment from commit `85ee67d` verified successful
+
+### Validation
+- Controls: 110
+- Evidence Types: 130
+- Relationships: 189
+- Families: 14/14
+- Validator: Pass (4 pre-existing bidirectional relationship warnings, unchanged)
+
+### Deployment Status
+- GitHub: Yes — https://github.com/Vinchyyyy/cmmc-companion
+- Cloudflare Pages: Yes
+- Production URL: https://cmmc-companion.pages.dev
+
+### Notes
+The `writeStatus` import omission was a silent failure — no console error surfaced in development because the function was never called via a code path that would throw visibly. Both `bulkClearData` and `bulkSetStatus` were affected. The other three bulk write utilities (`writeInheritance`, `writeNote`, `writeObjectiveNote`) were imported correctly and functioned normally. The confirmation dialog uses a CSS overlay pattern consistent with existing bulk toolbar styles; no new dependencies introduced.
+
+---
+
 ## [V1 Stabilization — P1 Batch]
 
 ### Fixed — Quick Search: Scoring Metadata Now Searchable

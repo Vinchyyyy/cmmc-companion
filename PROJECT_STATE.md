@@ -1,4 +1,20 @@
 
+## Version History
+
+| Version | Date | Summary |
+|---|---|---|
+| 1.0.1 | June 3, 2026 | First production deployment; bulk Clear Data / Set Status bug fix; Clear Data confirmation dialog |
+| 1.0.0 | June 3, 2026 | Initial release — all 14 CMMC Level 2 families complete |
+
+## Deployment
+
+| Target | Status | URL |
+|---|---|---|
+| GitHub | Live | https://github.com/Vinchyyyy/cmmc-companion |
+| Cloudflare Pages | Live | https://cmmc-companion.pages.dev |
+
+CI/CD: push to `main` automatically triggers Cloudflare Pages build and deploy. Build command: `npm run build`. Output: `dist/`. SPA routing handled by `public/_redirects`.
+
 ## Current Dataset Totals (as of MP merge — V1 COMPLETE)
 
 | Dataset | Count |
