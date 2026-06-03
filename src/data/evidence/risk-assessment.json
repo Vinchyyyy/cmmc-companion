@@ -1,0 +1,79 @@
+[
+  {
+    "name": "Risk Assessment Policy and Procedure",
+    "description": "Written policy establishing the organizational risk assessment program — including scope, frequency, methodology, roles and responsibilities, and the process for disseminating and acting on results. May be a standalone policy or part of a broader Risk Management Policy.",
+    "likelyControls": [
+      "RA.L2-3.11.1",
+      "RA.L2-3.11.3"
+    ],
+    "reasoning": "RA.L2-3.11.1[a,e] requires periodic risk assessments and updates — the policy establishes the cadence and triggers. RA.L2-3.11.3[a] requires remediation in accordance with risk assessments — the procedure defines how remediation priority maps to risk findings. Assessors look for a policy that specifies 'periodically' with a defined frequency rather than an open-ended commitment, and a procedure that connects vulnerability findings to the broader risk framework rather than treating them in isolation."
+  },
+  {
+    "name": "Risk Assessment Report",
+    "description": "Formal documented output of the risk assessment process — identifying threat sources, threat events, vulnerabilities, likelihood and impact ratings, risk levels, and recommendations. Should include current and prior-cycle reports to demonstrate the periodic nature of the program.",
+    "likelyControls": [
+      "RA.L2-3.11.1"
+    ],
+    "reasoning": "Direct evidence for RA.L2-3.11.1[b,c,d,e] — the requirement to document, review, disseminate, and update risk assessment results. The report is the central artifact that assessors read first when evaluating RA.L2-3.11.1. A single undated report without a clear methodology is a finding. Two or more reports from different cycles showing consistent methodology and evolving findings demonstrates a functioning program. Assessors also verify that the report addresses organizational operations, assets, and individuals — not just IT systems."
+  },
+  {
+    "name": "Risk Register",
+    "description": "Structured tracking document or tool recording identified risks — including risk description, affected assets or systems, likelihood rating, impact rating, risk level, treatment decision (accept/mitigate/transfer/avoid), assigned owner, and current status. Updated as risk posture changes.",
+    "likelyControls": [
+      "RA.L2-3.11.1",
+      "RA.L2-3.11.3"
+    ],
+    "reasoning": "The risk register operationalizes both RA.L2-3.11.1[b] (documenting results) and RA.L2-3.11.3[a] (risk-informed remediation). For RA.L2-3.11.1, the register shows that risk findings persist and are tracked across assessment cycles. For RA.L2-3.11.3, the risk-level ratings in the register directly inform remediation priority decisions. An aging risk register with all findings at the same priority or never closed is a finding. Assessors look for a register that is actively maintained — not one that was built for a prior assessment and abandoned."
+  },
+  {
+    "name": "Vulnerability Scan Reports",
+    "description": "Output from authenticated vulnerability scanning tools (Tenable Nessus, Qualys VM, Rapid7 InsightVM, OpenVAS) covering all in-scope assets — showing discovered vulnerabilities with CVE identifiers, CVSS severity ratings, affected hosts, and remediation guidance. Includes both scheduled scan reports and any out-of-cycle scans.",
+    "likelyControls": [
+      "RA.L2-3.11.2",
+      "RA.L2-3.11.3"
+    ],
+    "reasoning": "The primary technical evidence for RA.L2-3.11.2[a,b,c]. The scan report demonstrates that scanning is happening (frequency and coverage), that credentials are being used (authenticated scan results show far more findings than unauthenticated), and that analysis is possible (findings have severity ratings and CVE IDs). For RA.L2-3.11.3, scan reports — especially rescan reports — show whether remediation was verified as effective. Assessors typically request the most recent full-scope scan report and compare it against the remediation tracking to verify the remediation lifecycle is closing findings, not just logging them."
+  },
+  {
+    "name": "Vulnerability Management Policy and Procedure",
+    "description": "Policy and procedure governing the vulnerability management lifecycle — including scan frequency, scope, authentication requirements, severity-based remediation SLAs, exception and risk acceptance process, and roles responsible for scanning, analysis, and remediation.",
+    "likelyControls": [
+      "RA.L2-3.11.2",
+      "RA.L2-3.11.3"
+    ],
+    "reasoning": "Establishes the documented framework for both RA.L2-3.11.2 (scanning) and RA.L2-3.11.3 (remediation). RA.L2-3.11.2[a] requires periodic scanning — the policy defines 'periodic.' RA.L2-3.11.3[a] requires risk-informed remediation — the procedure defines how severity ratings map to remediation timelines. Without documented SLAs, assessors have no basis to evaluate whether remediation is timely. A common finding is that the procedure exists but the SLAs are so lax (e.g., 'remediate within one year') that they provide no meaningful assurance."
+  },
+  {
+    "name": "Vulnerability Remediation Tracking Records",
+    "description": "Records from a vulnerability management platform, ticketing system, or patch management tool showing the status of identified vulnerabilities — open, in-progress, and closed — with dates, assigned owners, and remediation actions taken. Includes both current-state and historical closure records.",
+    "likelyControls": [
+      "RA.L2-3.11.3"
+    ],
+    "reasoning": "The primary operational evidence for RA.L2-3.11.3[a] — that vulnerabilities are actually being remediated, not just discovered. Assessors use tracking records to verify that the remediation SLA is being followed, that critical and high findings are not aging indefinitely, and that risk acceptance decisions are documented when immediate remediation is not possible. Tracking records in the scan tool alone (without change management or ticketing integration) may indicate a passive program where findings are noted but not actively pursued."
+  },
+  {
+    "name": "Vulnerability Scan Scope and Credential Configuration",
+    "description": "Configuration of the vulnerability scanning tool showing asset discovery scope, authenticated scan credentials, scan schedule, and scan policy profile — demonstrating that scans cover all in-scope assets and use administrative credentials to produce complete results.",
+    "likelyControls": [
+      "RA.L2-3.11.2"
+    ],
+    "reasoning": "Directly addresses the coverage and quality requirements implicit in RA.L2-3.11.2[a]. Assessors verify that the scan scope includes all asset types (not just servers), that credentials are configured and valid, and that the scan policy is appropriate for the environment. Unauthenticated scans miss the majority of local privilege escalation vulnerabilities, software inventory vulnerabilities, and configuration-level findings — making them insufficient for CMMC compliance even if run frequently. Configuration evidence is more reliable than verbal assurance that the scans are comprehensive."
+  },
+  {
+    "name": "Risk Acceptance and Exception Records",
+    "description": "Documented formal decisions to accept identified risks rather than remediate them — including the risk being accepted, the business rationale, compensating controls in place, the accepting authority, and an expiration or review date.",
+    "likelyControls": [
+      "RA.L2-3.11.3"
+    ],
+    "reasoning": "Risk acceptance is a legitimate outcome of the RA.L2-3.11.3 remediation process — not every vulnerability can be immediately patched, and compensating controls may be appropriate. The documentation of that decision is what satisfies the assessor. Undocumented risk acceptance (systems with known critical vulnerabilities and no paper trail explaining why they remain open) is a finding. Documented risk acceptance with clear compensating controls, an accepting authority, and a review date demonstrates a mature risk management posture."
+  },
+  {
+    "name": "Threat Intelligence Subscriptions and Reports",
+    "description": "Evidence of threat intelligence consumption — subscriptions to NVD, CISA Known Exploited Vulnerabilities (KEV) catalog, US-CERT alerts, vendor security advisories, or commercial threat intelligence feeds. Includes records of how intelligence is actioned (out-of-cycle scans, prioritization updates, emergency patches).",
+    "likelyControls": [
+      "RA.L2-3.11.1",
+      "RA.L2-3.11.2"
+    ],
+    "reasoning": "RA.L2-3.11.1 (risk assessment) should incorporate threat intelligence to ensure the threat landscape reflects current attacker activity, not just last year's assessment. RA.L2-3.11.2[b] requires scanning when new vulnerabilities affecting the organization are identified — threat intelligence is the mechanism that surfaces those new vulnerabilities. CISA KEV catalog subscriptions are a particularly strong indicator because they identify vulnerabilities known to be actively exploited, providing clear risk context for prioritization. An organization that neither subscribes to nor consumes external threat intelligence is making risk decisions in an information vacuum."
+  }
+]

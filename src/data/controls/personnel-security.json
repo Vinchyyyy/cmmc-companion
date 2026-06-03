@@ -1,0 +1,102 @@
+[
+  {
+    "id": "PS.L2-3.9.1",
+    "family": "Personnel Security",
+    "title": "Screen Individuals",
+    "controlText": "Screen individuals prior to authorizing access to organizational systems containing CUI.",
+    "plainEnglish": "Before anyone is granted access to systems that contain CUI, they must be screened. Screening evaluates an individual's trustworthiness — conduct, integrity, judgment, loyalty, reliability, and stability — and typically involves background investigations, criminal history checks, and credit checks proportional to the access level being granted. The Assessment Guide is explicit that screening activities must reflect applicable laws, regulations, and criteria for the specific access level required. Importantly, this practice is noted as improving upon the authentication performed in IA.L1-3.5.2 — identity verification alone is insufficient if the person's background has not been vetted before access is granted.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "individuals are screened prior to authorizing access to organizational systems containing CUI",
+        "whatToLookFor": "Evidence that background screening is completed before CUI access is granted — not just before employment begins, but specifically before CUI system access is authorized. Policy defining what screening consists of (criminal, credit, reference checks, etc.) for each role. Records showing screening was completed for individuals who have CUI access. The screening standard should be proportional to the CUI access scope: broad CUI access warrants deeper screening than limited access.",
+        "commonEvidence": [
+          "Personnel Security Policy defining screening requirements by access level",
+          "Background investigation records or screening completion certificates",
+          "HR onboarding records showing screening completed before CUI access provisioned",
+          "Vendor or contractor screening records for third parties with CUI access",
+          "Access provisioning workflow showing screening gate before CUI system access"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Personnel Security Policy",
+      "Background investigation or screening completion records",
+      "HR onboarding process documentation showing screening gate",
+      "Third-party screening attestation records",
+      "Access provisioning workflow documentation"
+    ],
+    "commonGaps": [
+      "CUI access granted before background check results are returned",
+      "Screening policy exists but contractors and subcontractors not covered",
+      "Screening requirements not proportional to access level — all roles get the same minimal check",
+      "Screening conducted at hire but not re-evaluated when role changes and CUI access expands",
+      "No records showing screening was completed — HR has a verbal process but nothing documented",
+      "Cloud service provider employees with access to CUI environments not screened by the organization"
+    ]
+  },
+  {
+    "id": "PS.L2-3.9.2",
+    "family": "Personnel Security",
+    "title": "Personnel Actions",
+    "controlText": "Ensure that organizational systems containing CUI are protected during and after personnel actions such as terminations and transfers.",
+    "plainEnglish": "When someone leaves the organization or changes roles, their access to CUI systems must be revoked promptly and completely — not just their primary workstation account, but every account, credential, badge, and key that touches CUI. This includes both terminations and transfers, where the old access must be revoked even if new access is being provisioned. The Assessment Guide notes that for terminations for cause, execution must be immediate — ideally the account is disabled before the person is notified. The Assessment Guide explicitly links this to IA.L1-3.5.1 — you need to know all the accesses an individual holds in order to revoke them all. Missing a legacy account, shared credential, or API key is a finding.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "a policy and/or process for terminating system access and any credentials coincident with personnel actions is established",
+        "whatToLookFor": "Documented process for revoking access upon termination and transfer — covering all account types (AD/IdP, SaaS applications, VPN, physical badge), all credential types (passwords, MFA tokens, API keys, certificates), and all CUI-adjacent systems. Process must specify timeframes: immediately for terminations for cause, within a defined window for standard offboarding. The policy should address both IT-managed accounts and business-owned SaaS accounts that may not route through IT.",
+        "commonEvidence": [
+          "Personnel Security Policy covering termination and transfer procedures",
+          "Offboarding procedure or checklist with defined timeframes",
+          "HR-IT notification workflow documentation",
+          "Account termination SLA definition"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "system access and credentials are terminated consistent with personnel actions such as termination or transfer",
+        "whatToLookFor": "Evidence that the process is followed — completed offboarding checklists, access revocation records showing accounts disabled within the required timeframe, credential revocation records (MFA tokens, certificates), and exit interview records. Assessors sample recent termination records and verify completeness: all accounts revoked, all credentials disabled, all physical access badges deactivated.",
+        "commonEvidence": [
+          "Completed offboarding checklists for recent terminations",
+          "Account disable/deletion records from AD or IdP",
+          "SaaS account revocation records or screenshots",
+          "MFA token and certificate revocation records",
+          "Physical badge deactivation records",
+          "Exit interview records"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "the system is protected during and after personnel transfer actions",
+        "whatToLookFor": "Evidence that transfers trigger access right-sizing — not just account continuation with old rights added to new rights, but explicit review and revocation of old role's access when new role's access is provisioned. Transfer records showing both the new access grant and the old access revocation. For extended transfers and reassignments, the same rigor as terminations is applied.",
+        "commonEvidence": [
+          "Transfer notification records from HR to IT",
+          "Access modification records showing old role access revoked and new role access provisioned",
+          "User access review records confirming transfer actions were completed",
+          "Completed transfer checklists",
+          "Physical access modification records for transferred employees"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Personnel Security Policy",
+      "Offboarding/termination checklist",
+      "Transfer notification and access modification procedure",
+      "Completed offboarding records for sampled terminations",
+      "Account and credential revocation records",
+      "Exit interview documentation",
+      "Physical badge revocation records"
+    ],
+    "commonGaps": [
+      "Accounts disabled promptly in Active Directory but SaaS app accounts left active for weeks",
+      "Transfer process adds new role access without revoking old role access — privilege accumulation",
+      "No HR-to-IT notification workflow — IT learns of terminations informally and inconsistently",
+      "Exit interviews not conducted for terminations for cause or remote employees",
+      "Shared accounts and service accounts tied to departed individuals not identified or revoked",
+      "Physical badge deactivation not in scope of the IT offboarding process",
+      "MFA hardware tokens and software tokens not revoked when AD account is disabled",
+      "API keys and service credentials created by departed employees not inventoried or rotated"
+    ]
+  }
+]

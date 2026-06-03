@@ -1,0 +1,662 @@
+[
+  {
+    "id": "CM.L2-3.4.1",
+    "family": "Configuration Management",
+    "title": "System Baselining",
+    "controlText": "Establish and maintain baseline configurations and inventories of organizational systems (including hardware, software, firmware, and documentation) throughout the respective system development life cycles.",
+    "plainEnglish": "Know exactly what is on every system \u2014 every piece of hardware, every installed application, every firmware version, every configuration setting \u2014 and document it as the approved baseline. Keep that documentation current as systems change. Without a baseline you cannot detect unauthorized changes, enforce hardening, or recover quickly from incidents. This is the foundation of the CM family: every other CM control either builds on this baseline or enforces it.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "a baseline configuration is established",
+        "whatToLookFor": "A documented baseline configuration for each system class (workstations, servers, network gear, mobile devices, cloud environments) that specifies approved software, configuration parameters, network placement, and version/patch levels. The baseline must be formally approved, not just a snapshot someone saved.",
+        "commonEvidence": [
+          "Approved baseline configuration documents per system type",
+          "Security configuration checklists or STIGs used as baselines",
+          "Configuration Management Plan documenting baseline establishment",
+          "Group Policy or configuration-as-code (Ansible, Chef, Puppet) baseline definitions"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "the baseline configuration includes hardware, software, firmware, and documentation",
+        "whatToLookFor": "Baseline document explicitly covers all four components \u2014 hardware specs, approved software list with versions, firmware versions, and supporting documentation. Partial baselines (e.g., software only, no firmware) are a finding.",
+        "commonEvidence": [
+          "Baseline document showing hardware, software, firmware, and documentation sections",
+          "CMDB or asset inventory with all four component types",
+          "System security plan referencing the baseline"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "the baseline configuration is maintained (reviewed and updated) throughout the system development life cycle",
+        "whatToLookFor": "Evidence of periodic baseline reviews and updates \u2014 calendar reminders, version history on configuration documents, change management records showing baseline updates triggered by significant changes or scheduled reviews.",
+        "commonEvidence": [
+          "Baseline version history or revision log",
+          "Periodic baseline review records",
+          "Change management tickets showing baseline update as required step"
+        ]
+      },
+      {
+        "id": "d",
+        "text": "a system inventory is established",
+        "whatToLookFor": "A maintained inventory of system components \u2014 physical and virtual \u2014 that can be cross-checked against what is actually deployed. Not just an old spreadsheet; an authoritative record used operationally.",
+        "commonEvidence": [
+          "CMDB or asset inventory export",
+          "Endpoint management platform inventory (SCCM, Intune, Jamf)",
+          "Network discovery scan results",
+          "Cloud resource inventory (AWS Config, Azure Resource Manager export)"
+        ]
+      },
+      {
+        "id": "e",
+        "text": "the system inventory includes hardware, software, firmware, and documentation",
+        "whatToLookFor": "Inventory covers all four component types for each system. Software inventory must include version numbers and license information. Networked devices must include MAC addresses and network addresses.",
+        "commonEvidence": [
+          "Software inventory with version numbers from endpoint management tool",
+          "Hardware inventory including serial numbers, manufacturer, model",
+          "Firmware version tracking for network gear and appliances"
+        ]
+      },
+      {
+        "id": "f",
+        "text": "the inventory is maintained (reviewed and updated) throughout the system development life cycle",
+        "whatToLookFor": "Inventory kept current \u2014 automated discovery where possible, periodic manual review otherwise. Evidence that decommissioned assets are removed and new assets are added promptly. Stale inventories are a very common finding.",
+        "commonEvidence": [
+          "Automated discovery tool configuration (Nessus, Qualys, Lansweeper)",
+          "Periodic inventory reconciliation records",
+          "Onboarding/offboarding procedure referencing inventory update steps"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Configuration Management Policy and Plan",
+      "Baseline configuration documents per system class",
+      "CMDB or asset management platform export",
+      "Endpoint management tool inventory (SCCM, Intune, Jamf, JAMF Pro)",
+      "Network discovery scan results",
+      "Change management records showing baseline maintenance",
+      "System Security Plan section on CM baseline"
+    ],
+    "commonGaps": [
+      "Baseline exists for servers but not for workstations, network gear, or cloud environments",
+      "Software inventory tracks installed applications but not firmware versions",
+      "Baseline document not reviewed or updated after major system changes",
+      "CMDB maintained by IT but security is not notified when it changes",
+      "Cloud resource inventory exists but is not linked to the on-prem baseline framework",
+      "Inventory is manual and months out of date \u2014 nobody owns the update process",
+      "Baseline says 'current patch level' rather than specifying actual versions \u2014 not verifiable"
+    ]
+  },
+  {
+    "id": "CM.L2-3.4.2",
+    "family": "Configuration Management",
+    "title": "Security Configuration Enforcement",
+    "controlText": "Establish and enforce security configuration settings for information technology products employed in organizational systems.",
+    "plainEnglish": "Define the specific security settings for each type of IT product in the environment and enforce them. This goes beyond knowing what software is installed (CM.L2-3.4.1) \u2014 it specifies the actual security parameters: registry values, account settings, service states, port configurations, authentication requirements. Deviations from the approved settings must be documented and approved, not quietly tolerated. Industry benchmarks like CIS or DISA STIGs are standard sources for the settings themselves.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "security configuration settings for information technology products employed in the system are established and included in the baseline configuration",
+        "whatToLookFor": "Security configuration settings derived from a recognized source (CIS Benchmarks, DISA STIGs, vendor hardening guides) and incorporated into the baseline from CM.L2-3.4.1. Settings must be specific enough to verify \u2014 'minimize services' is not sufficient; 'Telnet service disabled' is.",
+        "commonEvidence": [
+          "CIS Benchmark or DISA STIG compliance reports",
+          "Documented deviations from benchmark with business justification",
+          "Security configuration checklist per system type",
+          "Group Policy Objects (GPOs) showing security settings"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "security configuration settings for information technology products employed in the system are enforced",
+        "whatToLookFor": "Technical enforcement \u2014 not just documentation. Configuration management tools (GPO, Ansible, SCCM baselines, cloud policy) enforce settings and detect or remediate drift. Evidence of enforcement: compliance reports, drift detection alerts, remediation tickets.",
+        "commonEvidence": [
+          "Endpoint compliance reports showing policy conformance percentage",
+          "GPO resultant-set-of-policy output for representative endpoints",
+          "Configuration drift detection alerts and remediation records",
+          "Cloud security posture management (CSPM) compliance reports"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "CIS Benchmark or DISA STIG compliance reports",
+      "Group Policy Object documentation",
+      "Endpoint compliance baseline reports (SCCM, Intune, Qualys PC)",
+      "Configuration deviation log with approvals",
+      "Cloud security posture management configuration",
+      "Hardening guide references"
+    ],
+    "commonGaps": [
+      "Security configuration settings defined in a document but not technically enforced \u2014 relies on manual compliance",
+      "Servers hardened; workstations, network gear, and cloud resources not covered",
+      "Deviations from the benchmark exist but are not documented or approved",
+      "Benchmark applied at build time but configuration drift never detected afterward",
+      "STIG or CIS used as reference but implementation only meets a fraction of the controls with no tracking of what is skipped",
+      "No formal deviation management process \u2014 exceptions accumulate silently"
+    ]
+  },
+  {
+    "id": "CM.L2-3.4.3",
+    "family": "Configuration Management",
+    "title": "System Change Management",
+    "controlText": "Track, review, approve or disapprove, and log changes to organizational systems.",
+    "plainEnglish": "Every change to systems \u2014 hardware upgrades, software installs, configuration changes, patches, network modifications \u2014 goes through a formal process: it gets tracked in a ticketing system, reviewed by relevant stakeholders, explicitly approved or rejected, and logged. Ad-hoc changes that bypass the process are a finding. The change log is also the audit trail that lets you reconstruct what was in place at any given time, which matters enormously during incident investigation.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "changes to the system are tracked",
+        "whatToLookFor": "A change tracking system (ITSM/ticketing tool) where all proposed system changes are recorded. Coverage: hardware, software, configuration, and firmware changes. Not just major changes \u2014 minor config updates and patches should also be tracked.",
+        "commonEvidence": [
+          "Change management tickets from ITSM tool (ServiceNow, Jira, Freshservice)",
+          "RFC (Request for Change) records",
+          "Patch management records showing tracked deployments"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "changes to the system are reviewed",
+        "whatToLookFor": "Evidence that proposed changes are reviewed by relevant stakeholders before implementation \u2014 Change Advisory Board (CAB) minutes, peer review records, security review sign-offs on high-risk changes.",
+        "commonEvidence": [
+          "CAB meeting minutes or agendas showing change review",
+          "Change ticket records showing reviewer sign-off",
+          "Security review records for significant changes"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "changes to the system are approved or disapproved",
+        "whatToLookFor": "Each change has an explicit approval decision recorded \u2014 not just 'reviewed' but a clear authorized decision. Rejected changes tracked as well. Emergency change approval path documented.",
+        "commonEvidence": [
+          "Change tickets showing approval status and approver name",
+          "Escalation records for emergency changes",
+          "Rejected change records"
+        ]
+      },
+      {
+        "id": "d",
+        "text": "changes to the system are logged",
+        "whatToLookFor": "Audit logs of changes including activities before and after the change, who made the change, and timestamps. System-generated change logs (Windows Event Log, Linux audit log, cloud activity logs) supplement the ITSM records.",
+        "commonEvidence": [
+          "Change management tool completion records",
+          "System audit logs showing configuration changes",
+          "Automated deployment logs from patch management or IaC tools"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "ITSM change management records",
+      "CAB meeting minutes",
+      "Emergency change procedure",
+      "System audit logs showing configuration changes",
+      "Patch deployment records",
+      "Change management policy"
+    ],
+    "commonGaps": [
+      "Changes tracked in a spreadsheet or email rather than a formal ITSM tool",
+      "Emergency changes bypass approval process without documentation",
+      "Patch management treated as routine maintenance outside the change process",
+      "Changes approved but not logged \u2014 no audit trail of what actually changed",
+      "Cloud configuration changes not fed into the change management process",
+      "CAB meets monthly but emergency changes fill the gaps with no equivalent oversight"
+    ]
+  },
+  {
+    "id": "CM.L2-3.4.4",
+    "family": "Configuration Management",
+    "title": "Security Impact Analysis",
+    "controlText": "Analyze the security impact of changes prior to implementation.",
+    "plainEnglish": "Before a change goes in, someone with security expertise evaluates what it might do to the security posture \u2014 not just whether it will work technically. The person who submitted the change should not be the only reviewer. Security impact analysis is part of the change management process from CM.L2-3.4.3, but specifically focuses on security implications: does this change introduce vulnerabilities, weaken a compensating control, open a network path, or create an exception to a security policy?",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "the security impact of changes to the system is analyzed prior to implementation",
+        "whatToLookFor": "Evidence that security impact analysis happens before changes are implemented \u2014 not just technical testing. The analysis is performed by someone with information security responsibilities, distinct from the change submitter. High-risk changes get documented security review; routine patches may follow a streamlined assessment.",
+        "commonEvidence": [
+          "Change tickets with completed security impact analysis section",
+          "Security review sign-off records on changes above a risk threshold",
+          "Documented criteria for when a full security impact analysis is required",
+          "Test environment validation records showing changes were tested before production"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Change management policy including security impact analysis requirement",
+      "Change ticket template with security impact section",
+      "Security review records for significant changes",
+      "Test environment documentation",
+      "Risk acceptance records for changes approved with known security trade-offs"
+    ],
+    "commonGaps": [
+      "Security impact analysis only done for major changes; routine patches and config updates skipped",
+      "The change submitter completes the security impact section \u2014 no independent security review",
+      "Template includes a security impact section but it is always left blank or filled with 'none'",
+      "No test environment \u2014 changes go directly to production",
+      "Security review exists but happens after implementation ('post-hoc approval')"
+    ]
+  },
+  {
+    "id": "CM.L2-3.4.5",
+    "family": "Configuration Management",
+    "title": "Access Restrictions for Change",
+    "controlText": "Define, document, approve, and enforce physical and logical access restrictions associated with changes to organizational systems.",
+    "plainEnglish": "Not everyone should be able to make changes to systems, even if they can technically access them. This practice requires explicitly defining who is authorized to make physical changes (access to server rooms, network closets, datacenter racks) and logical changes (configuration, software installs, patching), documenting those authorizations, and technically enforcing them. It is closely related to least privilege (AC.L2-3.1.5) but focused specifically on the change-making capability and tied into the CM process.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "physical access restrictions associated with changes to the system are defined",
+        "whatToLookFor": "Documented definition of who may physically access and modify hardware \u2014 server rooms, wiring closets, network racks. Should include third-party technicians and how they are escorted and supervised.",
+        "commonEvidence": [
+          "Physical access control policy for server rooms and network areas",
+          "Documented authorized personnel list for physical access",
+          "Visitor and contractor escort procedures"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "physical access restrictions associated with changes to the system are documented",
+        "whatToLookFor": "Written records showing physical access authorizations \u2014 not just a policy, but the actual personnel list or badge-access configuration.",
+        "commonEvidence": [
+          "Badge access authorization records",
+          "Physical access control system roster",
+          "Visitor log for datacenter or server room access"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "physical access restrictions associated with changes to the system are approved",
+        "whatToLookFor": "Physical access grants are explicitly approved \u2014 not automatically inherited from job title. Temporary access for vendors or contractors is time-limited and approved before the visit.",
+        "commonEvidence": [
+          "Physical access approval records",
+          "Temporary access request and approval records for vendors"
+        ]
+      },
+      {
+        "id": "d",
+        "text": "physical access restrictions associated with changes to the system are enforced",
+        "whatToLookFor": "Technical enforcement \u2014 badge readers, locks, camera coverage \u2014 that actually prevents unauthorized physical access. Not just a 'do not enter' sign.",
+        "commonEvidence": [
+          "Physical access control system configuration",
+          "Physical security audit or assessment records"
+        ]
+      },
+      {
+        "id": "e",
+        "text": "logical access restrictions associated with changes to the system are defined",
+        "whatToLookFor": "Documented definition of who may make logical changes \u2014 install software, change configurations, apply patches, modify network rules. Distinct from who can read systems.",
+        "commonEvidence": [
+          "Change authorization matrix",
+          "RBAC definitions showing change-capable roles",
+          "Patch management tool access definitions"
+        ]
+      },
+      {
+        "id": "f",
+        "text": "logical access restrictions associated with changes to the system are documented",
+        "whatToLookFor": "Written records of who holds change-capable logical access. Maintained and reviewed.",
+        "commonEvidence": [
+          "Group membership exports for admin and change roles",
+          "Privileged access inventory",
+          "Patch management tool user roster"
+        ]
+      },
+      {
+        "id": "g",
+        "text": "logical access restrictions associated with changes to the system are approved",
+        "whatToLookFor": "Change-capable access is explicitly approved \u2014 not assumed from being a sysadmin. Temporary elevated access for change windows is time-limited and approved.",
+        "commonEvidence": [
+          "Access approval records for change-capable roles",
+          "Temporary access request records for change windows",
+          "Privileged account approval tickets"
+        ]
+      },
+      {
+        "id": "h",
+        "text": "logical access restrictions associated with changes to the system are enforced",
+        "whatToLookFor": "Technical enforcement that non-authorized users cannot make configuration changes \u2014 RBAC, least-privilege configuration, PAM tools. Verified by confirming a non-admin account cannot install software or change system settings.",
+        "commonEvidence": [
+          "Endpoint management platform confirming standard users lack install rights",
+          "PAM tool configuration restricting privileged actions",
+          "System audit logs showing rejected unauthorized change attempts"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Physical access control policy and personnel list",
+      "Logical access matrix for change-capable roles",
+      "Badge access system records",
+      "Group membership exports for change roles",
+      "PAM tool configuration",
+      "Temporary access request and approval records"
+    ],
+    "commonGaps": [
+      "All IT staff can log into production systems with admin rights \u2014 no restriction on who can make changes",
+      "Physical access to server room is badge-controlled but the badge list is never reviewed or updated",
+      "Vendor and contractor temporary access is not time-limited or formally approved",
+      "Logical access restrictions defined in policy but not technically enforced",
+      "Change-capable accounts shared among team members \u2014 no individual accountability",
+      "Former employees' badge access disabled but logical admin access in patch management tools never revoked"
+    ]
+  },
+  {
+    "id": "CM.L2-3.4.6",
+    "family": "Configuration Management",
+    "title": "Least Functionality",
+    "controlText": "Employ the principle of least functionality by configuring organizational systems to provide only essential capabilities.",
+    "plainEnglish": "Systems should be configured to do only what they need to do, nothing more. A web server does not need to run email services. A workstation does not need Bluetooth enabled if employees never use wireless peripherals. A database server does not need a web browser. Every unnecessary capability is a potential attack surface \u2014 removing it reduces risk without impacting the mission. This is a direct parallel to least privilege for accounts (AC.L2-3.1.5) applied to system capabilities instead.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "essential system capabilities are defined based on the principle of least functionality",
+        "whatToLookFor": "Documented definition of what each system class is required to do \u2014 its business purpose and required capabilities. This list drives what is enabled; everything else is disabled by default. System role definitions per system class.",
+        "commonEvidence": [
+          "System role definitions or capability matrix",
+          "Configuration Management Plan listing allowed capabilities per system type",
+          "Security configuration checklist with 'enabled/disabled' rationale per setting"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "the system is configured to provide only the defined essential capabilities",
+        "whatToLookFor": "Technical evidence that systems are actually configured to the defined capability set \u2014 not just a policy saying they should be. Compliance reports, configuration scans, or automated build outputs showing non-essential services are disabled.",
+        "commonEvidence": [
+          "Endpoint hardening scan results showing disabled services",
+          "Network port scan results showing only expected ports open",
+          "Automated build pipeline outputs confirming baseline configuration",
+          "Services inventory showing only approved services running"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "System role definitions or capability matrix",
+      "Security configuration baselines with least-functionality implementation",
+      "Port and service audit results",
+      "Endpoint compliance reports",
+      "System build/image documentation"
+    ],
+    "commonGaps": [
+      "Default operating system and application configurations used \u2014 many unnecessary services still running",
+      "Capability restrictions applied to servers but not to workstations or network devices",
+      "Bluetooth, LLMNR, NetBIOS, and other low-value protocols still enabled by default",
+      "Legacy applications require broad system access that creates unnecessary capability exposure",
+      "Least functionality defined in policy but no technical scan ever validates it",
+      "Cloud resources provisioned with default configurations, not trimmed to least functionality"
+    ]
+  },
+  {
+    "id": "CM.L2-3.4.7",
+    "family": "Configuration Management",
+    "title": "Nonessential Functionality",
+    "controlText": "Restrict, disable, or prevent the use of nonessential programs, functions, ports, protocols, and services.",
+    "plainEnglish": "This extends CM.L2-3.4.6 (least functionality) by specifying exactly what must be restricted: programs, functions, ports, protocols, and services individually. CM.L2-3.4.6 establishes the principle; CM.L2-3.4.7 requires the specific technical implementation for each category. Unused ports blocked. Unnecessary protocols disabled (FTP, Telnet, LLMNR, NBT-NS). Peer-to-peer networking prevented. Non-essential services stopped and set to manual/disabled. Software restricted to the approved list.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "essential programs are defined",
+        "whatToLookFor": "A documented list of approved/essential programs per system type. This is the software whitelist or approved application catalog.",
+        "commonEvidence": [
+          "Approved software list or application catalog",
+          "Application allow-list configuration",
+          "Software inventory from endpoint management tool"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "the use of nonessential programs is defined",
+        "whatToLookFor": "Documented definition of what programs are NOT allowed \u2014 either an explicit deny list or a default-deny-all-not-on-the-approved-list approach.",
+        "commonEvidence": [
+          "Prohibited software list or policy",
+          "Application control policy (blacklist vs whitelist approach)",
+          "Endpoint security software unauthorized application detection logs"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "the use of nonessential programs is restricted, disabled, or prevented as defined",
+        "whatToLookFor": "Technical enforcement that non-approved programs cannot run or are detected when they run. AppLocker, Defender Application Control, Carbon Black, or equivalent.",
+        "commonEvidence": [
+          "Application control tool configuration and enforcement logs",
+          "AppLocker or WDAC policy export",
+          "Blocked application execution reports"
+        ]
+      },
+      {
+        "id": "d",
+        "text": "essential functions are defined",
+        "whatToLookFor": "Documented list of essential system functions that must remain enabled per the system's role.",
+        "commonEvidence": [
+          "System role definition with required functions",
+          "Configuration baseline specifying enabled functions"
+        ]
+      },
+      {
+        "id": "e",
+        "text": "the use of nonessential functions is defined",
+        "whatToLookFor": "Explicit definition of which functions are not needed and will be disabled.",
+        "commonEvidence": [
+          "Configuration checklist with disabled functions documented",
+          "Security baseline showing function-level disable decisions"
+        ]
+      },
+      {
+        "id": "f",
+        "text": "the use of nonessential functions is restricted, disabled, or prevented as defined",
+        "whatToLookFor": "Technical verification that non-essential functions are actually disabled \u2014 not just documented as such. Configuration scan results.",
+        "commonEvidence": [
+          "Configuration compliance scan results",
+          "GPO or MDM settings disabling specific OS functions"
+        ]
+      },
+      {
+        "id": "g",
+        "text": "essential ports are defined",
+        "whatToLookFor": "Documented list of required open ports per system type or segment, tied to specific business-justified services.",
+        "commonEvidence": [
+          "Approved ports list or firewall rule documentation",
+          "Network architecture diagram with port mappings"
+        ]
+      },
+      {
+        "id": "h",
+        "text": "the use of nonessential ports is defined",
+        "whatToLookFor": "Explicit identification of ports to be blocked or closed. Not just 'everything else' \u2014 actually enumerated in the policy or configuration standard.",
+        "commonEvidence": [
+          "Firewall default-deny policy with blocked port documentation",
+          "Host firewall configuration baseline"
+        ]
+      },
+      {
+        "id": "i",
+        "text": "the use of nonessential ports is restricted, disabled, or prevented as defined",
+        "whatToLookFor": "Network scan showing only expected ports open. Host-based firewall scan showing non-essential ports blocked.",
+        "commonEvidence": [
+          "Network port scan results (Nmap, Nessus, Qualys)",
+          "Host firewall compliance reports",
+          "Firewall rule audits"
+        ]
+      },
+      {
+        "id": "j",
+        "text": "essential protocols are defined",
+        "whatToLookFor": "Documented list of approved network protocols \u2014 those required for business operations.",
+        "commonEvidence": [
+          "Approved protocols list in network security policy",
+          "Firewall rule documentation showing allowed protocols"
+        ]
+      },
+      {
+        "id": "k",
+        "text": "the use of nonessential protocols is defined",
+        "whatToLookFor": "Explicit prohibition of dangerous legacy protocols \u2014 FTP, Telnet, SSLv3, TLS 1.0/1.1, LLMNR, NetBIOS, NTLMv1, SNMPv1/v2.",
+        "commonEvidence": [
+          "Protocol restriction policy",
+          "Network security configuration standard listing disabled protocols"
+        ]
+      },
+      {
+        "id": "l",
+        "text": "the use of nonessential protocols is restricted, disabled, or prevented as defined",
+        "whatToLookFor": "Technical verification \u2014 TLS scan results, network scan, Group Policy settings disabling LLMNR/NetBIOS, SNMP version enforcement.",
+        "commonEvidence": [
+          "TLS scan results showing disabled legacy versions",
+          "Group Policy settings disabling LLMNR, NetBIOS over TCP/IP",
+          "Network protocol analysis results"
+        ]
+      },
+      {
+        "id": "m",
+        "text": "essential services are defined",
+        "whatToLookFor": "Documented list of system services required for each system type to perform its role.",
+        "commonEvidence": [
+          "Required services list per system class",
+          "Approved services baseline in configuration documentation"
+        ]
+      },
+      {
+        "id": "n",
+        "text": "the use of nonessential services is defined",
+        "whatToLookFor": "Explicit list of services to be stopped and disabled \u2014 Windows services, Linux daemons, cloud platform services not needed for the workload's purpose.",
+        "commonEvidence": [
+          "Disabled services list in hardening baseline",
+          "Configuration checklist with service enable/disable decisions"
+        ]
+      },
+      {
+        "id": "o",
+        "text": "the use of nonessential services is restricted, disabled, or prevented as defined",
+        "whatToLookFor": "Running services list on representative systems shows only approved services. Automated scan confirms compliance.",
+        "commonEvidence": [
+          "Running services audit output from representative systems",
+          "Configuration compliance scan showing service state",
+          "Endpoint management platform compliance report"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Approved programs, ports, protocols, and services documentation",
+      "Network port scan results",
+      "Application control configuration",
+      "Group Policy and MDM settings for protocol and service restrictions",
+      "Configuration compliance scan reports",
+      "Host and network firewall configurations"
+    ],
+    "commonGaps": [
+      "LLMNR and NetBIOS still enabled on workstations and servers \u2014 common lateral movement enabler",
+      "FTP or Telnet services still running on legacy systems with no documented exception",
+      "Application restriction policy is blacklist-based with no monitoring of unlisted software",
+      "Port restrictions apply to the perimeter but host-based firewalls are disabled or set to allow-all",
+      "Services audit done once at build time; no ongoing verification that services haven't re-enabled",
+      "SNMPv1/v2 still used for monitoring with community strings that amount to plaintext credentials"
+    ]
+  },
+  {
+    "id": "CM.L2-3.4.8",
+    "family": "Configuration Management",
+    "title": "Application Execution Policy",
+    "controlText": "Apply deny-by-exception (blacklisting) policy to prevent the use of unauthorized software or deny-all, permit-by-exception (whitelisting) policy to allow the execution of authorized software.",
+    "plainEnglish": "This extends CM.L2-3.4.9 (which only requires controlling user-installed software) to require a system-level application execution policy. You must choose: either whitelist (nothing runs unless explicitly approved \u2014 stronger) or blacklist (everything can run unless explicitly blocked \u2014 weaker but more practical). The choice must be documented, and the configured list must match the documentation. This is a key ransomware and malware defense because it prevents execution of unauthorized payloads even if they somehow land on the system.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "a policy specifying whether whitelisting or blacklisting is to be implemented is specified",
+        "whatToLookFor": "Documented policy decision on application execution approach \u2014 whitelist or blacklist \u2014 with business rationale. The policy should specify any exceptions (e.g., whitelist on servers, blacklist on workstations).",
+        "commonEvidence": [
+          "Application execution policy document",
+          "Configuration Management Policy section on application control",
+          "System security plan section on application execution"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "the software allowed to execute under whitelisting or denied use under blacklisting is specified",
+        "whatToLookFor": "Maintained list of allowed applications (whitelist) or blocked applications (blacklist) \u2014 not just a policy saying there will be a list, but the actual list with version information where applicable.",
+        "commonEvidence": [
+          "Application allow-list or deny-list export from control tool",
+          "AppLocker, WDAC, or Defender Application Control policy rules",
+          "EDR/AV blocked applications list"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "whitelisting to allow the execution of authorized software or blacklisting to prevent the use of unauthorized software is implemented as specified",
+        "whatToLookFor": "Technical implementation matching the documented policy. Whitelist mode: unapproved applications fail to launch and generate events. Blacklist mode: known-bad applications are blocked and alerted. Evidence of actual enforcement, not just configuration.",
+        "commonEvidence": [
+          "Application control enforcement logs",
+          "Blocked execution events in SIEM or EDR",
+          "Audit mode reports showing scope before full enforcement",
+          "Test evidence showing unauthorized application is blocked"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Application execution policy document",
+      "Application allow-list or block-list",
+      "AppLocker, WDAC, or equivalent tool configuration",
+      "EDR application control logs",
+      "SIEM alerts for blocked execution attempts"
+    ],
+    "commonGaps": [
+      "Policy says whitelist but implementation is audit-mode only \u2014 nothing is actually blocked",
+      "Application control deployed on servers but not on workstations where most executions occur",
+      "Allow-list so broad (entire C:\\Windows\\, Program Files\\) that it provides minimal protection",
+      "Blacklist approach with no process to add newly-discovered malicious software promptly",
+      "Application execution policy not integrated with software procurement \u2014 approved apps installed without updating the allow-list",
+      "No monitoring of blocked execution events \u2014 the control runs silently with no one reviewing alerts"
+    ]
+  },
+  {
+    "id": "CM.L2-3.4.9",
+    "family": "Configuration Management",
+    "title": "User-Installed Software",
+    "controlText": "Control and monitor user-installed software.",
+    "plainEnglish": "Standard users should not be able to install arbitrary software on organizational systems. When they can, they introduce unvetted applications, license risks, malware vectors, and configuration drift \u2014 and it usually happens faster than IT can detect it. This practice requires a policy defining what users may and may not install, technical controls that enforce it, and monitoring to detect when users install software anyway (which happens, especially on systems where users have more access than they should). It is lighter than the full application execution policy in CM.L2-3.4.8.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "a policy for controlling the installation of software by users is established",
+        "whatToLookFor": "Documented policy defining what users may install \u2014 typically nothing without IT approval, with a defined approval process. May permit installs from an approved app store or self-service portal with pre-approved items.",
+        "commonEvidence": [
+          "Acceptable use policy covering software installation",
+          "User-installed software policy",
+          "Software request and approval procedure"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "installation of software by users is controlled based on the established policy",
+        "whatToLookFor": "Technical enforcement that standard users lack installation privileges \u2014 Windows UAC enforced, standard user account (not local admin), software deployment only via managed channels (SCCM, Intune, Jamf). Spot-check: attempt to install software as a standard user and confirm it fails.",
+        "commonEvidence": [
+          "Endpoint management configuration confirming standard users lack admin rights",
+          "MDM policy preventing sideloading on mobile devices",
+          "Software deployment tool showing IT-controlled deployment only",
+          "UAC configuration showing elevation required for installations"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "installation of software by users is monitored",
+        "whatToLookFor": "Detection capability for software installs \u2014 endpoint management platform reports on newly-installed software, SIEM alerts on software installation events, periodic software inventory reconciliation comparing current state to approved baseline.",
+        "commonEvidence": [
+          "Endpoint management software inventory change reports",
+          "SIEM or EDR alerts on software installation events",
+          "Periodic software inventory reconciliation records",
+          "Change detection tool reports showing new software"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "User-installed software policy",
+      "Endpoint management platform configuration showing user privilege levels",
+      "Software inventory change monitoring reports",
+      "SIEM or EDR software installation alerts",
+      "IT software request and approval workflow"
+    ],
+    "commonGaps": [
+      "Users have local admin rights on their own workstations \u2014 can install anything",
+      "Policy prohibits user installs but no technical enforcement exists",
+      "Software install monitoring generates alerts but nobody reviews them",
+      "Approved self-service portal exists but users have found workarounds",
+      "Mobile devices not covered \u2014 users sideload apps or use personal apps for work",
+      "Developer workstations given broad install rights with no monitoring, creating a policy exception that swallows the rule"
+    ]
+  }
+]

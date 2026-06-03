@@ -1,0 +1,20 @@
+[
+  {
+    "sourceControl": "RA.L2-3.11.1",
+    "targetControl": "RA.L2-3.11.2",
+    "relationshipType": "supports",
+    "reasoning": "The risk assessment (RA.L2-3.11.1) provides the risk context that makes vulnerability scanning (RA.L2-3.11.2) meaningful. Knowing which systems process CUI, what the threat environment looks like, and what the organization's risk tolerance is informs scan frequency, scope, and the credentialing approach. An organization that scans without a risk framework treats all findings equally; one grounded in RA.L2-3.11.1 prioritizes scan coverage and cadence based on asset criticality and threat relevance."
+  },
+  {
+    "sourceControl": "RA.L2-3.11.1",
+    "targetControl": "RA.L2-3.11.3",
+    "relationshipType": "prerequisite",
+    "reasoning": "RA.L2-3.11.3 explicitly requires remediation 'in accordance with risk assessments.' The risk assessment from RA.L2-3.11.1 is the document that defines what risk-informed remediation means for this organization — which asset types are highest priority, what the acceptable risk tolerance is, and how severity maps to urgency. Without RA.L2-3.11.1, RA.L2-3.11.3 has no risk framework to align to and becomes purely a patch-scheduling exercise disconnected from organizational priorities."
+  },
+  {
+    "sourceControl": "RA.L2-3.11.2",
+    "targetControl": "RA.L2-3.11.3",
+    "relationshipType": "prerequisite",
+    "reasoning": "Remediation (RA.L2-3.11.3) requires findings to remediate — those findings come from vulnerability scanning (RA.L2-3.11.2). Without an active scanning program, RA.L2-3.11.3 has nothing to act on. The Assessment Guide treats these as companion practices: scanning discovers vulnerabilities; remediation closes them. The quality of RA.L2-3.11.3 is directly bounded by the coverage and frequency of RA.L2-3.11.2."
+  }
+]

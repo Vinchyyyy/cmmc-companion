@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Network Boundary Diagram",
+    "description": "A current architecture diagram showing external boundaries (firewalls, internet egress, cloud edges), key internal boundaries (CUI enclave, DMZ, dev/prod separation), and the protection mechanisms at each boundary.",
+    "likelyControls": [
+      "SC.L1-3.13.1",
+      "SC.L1-3.13.5",
+      "SC.L2-3.13.3"
+    ],
+    "reasoning": "SC.L1-3.13.1[a,b] explicitly requires external and key internal boundaries to be defined — this diagram is that definition in visual form. SC.L1-3.13.5[a] requires identification of publicly-accessible components, which the diagram naturally surfaces. SC.L2-3.13.3 (role separation) often depends on this diagram showing where management networks sit relative to user networks. Assessors will compare the diagram to actual network topology — a diagram that doesn't match what's in the firewall rules or what shows up on a Nmap scan is treated as documentation theater. Cloud architecture diagrams should show VPC/account boundaries with the same rigor."
+  },
+  {
+    "name": "DMZ Architecture Documentation",
+    "description": "Documentation of the DMZ design — which components reside in the DMZ, the firewall rules between DMZ and internal networks, and equivalent cloud-architecture separation for public-facing cloud workloads.",
+    "likelyControls": [
+      "SC.L1-3.13.5"
+    ],
+    "reasoning": "Direct evidence for SC.L1-3.13.5[a,b]. The DMZ artifact is more specific than the broader network boundary diagram because it focuses on the public-facing-vs-internal split. Assessors particularly want to see the firewall rules from DMZ to internal networks — default-deny is expected, with named exceptions for required application traffic (e.g., DMZ web server allowed to reach internal database server on port 1433 only). Cloud equivalents (separate VPCs, separate accounts, network ACLs between public and private subnets) are acceptable and increasingly common. Public-facing cloud resources in the same VPC as CUI workloads is a frequent finding."
+  },
+  {
+    "name": "Encryption at Rest Configuration",
+    "description": "Configuration of disk encryption, database TDE, file/folder encryption, and cloud storage encryption settings for all locations where CUI is stored — with FIPS validation references.",
+    "likelyControls": [
+      "SC.L2-3.13.11",
+      "SC.L2-3.13.16"
+    ],
+    "reasoning": "Direct evidence for SC.L2-3.13.16[a] and a key piece of SC.L2-3.13.11[a]. The artifact spans multiple technologies — full-disk encryption on endpoints, BitLocker/LUKS on servers, TDE on databases, S3/Blob/GCS bucket encryption with customer-managed keys. For CMMC, the FIPS-validation requirement makes this trickier than 'is encryption on?' — assessors will want to see the CMVP certificate for the actual cryptographic module deployed, not just confirmation that some form of AES is in use. Backup encryption is in scope and frequently overlooked. Cloud provider default encryption sometimes uses non-CMVP modules; customer-managed keys in a CMVP-validated KMS is typically required."
+  },
+  {
+    "name": "Key Management Configuration",
+    "description": "Configuration and documentation of key management infrastructure — KMS, HSM, PKI, BitLocker recovery key escrow, certificate inventories — covering key generation, storage, distribution, rotation, revocation, and destruction.",
+    "likelyControls": [
+      "SC.L2-3.13.10",
+      "SC.L2-3.13.11"
+    ],
+    "reasoning": "Direct evidence for SC.L2-3.13.10[a,b]. Also supports SC.L2-3.13.11[a] because the FIPS-validated cryptography requirement extends to the modules generating, storing, and protecting the keys themselves. Assessors look for the full lifecycle — most organizations can show key generation and use, but rotation, revocation, and destruction procedures are frequently missing or never exercised. BitLocker recovery keys stored in a spreadsheet on a network share is a classic finding. PKI certificate expiry tracking is another — assessors will look at recent unexpected outages caused by expired certificates as evidence the key lifecycle is not well managed."
+  },
+  {
+    "name": "Mobile Code Restriction Policy",
+    "description": "Policy and technical configuration restricting mobile code — browser security policies disabling or restricting ActiveX/Java/Flash, Office macro restrictions, application allow-listing, and EDR rules monitoring script execution.",
+    "likelyControls": [
+      "SC.L2-3.13.13"
+    ],
+    "reasoning": "Direct evidence for SC.L2-3.13.13[a,b]. Most organizations address this through a combination of browser policies (deployed via Group Policy or MDM), Office tenant settings (block macros from internet sources, signed macros only), and EDR rules that detect and alert on suspicious script execution. Assessors look for explicit decisions on each mobile code type rather than 'whatever the default is.' Office macros from external sources allowed without prompting is a frequent finding given how many ransomware payloads still arrive that way. Legacy applications still requiring ActiveX or Java applets need documented exception handling rather than a blanket allow."
+  }
+]

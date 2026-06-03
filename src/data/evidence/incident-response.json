@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Incident Response Policy and Plan",
+    "description": "Written policy establishing IR program requirements and the IR plan documenting the operational capability — roles and responsibilities, the six IR phases (preparation, detection, analysis, containment, recovery, user response), contact information for internal officials and external authorities, and incident severity classification criteria.",
+    "likelyControls": [
+      "IR.L2-3.6.1",
+      "IR.L2-3.6.2",
+      "IR.L2-3.6.3"
+    ],
+    "reasoning": "The IR plan is the foundational artifact for the entire IR family. IR.L2-3.6.1[a] requires an operational capability to be established — the plan documents that establishment. IR.L2-3.6.2[c,d] requires external and internal reporting authorities to be identified — the plan is where they are named. IR.L2-3.6.3[a] testing validates the plan. Assessors typically read the plan first, then use it as the benchmark against which all other IR evidence is measured. A plan that does not name specific officials or external authorities, or that has not been reviewed since it was written, is a finding even if the operational capability is otherwise sound."
+  },
+  {
+    "name": "Incident Tickets and Case Records",
+    "description": "Historical incident records from the tracking system (ITSM, SIEM case management, or equivalent) showing the full lifecycle from initial detection through closure — including timeline, affected systems, indicators of compromise, actions taken, internal notifications sent, and resolution documentation.",
+    "likelyControls": [
+      "IR.L2-3.6.1",
+      "IR.L2-3.6.2"
+    ],
+    "reasoning": "The primary operational evidence for both IR.L2-3.6.1 and IR.L2-3.6.2. IR.L2-3.6.1 assessors use incident records to verify that the six-phase capability actually gets applied — not just documented. IR.L2-3.6.2[a,b,f] assessors use the same records to verify tracking, documentation, and internal notification. Assessors typically sample 3–5 incident tickets spanning different severities and time periods, tracing each through tracking, analysis, containment, and notification. Tickets that are thin on analysis or missing notification records are a common finding."
+  },
+  {
+    "name": "Escalation Matrix and Notification Contacts",
+    "description": "Current contact information for internal officials who must be notified during incidents (CISO, CIO, legal, executive leadership, affected business unit owners) and for external reporting authorities (CISA/US-CERT, DCSA, DC3). Includes escalation thresholds and timeframes — particularly the 72-hour DFARS 252.204-7012 requirement for cyber incidents involving CUI.",
+    "likelyControls": [
+      "IR.L2-3.6.2"
+    ],
+    "reasoning": "Direct evidence for IR.L2-3.6.2[c,d] — the requirement to identify internal officials and external authorities. Assessors verify the matrix is current (named individuals have been replaced by role-based contacts or are still with the organization), that external authorities include DFARS-required recipients, and that timeframes align with contractual obligations. A matrix that names individuals who left the organization six months ago is a finding. The 72-hour DFARS reporting window is often unknown to IR teams without explicit documentation of the obligation."
+  },
+  {
+    "name": "IR Tabletop Exercise Records",
+    "description": "Documentation from incident response exercises — tabletop scenario and facilitator guide, participant attendance list, exercise observations, and the after-action report with findings, improvement items, responsible owners, and status of follow-on actions.",
+    "likelyControls": [
+      "IR.L2-3.6.3"
+    ],
+    "reasoning": "Direct evidence for IR.L2-3.6.3[a] — the requirement to test the IR capability. The after-action report is the key artifact: it shows the exercise was taken seriously (findings were documented), that follow-on improvements were tracked, and that the IR plan was updated accordingly. A test with no findings at all, or findings that have been open for more than a year with no action, is treated as evidence of a checkbox exercise rather than genuine testing. Assessors also check that the participant list includes non-IT roles (legal, HR, communications) since the IR.L2-3.6.1 user response requirement implies broader organizational involvement."
+  },
+  {
+    "name": "After-Action and Lessons Learned Reports",
+    "description": "Post-incident or post-exercise reports documenting what happened, what the response team did well, what gaps were identified, and what specific improvements were made to the IR capability as a result. May cover real incidents or planned exercises.",
+    "likelyControls": [
+      "IR.L2-3.6.1",
+      "IR.L2-3.6.3"
+    ],
+    "reasoning": "After-action reports satisfy two overlapping requirements. For IR.L2-3.6.1[f] (recovery), they show that recovery activities include root-cause analysis and capability improvement — not just system restoration. For IR.L2-3.6.3[a], they show that testing produced actionable output. The presence of after-action reports that directly reference updates to the IR plan, runbooks, or training materials is strong evidence of a mature IR program. The absence of any after-action documentation — for either real incidents or exercises — suggests the IR program is reactive and undocumented."
+  },
+  {
+    "name": "DFARS Cyber Incident Report Submissions",
+    "description": "Records of cyber incident reports submitted to DCSA, CISA/US-CERT, or DC3 per DFARS 252.204-7012 requirements, including submission confirmations, tracking numbers, and any supporting documentation. Also includes documented threshold-not-met determinations for incidents that were evaluated but not reported externally.",
+    "likelyControls": [
+      "IR.L2-3.6.2"
+    ],
+    "reasoning": "Direct evidence for IR.L2-3.6.2[e] — that identified external authorities are actually notified. DFARS 252.204-7012 requires submission of cyber incident reports to DCSA within 72 hours for incidents involving compromise of CUI or covered defense systems. Assessors look for actual submissions or, where no reportable incidents occurred, documented evidence of the threshold-not-met evaluation that explains why no reports were filed. Total absence of any reporting record — combined with an organization that clearly has had incidents — is a significant finding."
+  },
+  {
+    "name": "Incident Response Training Records",
+    "description": "Training completion records for personnel with incident response responsibilities — IR team members, help desk staff who receive initial reports, system administrators, and security personnel. Includes training materials, completion dates, and coverage of key IR topics including detection, escalation, containment, and reporting obligations.",
+    "likelyControls": [
+      "IR.L2-3.6.1"
+    ],
+    "reasoning": "Supports IR.L2-3.6.1[b] (preparation) and IR.L2-3.6.1[g] (user response activities). Preparation requires that personnel know their roles before an incident — training records demonstrate that. User response activities require that non-security users know how to recognize and report incidents — awareness training records covering IR topics satisfy this. Assessors look for recency (training completed within the past year), role-appropriate content (IR team gets more depth than general users), and coverage of the DFARS reporting obligation for anyone in a position to receive or escalate incident reports."
+  }
+]

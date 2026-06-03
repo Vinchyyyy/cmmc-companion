@@ -1,0 +1,68 @@
+[
+  {
+    "sourceControl": "IA.L1-3.5.1",
+    "targetControl": "IA.L1-3.5.2",
+    "relationshipType": "prerequisite",
+    "reasoning": "Authentication operates on a claimed identity. You cannot authenticate (verify) something you have not first identified — authentication tools need an identifier to compare credentials against. From a project-sequencing perspective, identification work (account inventory, naming convention, service account cleanup) typically must be in place before authentication enforcement can be designed and tested."
+  },
+  {
+    "sourceControl": "IA.L1-3.5.1",
+    "targetControl": "IA.L2-3.5.5",
+    "relationshipType": "prerequisite",
+    "reasoning": "Identifier reuse prevention only matters if identifiers are uniquely associated with users, processes, or devices in the first place. IA.L1-3.5.1 establishes that uniqueness; IA.L2-3.5.5 then governs how long that uniqueness must be preserved before an identifier can be assigned to someone or something new."
+  },
+  {
+    "sourceControl": "IA.L1-3.5.1",
+    "targetControl": "IA.L2-3.5.6",
+    "relationshipType": "prerequisite",
+    "reasoning": "Disabling inactive identifiers requires having identifiers in the first place, with last-use tracking. IA.L1-3.5.1 provides the unique identifiers; IA.L2-3.5.6 then governs their lifecycle when they fall out of use. Both are typically managed through the same identity provider feature set."
+  },
+  {
+    "sourceControl": "IA.L1-3.5.2",
+    "targetControl": "IA.L2-3.5.3",
+    "relationshipType": "prerequisite",
+    "reasoning": "MFA is an enhancement of basic authentication, not a replacement. The Assessment Guide explicitly notes that IA.L2-3.5.3 enhances IA.L1-3.5.2 — MFA adds factors on top of the basic single-factor authentication that IA.L1-3.5.2 establishes. You cannot enforce MFA on authentication that does not yet exist."
+  },
+  {
+    "sourceControl": "IA.L1-3.5.2",
+    "targetControl": "IA.L2-3.5.4",
+    "relationshipType": "supports",
+    "reasoning": "Replay-resistant authentication is a property of the authentication mechanism itself. IA.L1-3.5.2 establishes that authentication occurs; IA.L2-3.5.4 then constrains the protocols used for that authentication to ones that resist replay. Choosing modern protocols (Kerberos, TLS-protected, FIDO2) for IA.L1-3.5.2 satisfies IA.L2-3.5.4 by default."
+  },
+  {
+    "sourceControl": "IA.L2-3.5.7",
+    "targetControl": "IA.L1-3.5.2",
+    "relationshipType": "supports",
+    "reasoning": "Password complexity is a strengthening of the basic password authentication that IA.L1-3.5.2 establishes. A complexity policy without enforced authentication has nothing to apply to; basic authentication without a meaningful complexity policy is technically present but cryptographically weak. The two practices are typically configured together in the same IDP password policy."
+  },
+  {
+    "sourceControl": "IA.L2-3.5.8",
+    "targetControl": "IA.L1-3.5.2",
+    "relationshipType": "supports",
+    "reasoning": "Password reuse prevention reinforces the basic password authentication established by IA.L1-3.5.2. Without history depth enforcement, users cycle through near-identical passwords and effectively defeat any rotation requirements — which weakens the underlying authentication. Configured in the same IDP password policy as IA.L1-3.5.2."
+  },
+  {
+    "sourceControl": "IA.L2-3.5.9",
+    "targetControl": "IA.L1-3.5.2",
+    "relationshipType": "supports",
+    "reasoning": "Forced change of temporary passwords reinforces the trust model of IA.L1-3.5.2's authentication enforcement. Temporary passwords often follow predictable patterns and are issued through less secure channels — leaving them in place indefinitely undermines the authentication strength the broader policy is trying to establish."
+  },
+  {
+    "sourceControl": "IA.L2-3.5.10",
+    "targetControl": "IA.L1-3.5.2",
+    "relationshipType": "supports",
+    "reasoning": "Cryptographic protection of passwords in storage and transit is what makes the authentication required by IA.L1-3.5.2 actually safe. Authentication that occurs over plaintext channels or against plaintext-stored passwords technically satisfies 'authentication exists' but provides essentially no security against credential interception or database compromise."
+  },
+  {
+    "sourceControl": "IA.L2-3.5.11",
+    "targetControl": "IA.L1-3.5.2",
+    "relationshipType": "supports",
+    "reasoning": "Obscuring authentication input prevents shoulder-surfing capture of the credentials that IA.L1-3.5.2's authentication relies on. Most modern systems handle this by default, but custom or legacy applications with unmasked password fields directly weaken the authentication process they support."
+  },
+  {
+    "sourceControl": "IA.L2-3.5.4",
+    "targetControl": "IA.L2-3.5.3",
+    "relationshipType": "supports",
+    "reasoning": "Replay resistance and MFA reinforce each other for network access. The Assessment Guide notes that MFA itself confers some replay resistance; conversely, replay-resistant protocols make MFA harder to bypass even if individual factors are captured. The two practices are typically satisfied by the same modern authentication stack — TLS-protected MFA challenges with one-time codes or FIDO2 assertions."
+  }
+]

@@ -1,0 +1,345 @@
+[
+  {
+    "id": "PE.L1-3.10.1",
+    "family": "Physical Protection",
+    "title": "Limit Physical Access",
+    "controlText": "Limit physical access to organizational information systems, equipment, and the respective operating environments to authorized individuals.",
+    "plainEnglish": "Only people who are explicitly authorized should be able to physically reach your systems, equipment, and the spaces where they operate. This covers office spaces, server rooms, equipment closets, labs, and any other area where CUI-handling systems or their components are located. Authorization must be documented — a list of who is permitted where — and access must be actively limited through physical controls like locks, badge readers, keys, or guards. Output devices like printers are included: if a printer sits in an open area where unauthorized people walk by, that is a finding. This is a Level 1 FAR-referenced practice (b.1.viii), meaning it applies to contractors handling FCI and forms the foundation of the entire physical protection family.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "authorized individuals allowed physical access are identified",
+        "whatToLookFor": "A current, maintained list of individuals who are authorized to physically access areas containing systems or equipment. The list should identify who is authorized, what areas or assets they are authorized to access, and the basis for that authorization (role, project, etc.). Assessors look for recency — the list should reflect current personnel, not include terminated employees or contractors whose work has ended.",
+        "commonEvidence": [
+          "Physical access authorization list or roster",
+          "Badge access system user list with area permissions",
+          "Key issuance log identifying who holds keys to which spaces",
+          "Access control system reports showing authorized cardholders per door/zone",
+          "System Security Plan section describing physical access authorization process"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "physical access to organizational systems is limited to authorized individuals",
+        "whatToLookFor": "Physical controls that prevent unauthorized individuals from reaching systems. This includes locked server rooms, badge-reader-controlled doors, locked equipment cabinets, and evidence that only authorized individuals can enter these spaces. Assessors may walk the facility to verify that system areas are not freely accessible.",
+        "commonEvidence": [
+          "Server room or data center access control configuration",
+          "Badge reader logs showing access restricted to authorized users",
+          "Physical facility walk-through documentation or assessment records",
+          "Visitor escort logs demonstrating unauthorized individuals do not access system areas",
+          "Lock and key control records for system access areas"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "physical access to equipment is limited to authorized individuals",
+        "whatToLookFor": "Controls limiting access to the actual hardware — servers, workstations, network devices, printers, copiers, scanners, external drives. Equipment placed in open or publicly accessible areas without controls is a gap. Assessors check that equipment inventories align with access controls — equipment tracked should be in controlled locations.",
+        "commonEvidence": [
+          "Equipment inventory with physical location documented",
+          "Locked equipment cabinets or cages with access controls",
+          "Printer and output device placement review (not in open public areas)",
+          "Cable lock records for portable equipment",
+          "Asset tracking records showing controlled storage of portable media and devices"
+        ]
+      },
+      {
+        "id": "d",
+        "text": "physical access to operating environments is limited to authorized individuals",
+        "whatToLookFor": "The broader operational spaces — office areas designated for CUI work, testing environments, classified-equivalent spaces — are controlled. Access to these environments is not open to the general public or non-project personnel. Controls may include locked floors, badge-controlled suites, or designated areas with posted access requirements.",
+        "commonEvidence": [
+          "Facility floor plan showing designated sensitive/controlled areas",
+          "Physical signage and access controls at entry points to controlled areas",
+          "Badge system zone configuration for controlled environments",
+          "Policy designating specific areas as sensitive and describing required controls",
+          "Personnel access records showing only authorized staff in controlled environments"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Physical access authorization list (current, with named individuals and authorized areas)",
+      "Badge access system reports or user configuration",
+      "Key issuance and return log",
+      "Physical and Environmental Protection Policy",
+      "Facility floor plan with designated controlled areas",
+      "Server room or equipment room access control records",
+      "Equipment inventory with physical location"
+    ],
+    "commonGaps": [
+      "Access authorization list has not been updated after personnel departures — terminated employees still listed",
+      "Server room door propped open or lock broken and not repaired",
+      "Printers and output devices in open hallways or public spaces where unauthorized individuals can retrieve documents",
+      "No documented list of who is authorized — access is informally controlled by office culture",
+      "Badge system logs not reviewed — access granted but never audited",
+      "Contractors and visitors have unsupervised access to equipment areas",
+      "Physical access expanded when roles change but authorization list not updated"
+    ]
+  },
+  {
+    "id": "PE.L1-3.10.3",
+    "family": "Physical Protection",
+    "title": "Escort Visitors",
+    "controlText": "Escort visitors and monitor visitor activity.",
+    "plainEnglish": "Anyone who is not an authorized employee or permanent credential holder is a visitor and must not move through your facility unescorted. Visitors include vendors, contractors, delivery personnel, and even well-known personal contacts of employees. The requirement has two components: actively escort visitors (someone accompanies them throughout their time in the facility) and monitor their activity (know what they are doing and where they go). Audit logs are the primary monitoring mechanism — visitor sign-in/sign-out records with escort assigned. This is a Level 1 FAR-referenced practice (Partial b.1.ix) and is non-POA&Mable: you cannot defer it.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "visitors are escorted",
+        "whatToLookFor": "Evidence that a defined process requires visitors to be accompanied by an authorized employee at all times in controlled areas, and that the process is actually followed. Visitor logs should show escort names assigned, not just visitor names. Assessors interview personnel to verify that the escort requirement is understood and enforced, not just written in policy.",
+        "commonEvidence": [
+          "Visitor log with escort name recorded for each visit",
+          "Visitor management policy or procedure requiring escort",
+          "Visitor badge issuance records (distinguishing visitors from employees)",
+          "Reception or lobby sign-in/sign-out sheet with escort column",
+          "Interview records confirming escort policy is enforced operationally"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "visitor activity is monitored",
+        "whatToLookFor": "Mechanisms that track what visitors are doing in the facility — physical access logs, CCTV coverage of areas visitors may enter, security guard oversight, or documented review of areas after visitor departure. The Assessment Guide discussion explicitly cites audit logs as the monitoring mechanism. A visitor who entered and exited with only a paper sign-in sheet and no escort record is insufficient monitoring.",
+        "commonEvidence": [
+          "Physical access logs covering visitor entry and exit with timestamps",
+          "CCTV or video surveillance records covering visitor-accessible areas",
+          "Security guard shift logs or posts covering visitor areas",
+          "Records of area review after visitor departure",
+          "Badge reader audit logs for areas visitors accessed"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Visitor log with name, organization, purpose, escort name, time in, time out",
+      "Visitor management policy",
+      "Visitor badge issuance process and records",
+      "Physical access logs covering visitor access",
+      "CCTV or monitoring system records"
+    ],
+    "commonGaps": [
+      "Visitors allowed to walk freely after initial check-in — escort policy not enforced operationally",
+      "Visitor log records name but no escort name — no evidence anyone accompanied them",
+      "Employees allow known friends or contacts to enter without following visitor process",
+      "No visitor badges issued — visitors indistinguishable from employees",
+      "Visitor activity monitoring relies entirely on the honor system with no audit trail",
+      "Delivery personnel allowed unescorted access to storage or equipment areas"
+    ]
+  },
+  {
+    "id": "PE.L1-3.10.4",
+    "family": "Physical Protection",
+    "title": "Physical Access Logs",
+    "controlText": "Maintain audit logs of physical access.",
+    "plainEnglish": "Keep records of who physically accessed controlled areas and when. Audit logs can be procedural (paper sign-in/sign-out sheets), automated (badge reader transaction logs capturing ID from a PIV card), or a combination. The requirement covers physical access points to facilities, interior access points to system areas, and visitor access. Records must be retained for an organizationally defined period. This is a Level 1 FAR-referenced practice (Partial b.1.ix) and is non-POA&Mable: physical access logging must be operational at time of assessment.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "audit logs of physical access are maintained",
+        "whatToLookFor": "Current and historical records of physical access events to controlled areas. Logs must cover both authorized employees and visitors. Assessors check completeness (do logs cover all entry points?), recency (are logs actively maintained?), and retention (are older records available per organizational policy?). Paper logs stored in an unlocked drawer or badge reader exports that are never reviewed or saved are common gaps.",
+        "commonEvidence": [
+          "Badge reader transaction logs or access control system exports",
+          "Paper visitor sign-in/sign-out sheets with retention records",
+          "Physical access log retention policy defining retention period",
+          "CCTV recording retention records (if used as part of access logging)",
+          "Electronic access log archives showing historical access records",
+          "Key card or fob assignment and usage records"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Badge access system logs (exportable reports showing user, door, date/time)",
+      "Paper sign-in/sign-out records with defined retention",
+      "Log retention policy specifying how long physical access records are kept",
+      "Access control system configuration showing logging enabled at all entry points",
+      "Visitor log retained per policy"
+    ],
+    "commonGaps": [
+      "Badge reader logs exist in the system but are never exported or reviewed — effectively unavailable",
+      "Paper sign-in sheets not retained per any defined period — disposed when full",
+      "Logs cover the main entry but not interior access points (server room, equipment closets)",
+      "Visitor logs maintained separately from employee logs — incomplete picture of who accessed what",
+      "No defined retention period — no one knows how long to keep records",
+      "Automated badge system does not log failed access attempts — only successful entries captured"
+    ]
+  },
+  {
+    "id": "PE.L1-3.10.5",
+    "family": "Physical Protection",
+    "title": "Manage Physical Access",
+    "controlText": "Control and manage physical access devices.",
+    "plainEnglish": "Physical access devices — keys, locks, combinations, card readers, badge tokens — are only effective if you know who has them, what they authorize, and whether they have been revoked when no longer needed. This practice requires identifying what physical access devices exist, controlling who holds them, and actively managing their lifecycle: issuing, tracking, changing, revoking, and accounting for returns. A key that was never returned by a terminated employee, or a door combination that has not changed since the last employee who knew it left, represents an unmanaged physical access device. This is a Level 1 FAR-referenced practice (Partial b.1.ix) and is non-POA&Mable.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "physical access devices are identified",
+        "whatToLookFor": "An inventory of physical access devices — keys (by serial number or tag), badge tokens, fobs, combinations (by location), card readers (by location/door). The inventory should be current and complete. Assessors look for evidence that the organization knows what physical access devices exist, not just that the badge system has records of issued cards.",
+        "commonEvidence": [
+          "Key inventory or key control log listing all keys with serial numbers and current holders",
+          "Badge/fob issuance roster showing all active credentials and assigned users",
+          "Access control system report of all issued credentials by door/zone",
+          "Lock inventory documenting combination locks and master key assignments",
+          "Physical access device policy identifying categories of devices in use"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "physical access devices are controlled",
+        "whatToLookFor": "Access to physical access devices is itself controlled — keys are in locked key boxes, master keys have restricted access, badge credentials are only issued by authorized administrators, combinations are on a need-to-know basis. Assessors check that the devices themselves cannot be freely obtained by unauthorized individuals.",
+        "commonEvidence": [
+          "Key cabinet or key lockbox with access restricted to authorized administrators",
+          "Badge issuance process requiring authorization approval before credential created",
+          "Access control system admin rights restricted to authorized personnel",
+          "Combination change records showing combinations shared only on need-to-know basis",
+          "Master key log with counter-signature for issuance and return"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "physical access devices are managed",
+        "whatToLookFor": "Active lifecycle management — devices revoked when personnel separate or change roles, combinations changed at defined intervals or when a holder leaves, lost/stolen devices flagged and replaced, periodic audits reconciling inventory against known holders. Assessors specifically look for evidence of revocation events tied to personnel separation.",
+        "commonEvidence": [
+          "Offboarding checklist showing physical access device return as a required step",
+          "Badge deactivation records correlated with HR termination dates",
+          "Key return log showing returned keys checked off against inventory",
+          "Combination change records following personnel departures",
+          "Lost or stolen device report and remediation records (lock changes, credential deactivation)"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Key control log (issuance, holder, return, serial number)",
+      "Badge/credential issuance and revocation records",
+      "Access control system admin configuration showing restricted administration",
+      "Offboarding procedure with physical access device return step",
+      "Combination change log"
+    ],
+    "commonGaps": [
+      "Terminated employees' badge credentials not deactivated for days or weeks after separation",
+      "No key inventory — organization cannot account for how many keys exist or who holds them",
+      "Master keys issued to multiple individuals with no log of who holds which key",
+      "Combinations not changed when someone who knew them leaves the organization",
+      "Lost key or badge reported but no remediation — lock not changed, credential not deactivated",
+      "Badge issuance not tied to authorization approval — IT issues credentials on verbal request"
+    ]
+  },
+  {
+    "id": "PE.L2-3.10.2",
+    "family": "Physical Protection",
+    "title": "Monitor Facility",
+    "controlText": "Protect and monitor the physical facility and support infrastructure for organizational systems.",
+    "plainEnglish": "Beyond limiting who can enter, you must actively protect and monitor the facility itself and the support infrastructure (power lines, distribution cables, network cabling, wiring closets) that the systems depend on. Monitoring includes guards, sensor devices, cameras, and alarm systems — and the Assessment Guide makes clear that monitoring publicly accessible areas of the facility is included. Support infrastructure controls prevent accidental damage, disruption, physical tampering, and eavesdropping. This is a Level 2 Derived practice — it builds on the foundational access controls in PE.L1-3.10.1 through PE.L1-3.10.4 and requires both protection mechanisms and active monitoring activity.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "the physical facility where organizational systems reside is protected",
+        "whatToLookFor": "Physical protection mechanisms for the facility — secure entry points (locks, badge readers), perimeter controls, secured windows and access points, and controls over publicly accessible areas. Assessors evaluate whether unauthorized individuals could reach the facility's system areas through unprotected routes.",
+        "commonEvidence": [
+          "Facility security assessment or physical security review documentation",
+          "Physical and Environmental Protection Policy covering facility protection",
+          "Evidence of perimeter controls (secured entry points, locked windows, access-controlled entry)",
+          "Guard staffing schedule or contract",
+          "System Security Plan section describing physical facility protection"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "the support infrastructure for organizational systems is protected",
+        "whatToLookFor": "Protections for distribution lines, power systems, network cabling, and communications pathways — wiring closets are locked, spare network jacks are disconnected or locked, cabling is protected by conduit or cable trays, power lines have physical protection. Wiretapping sensors may be in place for high-sensitivity environments.",
+        "commonEvidence": [
+          "Wiring closet access controls (locked, badge-controlled access)",
+          "Network cable management documentation (conduit, cable trays, patch panel documentation)",
+          "Physical inspection records or walk-through showing protected infrastructure",
+          "UPS and power distribution protection records",
+          "Disconnected or locked spare network jacks in public or semi-public areas"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "the physical facility where organizational systems reside is monitored",
+        "whatToLookFor": "Active monitoring mechanisms — cameras covering entry points and system areas, guards patrolling or posted at key locations, motion sensors, alarm systems. Critically, monitoring output must be reviewed — a camera that records but whose footage is never checked does not satisfy monitoring. Assessors look for evidence of review: guard logs, camera footage review schedules, alarm response records.",
+        "commonEvidence": [
+          "CCTV camera placement diagram and coverage documentation",
+          "Video recording system configuration and retention settings",
+          "Guard post logs or patrol records",
+          "Alarm system configuration and dispatch records",
+          "Physical access log review records (showing logs are actively reviewed)"
+        ]
+      },
+      {
+        "id": "d",
+        "text": "the support infrastructure for organizational systems is monitored",
+        "whatToLookFor": "Monitoring extends to the infrastructure, not just the primary facility areas. Camera or sensor coverage of wiring closets, power distribution rooms, and cable pathways. Alarm or sensor systems on infrastructure rooms. Evidence that infrastructure monitoring output is reviewed.",
+        "commonEvidence": [
+          "Camera or sensor coverage of infrastructure rooms (wiring closets, UPS rooms)",
+          "Environmental monitoring records (temperature, power, intrusion detection in infrastructure areas)",
+          "Alarm response records for infrastructure room intrusion events",
+          "Infrastructure room access logs reviewed as part of monitoring program"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "CCTV system documentation (camera placement, coverage, recording retention)",
+      "Guard schedule and patrol or post logs",
+      "Physical facility security assessment or walkthrough report",
+      "Wiring closet and infrastructure room access control records",
+      "Alarm system documentation and dispatch/response records",
+      "Physical access monitoring review records"
+    ],
+    "commonGaps": [
+      "Cameras installed but footage never reviewed — monitoring is passive with no oversight process",
+      "Wiring closet unlocked and accessible to general employees and visitors",
+      "Spare network jacks in conference rooms and common areas not locked or disconnected",
+      "No monitoring of infrastructure areas — cameras cover lobby but not server room or wiring closet",
+      "Guard coverage limited to business hours only — no monitoring during off-hours",
+      "Physical access logs not reviewed on any schedule — maintained but unused as a monitoring tool"
+    ]
+  },
+  {
+    "id": "PE.L2-3.10.6",
+    "family": "Physical Protection",
+    "title": "Alternative Work Sites",
+    "controlText": "Enforce safeguarding measures for CUI at alternate work sites.",
+    "plainEnglish": "When employees work outside the primary facility — from home, government sites, client locations, or hotel rooms — CUI remains subject to the same protection requirements. This practice requires two things: defining what safeguards apply at alternate sites, and enforcing those safeguards in practice. Safeguards span physical protections (locked file drawers, screen privacy filters, clean desk practices) and technical controls (encryption, VPN, MFA). The Assessment Guide example explicitly cites full-disk encryption, VPN with split-tunnel prevention, and MFA. Alternate work sites include employee homes and government facilities. Organizations may define different requirements for different site types, but the requirement cannot simply be left unaddressed because work happens off-site.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "safeguarding measures for CUI are defined for alternate work sites",
+        "whatToLookFor": "A policy, procedure, or documented set of requirements that explicitly addresses alternate or remote work sites where CUI may be stored, processed, or transmitted. Physical safeguards must be included — not just IT controls. Assessors look for documents that go beyond VPN and encryption to address what happens to printed CUI, device screen exposure, and physical storage at home or travel locations.",
+        "commonEvidence": [
+          "Telework or Remote Work Security Policy",
+          "Alternate Work Site Security Requirements document or SSP section",
+          "Acceptable Use Policy with alternate site provisions",
+          "User acknowledgement form referencing specific alternate site safeguards",
+          "NIST SP 800-46 or SP 800-114-aligned remote work standards"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "safeguarding measures for CUI are enforced for alternate work sites",
+        "whatToLookFor": "Evidence that the defined safeguards are actually applied — not just documented. Technical enforcement records (MDM enrollment, endpoint encryption compliance reports, VPN usage logs, MFA enforcement logs) are the most concrete evidence. Physical enforcement is harder to verify but may be evidenced by user acknowledgements, remote security assessments, or spot checks. Assessors distinguish between organizations that have defined safeguards and those that also enforce them.",
+        "commonEvidence": [
+          "MDM or endpoint management enrollment records showing remote devices managed",
+          "Full-disk encryption compliance report for all remote worker devices",
+          "VPN configuration enforcing all-traffic routing (split-tunnel prevention)",
+          "MFA enrollment and enforcement records for remote access",
+          "User attestation forms signed by remote workers acknowledging safeguard requirements",
+          "Remote site security assessment records (if applicable)"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Telework/Remote Work Security Policy",
+      "MDM enrollment and compliance reports for remote devices",
+      "Full-disk encryption configuration and compliance reports",
+      "VPN configuration records (split-tunnel prevention, MFA enforcement)",
+      "Remote user security acknowledgement forms",
+      "Alternate site safeguards checklist"
+    ],
+    "commonGaps": [
+      "Telework policy addresses only VPN connectivity — silent on physical safeguards at the home office",
+      "Policy defines safeguards but no mechanism to verify employees actually follow them",
+      "Full-disk encryption required by policy but not enforced — some remote laptops unencrypted",
+      "Printed CUI taken home with no guidance on physical storage or disposal at alternate sites",
+      "VPN required but split-tunnel not prevented — employees can bypass organizational network controls",
+      "No MFA for remote access — password-only VPN authentication",
+      "Policy covers employees but not contractors or third parties working remotely with CUI"
+    ]
+  }
+]

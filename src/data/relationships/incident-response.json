@@ -1,0 +1,20 @@
+[
+  {
+    "sourceControl": "IR.L2-3.6.1",
+    "targetControl": "IR.L2-3.6.3",
+    "relationshipType": "prerequisite",
+    "reasoning": "The Assessment Guide explicitly notes that IR.L2-3.6.3 tests the organizational incident response capability. That capability must first be established under IR.L2-3.6.1 before there is anything to test. You cannot validate a capability that does not yet exist — testing presupposes an operational IR capability as its subject."
+  },
+  {
+    "sourceControl": "IR.L2-3.6.1",
+    "targetControl": "IR.L2-3.6.2",
+    "relationshipType": "supports",
+    "reasoning": "Incident reporting (IR.L2-3.6.2) depends on the operational handling capability (IR.L2-3.6.1) to generate the incidents that are tracked, documented, and reported. Specifically, IR.L2-3.6.1's analysis phase produces the incident determination that triggers IR.L2-3.6.2's reporting obligations. The tracking system and contact lists defined in IR.L2-3.6.1 are also the mechanisms used to satisfy IR.L2-3.6.2's tracking and notification objectives."
+  },
+  {
+    "sourceControl": "IR.L2-3.6.3",
+    "targetControl": "IR.L2-3.6.1",
+    "relationshipType": "supports",
+    "reasoning": "Testing (IR.L2-3.6.3) directly improves the handling capability (IR.L2-3.6.1) through the after-action process. Deficiencies found during exercises drive updates to plans, playbooks, training, and tools — each of which strengthens a specific phase of the IR.L2-3.6.1 capability. An IR capability that is never tested drifts from current threats and organizational changes; testing is what keeps 3.6.1 current."
+  }
+]

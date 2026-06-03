@@ -1,0 +1,558 @@
+{
+  "AC.L1-3.1.1": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AC.L1-3.1.2": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.3": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.4": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.5": {
+    "scoreValue": -3,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.6": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.7": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.8": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.9": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.10": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.11": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.12": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.13": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.14": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.15": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.16": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.17": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.18": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "AC.L2-3.1.19": {
+    "scoreValue": -3,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "AC.L1-3.1.20": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": false,
+    "poamRestrictionReason": "This control is designated as non-POA&Mable under CMMC Level 2 assessment policy. It represents a fundamental security capability that must be fully implemented at time of assessment and cannot be deferred via a Plan of Action & Milestones."
+  },
+  "AC.L2-3.1.21": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AC.L1-3.1.22": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": false,
+    "poamRestrictionReason": "This control is designated as non-POA&Mable under CMMC Level 2 assessment policy. It represents a fundamental security capability that must be fully implemented at time of assessment and cannot be deferred via a Plan of Action & Milestones."
+  },
+  "IA.L1-3.5.1": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "IA.L1-3.5.2": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "IA.L2-3.5.3": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "IA.L2-3.5.4": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "IA.L2-3.5.5": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "IA.L2-3.5.6": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "IA.L2-3.5.7": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "IA.L2-3.5.8": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "IA.L2-3.5.9": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "IA.L2-3.5.10": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "IA.L2-3.5.11": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SC.L1-3.13.1": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SC.L1-3.13.5": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "SC.L2-3.13.2": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SC.L2-3.13.3": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SC.L2-3.13.4": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SC.L2-3.13.6": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "SC.L2-3.13.7": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SC.L2-3.13.8": {
+    "scoreValue": -3,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "SC.L2-3.13.9": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SC.L2-3.13.10": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SC.L2-3.13.11": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SC.L2-3.13.12": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SC.L2-3.13.13": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SC.L2-3.13.14": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SC.L2-3.13.15": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "SC.L2-3.13.16": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AU.L2-3.3.1": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AU.L2-3.3.2": {
+    "scoreValue": -3,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AU.L2-3.3.3": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AU.L2-3.3.4": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AU.L2-3.3.5": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "AU.L2-3.3.6": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AU.L2-3.3.7": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AU.L2-3.3.8": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AU.L2-3.3.9": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "CM.L2-3.4.1": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "CM.L2-3.4.2": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "CM.L2-3.4.3": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "CM.L2-3.4.4": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "CM.L2-3.4.5": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "CM.L2-3.4.6": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "CM.L2-3.4.7": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "CM.L2-3.4.8": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "CM.L2-3.4.9": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+"IR.L2-3.6.1": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "IR.L2-3.6.2": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "IR.L2-3.6.3": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+"RA.L2-3.11.1": {
+    "scoreValue": -3,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "RA.L2-3.11.2": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "RA.L2-3.11.3": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+"CA.L2-3.12.1": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "CA.L2-3.12.2": {
+    "scoreValue": -3,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "CA.L2-3.12.3": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "CA.L2-3.12.4": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": false,
+    "poamRestrictionReason": "This control is designated as non-POA&Mable under CMMC Level 2 assessment policy. A System Security Plan must exist and be current at time of assessment — an organization without an SSP cannot defer this requirement via a Plan of Action & Milestones. The SSP is the foundational document against which all other controls are assessed; without it, the assessment cannot proceed meaningfully."
+  },
+"SI.L1-3.14.1": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SI.L1-3.14.2": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SI.L2-3.14.3": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SI.L1-3.14.4": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SI.L1-3.14.5": {
+    "scoreValue": -3,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "SI.L2-3.14.6": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "SI.L2-3.14.7": {
+    "scoreValue": -3,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+"PS.L2-3.9.1": {
+    "scoreValue": -3,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "PS.L2-3.9.2": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+"PE.L1-3.10.1": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "PE.L1-3.10.3": {
+    "scoreValue": -3,
+    "practiceType": "Basic",
+    "poamAllowed": false,
+    "poamRestrictionReason": "PE.L1-3.10.3 is non-POA&Mable. It is a Level 1 practice referenced in FAR Clause 52.204-21 (Partial b.1.ix) and represents a fundamental physical protection capability — escorting visitors and monitoring visitor activity — that must be fully implemented at time of assessment. It cannot be deferred via a Plan of Action and Milestones."
+  },
+  "PE.L1-3.10.4": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": false,
+    "poamRestrictionReason": "PE.L1-3.10.4 is non-POA&Mable. It is a Level 1 practice referenced in FAR Clause 52.204-21 (Partial b.1.ix) and represents a fundamental physical protection capability — maintaining audit logs of physical access — that must be fully implemented at time of assessment. It cannot be deferred via a Plan of Action and Milestones."
+  },
+  "PE.L1-3.10.5": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": false,
+    "poamRestrictionReason": "PE.L1-3.10.5 is non-POA&Mable. It is a Level 1 practice referenced in FAR Clause 52.204-21 (Partial b.1.ix) and represents a fundamental physical protection capability — controlling and managing physical access devices — that must be fully implemented at time of assessment. It cannot be deferred via a Plan of Action and Milestones."
+  },
+  "PE.L2-3.10.2": {
+    "scoreValue": -3,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "PE.L2-3.10.6": {
+    "scoreValue": -1,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AT.L2-3.2.1": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AT.L2-3.2.2": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "AT.L2-3.2.3": {
+    "scoreValue": -1,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "MA.L2-3.7.1": {
+    "scoreValue": -3,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "MA.L2-3.7.2": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "MA.L2-3.7.3": {
+    "scoreValue": -1,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "MA.L2-3.7.4": {
+    "scoreValue": -3,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "MA.L2-3.7.5": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "MA.L2-3.7.6": {
+    "scoreValue": -1,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "MP.L1-3.8.3": {
+    "scoreValue": -5,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "MP.L2-3.8.1": {
+    "scoreValue": -3,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "MP.L2-3.8.2": {
+    "scoreValue": -3,
+    "practiceType": "Basic",
+    "poamAllowed": true
+  },
+  "MP.L2-3.8.4": {
+    "scoreValue": -1,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "MP.L2-3.8.5": {
+    "scoreValue": -1,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "MP.L2-3.8.6": {
+    "scoreValue": -1,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "MP.L2-3.8.7": {
+    "scoreValue": -5,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "MP.L2-3.8.8": {
+    "scoreValue": -3,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  },
+  "MP.L2-3.8.9": {
+    "scoreValue": -1,
+    "practiceType": "Derived",
+    "poamAllowed": true
+  }
+}

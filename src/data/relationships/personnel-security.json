@@ -1,0 +1,8 @@
+[
+  {
+    "sourceControl": "PS.L2-3.9.1",
+    "targetControl": "PS.L2-3.9.2",
+    "relationshipType": "supports",
+    "reasoning": "Pre-employment screening (PS.L2-3.9.1) and personnel action procedures (PS.L2-3.9.2) form the full lifecycle of personnel security — screening governs access entry; personnel actions govern access modification and exit. PS.L2-3.9.1 establishes the trustworthiness of individuals before granting access; PS.L2-3.9.2 ensures that access is appropriately managed or revoked when that trust relationship changes. Together they close the loop: no unvetted access in, and no stale access remaining after departure or role change."
+  }
+]

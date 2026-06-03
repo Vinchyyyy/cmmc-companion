@@ -1,0 +1,790 @@
+[
+  {
+    "id": "SC.L1-3.13.1",
+    "family": "System and Communications Protection",
+    "title": "Boundary Protection",
+    "controlText": "Monitor, control, and protect organizational communications (i.e., information transmitted or received by organizational information systems) at the external boundaries and key internal boundaries of the information systems.",
+    "plainEnglish": "Define and defend the perimeter — both the external boundary between your network and the internet, and the key internal boundaries that separate one segment from another (e.g., development from production, CUI enclave from corporate). 'Monitor' means logging and alerting; 'control' means deciding what gets through; 'protect' means encryption or other safeguards on data crossing those boundaries. This is the foundational SC practice that several others extend.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "the external system boundary is defined",
+        "whatToLookFor": "Documented external boundary — typically firewalls, gateways, cloud service edges, internet egress points. Boundary diagram or network architecture document shows where the org's network ends and external networks begin.",
+        "commonEvidence": [
+          "Network architecture diagram with external boundary marked",
+          "Firewall and gateway inventory",
+          "System security plan section on system boundary"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "key internal system boundaries are defined",
+        "whatToLookFor": "Documented internal boundaries between segments — CUI enclave vs corporate, dev vs prod, OT vs IT, DMZ vs internal. Internal firewalls, VLANs, or segmentation gateways enforce these boundaries.",
+        "commonEvidence": [
+          "Network segmentation diagram",
+          "Internal firewall and VLAN configuration",
+          "Documented enclave architecture for CUI"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "communications are monitored at the external system boundary",
+        "whatToLookFor": "External boundary traffic is logged and reviewed — firewall logs forwarded to SIEM, IDS/IPS deployed, alerts on suspicious patterns. Logs are actually reviewed, not just collected.",
+        "commonEvidence": [
+          "Firewall logs in SIEM",
+          "IDS/IPS configuration and alerts",
+          "Periodic boundary log review records"
+        ]
+      },
+      {
+        "id": "d",
+        "text": "communications are monitored at key internal boundaries",
+        "whatToLookFor": "Internal boundary traffic is monitored — particularly traffic crossing into or out of the CUI enclave. East-west monitoring, not just north-south.",
+        "commonEvidence": [
+          "Internal firewall logs in SIEM",
+          "Network detection tools spanning internal segments",
+          "Sample alerts from internal boundary monitoring"
+        ]
+      },
+      {
+        "id": "e",
+        "text": "communications are controlled at the external system boundary",
+        "whatToLookFor": "Default-deny firewall posture at the external boundary, with explicit allow rules for required traffic only. Documented rule purpose and ownership. Periodic firewall rule reviews.",
+        "commonEvidence": [
+          "Firewall rule sets with documented purpose",
+          "Periodic firewall rule review records",
+          "Change management evidence for rule modifications"
+        ]
+      },
+      {
+        "id": "f",
+        "text": "communications are controlled at key internal boundaries",
+        "whatToLookFor": "Internal segmentation enforced via firewall rules or NAC. CUI enclave restricts inbound and outbound traffic to documented sources/destinations. No flat networks where any segment can talk to any other.",
+        "commonEvidence": [
+          "Internal firewall rule sets",
+          "VLAN ACLs and segmentation enforcement",
+          "Microsegmentation configuration where deployed"
+        ]
+      },
+      {
+        "id": "g",
+        "text": "communications are protected at the external system boundary",
+        "whatToLookFor": "Encryption applied to external traffic carrying sensitive data — TLS for web, VPN tunnels for remote access, IPsec for site-to-site. Plain HTTP, telnet, FTP not used to transmit sensitive data across the boundary.",
+        "commonEvidence": [
+          "TLS configuration on external services",
+          "VPN and IPsec tunnel configuration",
+          "Disabled plaintext protocols at the boundary"
+        ]
+      },
+      {
+        "id": "h",
+        "text": "communications are protected at key internal boundaries",
+        "whatToLookFor": "Encryption applied to internal traffic carrying sensitive data, particularly into and out of the CUI enclave. Internal TLS, encrypted east-west traffic where applicable.",
+        "commonEvidence": [
+          "Internal TLS deployment evidence",
+          "Encrypted internal network paths documented",
+          "Service mesh or zero-trust internal encryption"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Network architecture and boundary diagram",
+      "Firewall inventory and rule sets",
+      "IDS/IPS configuration",
+      "SIEM rules covering boundary traffic",
+      "Segmentation and enclave documentation",
+      "Periodic firewall and segmentation reviews"
+    ],
+    "commonGaps": [
+      "Flat network with no internal segmentation",
+      "Boundary diagram does not match actual network topology",
+      "Firewall rules accumulate over years with no documented purpose or owner",
+      "Internal traffic not monitored — only north-south at the perimeter",
+      "Allow-any rules from internal segments to the internet",
+      "CUI enclave defined on paper but not actually segmented at the network layer",
+      "IDS/IPS deployed in passive mode but no alerts are reviewed"
+    ]
+  },
+  {
+    "id": "SC.L1-3.13.5",
+    "family": "System and Communications Protection",
+    "title": "Public-Access System Separation",
+    "controlText": "Implement subnetworks for publicly accessible system components that are physically or logically separated from internal networks.",
+    "plainEnglish": "Public-facing systems — corporate website, customer portals, public APIs — must live on a separate subnet (a DMZ) that is isolated from internal networks. Compromising a public web server should not give an attacker a path to internal CUI systems. Cloud equivalents apply: a public-facing cloud environment must be architecturally separated from environments containing CUI.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "publicly accessible system components are identified",
+        "whatToLookFor": "Documented inventory of all publicly-accessible components — internet-facing web servers, customer portals, APIs, VPN gateways, public DNS. Includes cloud services that face the public internet.",
+        "commonEvidence": [
+          "Public-facing system inventory",
+          "External attack surface scan results",
+          "DNS zone with public records",
+          "Cloud public-facing resource inventory"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "subnetworks for publicly accessible system components are physically or logically separated from internal networks",
+        "whatToLookFor": "Public components reside in a DMZ subnet (on-prem) or isolated cloud account/VNet (cloud). Default-deny rules block DMZ-to-internal traffic except for specifically authorized flows. No internal systems sharing a subnet with public-facing components.",
+        "commonEvidence": [
+          "Network architecture showing DMZ design",
+          "Firewall rules between DMZ and internal networks",
+          "Cloud account/VPC separation diagram",
+          "Subnet routing tables showing isolation"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Network architecture diagram showing DMZ",
+      "Public system inventory",
+      "DMZ-to-internal firewall rules",
+      "External attack surface scan",
+      "Cloud account separation documentation"
+    ],
+    "commonGaps": [
+      "Public web server in the same subnet as internal application servers",
+      "DMZ exists but has unrestricted access to internal databases",
+      "Cloud public-facing resources in the same VPC as CUI workloads",
+      "No external attack surface scanning to verify what's actually exposed",
+      "Public APIs running on internal-facing infrastructure with port forwarding"
+    ]
+  },
+  {
+    "id": "SC.L2-3.13.2",
+    "family": "System and Communications Protection",
+    "title": "Security Engineering",
+    "controlText": "Employ architectural designs, software development techniques, and systems engineering principles that promote effective information security within organizational systems.",
+    "plainEnglish": "Security has to be designed into systems from the start — not bolted on after the fact. This means having documented security architecture principles (defense in depth, least privilege, secure-by-default), applying them when designing new systems or major upgrades, and training developers on secure development. Often demonstrated through reference to NIST SP 800-160. Legacy systems get treated to the extent feasible.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "architectural designs that promote effective information security are identified",
+        "whatToLookFor": "Documented security architecture principles or reference architectures — defense in depth, segmentation, zero trust, secure-by-default. May reference NIST SP 800-160 or industry frameworks.",
+        "commonEvidence": [
+          "Security architecture document",
+          "Enterprise security reference architecture",
+          "Documented architectural principles"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "software development techniques that promote effective information security are identified",
+        "whatToLookFor": "Documented secure software development techniques — input validation, output encoding, parameterized queries, dependency scanning, code review requirements. Often part of an SSDLC document.",
+        "commonEvidence": [
+          "Secure SDLC policy or procedure",
+          "Coding standards document",
+          "OWASP-aligned development guidelines"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "systems engineering principles that promote effective information security are identified",
+        "whatToLookFor": "Documented systems engineering principles — threat modeling, security requirements in design, security testing, risk-based decision making during design.",
+        "commonEvidence": [
+          "Systems engineering process documentation",
+          "Threat modeling procedure",
+          "Security requirements template for new systems"
+        ]
+      },
+      {
+        "id": "d",
+        "text": "identified architectural designs that promote effective information security are employed",
+        "whatToLookFor": "Evidence the principles are actually applied — recent system designs reference the architecture document, design reviews check against principles, deviations are documented.",
+        "commonEvidence": [
+          "Recent design documents referencing architecture principles",
+          "Design review records",
+          "Architecture exception logs"
+        ]
+      },
+      {
+        "id": "e",
+        "text": "identified software development techniques that promote effective information security are employed",
+        "whatToLookFor": "SSDLC techniques in active use — code reviews happening, SAST/DAST in CI/CD, dependency scanning, secure coding training records.",
+        "commonEvidence": [
+          "SAST/DAST tool configuration and reports",
+          "Code review records",
+          "Secure coding training records"
+        ]
+      },
+      {
+        "id": "f",
+        "text": "identified systems engineering principles that promote effective information security are employed",
+        "whatToLookFor": "Engineering principles in use during real projects — threat models exist for in-scope systems, security requirements traceability, risk decisions documented.",
+        "commonEvidence": [
+          "Threat models for in-scope systems",
+          "Security requirements traceability matrices",
+          "Risk acceptance records for design decisions"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Security architecture document",
+      "Secure SDLC policy",
+      "Threat modeling procedure",
+      "SAST/DAST configuration and reports",
+      "Recent design review records"
+    ],
+    "commonGaps": [
+      "Security architecture document exists but is years out of date",
+      "SSDLC defined but not enforced — projects ship without security review",
+      "Threat modeling done once for major systems, never updated",
+      "No security requirements gathering during design phase",
+      "Legacy systems have never been brought up to current architecture standards with no plan to address"
+    ]
+  },
+  {
+    "id": "SC.L2-3.13.3",
+    "family": "System and Communications Protection",
+    "title": "Role Separation",
+    "controlText": "Separate user functionality from system management functionality.",
+    "plainEnglish": "User-facing functions and system administration functions must be separated — physically (different machines), logically (different accounts and interfaces), or via virtualization (jump hosts, separate VLANs). General users should not see admin interfaces; admins should not perform admin work from their general-use accounts or workstations. This complements AC.L2-3.1.6 but focuses on the system-level separation rather than account usage.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "user functionality is identified",
+        "whatToLookFor": "Documented identification of user-facing functions — applications, services, interfaces that general users interact with as part of their job.",
+        "commonEvidence": [
+          "User function inventory",
+          "Application interface documentation"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "system management functionality is identified",
+        "whatToLookFor": "Documented identification of system management functions — admin consoles, configuration interfaces, management plane access. Separated from user functions in the documentation.",
+        "commonEvidence": [
+          "System management function inventory",
+          "Admin interface documentation",
+          "Management plane access matrix"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "user functionality is separated from system management functionality",
+        "whatToLookFor": "Technical separation enforced — admin interfaces on different URLs/networks, jump hosts for admin access, separate VLANs for management traffic, different authentication for admin functions. Verified through architecture review and testing.",
+        "commonEvidence": [
+          "Network segmentation diagram showing management VLAN",
+          "Jump host or PAW configuration",
+          "Separate admin and user URL/portal documentation",
+          "Out-of-band management network design"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "User vs system management function inventory",
+      "Network architecture showing management plane separation",
+      "Jump host or PAW deployment documentation",
+      "Out-of-band management network configuration"
+    ],
+    "commonGaps": [
+      "Admin interfaces accessible from the same network as user workstations with no segmentation",
+      "Cloud admin consoles accessed from general-purpose workstations",
+      "No jump host or PAW — admins access systems directly from daily-use machines",
+      "Application admin functions exposed in the same UI as user functions, gated only by RBAC",
+      "Management traffic and user traffic share the same VLAN"
+    ]
+  },
+  {
+    "id": "SC.L2-3.13.4",
+    "family": "System and Communications Protection",
+    "title": "Shared Resource Control",
+    "controlText": "Prevent unauthorized and unintended information transfer via shared system resources.",
+    "plainEnglish": "Shared system resources — memory, CPU caches, hard disks, registers — must not leak information from one user or process to another. This is typically handled by the operating system (memory zeroing, process isolation) and chip-level mitigations (Meltdown/Spectre patches). The assessment is largely about confirming that systems are patched and configured to prevent shared-resource leakage, not building anything new.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "unauthorized and unintended information transfer via shared system resources is prevented",
+        "whatToLookFor": "Operating systems patched against known shared-resource vulnerabilities (Meltdown, Spectre, MDS, Foreshadow, etc.). Process isolation enforced. File system permissions prevent users from reading each other's data. Cloud environments use providers with documented tenant isolation.",
+        "commonEvidence": [
+          "Patching records covering processor-level vulnerabilities",
+          "OS hardening baseline addressing process isolation",
+          "Cloud provider tenant isolation documentation",
+          "File system ACL configuration evidence"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "OS hardening baseline",
+      "Patching records for processor vulnerabilities",
+      "File system permission audit results",
+      "Cloud tenant isolation documentation from provider"
+    ],
+    "commonGaps": [
+      "Unpatched systems vulnerable to known shared-resource attacks (Meltdown, Spectre family)",
+      "Multi-user systems where users can read each other's home directories",
+      "Shared cloud tenancy with no documented isolation guarantees from the provider",
+      "Custom applications that don't clear sensitive data from memory after use"
+    ]
+  },
+  {
+    "id": "SC.L2-3.13.6",
+    "family": "System and Communications Protection",
+    "title": "Network Communication by Exception",
+    "controlText": "Deny network communications traffic by default and allow network communications traffic by exception (i.e., deny all, permit by exception).",
+    "plainEnglish": "Firewall and routing rules must default to deny — all traffic is blocked unless an explicit rule allows it. This applies in both directions (inbound AND outbound) and at all enforcement points (perimeter, internal segmentation, host-based firewalls). This practice extends SC.L1-3.13.1 by adding the specific deny-all-permit-by-exception requirement. Allow-any-outbound is a frequent finding.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "network communications traffic is denied by default",
+        "whatToLookFor": "Firewall rule sets configured with implicit-deny at the end of every rule chain. Outbound rules default to deny, not just inbound. Verified through configuration review of perimeter firewalls, internal segmentation firewalls, and host-based firewalls.",
+        "commonEvidence": [
+          "Firewall configuration showing implicit-deny rules",
+          "Host firewall baseline configuration",
+          "Cloud security group default-deny configuration"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "network communications traffic is allowed by exception",
+        "whatToLookFor": "Each allow rule has documented business justification, owner, and review date. Periodic firewall rule reviews remove stale rules. No 'temporary' allow-any rules left in place.",
+        "commonEvidence": [
+          "Documented firewall rule justifications",
+          "Periodic firewall rule review records",
+          "Change management evidence for rule additions"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Firewall rule sets with documented purpose per rule",
+      "Host firewall baseline configurations",
+      "Cloud security group configurations",
+      "Periodic firewall rule review records"
+    ],
+    "commonGaps": [
+      "Allow-any outbound rule from internal networks to the internet",
+      "Host-based firewalls disabled across the environment",
+      "Cloud security groups with 0.0.0.0/0 inbound rules",
+      "Firewall rules accumulated over years, many no longer needed but not removed",
+      "No documented justification for individual allow rules"
+    ]
+  },
+  {
+    "id": "SC.L2-3.13.7",
+    "family": "System and Communications Protection",
+    "title": "Split Tunneling",
+    "controlText": "Prevent remote devices from simultaneously establishing non-remote connections with organizational systems and communicating via some other connection to resources in external networks (i.e., split tunneling).",
+    "plainEnglish": "When a remote device is connected to the corporate network via VPN, all of its network traffic must flow through that VPN — not just the corporate-bound traffic. Split tunneling, where a device sends some traffic over the VPN and some directly to the internet, creates a path where a compromised device could be used as a bridge between an attacker on the internet and the internal network. Most VPN clients have a setting to enforce full tunneling.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "remote devices are prevented from simultaneously establishing non-remote connections with the system and communicating via some other connection to resources in external networks (i.e., split tunneling)",
+        "whatToLookFor": "VPN clients configured to enforce full tunneling — all traffic routed through the VPN, no direct-to-internet path while VPN is active. Verified through VPN client configuration and endpoint testing. Mobile devices configured with always-on VPN where applicable.",
+        "commonEvidence": [
+          "VPN client configuration showing full tunnel mode",
+          "Group Policy or MDM enforcing full tunneling",
+          "Endpoint test confirming all traffic routes through VPN",
+          "VPN gateway logs showing client-side tunneling enforcement"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "VPN client configuration documentation",
+      "Endpoint baseline enforcing full tunneling",
+      "MDM policy for mobile VPN"
+    ],
+    "commonGaps": [
+      "VPN configured with split tunneling enabled 'for performance'",
+      "Users can disable the VPN client at will, bypassing tunneling enforcement",
+      "Mobile devices have VPN but it doesn't auto-connect — users frequently work without it",
+      "BYOD devices with VPN access where the org has no enforcement of client config"
+    ]
+  },
+  {
+    "id": "SC.L2-3.13.8",
+    "family": "System and Communications Protection",
+    "title": "Data in Transit",
+    "controlText": "Implement cryptographic mechanisms to prevent unauthorized disclosure of CUI during transmission unless otherwise protected by alternative physical safeguards.",
+    "plainEnglish": "CUI in transit over any network — internal or external — must be encrypted using FIPS-validated cryptography, unless the physical transmission medium is itself protected (e.g., a Protected Distribution System). Most environments meet this through TLS (modern versions only), VPN, or encrypted secure file transfer. The FIPS-validation requirement is identical to AC.L2-3.1.13 and the same evidence usually applies. Internal transmission is in scope, not just internet-bound.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "cryptographic mechanisms intended to prevent unauthorized disclosure of CUI are identified",
+        "whatToLookFor": "Documented cryptographic mechanisms used to protect CUI in transit — TLS for web traffic, IPsec for site-to-site, SFTP for file transfer, encrypted email gateways. Each tied to a FIPS-validated module on the CMVP list.",
+        "commonEvidence": [
+          "Inventory of in-transit cryptographic mechanisms",
+          "FIPS validation references for each",
+          "TLS and IPsec configuration documentation"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "alternative physical safeguards intended to prevent unauthorized disclosure of CUI are identified",
+        "whatToLookFor": "Where cryptography is not used, documented physical safeguards — typically a Protected Distribution System (PDS) with physical tamper protection. For most commercial organizations this is N/A and the answer is 'we use cryptography everywhere.'",
+        "commonEvidence": [
+          "PDS documentation if applicable",
+          "Documented determination that PDS is not used",
+          "Physical security controls for transmission infrastructure"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "either cryptographic mechanisms or alternative physical safeguards are implemented to prevent unauthorized disclosure of CUI during transmission",
+        "whatToLookFor": "Active enforcement that CUI is encrypted in transit — TLS-only on web services, encrypted file transfer required, no plaintext protocols for CUI. Spot-check by attempting plaintext transmission and confirming it's blocked or alerted.",
+        "commonEvidence": [
+          "TLS scan results showing FIPS-only configurations",
+          "DLP rules detecting plaintext CUI transmission",
+          "Approved secure file transfer tool deployment evidence",
+          "Email encryption gateway logs"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Cryptographic mechanism inventory with CMVP references",
+      "TLS configuration scan results",
+      "Encrypted email and SFTP configuration",
+      "DLP rules for unencrypted transmission",
+      "VPN and IPsec configuration documentation"
+    ],
+    "commonGaps": [
+      "CUI sent via standard email without encryption gateway",
+      "Internal HTTP traffic carrying CUI between application servers",
+      "FTP or SCP without modern cipher requirements still in use",
+      "TLS configuration allows non-FIPS cipher suites as fallback",
+      "No DLP detection for plaintext CUI in transit — assumed compliance"
+    ]
+  },
+  {
+    "id": "SC.L2-3.13.9",
+    "family": "System and Communications Protection",
+    "title": "Connections Termination",
+    "controlText": "Terminate network connections associated with communications sessions at the end of the sessions or after a defined period of inactivity.",
+    "plainEnglish": "Network connections must terminate cleanly — both at the natural end of a session and after a defined period of inactivity. This applies to internal and external networks. Different from session termination at the user level (AC.L2-3.1.11): this addresses the underlying network connection itself, including TCP timeouts, VPN session limits, and firewall idle timeouts. Prevents resource exhaustion and stale connection abuse.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "a period of inactivity to terminate network connections associated with communications sessions is defined",
+        "whatToLookFor": "Documented inactivity timeout for network connections — typically embedded in firewall, VPN, and load balancer configurations. Defined per protocol where appropriate.",
+        "commonEvidence": [
+          "Documented network connection timeout policy",
+          "Firewall idle timeout configuration",
+          "VPN and load balancer timeout settings"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "network connections associated with communications sessions are terminated at the end of the sessions",
+        "whatToLookFor": "Network connections close cleanly when sessions end — TCP FIN handshake completed, VPN tunnels torn down on logout, no lingering half-open connections.",
+        "commonEvidence": [
+          "Application logout flow documentation",
+          "VPN session lifecycle logs",
+          "Firewall connection state tracking"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "network connections associated with communications sessions are terminated after the defined period of inactivity",
+        "whatToLookFor": "Idle timeouts actually fire — verified through firewall connection logs, VPN session reports, load balancer telemetry. Stale connections don't accumulate.",
+        "commonEvidence": [
+          "Firewall connection logs showing idle disconnects",
+          "VPN session timeout evidence",
+          "Connection table monitoring records"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Firewall idle timeout configuration",
+      "VPN session timeout policy",
+      "Load balancer connection timeout settings",
+      "Application session lifecycle documentation"
+    ],
+    "commonGaps": [
+      "VPN sessions persist for days due to extremely long timeouts",
+      "Load balancer keepalives prevent idle disconnect",
+      "Custom applications hold network connections open indefinitely",
+      "Stale TCP connections accumulate on stateful devices, eventually causing resource exhaustion"
+    ]
+  },
+  {
+    "id": "SC.L2-3.13.10",
+    "family": "System and Communications Protection",
+    "title": "Key Management",
+    "controlText": "Establish and manage cryptographic keys for cryptography employed in organizational systems.",
+    "plainEnglish": "Wherever you use cryptography, you have keys — and those keys must themselves be managed: generated securely, distributed safely, stored protected, used appropriately, rotated periodically, revoked when compromised, and destroyed when retired. Standard practice is to use a Key Management System (KMS) or hardware security module (HSM) rather than ad-hoc handling. NIST SP 800-57 is the authoritative reference. This complements every cryptography practice in the framework.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "cryptographic keys are established whenever cryptography is employed",
+        "whatToLookFor": "Documented key generation procedures — keys generated with appropriate strength using validated random number generators. Asymmetric keys generated in HSM or hardware-backed keystore where possible.",
+        "commonEvidence": [
+          "Key generation procedure documentation",
+          "KMS or HSM configuration",
+          "Public Key Infrastructure (PKI) documentation",
+          "Key generation audit logs"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "cryptographic keys are managed whenever cryptography is employed",
+        "whatToLookFor": "Documented key management lifecycle — distribution, storage, use, backup, recovery, rotation, revocation, destruction. Access to key material restricted to specifically authorized personnel. Key escrow or recovery procedures documented.",
+        "commonEvidence": [
+          "Key management policy",
+          "KMS access control configuration and audit logs",
+          "Key rotation evidence (BitLocker recovery keys, certificate renewals, API key rotation)",
+          "Key destruction records",
+          "Certificate revocation procedures"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Key Management Policy",
+      "KMS or HSM configuration and access logs",
+      "PKI documentation and certificate inventory",
+      "Key rotation and revocation records",
+      "BitLocker/FileVault recovery key escrow evidence"
+    ],
+    "commonGaps": [
+      "BitLocker recovery keys stored in a spreadsheet on a network share",
+      "API keys never rotated, even after the original developer left the company",
+      "TLS certificates expire because nobody is tracking renewal dates",
+      "No documented key destruction procedure for retired keys",
+      "Service account passwords (a form of key) shared widely with no rotation when staff change",
+      "PKI infrastructure but no documented certificate authority compromise procedure"
+    ]
+  },
+  {
+    "id": "SC.L2-3.13.11",
+    "family": "System and Communications Protection",
+    "title": "CUI Encryption",
+    "controlText": "Employ FIPS-validated cryptography when used to protect the confidentiality of CUI.",
+    "plainEnglish": "When cryptography is used to protect CUI, the cryptographic module must be FIPS 140-2 (or 140-3) validated — listed on the NIST Cryptographic Module Validation Program (CMVP) website. This is the central practice that several others reference: AC.L2-3.1.13 (remote access), AC.L2-3.1.19 (mobile), MP.L2-3.8.6 (portable storage), SC.L2-3.13.8 (data in transit), and SC.L2-3.13.16 (data at rest) all rely on this practice for their FIPS requirements. Using AES-256 from a non-validated library does NOT meet this standard.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "FIPS-validated cryptography is employed to protect the confidentiality of CUI",
+        "whatToLookFor": "Inventory of cryptographic modules in use to protect CUI, each tied to a CMVP certificate number on the NIST website. Modules operated in their FIPS-approved mode where applicable. Spot-check by looking up a few certificates to confirm they're current and the module version matches what's deployed.",
+        "commonEvidence": [
+          "FIPS-validated cryptographic module inventory with CMVP certificate numbers",
+          "Configuration evidence showing FIPS mode enabled (BitLocker, OpenSSL, OS-level FIPS mode)",
+          "Verification records cross-checking deployed versions against CMVP listings"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "CMVP certificate inventory",
+      "FIPS mode enablement records (Windows, RHEL, application-level)",
+      "Cryptographic module deployment baseline",
+      "Documentation of FIPS-approved operational modes"
+    ],
+    "commonGaps": [
+      "Open-source cryptographic libraries used for CUI without an associated CMVP certificate",
+      "FIPS mode available but not enabled on Windows or Linux endpoints handling CUI",
+      "Self-signed crypto implementations in custom applications",
+      "CMVP certificate exists but for a different module version than what's actually deployed",
+      "Cloud KMS use without confirming the CMVP-validated configuration",
+      "Confusion between 'FIPS-approved algorithm' (e.g., AES) and 'FIPS-validated module' — the latter is required"
+    ]
+  },
+  {
+    "id": "SC.L2-3.13.12",
+    "family": "System and Communications Protection",
+    "title": "Collaborative Device Control",
+    "controlText": "Prohibit remote activation of collaborative computing devices and provide indication of devices in use to users present at the device.",
+    "plainEnglish": "Devices like webcams, microphones, networked whiteboards, and conference room equipment must (1) not be remotely activatable by an attacker, and (2) provide a clear visual or audible signal when they're in use. This addresses the risk of covert surveillance through compromised collaboration equipment. Dedicated video conferencing systems where one party initiates the call (Zoom, Teams) are typically excluded.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "collaborative computing devices are identified",
+        "whatToLookFor": "Inventory of collaborative computing devices in scope — webcams, microphones, conference room equipment, networked whiteboards, smart speakers if present. Excludes user-initiated video conferencing where the user must accept the call.",
+        "commonEvidence": [
+          "Collaborative device inventory",
+          "Conference room equipment inventory"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "collaborative computing devices provide indication to users of devices in use",
+        "whatToLookFor": "Devices have indicator lights (camera in-use LED, microphone activity light) or other unambiguous signals. For devices without built-in indicators, manual mechanisms exist — door signage, conference room booking systems showing in-use state.",
+        "commonEvidence": [
+          "Device documentation showing in-use indicators",
+          "Conference room signage or booking display photos",
+          "Manual notification procedures"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "remote activation of collaborative computing devices is prohibited",
+        "whatToLookFor": "Devices configured to prevent remote activation without local user consent — webcam software requires user prompt, conference room systems require local activation, group policies disable remote camera/microphone access where applicable.",
+        "commonEvidence": [
+          "Device configuration disabling remote activation",
+          "Group Policy or MDM settings restricting camera/microphone access",
+          "Conference room equipment configuration documentation"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Collaborative device inventory",
+      "Device configuration documentation",
+      "Conference room signage standards",
+      "GPO/MDM policies restricting device activation"
+    ],
+    "commonGaps": [
+      "Smart conference room equipment that can be remotely activated by anyone with credentials",
+      "Webcams without functional in-use indicator LEDs",
+      "Networked microphones in conference rooms with no notification mechanism",
+      "Smart speakers in offices that handle CUI conversations",
+      "BYOD policy that doesn't address camera/microphone use during work calls"
+    ]
+  },
+  {
+    "id": "SC.L2-3.13.13",
+    "family": "System and Communications Protection",
+    "title": "Mobile Code",
+    "controlText": "Control and monitor the use of mobile code.",
+    "plainEnglish": "Mobile code — software downloaded and executed on the user's machine without explicit installation, like JavaScript, ActiveX, Java applets, Flash, PDF scripts, or VBScript macros — must be controlled. Define which types are allowed under what conditions, monitor their use, and block or restrict types known to be high-risk. Modern environments typically address this via browser security policies, application allow-listing, and macro restrictions.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "use of mobile code is controlled",
+        "whatToLookFor": "Documented policy on mobile code — which types are allowed, restricted, or blocked. Technical enforcement via browser policies (disabling ActiveX, restricting JavaScript on certain sites), application configuration (Office macro restrictions), and endpoint controls.",
+        "commonEvidence": [
+          "Mobile code policy with defined types and restrictions",
+          "Browser security policy configuration",
+          "Office macro security settings",
+          "Application allow-list documentation"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "use of mobile code is monitored",
+        "whatToLookFor": "Detection capability for mobile code use — EDR alerts on suspicious script execution, web proxy logs of mobile code activity, alerts on macro-enabled documents from external sources.",
+        "commonEvidence": [
+          "EDR/SIEM alerts for mobile code execution",
+          "Web proxy logs and review records",
+          "Macro execution monitoring",
+          "Browser policy compliance reports"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Mobile Code Policy",
+      "Browser security configuration",
+      "Office macro restriction policy",
+      "EDR/SIEM rules for mobile code monitoring",
+      "Application allow-list configuration"
+    ],
+    "commonGaps": [
+      "No defined mobile code policy — defaults to whatever browsers and Office allow",
+      "Office macros from external sources allowed without prompting",
+      "Legacy applications still requiring ActiveX or Java applets without restriction",
+      "No monitoring or alerting on script execution patterns",
+      "User can override browser security policies"
+    ]
+  },
+  {
+    "id": "SC.L2-3.13.14",
+    "family": "System and Communications Protection",
+    "title": "Voice over Internet Protocol",
+    "controlText": "Control and monitor the use of Voice over Internet Protocol (VoIP) technologies.",
+    "plainEnglish": "VoIP systems — Microsoft Teams Phone, Cisco Webex Calling, RingCentral, on-prem PBX systems — must be controlled and monitored. This means defined approved VoIP solutions, configuration that restricts use to authorized users, and monitoring for unauthorized VoIP applications (e.g., personal Skype/Discord/etc. used for work). VoIP traffic carrying sensitive conversations should be encrypted.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "use of Voice over Internet Protocol (VoIP) technologies is controlled",
+        "whatToLookFor": "Documented approved VoIP technologies. Configuration restricts use — encrypted call signaling/media (SRTP), authentication required, admin functions protected. Unauthorized VoIP applications blocked or detected.",
+        "commonEvidence": [
+          "VoIP usage policy",
+          "VoIP system configuration (encryption, authentication)",
+          "Approved VoIP applications list",
+          "Web filtering or DLP rules blocking unauthorized VoIP"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "use of Voice over Internet Protocol (VoIP) technologies is monitored",
+        "whatToLookFor": "Active monitoring of VoIP — call logs, configuration change logs, alerts on unusual patterns, detection of unauthorized VoIP applications. Logs forwarded to SIEM.",
+        "commonEvidence": [
+          "VoIP system logs in SIEM",
+          "Call detail records review process",
+          "Detection rules for unauthorized VoIP applications",
+          "VoIP system patching and update records"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "VoIP Policy",
+      "VoIP system configuration documentation",
+      "Approved VoIP applications list",
+      "VoIP logs in SIEM",
+      "Web filtering rules for unauthorized VoIP"
+    ],
+    "commonGaps": [
+      "VoIP system uses unencrypted SIP/RTP for signaling and media",
+      "No monitoring of VoIP system administrative actions",
+      "Personal VoIP applications (Discord, Skype, WhatsApp) used for work calls without restriction",
+      "VoIP system not patched on the regular software patching cycle",
+      "Voice mailboxes have weak or default passwords"
+    ]
+  },
+  {
+    "id": "SC.L2-3.13.15",
+    "family": "System and Communications Protection",
+    "title": "Communications Authenticity",
+    "controlText": "Protect the authenticity of communications sessions.",
+    "plainEnglish": "Communications sessions must be protected against man-in-the-middle attacks, session hijacking, and false-information injection — both ends of every session need confidence that the other end is who it claims to be throughout the session, not just at handshake. Typically achieved through TLS with proper certificate validation, mutual authentication where applicable, and session token protection. Different from authentication of the user (IA family) — this addresses session-level integrity.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "the authenticity of communications sessions is protected",
+        "whatToLookFor": "TLS configured correctly across all sessions — strong cipher suites, certificate validation enforced, no acceptance of self-signed or expired certificates without explicit user action. Session tokens generated with sufficient entropy and bound to the authenticated user. Mutual TLS where partner connections require it.",
+        "commonEvidence": [
+          "TLS configuration showing strong cipher suites and certificate validation",
+          "Session token generation and binding documentation",
+          "Mutual TLS configuration for partner connections",
+          "TLS scan results from external testing"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "TLS configuration documentation",
+      "Certificate validation policy",
+      "Session management documentation",
+      "TLS scan results (Qualys SSL Labs, sslyze)",
+      "Mutual TLS configuration for partner connections"
+    ],
+    "commonGaps": [
+      "TLS configured but accepts certificates with hostname mismatches",
+      "Custom applications that don't validate server certificates",
+      "Session tokens predictable or guessable",
+      "Sessions can be hijacked via cross-site scripting because cookies aren't HttpOnly/Secure",
+      "Partner integrations rely on unauthenticated webhooks or simple shared secrets"
+    ]
+  },
+  {
+    "id": "SC.L2-3.13.16",
+    "family": "System and Communications Protection",
+    "title": "Data at Rest",
+    "controlText": "Protect the confidentiality of CUI at rest.",
+    "plainEnglish": "CUI sitting on storage — hard drives, databases, file shares, backups, cloud storage buckets — must be protected. Encryption is the most common approach (and when used, the cryptography must be FIPS-validated per SC.L2-3.13.11), but other approaches like physical security (locked closets) or secure offline storage are acceptable. The intent is confidentiality of the data, not a specific technology. Backup data is in scope and frequently overlooked.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "the confidentiality of CUI at rest is protected",
+        "whatToLookFor": "CUI storage locations identified, with documented protection mechanism per location — full-disk encryption, file/folder encryption, database TDE, cloud storage encryption with customer-managed keys, or physical security where encryption is impractical. Backups also protected.",
+        "commonEvidence": [
+          "CUI storage location inventory",
+          "Disk encryption configuration on servers and workstations",
+          "Database encryption configuration",
+          "Cloud storage encryption settings",
+          "Backup encryption documentation",
+          "Physical security controls for unencrypted CUI storage"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "CUI storage inventory",
+      "Disk and database encryption configuration",
+      "Cloud storage encryption documentation",
+      "Backup encryption evidence",
+      "Physical security controls for storage areas"
+    ],
+    "commonGaps": [
+      "Backups stored unencrypted on tapes or cloud",
+      "Database encryption enabled but uses provider-managed keys with no customer control",
+      "File shares containing CUI without share-level or file-level encryption",
+      "Cloud storage buckets with default encryption that doesn't use FIPS-validated modules",
+      "Old hard drives retired without secure erasure or destruction",
+      "Encryption enabled on production but not on dev/test environments that contain CUI copies"
+    ]
+  }
+]

@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Security Assessment Plan",
+    "description": "Documented plan for conducting the security control assessment — defining scope (which controls will be assessed), methodology (examination, interview, testing), assessor roles, assessment schedule, and the rules of engagement. Should reference the SSP as the baseline.",
+    "likelyControls": [
+      "CA.L2-3.12.1"
+    ],
+    "reasoning": "The security assessment plan is the planning artifact for CA.L2-3.12.1. Assessors typically examine the plan before reviewing the assessment report to understand the intended scope and methodology. A plan that covers only a subset of controls with no documented rationale for exclusions, or that has not been updated since the initial authorization, is a finding. The plan also demonstrates that assessments are scheduled (objective [a]) — an organization that conducts ad-hoc reviews with no written plan has not met the frequency-definition requirement."
+  },
+  {
+    "name": "Security Assessment Report",
+    "description": "Documented output of the security control assessment — showing which controls were assessed, what evidence was examined, what testing was performed, assessment results per control (effective/ineffective/partially effective), identified deficiencies, and recommended remediation actions.",
+    "likelyControls": [
+      "CA.L2-3.12.1"
+    ],
+    "reasoning": "The primary evidence for CA.L2-3.12.1[b] — that assessments actually occurred and produced documented results. The Assessment Guide notes that 'security assessment reports document assessment results in sufficient detail to determine the accuracy and completeness of the reports and whether the security controls are implemented correctly.' Assessors look for specificity: a report that says 'all controls assessed — pass' without supporting evidence is not credible. Historical reports are also valuable to demonstrate the periodic cadence defined in objective [a]."
+  },
+  {
+    "name": "Plan of Action and Milestones (POA&M)",
+    "description": "Formal tracking document for identified security deficiencies — listing each deficiency with the affected control or requirement, the source of the finding, the responsible owner, the planned remediation approach, specific milestones, target completion dates, and current status. Updated as remediation progresses.",
+    "likelyControls": [
+      "CA.L2-3.12.2"
+    ],
+    "reasoning": "The POA&M is the central artifact for CA.L2-3.12.2 — satisfying all three objectives: deficiencies identified [a], plan developed with steps and dates [b], plan being implemented with status updates [c]. CMMC assessors treat the POA&M as a live operational document. A POA&M with stale entries, missing owners, or items open for 12+ months with no status changes is evidence that the plan is not being implemented as required. The POA&M also serves as the bridge between assessment findings, vulnerability scan results, and the remediation program."
+  },
+  {
+    "name": "Continuous Monitoring Strategy",
+    "description": "Documented plan for ongoing monitoring of security controls — identifying which controls are monitored, at what frequency, through what mechanisms (SIEM, vulnerability scanning, configuration checks, access reviews, log analysis), who is responsible, and how findings are reported to stakeholders.",
+    "likelyControls": [
+      "CA.L2-3.12.3"
+    ],
+    "reasoning": "The foundational policy artifact for CA.L2-3.12.3. The Assessment Guide explicitly requires a plan that identifies controls to monitor, monitoring timeframes, and how outputs are provided to stakeholders. Without a documented strategy, monitoring is ad hoc and cannot demonstrate the 'ongoing basis' requirement. The strategy should specify that monitoring occurs more frequently than the periodic assessments from CA.L2-3.12.1, per the Assessment Guide's Further Discussion section."
+  },
+  {
+    "name": "Security Control Monitoring Reports",
+    "description": "Recurring output from the continuous monitoring program — SIEM summary reports, vulnerability scan trend reports, configuration compliance dashboards, access rights review summaries, or combined security posture reports provided to management on a defined schedule.",
+    "likelyControls": [
+      "CA.L2-3.12.3"
+    ],
+    "reasoning": "Operational evidence for CA.L2-3.12.3[a] that monitoring is actually occurring. The Assessment Guide notes that monitoring outputs should be 'formatted to provide information that is specific, measurable, actionable, relevant, and timely' and that 'providing access to security information on a continuing basis through reports or dashboards gives organizational officials the capability to make effective and timely risk management decisions.' Assessors look for reports that are regular, audience-appropriate, and show evidence of stakeholder review and response."
+  },
+  {
+    "name": "System Security Plan (SSP)",
+    "description": "Formal document describing the system boundary, operational environment, how each security requirement is implemented, N/A determinations with justifications, and external system interconnections. Maintained with version control and updated on a defined schedule and after significant system changes.",
+    "likelyControls": [
+      "CA.L2-3.12.4"
+    ],
+    "reasoning": "The SSP is the foundational artifact for CA.L2-3.12.4 — all eight objectives reference it directly. It is also the baseline document against which CA.L2-3.12.1 (assessment) and CA.L2-3.12.3 (monitoring) are conducted. Assessors examine every required section: boundary [b], environment [c], N/A determinations [d], implementation descriptions [e], interconnections [f], update frequency [g], and evidence of updates [h]. A well-maintained SSP is the most influential document in a CMMC assessment — an inadequate SSP undermines every other control."
+  },
+  {
+    "name": "SSP Review and Update Records",
+    "description": "Evidence that the SSP has been reviewed and updated at the defined frequency — version history, change logs, dated review signatures, or change management tickets triggered by system changes that resulted in SSP updates.",
+    "likelyControls": [
+      "CA.L2-3.12.4"
+    ],
+    "reasoning": "Direct evidence for CA.L2-3.12.4[g,h] — the frequency-definition and update-execution objectives. An SSP without a version history is unverifiable; an SSP with a version history showing no updates in three years when the defined frequency is annual is a finding. Change management records showing SSP updates were triggered after major system changes demonstrate event-driven maintenance in addition to periodic review."
+  },
+  {
+    "name": "Assessment Scope Documentation",
+    "description": "Documentation defining the scope of the security assessment — the system or components under review, the assessment period, the controls or requirements in scope, the exclusions with justification, and the assessment team roles. May be part of the Security Assessment Plan or a separate document.",
+    "likelyControls": [
+      "CA.L2-3.12.1"
+    ],
+    "reasoning": "Supporting evidence for CA.L2-3.12.1[a,b] demonstrating that assessments have defined boundaries. Assessors verify that scope covers the environment described in the SSP and that exclusions are justified rather than arbitrary. Scope documentation also allows comparison between assessment cycles — if the scope narrowed year over year without justification, assessors investigate what was excluded and why."
+  }
+]

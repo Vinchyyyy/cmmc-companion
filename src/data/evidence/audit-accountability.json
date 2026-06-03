@@ -1,0 +1,62 @@
+[
+  {
+    "name": "SIEM / Logging Platform Configuration",
+    "description": "Configuration of the centralized log management and SIEM platform (Splunk, Microsoft Sentinel, Elastic Security, Sumo Logic, Datadog, QRadar) — including ingestion sources, parsing rules, correlation rules, retention settings, role-based access control, and health monitoring for log ingestion.",
+    "likelyControls": [
+      "AU.L2-3.3.1",
+      "AU.L2-3.3.3",
+      "AU.L2-3.3.4",
+      "AU.L2-3.3.5",
+      "AU.L2-3.3.6",
+      "AU.L2-3.3.8",
+      "AU.L2-3.3.9"
+    ],
+    "reasoning": "The SIEM is the single most central artifact for the AU family. AU.L2-3.3.1 depends on it to collect and retain logs from in-scope systems. AU.L2-3.3.3 reviews event types defined in the SIEM ingestion pipeline. AU.L2-3.3.4 produces failure alerts when ingestion stops. AU.L2-3.3.5 correlates events across sources via SIEM correlation rules. AU.L2-3.3.6 provides reduction and reporting through SIEM dashboards and saved searches. AU.L2-3.3.8 protects audit information through SIEM RBAC and immutability features. AU.L2-3.3.9 narrows audit administration to a defined subset via SIEM role assignments. Assessors typically request the SIEM configuration first when evaluating AU; almost every other AU artifact derives from or feeds into this one."
+  },
+  {
+    "name": "Audit and Accountability Policy",
+    "description": "Written policy and procedures governing audit logging — what events get logged, audit record content requirements, retention periods, review processes, protection of audit information, and roles authorized to manage audit logging.",
+    "likelyControls": [
+      "AU.L2-3.3.1",
+      "AU.L2-3.3.3",
+      "AU.L2-3.3.4",
+      "AU.L2-3.3.8",
+      "AU.L2-3.3.9"
+    ],
+    "reasoning": "The foundational policy document for the AU family. AU.L2-3.3.1[a,b,e] requires definition of event types, record content, and retention periods — all typically captured in this policy. AU.L2-3.3.3[a] defines the event review process. AU.L2-3.3.4[a,b] identifies alert recipients and failure conditions. AU.L2-3.3.8 establishes protection requirements. AU.L2-3.3.9[a] defines the audit administrator subset. Assessors look for the policy first, then trace whether technical configurations match what is written; policy-without-enforcement and enforcement-without-policy are both findings."
+  },
+  {
+    "name": "Log Retention Configuration",
+    "description": "Technical configuration governing how long audit records are retained — SIEM retention settings, log archive lifecycle policies, cloud logging service retention configuration, and backup procedures for cold-storage audit logs.",
+    "likelyControls": [
+      "AU.L2-3.3.1",
+      "AU.L2-3.3.8"
+    ],
+    "reasoning": "Direct evidence for AU.L2-3.3.1[e,f] (retention requirements defined and enforced). Also supports AU.L2-3.3.8[c] by establishing the period during which audit information must remain protected from deletion. Assessors verify the configured retention matches the policy-defined retention and spot-check by attempting to retrieve old records near the retention boundary. Common gap: policy says 1 year but the SIEM is configured to 90 days because no one updated the tool when the policy changed."
+  },
+  {
+    "name": "Time Synchronization Configuration",
+    "description": "Configuration of NTP services across in-scope systems — domain time hierarchy on Windows, chrony or ntpd on Linux, network device NTP settings, cloud platform time services — plus the authoritative time source documentation and any drift monitoring.",
+    "likelyControls": [
+      "AU.L2-3.3.7"
+    ],
+    "reasoning": "Direct evidence for all three objectives of AU.L2-3.3.7. The NTP architecture identifies the authoritative source [b], the per-system configuration shows synchronization is happening [c], and audit records produced by these systems contain consistent timestamps [a]. Assessors typically run a quick check on representative systems (w32tm /query /status on Windows, chronyc tracking on Linux) to verify offset is sub-second. Network devices left at default time configuration are a frequent finding."
+  },
+  {
+    "name": "Audit Failure Alerting Configuration",
+    "description": "Monitoring and alerting rules that fire when audit logging breaks — SIEM agent offline alerts, log forwarder unreachable alerts, ingestion-stopped alerts, audit subsystem disabled alerts, and the distribution list or on-call rotation that receives them.",
+    "likelyControls": [
+      "AU.L2-3.3.4"
+    ],
+    "reasoning": "Direct evidence for all three objectives of AU.L2-3.3.4. The distribution list satisfies [a], the alert rule configuration satisfies [b], and recent alert tickets with response timestamps satisfy [c]. Assessors typically ask for a recent test-alert or a real incident showing the alerting path actually worked end-to-end — health monitoring rules that have never fired are treated with appropriate skepticism."
+  },
+  {
+    "name": "Audit Log Reduction & Reporting Tools",
+    "description": "SIEM dashboards, saved searches, alert summaries, scheduled report templates, and SOAR playbooks providing on-demand analysis and reporting capabilities on top of raw audit data.",
+    "likelyControls": [
+      "AU.L2-3.3.5",
+      "AU.L2-3.3.6"
+    ],
+    "reasoning": "Direct evidence for AU.L2-3.3.5[b] (correlation across sources via SIEM rules and dashboards) and both objectives of AU.L2-3.3.6 (reduction [a] via filtering/aggregation, reporting [b] via saved templates). Assessors typically ask to see recent investigations that drew on these tools — a SIEM with dashboards no one looks at and reports no one runs is a common finding. The artifact exists; the operational use of the artifact is what's actually evaluated."
+  }
+]

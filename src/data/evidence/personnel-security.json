@@ -1,0 +1,67 @@
+[
+  {
+    "name": "Personnel Security Policy",
+    "description": "Written policy governing the organization's personnel security program — covering pre-employment screening requirements by role and access level, procedures for personnel actions (termination and transfer), timeframes for access revocation, and responsibilities for HR, IT, and security personnel.",
+    "likelyControls": [
+      "PS.L2-3.9.1",
+      "PS.L2-3.9.2"
+    ],
+    "reasoning": "The foundational policy document for both PS controls. PS.L2-3.9.1[a] requires screening individuals — the policy defines what screening consists of, for which roles, and at what level. PS.L2-3.9.2[a] requires a policy and process for terminating access coincident with personnel actions — this is the policy that establishes that process. Assessors read the policy first to establish the intent and standard, then verify whether operational records match the policy commitments."
+  },
+  {
+    "name": "Background Investigation and Screening Records",
+    "description": "Records documenting completion of pre-employment screening for individuals with CUI access — background investigation summaries, criminal history check results, credit check records, reference check documentation, and any adjudication decisions. May be maintained by HR or a third-party screening vendor.",
+    "likelyControls": [
+      "PS.L2-3.9.1"
+    ],
+    "reasoning": "Direct evidence for PS.L2-3.9.1[a] — that screening was completed before CUI access was authorized. Assessors sample personnel with CUI access and verify screening records exist and predate the access grant. Absence of records for current CUI users is a direct finding. Note: actual investigation content is often sensitive; assessors typically accept summary completion records rather than full investigation files."
+  },
+  {
+    "name": "Offboarding and Termination Checklist",
+    "description": "Structured checklist used during employee terminations and contractor offboarding — covering account and credential revocation (AD, SaaS, VPN, email, MFA tokens, API keys), physical asset return (laptop, badge, keys, mobile devices), access badge deactivation, exit interview completion, and notification to relevant teams.",
+    "likelyControls": [
+      "PS.L2-3.9.2"
+    ],
+    "reasoning": "Primary operational evidence for PS.L2-3.9.2[b] — that access and credentials are terminated consistent with personnel actions. Assessors sample completed checklists for recent terminations and verify all items were completed within the required timeframe. A checklist that exists in policy but for which no completed instances can be produced is a finding. Incomplete checklists (e.g., AD account disabled but SaaS accounts not checked) indicate gaps in the process scope."
+  },
+  {
+    "name": "Account and Credential Revocation Records",
+    "description": "Technical records showing account disablement and credential revocation coincident with terminations and transfers — Active Directory disable/deletion logs, IdP account revocation records, SaaS app deprovisioning records, VPN account removal, MFA hardware token deactivation, API key deletion, and certificate revocation.",
+    "likelyControls": [
+      "PS.L2-3.9.2"
+    ],
+    "reasoning": "Technical evidence supporting PS.L2-3.9.2[b] — specifically verifying that the access termination required by policy actually happened in the systems. Assessors cross-reference termination dates from HR against account disable dates in technical systems to verify timely revocation. Finding an active account for a terminated employee is a direct failure. Finding accounts disabled in AD but active in SaaS applications demonstrates incomplete scope in the offboarding process."
+  },
+  {
+    "name": "Exit Interview Records",
+    "description": "Documentation of exit interviews conducted with departing employees — confirming the employee was reminded of ongoing CUI protection obligations, nondisclosure agreements, limitations on future employment discussions of CUI, and obligation to return company property.",
+    "likelyControls": [
+      "PS.L2-3.9.2"
+    ],
+    "reasoning": "The Assessment Guide explicitly notes that exit interviews ensure 'individuals who have been terminated understand the security constraints imposed by being former employees.' Exit interview records satisfy PS.L2-3.9.2[b] (personnel actions taken) by documenting the security-relevant components of the offboarding process. Assessors also look for whether exit interviews are conducted for remote employees and contractors, not just on-site staff."
+  },
+  {
+    "name": "Transfer Access Modification Records",
+    "description": "Records documenting access changes made when employees transfer between roles — showing both the new access granted and the old role's access revoked. Includes HR transfer notification records, access modification tickets, and confirmation that old role access was removed rather than accumulated.",
+    "likelyControls": [
+      "PS.L2-3.9.2"
+    ],
+    "reasoning": "Direct evidence for PS.L2-3.9.2[c] — that systems are protected during and after personnel transfer actions. Assessors verify that transfer actions result in privilege right-sizing, not accumulation. A common finding is that access for the new role is provisioned but the old role's access is never revoked, leaving users with more access than their current role requires. Transfer records should show both sides of the access change."
+  },
+  {
+    "name": "HR-to-IT Notification Workflow Records",
+    "description": "Records of notifications from HR to IT (and security) when personnel actions occur — termination notices, transfer notifications, role change requests — showing the trigger for IT action and the response time. May be workflow tickets, email records, or integration logs from HRIS to ITSM.",
+    "likelyControls": [
+      "PS.L2-3.9.2"
+    ],
+    "reasoning": "Supporting evidence for PS.L2-3.9.2[a] (process established) and PS.L2-3.9.2[b,c] (process executed). The notification workflow is the mechanism that connects HR personnel actions to IT account actions. Without a documented and functioning notification path, IT may learn of terminations informally and inconsistently — a common root cause finding when access revocation is delayed. Assessors evaluate both the timeliness of notifications and the completeness of the IT response."
+  },
+  {
+    "name": "Access Provisioning Gate Documentation",
+    "description": "Documentation showing that CUI system access is not provisioned until screening completion is confirmed — onboarding workflow documentation, access request form including screening completion field, HR sign-off gate in the provisioning process, or HRIS-to-IAM integration that enforces the screening prerequisite.",
+    "likelyControls": [
+      "PS.L2-3.9.1"
+    ],
+    "reasoning": "Process evidence for PS.L2-3.9.1[a] demonstrating the screening gate is enforced, not just documented. The Assessment Guide requires screening prior to access authorization — this artifact shows the workflow enforces that sequence. Assessors look for a control that prevents access from being provisioned before screening is complete, rather than relying on manual compliance with the policy. An onboarding process that has no gate between 'start date' and 'CUI access' is a process control gap."
+  }
+]

@@ -1,0 +1,96 @@
+[
+  {
+    "name": "Access Control Policy",
+    "description": "The organization's written policy governing how access to systems and data is granted, modified, and revoked — typically including provisions for role-based access, account management lifecycle, and information flow.",
+    "likelyControls": [
+      "AC.L1-3.1.1",
+      "AC.L1-3.1.2",
+      "AC.L2-3.1.3"
+    ],
+    "reasoning": "Policy documents are the foundational artifact for all Access Control practices. They establish the organization's intent to limit system access (AC.L1-3.1.1), define the transaction and function rules (AC.L1-3.1.2[a]), and often include the information flow control language required for CUI (AC.L2-3.1.3[a]). Assessors will look for the policy first, then trace whether procedures and technical configurations actually align with what is written. Policy without enforcement is a documented gap."
+  },
+  {
+    "name": "Group Membership Export",
+    "description": "A list of security or access groups and their members, typically exported from Active Directory, Entra ID, or an application's RBAC configuration.",
+    "likelyControls": [
+      "AC.L1-3.1.1",
+      "AC.L1-3.1.2"
+    ],
+    "reasoning": "Group membership is the technical mechanism most organizations use to enforce role-based access. The export demonstrates that system access is limited to authorized users (AC.L1-3.1.1[d]) and that transactions and functions are limited to defined roles (AC.L1-3.1.2[b]). Reviewers will compare actual group memberships against the documented role/permission matrix to identify excessive privilege, permission creep from job changes, and stale memberships from departed staff."
+  },
+  {
+    "name": "Wireless Network Configuration",
+    "description": "Wireless controller and access point configuration showing SSID setup, authentication mode (WPA2/WPA3 PSK or Enterprise), encryption settings, RADIUS integration, and segregation of corporate vs guest networks.",
+    "likelyControls": [
+      "AC.L2-3.1.16",
+      "AC.L2-3.1.17"
+    ],
+    "reasoning": "AC.L2-3.1.16[b] requires authorization before connection — enforced via the authentication method config. AC.L2-3.1.17[a,b] requires both authentication AND encryption. The wireless controller configuration is the single artifact demonstrating both, but assessors will separately verify that the cryptographic module is FIPS-validated. Common findings: WPA2-PSK with a key shared widely and never rotated, or wireless equipment using AES but with a non-CMVP-validated module."
+  },
+  {
+    "name": "Wireless Access Point Inventory",
+    "description": "Inventory of authorized wireless access points with SSIDs, locations, controller management, and rogue AP detection mechanisms (WIDS/WIPS configuration and alerts).",
+    "likelyControls": [
+      "AC.L2-3.1.16"
+    ],
+    "reasoning": "AC.L2-3.1.16[a] requires identification of wireless access points. The practice implies awareness of what is actually broadcasting in the environment, not just what is sanctioned — so rogue AP detection mechanisms (WIDS/WIPS) and periodic site surveys form part of the evidence. An inventory of just the authorized APs without any detection of unauthorized ones is incomplete."
+  },
+  {
+    "name": "Mobile Device Compliance Report",
+    "description": "Periodic report from MDM showing per-device compliance status — encryption enabled and FIPS-mode where applicable, OS version current, jailbreak/root detection results, and remediation status for non-compliant devices.",
+    "likelyControls": [
+      "AC.L2-3.1.18",
+      "AC.L2-3.1.19"
+    ],
+    "reasoning": "Demonstrates ongoing enforcement of mobile device controls — not just policy, but actual state. AC.L2-3.1.18[c] requires monitoring and logging of mobile device connections; AC.L2-3.1.19[b] requires actual encryption enforcement. Assessors look for specific data points: percentage of devices encrypted, count of non-compliant devices, and remediation timelines. A report showing 100% compliance with no exceptions documented can be as suspicious as one showing widespread gaps."
+  },
+  {
+    "name": "Session Lock and Timeout Configuration",
+    "description": "Group Policy and MDM configuration showing session lock timeouts, automatic session termination conditions, and pattern-hiding lock screen settings — across endpoint and cloud session policies.",
+    "likelyControls": [
+      "AC.L2-3.1.10",
+      "AC.L2-3.1.11"
+    ],
+    "reasoning": "Single technical artifact covering both session-related controls. AC.L2-3.1.10[a,b,c] requires inactivity-based locking with pattern-hiding displays — typically configured in GPO or MDM. AC.L2-3.1.11[a,b] requires automatic session termination per defined conditions, configured here as well as in application and cloud session policies. Assessors look for the configuration AND a sample showing it actually applies (test on a representative endpoint, plus a sample from a cloud SaaS session policy). Common gap: lock policy applied to Windows but missing on macOS or Linux endpoints."
+  },
+  {
+    "name": "Account Lockout Policy Configuration",
+    "description": "Group Policy and IDP configuration showing failed-login lockout threshold, lockout duration, and reset behavior — across the IDP, VPN, and in-scope cloud applications.",
+    "likelyControls": [
+      "AC.L2-3.1.8"
+    ],
+    "reasoning": "Direct evidence for AC.L2-3.1.8[a,b]. Assessors verify that lockout is configured consistently across the IDP, VPN, and in-scope cloud applications — a common gap is enforcement in AD but missing in cloud SaaS or VPN. They also look for the threshold and duration to be defensible: very high thresholds (50 attempts) or very short lockouts (1 minute) indicate compliance-driven configurations that don't actually defend against brute-force or credential-stuffing attacks."
+  },
+  {
+    "name": "System Use Notification / Login Banner",
+    "description": "Approved warning banner text and the configuration deploying it across login interfaces (Windows logon, SSH, web applications, VPN) — plus Legal or General Counsel approval evidence and CUI-specific language.",
+    "likelyControls": [
+      "AC.L2-3.1.9"
+    ],
+    "reasoning": "Direct evidence for AC.L2-3.1.9[a,b]. Two specific things assessors look for: (1) the banner content has been reviewed by Legal and addresses CUI-specific language including monitoring consent, criminal and civil penalty notice, and CUI handling rules; and (2) the banner actually deploys to all in-scope system types — Windows, Linux, network gear, web applications, and cloud platforms. Banner only on Windows endpoints is a common gap, as is generic 'authorized use only' language without CUI-specific notice."
+  },
+  {
+    "name": "USB / Portable Storage Control Configuration",
+    "description": "Endpoint device-control configuration restricting USB and portable storage usage — including allow-listed encrypted enterprise drives, DLP rules detecting CUI writes to removable media, and audit logs of removable storage activity.",
+    "likelyControls": [
+      "AC.L2-3.1.21"
+    ],
+    "reasoning": "Direct evidence for AC.L2-3.1.21[b,c]. Most organizations approach this practice with a combination of policy (prohibition by default), technical control (USB blocking via endpoint management or encrypted enterprise USB program), and DLP detection (catching CUI writes to removable media). Assessors look for technical enforcement, not just policy — a written prohibition with no mechanism to detect violations is a frequent finding. They also look for logs showing the controls are active, not just that the policy was deployed."
+  },
+  {
+    "name": "Separation of Duties Matrix",
+    "description": "A documented matrix identifying duty pairs that must be performed by separate individuals — typically including provisioning vs approval, code commit vs production deploy, system administration vs audit log review, and payment initiation vs approval — paired with the actual role/group assignments demonstrating the split is enforced.",
+    "likelyControls": [
+      "AC.L2-3.1.4"
+    ],
+    "reasoning": "Direct evidence for all three objectives of AC.L2-3.1.4. The matrix itself defines the duties requiring separation (AC.L2-3.1.4[a]); the role/group assignments demonstrate that responsibilities are split across separate individuals (AC.L2-3.1.4[b]); and reconciling the matrix against actual privileges shows that access is enforced consistently (AC.L2-3.1.4[c]). Assessors specifically test the third objective by sampling a defined separation pair and checking that no individual holds both halves — a documented matrix that is silently bypassed by 'emergency access' shared accounts is a common finding. Small organizations claiming SoD is impractical should pair the matrix with documented compensating controls (manager review, periodic third-party audit) rather than leaving the matrix entirely."
+  },
+  {
+    "name": "Public Content Review Records",
+    "description": "Records of pre-publication and periodic post-publication review of content on publicly accessible systems — including the authorized publishers list, review workflow approvals from the CMS or social media management tool, content review checklists addressing FCI/CUI, periodic review reports, and any past content removal actions.",
+    "likelyControls": [
+      "AC.L1-3.1.22"
+    ],
+    "reasoning": "Single artifact bundle covering all five objectives of AC.L1-3.1.22. The authorized publishers list satisfies [a]; the review checklist and procedure satisfies [b]; pre-publication approval records in the CMS satisfy [c]; periodic content review reports satisfy [d]; and documented removal actions (or the procedure plus evidence it has been exercised) satisfy [e]. Assessors specifically look for scope completeness — subsidiary websites, social media accounts, and any partner-hosted public pages should all be covered, not just the main corporate website. Marketing teams posting customer or program names that count as FCI is a frequent finding when the review process exists for the website but doesn't extend to LinkedIn or press releases."
+  }
+]

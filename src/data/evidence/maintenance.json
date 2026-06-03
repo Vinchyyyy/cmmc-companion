@@ -1,0 +1,68 @@
+[
+  {
+    "name": "System Maintenance Policy and Records",
+    "description": "Written policy defining the maintenance program scope, types of maintenance covered (corrective, preventative, adaptive, perfective), maintenance schedule, responsible personnel, and documentation requirements. Accompanied by maintenance records — work orders, patch logs, vendor service records, and change management tickets — demonstrating that maintenance is actually performed on a documented, regular basis.",
+    "likelyControls": [
+      "MA.L2-3.7.1",
+      "MA.L2-3.7.2"
+    ],
+    "reasoning": "MA.L2-3.7.1[a] requires that maintenance is performed — records are the direct evidence of execution. MA.L2-3.7.2[b] requires controlled maintenance techniques — the policy and documented procedures are the evidence that techniques are standardized rather than ad hoc. Assessors use the policy to establish the program baseline, then use the records to verify execution. A policy without records demonstrates intent but not practice; records without a policy lack the governance framework assessors expect."
+  },
+  {
+    "name": "Maintenance Tool Inventory and Access Controls",
+    "description": "An approved inventory of maintenance tools — hardware diagnostic equipment, software utilities, diagnostic USB drives, vendor-provided scripts — with documented access controls restricting use to authorized personnel. Includes tool check-out procedures, version tracking, and evidence that tools are vetted (malware-scanned, hash-verified) before being used on organizational systems.",
+    "likelyControls": [
+      "MA.L2-3.7.2"
+    ],
+    "reasoning": "MA.L2-3.7.2[a] requires that tools used for maintenance are controlled. The inventory establishes what tools are approved; access controls ensure unauthorized tools cannot be introduced; version tracking ensures tools are kept current. Assessors look for the combination: a defined approved-tool list plus evidence that access to those tools is restricted. The absence of an inventory — where any technician can bring in any tool — is the most common finding against this objective."
+  },
+  {
+    "name": "Authorized Maintenance Personnel Records",
+    "description": "Documentation identifying who is authorized to perform maintenance on organizational systems — internal staff access authorization records, contractor/vendor agreements with defined scope, temporary credential issuance records with expiration dates and access limitations, and supervision or escort logs for personnel without standing authorization.",
+    "likelyControls": [
+      "MA.L2-3.7.2",
+      "MA.L2-3.7.6"
+    ],
+    "reasoning": "MA.L2-3.7.2[d] requires that maintenance personnel are controlled; MA.L2-3.7.6[a] requires supervision of personnel without required authorization. Both objectives require evidence that the organization knows who is authorized and actively manages exceptions. Assessors look for the authorization records to confirm who has standing maintenance access, and then look for the supervision/escort records to confirm that unauthorized-access personnel were observed during their work. Temporary accounts with expiration dates are a specific artifact assessors check: still-active temporary accounts for vendors who completed work months ago are a common finding."
+  },
+  {
+    "name": "Equipment Sanitization Records",
+    "description": "Records documenting sanitization of equipment before it leaves organizational facilities for off-site maintenance — identifying the equipment (asset tag, serial number), the sanitization method applied (per NIST SP 800-88 categories: clear, purge, destroy), the date, and the responsible party. May include degaussing logs, secure-erase tool output, or destruction certificates for media that could not be sanitized.",
+    "likelyControls": [
+      "MA.L2-3.7.3"
+    ],
+    "reasoning": "MA.L2-3.7.3[a] has both a process requirement and a documentation requirement. The sanitization records are the direct evidence of execution — without them, an organization cannot demonstrate to an assessor that the sanitization actually occurred. Assessors look for records tied to specific equipment sent for off-site maintenance, not just a generic policy statement. Records should specify the NIST 800-88 method used (clear vs. purge vs. destroy) because the appropriate method varies by media type and the assessment will probe whether the right method was applied."
+  },
+  {
+    "name": "Equipment Sanitization Policy and Procedure",
+    "description": "Written policy and procedure for sanitizing equipment prior to off-site maintenance, referencing NIST SP 800-88 as the authoritative standard for method selection. Should define the scope (all equipment capable of storing CUI, including storage arrays, laptops, workstations, and multifunction devices), approved sanitization methods by equipment type, documentation requirements, and the chain-of-custody process before handoff to the maintenance vendor.",
+    "likelyControls": [
+      "MA.L2-3.7.3"
+    ],
+    "reasoning": "MA.L2-3.7.3[a] requires both a process and its execution. The policy and procedure establish the organizational process assessors evaluate before verifying records. Assessors use the procedure to confirm the organization has mapped the appropriate NIST 800-88 methods to its equipment types — a procedure that only addresses hard drives and misses solid-state storage, NVRAM, or firmware is a gap against the 'sanitized of any CUI' standard."
+  },
+  {
+    "name": "Media Inspection Records and Scan Logs",
+    "description": "Records demonstrating that diagnostic and test media were scanned for malicious code before use on organizational systems — antivirus/antimalware scan logs, hash verification outputs comparing downloaded files against vendor-published checksums, and maintenance work orders with an inspection sign-off step. Should cover all categories of maintenance media: USB drives, downloaded utilities, vendor FTP deliveries, and diagnostic software.",
+    "likelyControls": [
+      "MA.L2-3.7.4"
+    ],
+    "reasoning": "MA.L2-3.7.4[a] requires that the check is actually performed. Scan logs and hash verification records are the direct evidence. Assessors specifically look for coverage of downloaded utilities from vendor FTP or file-sharing sources — the Assessment Guide example uses exactly this scenario. Records that only cover USB drives while leaving downloaded files unchecked leave the higher-risk vector unaddressed. Hash verification records add a second layer of assurance that the file was not tampered with in transit, complementing the malware scan."
+  },
+  {
+    "name": "Nonlocal Maintenance Session Records",
+    "description": "Authentication and session logs for remote maintenance connections, showing MFA was required to establish the session and that the session was terminated upon maintenance completion. Includes VPN logs, maintenance interface authentication records, vendor remote support session logs with start/end times, and maintenance work order completion steps documenting session closure.",
+    "likelyControls": [
+      "MA.L2-3.7.5"
+    ],
+    "reasoning": "MA.L2-3.7.5 has two independently assessed objectives: MFA used to establish the session [a], and session terminated when complete [b]. Session logs address both: authentication logs show the MFA challenge occurred, and session duration records show the connection closed after maintenance. Assessors look for the MFA challenge in the authentication record — a successful login that shows only a password factor fails [a] even if an MFA policy exists on paper. Session records showing connections open for 24+ hours post-maintenance window fail [b]."
+  },
+  {
+    "name": "Remote Maintenance MFA Configuration",
+    "description": "Technical configuration documentation showing that MFA is enforced for all remote maintenance interfaces — not just general VPN access but the specific entry points used for maintenance: firewall management consoles, jump servers, IPMI/BMC out-of-band management, RDP/SSH administrative interfaces, and vendor remote support tooling. Should demonstrate that MFA cannot be bypassed at the maintenance interface level even for privileged users.",
+    "likelyControls": [
+      "MA.L2-3.7.5"
+    ],
+    "reasoning": "MA.L2-3.7.5[a] requires MFA at the network connection level for nonlocal maintenance. Configuration documentation is the evidence that the control is technically enforced rather than just policy-stated. Assessors frequently find gaps where MFA is applied to the general VPN but the maintenance interface — firewall CLI, out-of-band management, or a jump server — can be reached via single-factor authentication once on the VPN. Configuration evidence at the maintenance interface level closes this gap."
+  }
+]

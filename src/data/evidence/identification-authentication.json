@@ -1,0 +1,29 @@
+[
+  {
+    "name": "Password Policy Configuration",
+    "description": "Screenshots or configuration exports showing the password policy as enforced in your identity provider — minimum length, complexity, history, lockout thresholds, rotation, temporary password handling, and storage protection.",
+    "likelyControls": [
+      "IA.L1-3.5.2",
+      "IA.L2-3.5.7",
+      "IA.L2-3.5.8",
+      "IA.L2-3.5.9"
+    ],
+    "reasoning": "This single configuration is the primary technical evidence for all password-related practices. IA.L1-3.5.2[a] (basic authentication enforcement), IA.L2-3.5.7[c,d] (complexity and change-of-character requirements), IA.L2-3.5.8[b] (password history depth), and IA.L2-3.5.9[a] (forced change of temporary passwords) are all configured in the same place. Assessors want to see the policy as it actually applies in the IDP, not just what is written in a policy document — written policy without matching configuration is a finding. They will also check that the policy applies consistently to cloud SaaS, not just the on-prem directory."
+  },
+  {
+    "name": "MFA Registration Report",
+    "description": "Report showing which users have registered MFA factors and which methods (authenticator app, hardware token, FIDO2/WebAuthn, SMS).",
+    "likelyControls": [
+      "IA.L2-3.5.3"
+    ],
+    "reasoning": "Demonstrates that MFA enforcement is actually achievable for the user population. A conditional access policy requiring MFA only matters if users are actually enrolled. Assessors look for 100% registration on privileged accounts and a clear gap-closing process for non-privileged. SMS-only registrations may be flagged as not aligning with current NIST 800-63B guidance, especially for privileged accounts. This is one of the few places where the answer should be 'all users registered' — anything less is a real exposure."
+  },
+  {
+    "name": "Login Screen Visual Inspection / Sample Screenshots",
+    "description": "Visual evidence — screenshots or recorded inspection — confirming that authentication input is obscured during entry across representative system types: Windows logon, SSH/terminal, web application login forms, VPN client, mobile device unlock, and network device console authentication.",
+    "likelyControls": [
+      "IA.L2-3.5.11"
+    ],
+    "reasoning": "Direct evidence for IA.L2-3.5.11[a]. This is one of the few controls where the primary evidence is genuinely visual — the assessor needs to see that password fields display asterisks, dots, or filled circles rather than the actual characters being typed. Most modern systems handle this by default, so the assessment is largely about confirming nothing has been unintentionally disabled. Coverage matters more than depth: a sample from each major system type (especially custom or legacy applications, which are where the gap typically appears) is more useful than a deep dive on Windows alone. Mobile platforms briefly displaying each character before obscuring is acceptable per the practice's allowance for small-keyboard usability."
+  }
+]

@@ -1,0 +1,551 @@
+import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+import controls from '../data/controls/index.js'
+import evidenceTypes from '../data/evidence/index.js'
+import relationships from '../data/relationships/index.js'
+import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
+import { readNote, writeNote } from '../utils/notes'
+import { getScoringSearchTerms } from '../utils/scoring'
+import {
+  exportProjectState,
+  importProjectState,
+  downloadProjectJson,
+  SCHEMA_VERSION,
+} from '../utils/projectState'
+
+const KNOWN_CONTROL_IDS = new Set(controls.map((c) => c.id))
+
+const STATUS_NORMALIZER = STATUSES.reduce((acc, s) => {
+  acc[s.toLowerCase()] = s
+  return acc
+}, {})
+
+function normalizeStatus(raw) {
+  const key = String(raw ?? '').trim().toLowerCase()
+  return STATUS_NORMALIZER[key] ?? null
+}
+
+// =========================================================================
+// Family definitions — order matches family dropdown
+// =========================================================================
+
+const FAMILIES = [
+  { value: 'All', label: 'All Families' },
+  { value: 'Access Control', label: 'Access Control' },
+  { value: 'Awareness and Training', label: 'Awareness and Training' },
+  { value: 'Audit and Accountability', label: 'Audit & Accountability' },
+  { value: 'Configuration Management', label: 'Configuration Management' },
+  { value: 'Identification and Authentication', label: 'Identification & Authentication' },
+  { value: 'Incident Response', label: 'Incident Response' },
+  { value: 'Maintenance', label: 'Maintenance' },
+  { value: 'Media Protection', label: 'Media Protection' },
+  { value: 'Personnel Security', label: 'Personnel Security' },
+  { value: 'Physical Protection', label: 'Physical Protection' },
+  { value: 'Risk Assessment', label: 'Risk Assessment' },
+  { value: 'Security Assessment', label: 'Security Assessment' },
+  { value: 'System and Communications Protection', label: 'System & Communications Protection' },
+  { value: 'System and Information Integrity', label: 'System and Information Integrity' },
+]
+
+// Maps STATUSES values → segment CSS modifier classes
+const STATUS_SEGMENT_CLASS = {
+  'MET': 'progress-bar-segment--met',
+  'NOT MET': 'progress-bar-segment--not-met',
+  'In Progress': 'progress-bar-segment--in-progress',
+  'Not Started': 'progress-bar-segment--not-started',
+}
+
+// =========================================================================
+// Quick Search helpers
+// =========================================================================
+
+const MIN_TERM_LENGTH = 2
+const MAX_RESULTS_PER_GROUP = 5
+
+function includes(str, term) {
+  return typeof str === 'string' && str.toLowerCase().includes(term)
+}
+
+function searchControls(term) {
+  const results = []
+  for (const c of controls) {
+    if (results.length >= MAX_RESULTS_PER_GROUP) break
+    const hit =
+      includes(c.id, term) ||
+      includes(c.title, term) ||
+      includes(c.family, term) ||
+      includes(c.controlText, term) ||
+      includes(c.plainEnglish, term) ||
+      c.commonArtifacts?.some((a) => includes(a, term)) ||
+      c.commonGaps?.some((g) => includes(g, term)) ||
+      c.objectives?.some(
+        (o) =>
+          includes(o.text, term) ||
+          includes(o.whatToLookFor, term) ||
+          o.commonEvidence?.some((e) => includes(e, term))
+      ) ||
+      getScoringSearchTerms(c.id).some((t) => t.includes(term))
+    if (hit) results.push(c)
+  }
+  return results
+}
+
+function searchEvidence(term) {
+  const results = []
+  for (const ev of evidenceTypes) {
+    if (results.length >= MAX_RESULTS_PER_GROUP) break
+    const hit =
+      includes(ev.name, term) ||
+      includes(ev.description, term) ||
+      includes(ev.reasoning, term) ||
+      ev.likelyControls?.some((id) => includes(id, term))
+    if (hit) results.push(ev)
+  }
+  return results
+}
+
+function searchRelationships(term) {
+  const results = []
+  for (const r of relationships) {
+    if (results.length >= MAX_RESULTS_PER_GROUP) break
+    const hit =
+      includes(r.sourceControl, term) ||
+      includes(r.targetControl, term) ||
+      includes(r.relationshipType, term) ||
+      includes(r.reasoning, term)
+    if (hit) results.push(r)
+  }
+  return results
+}
+
+// =========================================================================
+// CSV export helpers
+// =========================================================================
+
+function escapeCsvField(value) {
+  let str = String(value ?? '')
+  if (/^[=+\-@]/.test(str)) str = `'${str}`
+  if (/[",\n\r]/.test(str)) return `"${str.replace(/"/g, '""')}"`
+  return str
+}
+
+function todayStamp() {
+  const d = new Date()
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+function handleCsvExport() {
+  const headers = ['Control ID', 'Family', 'Title', 'Status', 'Notes']
+  const rows = controls.map((c) => [
+    c.id, c.family, c.title, readStatus(c.id), readNote(c.id),
+  ])
+  const csv = [headers, ...rows].map((row) => row.map(escapeCsvField).join(',')).join('\r\n')
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `cmmc-status-export-${todayStamp()}.csv`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  setTimeout(() => URL.revokeObjectURL(url), 0)
+}
+
+// =========================================================================
+// CSV import helpers
+// =========================================================================
+
+function parseCsv(text) {
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1)
+  const rows = []
+  let row = [], field = '', inQuotes = false
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++ } else inQuotes = false
+      } else field += ch
+    } else {
+      if (ch === '"') inQuotes = true
+      else if (ch === ',') { row.push(field); field = '' }
+      else if (ch === '\r') {
+        row.push(field); rows.push(row); row = []; field = ''
+        if (text[i + 1] === '\n') i++
+      } else if (ch === '\n') {
+        row.push(field); rows.push(row); row = []; field = ''
+      } else field += ch
+    }
+  }
+  if (field !== '' || row.length > 0) { row.push(field); rows.push(row) }
+  return rows
+}
+
+function buildColumnMap(headerRow) {
+  const norm = (s) => String(s ?? '').trim().toLowerCase()
+  const idx = { controlId: -1, status: -1, notes: -1 }
+  headerRow.forEach((h, i) => {
+    const n = norm(h)
+    if (n === 'control id') idx.controlId = i
+    else if (n === 'status') idx.status = i
+    else if (n === 'notes') idx.notes = i
+  })
+  if (idx.controlId === -1 || idx.status === -1) return null
+  return idx
+}
+
+function stripFormulaGuard(value) {
+  if (typeof value === 'string' && /^'[=+\-@]/.test(value)) return value.slice(1)
+  return value
+}
+
+// =========================================================================
+// Home component
+// =========================================================================
+
+// Build a library URL for a given status, optionally scoped to a family.
+function libraryUrlForStatus(status, family) {
+  const params = { status }
+  if (family && family !== 'All') params.family = family
+  return `/controls?${new URLSearchParams(params).toString()}`
+}
+
+function Home() {
+  const csvFileRef = useRef(null)
+  const jsonFileRef = useRef(null)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [csvResult, setCsvResult] = useState(null)
+  const [jsonResult, setJsonResult] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedFamily, setSelectedFamily] = useState('All')
+
+  // -----------------------------------------------------------------------
+  // Progress stats — recomputed on every render (refreshKey forces re-render
+  // after import; selectedFamily narrows the control set)
+  // -----------------------------------------------------------------------
+
+  // eslint-disable-next-line no-unused-vars
+  const _refresh = refreshKey
+
+  const familyControls = selectedFamily === 'All'
+    ? controls
+    : controls.filter((c) => c.family === selectedFamily)
+
+  const counts = { 'MET': 0, 'NOT MET': 0, 'In Progress': 0, 'Not Started': 0 }
+  for (const c of familyControls) counts[readStatus(c.id)] += 1
+  const total = familyControls.length
+  const percentComplete = total === 0 ? 0 : Math.round((counts['MET'] / total) * 100)
+
+  // -----------------------------------------------------------------------
+  // Quick Search
+  // -----------------------------------------------------------------------
+
+  const term = searchTerm.trim().toLowerCase()
+  const hasResults = term.length >= MIN_TERM_LENGTH
+  const controlResults = hasResults ? searchControls(term) : []
+  const evidenceResults = hasResults ? searchEvidence(term) : []
+  const relResults = hasResults ? searchRelationships(term) : []
+  const anyResults = controlResults.length > 0 || evidenceResults.length > 0 || relResults.length > 0
+
+  // -----------------------------------------------------------------------
+  // CSV handlers
+  // -----------------------------------------------------------------------
+
+  const handleCsvImportClick = () => csvFileRef.current?.click()
+
+  const handleCsvFileChange = (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      try { processCsv(String(reader.result ?? '')) }
+      catch (err) { setCsvResult({ ok: false, message: `Import failed: ${err.message}` }) }
+    }
+    reader.onerror = () => setCsvResult({ ok: false, message: 'Could not read file.' })
+    reader.readAsText(file)
+  }
+
+  const processCsv = (text) => {
+    const rows = parseCsv(text)
+    if (rows.length === 0) { setCsvResult({ ok: false, message: 'CSV is empty.' }); return }
+    const cols = buildColumnMap(rows[0])
+    if (!cols) {
+      setCsvResult({ ok: false, message: 'CSV is missing required columns ("Control ID" and "Status").' })
+      return
+    }
+    let imported = 0, skippedId = 0, skippedStatus = 0, notesWritten = 0
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i]
+      if (row.every((cell) => String(cell ?? '').trim() === '')) continue
+      const id = String(row[cols.controlId] ?? '').trim()
+      if (!id || !KNOWN_CONTROL_IDS.has(id)) { skippedId++; continue }
+      const status = normalizeStatus(row[cols.status])
+      if (!status) { skippedStatus++; continue }
+      writeStatus(id, status)
+      imported++
+      if (cols.notes !== -1 && row[cols.notes] !== undefined) {
+        const note = stripFormulaGuard(String(row[cols.notes] ?? ''))
+        writeNote(id, note)
+        if (note.trim() !== '') notesWritten++
+      }
+    }
+    setCsvResult({
+      ok: true,
+      message: `Imported ${imported} status update${imported === 1 ? '' : 's'}` +
+        (notesWritten > 0 ? ` (${notesWritten} with notes)` : '') +
+        (skippedId > 0 ? `, skipped ${skippedId} unknown ID${skippedId === 1 ? '' : 's'}` : '') +
+        (skippedStatus > 0 ? `, skipped ${skippedStatus} invalid status${skippedStatus === 1 ? '' : 'es'}` : '') + '.',
+    })
+    setRefreshKey((k) => k + 1)
+  }
+
+  // -----------------------------------------------------------------------
+  // JSON project state handlers
+  // -----------------------------------------------------------------------
+
+  const handleJsonExport = () => {
+    const state = exportProjectState(controls)
+    downloadProjectJson(state)
+    setJsonResult({ ok: true, message: `Project exported — ${controls.length} controls, schema v${SCHEMA_VERSION}.` })
+  }
+
+  const handleJsonImportClick = () => jsonFileRef.current?.click()
+
+  const handleJsonFileChange = (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result ?? ''))
+        const summary = importProjectState(parsed, controls)
+        if (!summary.ok) { setJsonResult({ ok: false, message: summary.error }); return }
+        setJsonResult({
+          ok: true,
+          message: `Restored ${summary.controlsProcessed} controls — ` +
+            `${summary.statusesWritten} status${summary.statusesWritten === 1 ? '' : 'es'}, ` +
+            `${summary.notesWritten} note${summary.notesWritten === 1 ? '' : 's'}, ` +
+            `${summary.objectiveNotesWritten} objective note${summary.objectiveNotesWritten === 1 ? '' : 's'}` +
+            (summary.skippedUnknownId > 0 ? `, skipped ${summary.skippedUnknownId} unknown ID${summary.skippedUnknownId === 1 ? '' : 's'}` : '') + '.',
+        })
+        setRefreshKey((k) => k + 1)
+      } catch {
+        setJsonResult({ ok: false, message: 'Could not parse file — is it a valid CMMC Companion project JSON?' })
+      }
+    }
+    reader.onerror = () => setJsonResult({ ok: false, message: 'Could not read file.' })
+    reader.readAsText(file)
+  }
+
+  // -----------------------------------------------------------------------
+  // Render
+  // -----------------------------------------------------------------------
+
+  return (
+    <div className="page">
+      <h1>Home</h1>
+      <p className="muted">Welcome. Use the navigation above to move between pages.</p>
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Quick Search                                                      */}
+      {/* ---------------------------------------------------------------- */}
+      <section>
+        <h2>Quick Search</h2>
+        <div className="filter-row">
+          <input
+            type="text"
+            placeholder="Search controls, evidence, or relationships…"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ flex: '1 1 100%' }}
+          />
+        </div>
+
+        {hasResults && !anyResults && (
+          <p className="muted">No results found for &ldquo;{searchTerm.trim()}&rdquo;.</p>
+        )}
+
+        {hasResults && anyResults && (
+          <div className="quick-search-results">
+            {controlResults.length > 0 && (
+              <div className="quick-search-group">
+                <p className="quick-search-group-label">Controls</p>
+                <ul className="control-list">
+                  {controlResults.map((c) => {
+                    const status = readStatus(c.id)
+                    return (
+                      <li key={c.id}>
+                        <Link
+                          to={`/controls/${encodeURIComponent(c.id)}`}
+                          className="control-list-link"
+                        >
+                          <span className="mono">{c.id}</span>
+                          <span>— {c.title}</span>
+                          <span className="muted">({c.family})</span>
+                          <span className={`status-badge ${STATUS_BADGE_CLASS[status]}`}>{status}</span>
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )}
+            {evidenceResults.length > 0 && (
+              <div className="quick-search-group">
+                <p className="quick-search-group-label">Evidence</p>
+                <ul className="control-list">
+                  {evidenceResults.map((ev) => (
+                    <li key={ev.name}>
+                      <Link
+                        to={`/evidence?search=${encodeURIComponent(ev.name)}`}
+                        className="control-list-link"
+                      >
+                        <span>{ev.name}</span>
+                        <span className="muted">
+                          — {ev.likelyControls?.length ?? 0} control{ev.likelyControls?.length === 1 ? '' : 's'}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {relResults.length > 0 && (
+              <div className="quick-search-group">
+                <p className="quick-search-group-label">Relationships</p>
+                <ul className="control-list">
+                  {relResults.map((r, i) => (
+                    <li key={i}>
+                      <Link
+                        to={`/relationships?control=${encodeURIComponent(r.sourceControl)}`}
+                        className="control-list-link"
+                      >
+                        <span className="mono">{r.sourceControl}</span>
+                        <span className="muted">→</span>
+                        <span className="mono">{r.targetControl}</span>
+                        <span className="muted">({r.relationshipType})</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Assessment Progress                                               */}
+      {/* ---------------------------------------------------------------- */}
+      <section>
+        {/* Header row: heading + family selector */}
+        <div className="progress-header">
+          <h2 style={{ margin: 0 }}>Assessment Progress</h2>
+          <select
+            value={selectedFamily}
+            onChange={(e) => setSelectedFamily(e.target.value)}
+            className="progress-family-select"
+          >
+            {FAMILIES.map((f) => (
+              <option key={f.value} value={f.value}>{f.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Summary text */}
+        <p style={{ marginTop: 'var(--space-3)' }}>
+          <strong>{percentComplete}% complete</strong>
+          {' '}<span className="muted">
+            ({counts['MET']} of {total} control{total === 1 ? '' : 's'} marked MET
+            {selectedFamily !== 'All' ? ` in ${selectedFamily}` : ''})
+          </span>
+        </p>
+
+        {/* Stacked progress bar */}
+        {total > 0 ? (
+          <div className="progress-bar" role="img" aria-label={`Progress bar: ${percentComplete}% complete`}>
+            {STATUSES.map((status) => {
+              const pct = (counts[status] / total) * 100
+              if (pct === 0) return null
+              return (
+                <div
+                  key={status}
+                  className={`progress-bar-segment ${STATUS_SEGMENT_CLASS[status]}`}
+                  style={{ width: `${pct}%` }}
+                  title={`${status}: ${counts[status]} control${counts[status] === 1 ? '' : 's'} (${Math.round(pct)}%)`}
+                />
+              )
+            })}
+          </div>
+        ) : (
+          <div className="progress-bar progress-bar--empty">
+            <span className="muted" style={{ fontSize: 'var(--text-xs)', padding: '0 var(--space-2)' }}>
+              No controls in this family
+            </span>
+          </div>
+        )}
+
+        {/* Clickable status rows */}
+        <ul className="status-summary">
+          <li className="status-summary-row">
+            <span>Total Controls</span>
+            <span>{total}</span>
+          </li>
+          {STATUSES.map((status) => (
+            <li key={status}>
+              <Link
+                to={libraryUrlForStatus(status, selectedFamily)}
+                className="status-summary-row status-summary-link"
+                title={`View ${counts[status]} ${status} control${counts[status] === 1 ? '' : 's'}`}
+              >
+                <span className={`status-badge ${STATUS_BADGE_CLASS[status]}`}>{status}</span>
+                <span>{counts[status]}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        {/* CSV */}
+        <p className="muted" style={{ marginBottom: 'var(--space-1)', fontSize: 'var(--text-xs)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+          Status CSV
+        </p>
+        <div className="button-group" style={{ marginBottom: 'var(--space-4)' }}>
+          <button onClick={handleCsvExport}>Export CSV</button>
+          <button onClick={handleCsvImportClick}>Import CSV</button>
+          <input ref={csvFileRef} type="file" accept=".csv,text/csv" onChange={handleCsvFileChange} style={{ display: 'none' }} />
+        </div>
+        {csvResult && (
+          <p className={`feedback ${csvResult.ok ? 'feedback--ok' : 'feedback--error'}`}>
+            {csvResult.message}
+          </p>
+        )}
+
+        {/* Project JSON */}
+        <p className="muted" style={{ marginBottom: 'var(--space-1)', fontSize: 'var(--text-xs)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+          Project Backup
+        </p>
+        <div className="button-group">
+          <button onClick={handleJsonExport}>Export Project JSON</button>
+          <button onClick={handleJsonImportClick}>Import Project JSON</button>
+          <input ref={jsonFileRef} type="file" accept=".json,application/json" onChange={handleJsonFileChange} style={{ display: 'none' }} />
+        </div>
+        {jsonResult && (
+          <p className={`feedback ${jsonResult.ok ? 'feedback--ok' : 'feedback--error'}`}>
+            {jsonResult.message}
+          </p>
+        )}
+      </section>
+
+      <p className="muted">
+        Example deep link:{' '}
+        <Link to="/controls/AC.L1-3.1.1" className="mono">/controls/AC.L1-3.1.1</Link>
+      </p>
+    </div>
+  )
+}
+
+export default Home

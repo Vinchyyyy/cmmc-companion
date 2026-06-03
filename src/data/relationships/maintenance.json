@@ -1,0 +1,32 @@
+[
+  {
+    "sourceControl": "MA.L2-3.7.1",
+    "targetControl": "MA.L2-3.7.2",
+    "relationshipType": "prerequisite",
+    "reasoning": "MA.L2-3.7.2 (System Maintenance Control) provides the governance framework — controlled tools, techniques, mechanisms, and personnel — under which MA.L2-3.7.1 (Perform Maintenance) must operate. Performing maintenance without controls on the tools and personnel used to perform it satisfies neither control. The controls relationship is directional: you need a maintenance program (3.7.1) to have something to control, but the controls (3.7.2) must be in place to govern how that program executes."
+  },
+  {
+    "sourceControl": "MA.L2-3.7.1",
+    "targetControl": "MA.L2-3.7.3",
+    "relationshipType": "supports",
+    "reasoning": "MA.L2-3.7.3 (Equipment Sanitization) is triggered by the maintenance process established in MA.L2-3.7.1 (Perform Maintenance) — specifically when maintenance requires equipment to leave organizational facilities. The sanitization requirement is an extension of the broader maintenance program: without an operational maintenance process that includes off-site repair and vendor maintenance scenarios, there is nothing to sanitize. MA.L2-3.7.1's maintenance records also provide the paper trail that links equipment to sanitization events."
+  },
+  {
+    "sourceControl": "MA.L2-3.7.2",
+    "targetControl": "MA.L2-3.7.4",
+    "relationshipType": "supports",
+    "reasoning": "MA.L2-3.7.4 (Media Inspection) is a specific instantiation of the tool control requirement in MA.L2-3.7.2[a]. Checking maintenance media for malicious code before use is one of the controls an organization implements on maintenance tools — it directly satisfies the requirement to control tools entering the maintenance environment. The broader tool-control framework of MA.L2-3.7.2 provides the governance context within which the specific media inspection process of MA.L2-3.7.4 sits."
+  },
+  {
+    "sourceControl": "MA.L2-3.7.2",
+    "targetControl": "MA.L2-3.7.6",
+    "relationshipType": "supports",
+    "reasoning": "MA.L2-3.7.6 (Maintenance Personnel) is a specific application of the personnel control requirement in MA.L2-3.7.2[d]. Both controls address the supervision and control of people performing maintenance — MA.L2-3.7.2[d] establishes the general requirement to control maintenance personnel, while MA.L2-3.7.6 adds the specific requirement to supervise personnel who lack the required access authorization. MA.L2-3.7.6 cannot be assessed without the personnel control framework MA.L2-3.7.2 establishes."
+  },
+  {
+    "sourceControl": "MA.L2-3.7.1",
+    "targetControl": "MA.L2-3.7.5",
+    "relationshipType": "supports",
+    "reasoning": "MA.L2-3.7.5 (Nonlocal Maintenance) addresses the remote-access scenario of the broader maintenance program defined by MA.L2-3.7.1 (Perform Maintenance). Nonlocal maintenance is a form of maintenance — it falls within the scope of MA.L2-3.7.1 and inherits the documentation and record-keeping requirements of that control. The maintenance records established under MA.L2-3.7.1 should include nonlocal maintenance sessions, which are then subject to the MFA and session-termination requirements of MA.L2-3.7.5."
+  }
+]

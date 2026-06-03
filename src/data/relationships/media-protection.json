@@ -1,0 +1,44 @@
+[
+  {
+    "sourceControl": "MP.L1-3.8.3",
+    "targetControl": "MP.L2-3.8.1",
+    "relationshipType": "supports",
+    "reasoning": "MP.L1-3.8.3 (Media Disposal) and MP.L2-3.8.1 (Media Protection) share the same foundational requirement: physical control and accountability over media containing CUI/FCI. The media lifecycle begins with protection and storage under MP.L2-3.8.1 and ends with sanitization under MP.L1-3.8.3. An organization that has mature physical control over media per MP.L2-3.8.1 — knowing what media it has, where it is, and who has it — is also positioned to know when media enters the disposal or reuse pipeline and needs to be sanitized under MP.L1-3.8.3."
+  },
+  {
+    "sourceControl": "MP.L2-3.8.1",
+    "targetControl": "MP.L2-3.8.2",
+    "relationshipType": "supports",
+    "reasoning": "MP.L2-3.8.1 (Media Protection) provides the physical control infrastructure — inventory, secure storage, check-out procedures — that MP.L2-3.8.2 (Media Access) relies on to limit access to authorized users. Access limitation is only meaningful if media is physically controlled; an authorized user list does nothing if media is freely accessible. The locked storage and accountability records required by MP.L2-3.8.1 are the mechanisms through which MP.L2-3.8.2's access restriction is actually enforced."
+  },
+  {
+    "sourceControl": "MP.L2-3.8.1",
+    "targetControl": "MP.L2-3.8.4",
+    "relationshipType": "supports",
+    "reasoning": "MP.L2-3.8.4 (Media Markings) is most effective when the media inventory and physical control established by MP.L2-3.8.1 (Media Protection) is in place. The inventory provides the complete picture of what media exists and therefore what needs to be labeled. An organization cannot ensure consistent labeling of all CUI media without first knowing what media it has — the accountability framework of MP.L2-3.8.1 is what makes a complete labeling compliance check possible."
+  },
+  {
+    "sourceControl": "MP.L2-3.8.1",
+    "targetControl": "MP.L2-3.8.5",
+    "relationshipType": "prerequisite",
+    "reasoning": "MP.L2-3.8.5 (Media Accountability) extends the physical control requirements of MP.L2-3.8.1 (Media Protection) to the transport scenario. You cannot maintain accountability for media during transport if you do not have accountability for it before transport. The inventory and check-out procedures of MP.L2-3.8.1 establish the baseline state from which transport accountability under MP.L2-3.8.5 begins — media released for transport must first be accounted for in the organization's control records."
+  },
+  {
+    "sourceControl": "MP.L2-3.8.5",
+    "targetControl": "MP.L2-3.8.6",
+    "relationshipType": "supports",
+    "reasoning": "The Assessment Guide for MP.L2-3.8.6 explicitly states that it provides additional protections to those provided by MP.L2-3.8.5, specifically protecting against scenarios where access control fails — such as when media is lost in transit. MP.L2-3.8.5 maintains accountability through tracking and chain-of-custody; MP.L2-3.8.6 adds encryption so that even if accountability fails (media is lost), confidentiality is preserved. The two controls are complementary layers for the same transport scenario."
+  },
+  {
+    "sourceControl": "MP.L2-3.8.7",
+    "targetControl": "MP.L2-3.8.8",
+    "relationshipType": "supports",
+    "reasoning": "The Assessment Guide explicitly states that MP.L2-3.8.8 (Shared Media) furthers the protections provided by MP.L2-3.8.7 (Removable Media) by prohibiting unidentified media use even if that media type is otherwise allowable. MP.L2-3.8.7 establishes the governance framework for removable media use; MP.L2-3.8.8 adds a specific prohibition that applies within that framework. The removable media controls and technical enforcement implemented for MP.L2-3.8.7 are the same infrastructure used to enforce MP.L2-3.8.8's ownership requirement."
+  },
+  {
+    "sourceControl": "MP.L2-3.8.6",
+    "targetControl": "MP.L2-3.8.9",
+    "relationshipType": "supports",
+    "reasoning": "MP.L2-3.8.6 (Portable Storage Encryption) and MP.L2-3.8.9 (Protect Backups) both require cryptographic protection for CUI on removable/portable media — MP.L2-3.8.6 addresses transport, MP.L2-3.8.9 addresses storage at backup locations. The encryption implementations are often identical: backup software encryption that satisfies MP.L2-3.8.6 for tapes in transit also satisfies MP.L2-3.8.9 for tapes at rest at the off-site storage facility. The FIPS 140-2 compliance requirement in MP.L2-3.8.6 applies equally to the storage scenario in MP.L2-3.8.9."
+  }
+]

@@ -1,0 +1,84 @@
+[
+  {
+    "name": "Physical Security Policy and Physical Protection Plan",
+    "description": "Written policy governing physical access controls, visitor management, physical access device lifecycle, and facility monitoring requirements. May be a standalone Physical Security Policy or a section of the SSP/Information Security Policy. Includes scope, roles and responsibilities, and references to applicable standards.",
+    "likelyControls": [
+      "PE.L1-3.10.1",
+      "PE.L1-3.10.3",
+      "PE.L1-3.10.4",
+      "PE.L1-3.10.5",
+      "PE.L2-3.10.2",
+      "PE.L2-3.10.6"
+    ],
+    "reasoning": "The physical security policy is the foundational artifact for the entire PE family. PE.L1-3.10.1[a] requires authorized individuals to be identified — the policy defines the authorization process. PE.L1-3.10.3 requires escorting and monitoring visitors — the policy establishes the visitor management requirement. PE.L1-3.10.4 requires audit logs — the policy defines retention requirements. PE.L1-3.10.5 requires device management — the policy defines the physical access device lifecycle. PE.L2-3.10.2 requires facility monitoring — the policy establishes the monitoring mandate. PE.L2-3.10.6 requires alternate work site safeguards — the policy extends physical security requirements beyond the primary facility. Assessors read this document first to understand the organization's stated intent, then verify operational evidence against it."
+  },
+  {
+    "name": "Authorized Physical Access List",
+    "description": "Current roster of individuals granted physical access to facilities, areas, or equipment containing CUI — including name, role, areas authorized, date authorized, and credential type issued (badge ID, key assignment, etc.). Separate lists may exist per area or access tier. Must reflect current personnel and be reviewed at defined intervals.",
+    "likelyControls": [
+      "PE.L1-3.10.1",
+      "PE.L1-3.10.5"
+    ],
+    "reasoning": "Direct evidence for PE.L1-3.10.1[a] — the requirement to identify authorized individuals — and PE.L1-3.10.5[a] — the requirement to identify physical access devices. The access list is the anchor artifact for physical access control. Assessors check that the list is current (no terminated employees listed), role-appropriate (access matches job function), and tied to issued credentials. A list that has not been reviewed since the last personnel change, or that includes generic/shared entries rather than named individuals, is a finding. This is also the artifact that demonstrates PE.L1-3.10.5[b] limiting device access to authorized individuals."
+  },
+  {
+    "name": "Physical Access Control Logs",
+    "description": "Records of physical access events to controlled areas — whether procedural (paper sign-in/sign-out sheets), automated (badge reader transaction logs, key card access logs), or a combination. Must cover both employee and visitor access. Logs should identify who accessed which area and when, and must be retained per organizationally defined timeframes.",
+    "likelyControls": [
+      "PE.L1-3.10.4",
+      "PE.L1-3.10.3",
+      "PE.L2-3.10.2"
+    ],
+    "reasoning": "Primary evidence for PE.L1-3.10.4[a] — the explicit requirement to maintain audit logs of physical access. Also supports PE.L1-3.10.3[b] — visitor activity monitoring — because audit logs are specifically cited in the Assessment Guide discussion as the mechanism for monitoring visitor activity. Supports PE.L2-3.10.2[c,d] — facility and infrastructure monitoring — because access logs constitute a monitoring record. Assessors sample logs to verify completeness (are all access points covered?), recency (are logs actively maintained?), and retention (are older records available per policy?). Paper logs stored in an unlocked drawer or badge reader exports never reviewed are common gaps."
+  },
+  {
+    "name": "Visitor Management Records and Visitor Log",
+    "description": "Records documenting visitor processing — visitor check-in/check-out log with name, organization, purpose of visit, escort assigned, date and time in/out, and visitor badge number issued. Includes the visitor badging process and any visitor access agreements or NDAs signed at entry.",
+    "likelyControls": [
+      "PE.L1-3.10.3",
+      "PE.L1-3.10.4"
+    ],
+    "reasoning": "Direct evidence for PE.L1-3.10.3[a] — that visitors are escorted — and PE.L1-3.10.3[b] — that visitor activity is monitored. The visitor log shows that an escort was assigned and that entry/exit times were tracked. Also contributes to PE.L1-3.10.4[a] — physical access audit logs must cover visitor access, not just authorized employees. Assessors look for escort assignment documentation (not just a name in the log but evidence that someone was with the visitor), visitor badge issuance records, and evidence that visitors are distinguishable from regular personnel. Visitor logs that have generic entries, missing escort names, or no sign-out times are common findings."
+  },
+  {
+    "name": "Physical Access Device Inventory",
+    "description": "Inventory of all physical access control devices — keys, locks, key cards, badge readers, combinations, and electronic access control tokens — including serial number or identifier, location assigned, current holder (if individual-issued), and status (active, revoked, lost). Includes records of lock combination changes and key returns upon personnel separation.",
+    "likelyControls": [
+      "PE.L1-3.10.5"
+    ],
+    "reasoning": "Direct evidence for PE.L1-3.10.5[a,b,c] — identifying, controlling, and managing physical access devices. The Assessment Guide explicitly states that physical access devices include keys, locks, combinations, and card readers. Assessors verify that the inventory is complete (all devices accounted for), current (shows recent returns and revocations), and actionable (lost or unaccounted-for devices have been addressed by changing locks or revoking access). A physical access device inventory that does not reflect terminated employees' credential revocations — especially within a short window of separation — is a significant finding."
+  },
+  {
+    "name": "Facility Security and Monitoring System Documentation",
+    "description": "Documentation of physical monitoring controls deployed at the facility — camera placement diagrams, CCTV/DVR/NVR configuration records, motion sensor coverage maps, guard posts and patrol schedules, and alarm system documentation. Includes evidence that monitoring covers both access points and support infrastructure (wiring closets, utility rooms, server rooms).",
+    "likelyControls": [
+      "PE.L2-3.10.2"
+    ],
+    "reasoning": "Direct evidence for PE.L2-3.10.2[a,b,c,d] — that both the physical facility and support infrastructure are protected and monitored. The Assessment Guide discussion cites guards, sensor devices, and video surveillance as acceptable monitoring mechanisms, and specifically names support infrastructure examples (wiring closets, cabling conduit). Assessors verify coverage (are all facility access points and infrastructure areas monitored?), functionality (are systems operational and recording?), and review processes (are logs or footage actually reviewed?). A camera system that records but whose footage is never reviewed, or that does not cover the network wiring closet, is a partial implementation."
+  },
+  {
+    "name": "Physical Security Monitoring Review Records",
+    "description": "Evidence that physical access monitoring output is actively reviewed — such as physical access log review records, CCTV footage review schedules, guard incident reports, or alarm response records. Demonstrates that monitoring is not passive but produces actionable oversight.",
+    "likelyControls": [
+      "PE.L2-3.10.2",
+      "PE.L1-3.10.4"
+    ],
+    "reasoning": "Supports PE.L2-3.10.2[c,d] — monitoring the facility and support infrastructure. The Assessment Guide assessment methods include 'review of physical access logs' as a distinct organizational process, implying that monitoring is not satisfied by simply having cameras or logs — the output must be reviewed. Supports PE.L1-3.10.4[a] by showing that maintained access logs are actually used. Assessors look for any documented evidence that monitoring output reaches a human reviewer: log review sign-offs, guard incident report forms, alarm dispatch logs, or security operations records. Total absence of review records — combined with an organization that claims cameras and logs are sufficient — is a common PE.L2-3.10.2 finding."
+  },
+  {
+    "name": "Alternate Work Site Policy and Safeguards Documentation",
+    "description": "Written policy or procedure defining what physical and technical safeguards apply to employees working at alternate sites (home offices, client sites, co-working spaces) where CUI may be stored or processed. Covers physical protections (locked storage, screen privacy, clean desk), technical controls (encryption, VPN, MFA), and any site assessment or acknowledgement requirements for remote workers.",
+    "likelyControls": [
+      "PE.L2-3.10.6"
+    ],
+    "reasoning": "Direct evidence for PE.L2-3.10.6[a] — that safeguarding measures for CUI at alternate work sites are defined. The Assessment Guide discussion references NIST SP 800-46 and SP 800-114, and specifically names physical protections (locked file drawers) alongside technical protections (encryption, VPN). Assessors verify that the policy explicitly addresses alternate sites rather than being limited to the primary facility, that physical safeguards are included (not just IT controls), and that scope covers all scenarios where CUI could be accessed remotely. A telework policy that addresses only VPN and authentication but is silent on physical protection of devices and printed CUI is a gap."
+  },
+  {
+    "name": "Alternate Work Site Safeguards Implementation Evidence",
+    "description": "Evidence that alternate work site safeguards are actually enforced — such as remote worker acknowledgement forms, laptop encryption configuration records, VPN usage logs, MDM enrollment records, or physical security assessment records for high-risk alternate sites. Shows the defined safeguards from the alternate work site policy are applied in practice.",
+    "likelyControls": [
+      "PE.L2-3.10.6"
+    ],
+    "reasoning": "Direct evidence for PE.L2-3.10.6[b] — that safeguarding measures are enforced, not merely defined. The Assessment Guide distinguishes between defining [a] and enforcing [b], requiring separate evidence for each. A policy alone satisfies [a] but assessors specifically test enforcement mechanisms. Acceptable evidence includes laptop full-disk encryption configuration reports, MFA enforcement logs for VPN, MDM policy push confirmations, or signed acknowledgement forms where employees attest to meeting physical safeguard requirements. Organizations that can produce the policy but cannot show enforcement of even basic controls (e.g., encryption verification on endpoint fleet) have a gap at [b]."
+  }
+]

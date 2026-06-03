@@ -1,0 +1,69 @@
+[
+  {
+    "name": "Media Sanitization Records and Destruction Certificates",
+    "description": "Documentation of media sanitization or destruction events — records identifying the specific media (asset tag, serial number, media type), the NIST SP 800-88 method applied (Clear, Purge, or Destroy), the date, and the responsible party. For third-party destruction, includes certificates of destruction. For software-based tools, includes tool output logs (DBAN, Blancco, BitRaser). For degaussing, includes degausser model and log entries.",
+    "likelyControls": [
+      "MP.L1-3.8.3"
+    ],
+    "reasoning": "MP.L1-3.8.3[a,b] requires sanitization to be performed AND documented. Sanitization records are the primary evidence of execution for both controls. Without records, an assessor cannot verify that media was sanitized — stating that sanitization 'always happens' without documentation does not satisfy either control. The records also allow assessors to verify that the right NIST 800-88 method was applied for the media type: overwrite alone is not sufficient for SSDs and flash media, and records showing only 'deleted' or 'formatted' indicate the wrong method was used."
+  },
+  {
+    "name": "Media Sanitization and Disposal Policy",
+    "description": "Written policy defining the organization's requirements for sanitizing and disposing of media containing CUI and FCI. Should reference NIST SP 800-88 as the authoritative standard, define the scope of covered media types (digital and non-digital), specify approved sanitization methods per media type, assign responsibilities, establish documentation requirements, and address both disposal and reuse scenarios.",
+    "likelyControls": [
+      "MP.L1-3.8.3"
+    ],
+    "reasoning": "MP.L1-3.8.3 requires both a defined process and its execution. The policy establishes the process framework assessors evaluate before they verify records. A policy that correctly references NIST 800-88 and maps methods to media types shows the organization understands the technical requirements. Common gaps assessors find include policies that only address disposal and omit reuse, policies that reference overwrite as sufficient for all media types, and policies that cover hard drives but omit printers, copiers, and multifunction devices with internal storage."
+  },
+  {
+    "name": "Digital Media Inventory and Check-Out Log",
+    "description": "A current inventory of digital media containing CUI — USB drives, external hard drives, backup tapes, optical disks — with asset identifiers. Accompanied by a check-out/check-in log recording who accessed specific media items, when, and for what purpose. Demonstrates both physical control (objective [b] of MP.L2-3.8.1) and authorized access (objective [a] of MP.L2-3.8.2).",
+    "likelyControls": [
+      "MP.L2-3.8.1",
+      "MP.L2-3.8.2"
+    ],
+    "reasoning": "MP.L2-3.8.1[b] requires digital media to be physically controlled — the inventory shows the organization knows what media it has and where it is. MP.L2-3.8.2[a] requires access to be limited to authorized users — the check-out log is the evidence that only authorized personnel actually accessed the media. Assessors use the inventory to verify completeness and the check-out log to verify accountability. A missing inventory is the single most common gap across both controls — without it, physical control cannot be demonstrated."
+  },
+  {
+    "name": "Secure Media Storage Documentation",
+    "description": "Evidence that both paper and digital CUI media is stored in physically secure locations — locked drawers, locking file cabinets, a controlled media library, or badge-access storage rooms. May include photographs, physical security inspection records, configuration of badge-access systems, or facility management records showing locked storage assignments.",
+    "likelyControls": [
+      "MP.L2-3.8.1"
+    ],
+    "reasoning": "MP.L2-3.8.1[c,d] requires that paper and digital media are securely stored. Assessors physically inspect storage locations during on-site assessments and look for documentation to verify controls are consistently maintained. Evidence of secure storage — locked cabinet inventory, badge-access configuration for the media storage room, or physical inspection records — satisfies the 'securely stored' requirement. Organizations that rely on verbal assurance that cabinets are locked, without documentation or physical verification, commonly find this as a finding."
+  },
+  {
+    "name": "CUI Media Labels and Labeling Procedure",
+    "description": "Physical CUI labels on media (USB drives, tape cartridges, CDs/DVDs, external drives) showing the CUI designation and distribution limitation statement, following NARA CUI Notice 2019-01 guidance. Accompanied by the labeling procedure defining what markings are required, how to apply them to different media types and sizes, and who is responsible for labeling.",
+    "likelyControls": [
+      "MP.L2-3.8.4"
+    ],
+    "reasoning": "MP.L2-3.8.4[a,b] requires both CUI markings and distribution limitation markings on media. The physical labels on actual media are the direct evidence for both objectives. Assessors sample media and inspect labels during assessment — policy and procedure alone, without actual labeled media, does not satisfy the control. The labeling procedure is necessary to show the requirement is operationalized (not just policy-stated), and the NARA reference demonstrates the organization used the authoritative standard for marking format."
+  },
+  {
+    "name": "Media Transport and Chain-of-Custody Records",
+    "description": "Records documenting the transport of CUI media outside organizational controlled areas — shipping receipts with tracking numbers, chain-of-custody transfer forms, delivery confirmations, tamper-evident packaging records, and courier service documentation. Covers both physical shipping to external parties and hand-carried transport to off-site locations.",
+    "likelyControls": [
+      "MP.L2-3.8.5"
+    ],
+    "reasoning": "MP.L2-3.8.5[b] requires accountability for media during transport. Chain-of-custody records are the direct evidence that accountability was maintained from the time media left the controlled area to its arrival at the destination. Assessors look for tracking numbers (showing continuous location monitoring), signed transfer forms (showing accountability for who had the media at each handoff), and receipt confirmations (showing delivery was confirmed). The absence of any transport records — combined with the fact that backup tapes or portable drives are regularly shipped to off-site locations — is a common significant finding."
+  },
+  {
+    "name": "Portable Media Encryption Configuration",
+    "description": "Technical configuration evidence showing that encryption is implemented for portable digital media carrying CUI during transport — hardware-encrypted drive inventory (FIPS 140-2 validated devices like IronKey or Apricorn), backup software encryption configuration records, or BitLocker/VeraCrypt configuration for portable drives. Includes FIPS 140-2 compliance documentation for the cryptographic mechanisms used.",
+    "likelyControls": [
+      "MP.L2-3.8.6",
+      "MP.L2-3.8.9"
+    ],
+    "reasoning": "MP.L2-3.8.6[a] requires cryptographic protection for CUI on portable media during transport; MP.L2-3.8.9[a] requires protection of backup CUI at storage locations. Both controls typically involve the same technical implementation — encrypted media or encrypted backup software. Assessors look for configuration evidence showing encryption is actually enabled (not just available), that the specific algorithm is FIPS 140-2 validated, and that the configuration covers all portable media types used for CUI transport, not just the primary backup medium."
+  },
+  {
+    "name": "Removable Media Policy and Endpoint Controls",
+    "description": "Written policy defining allowed and prohibited removable media types and their use conditions, combined with technical enforcement configuration — USB device management via endpoint protection, group policy, or DLP solution. Should cover permitted media categories, organization-issued device requirements, ownership identification requirements, and malware scanning requirements. Technical controls should demonstrate enforcement capability beyond policy.",
+    "likelyControls": [
+      "MP.L2-3.8.7",
+      "MP.L2-3.8.8"
+    ],
+    "reasoning": "MP.L2-3.8.7[a] requires removable media use to be controlled; MP.L2-3.8.8[a] requires unowned portable storage to be prohibited. Both controls are most credibly evidenced by the combination of policy and technical enforcement. For MP.L2-3.8.7, assessors look for device class blocking or allowlisting via endpoint management showing only approved media can connect. For MP.L2-3.8.8, assessors look for device registration or allowlisting that would prevent an unregistered (unowned) device from functioning. Policy-only controls are weak evidence for both; technical enforcement is the expectation."
+  }
+]

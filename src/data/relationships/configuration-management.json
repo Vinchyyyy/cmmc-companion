@@ -1,0 +1,56 @@
+[
+  {
+    "sourceControl": "CM.L2-3.4.1",
+    "targetControl": "CM.L2-3.4.2",
+    "relationshipType": "prerequisite",
+    "reasoning": "Security configuration enforcement (CM.L2-3.4.2) requires an established baseline to enforce against. CM.L2-3.4.1 establishes that baseline \u2014 without it there is nothing to compare against and no way to define 'in compliance' or 'out of compliance.' The Assessment Guide states that security configuration settings become part of the baseline configuration, making 3.4.1 the container that 3.4.2 populates and enforces."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.1",
+    "targetControl": "CM.L2-3.4.3",
+    "relationshipType": "supports",
+    "reasoning": "The system inventory from CM.L2-3.4.1 defines what is in scope for change management under CM.L2-3.4.3. Changes are tracked against known inventory components; a change to a component not in the inventory cannot be properly tracked, reviewed, or approved. Keeping the inventory current (3.4.1[f]) is what makes the change management process (3.4.3) comprehensive."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.1",
+    "targetControl": "CM.L2-3.4.8",
+    "relationshipType": "prerequisite",
+    "reasoning": "The Assessment Guide explicitly notes that CM.L2-3.4.8 (application execution policy) leverages CM.L2-3.4.1, which requires the organization to establish and maintain software inventories. Without the software inventory from 3.4.1, there is no authoritative list from which to build a whitelist or blacklist. The software inventory is the input that populates the application execution list."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.2",
+    "targetControl": "CM.L2-3.4.6",
+    "relationshipType": "supports",
+    "reasoning": "Security configuration enforcement (CM.L2-3.4.2) and least functionality (CM.L2-3.4.6) are deeply complementary. Least functionality defines what capabilities should be present; security configuration enforcement specifies the exact settings that implement least functionality. Disabling services, blocking ports, and removing programs are implemented through the configuration settings that 3.4.2 establishes and enforces. The Assessment Guide treats them as related practices in the configuration management continuum."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.3",
+    "targetControl": "CM.L2-3.4.4",
+    "relationshipType": "prerequisite",
+    "reasoning": "Security impact analysis (CM.L2-3.4.4) is a step within the change management process defined by CM.L2-3.4.3. There must be a change management process before there is a defined point in that process to conduct a security impact analysis. The change management framework (3.4.3) provides the structure; security impact analysis (3.4.4) is the security gate embedded within it."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.3",
+    "targetControl": "CM.L2-3.4.5",
+    "relationshipType": "prerequisite",
+    "reasoning": "Access restrictions for change (CM.L2-3.4.5) govern who can act within the change management process defined by CM.L2-3.4.3. The restrictions \u2014 physical and logical access controls on who may implement changes \u2014 presuppose that a formal change process exists. Without 3.4.3's tracking, approval, and logging, there is no defined process within which 3.4.5's access restrictions would apply."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.6",
+    "targetControl": "CM.L2-3.4.7",
+    "relationshipType": "prerequisite",
+    "reasoning": "The Assessment Guide explicitly states that CM.L2-3.4.7 (nonessential functionality) extends CM.L2-3.4.6 (least functionality). CM.L2-3.4.6 establishes the principle \u2014 systems provide only essential capabilities. CM.L2-3.4.7 operationalizes that principle by enumerating the specific categories that must be addressed: programs, functions, ports, protocols, and services. You need the principle before you can apply it category by category."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.8",
+    "targetControl": "CM.L2-3.4.9",
+    "relationshipType": "supports",
+    "reasoning": "The Assessment Guide explicitly states that CM.L2-3.4.8 (application execution policy) extends CM.L2-3.4.9 (user-installed software), noting that 3.4.9 only requires controlling and monitoring user-installed software while 3.4.8 implements the broader execution control mechanism. The application execution policy technically enforces what the user-installed software policy requires procedurally \u2014 a whitelist blocks unauthorized installs at the execution layer, not just at the UI layer."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.1",
+    "targetControl": "CM.L2-3.4.9",
+    "relationshipType": "supports",
+    "reasoning": "Monitoring user-installed software (CM.L2-3.4.9[c]) requires comparing current software state against an approved baseline \u2014 which comes from the software inventory in CM.L2-3.4.1. Change detection between current state and baseline is the primary mechanism for identifying unauthorized software installs. Without the baseline, the monitoring has no authoritative reference to compare against."
+  }
+]

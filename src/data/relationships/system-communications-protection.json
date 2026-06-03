@@ -1,0 +1,32 @@
+[
+  {
+    "sourceControl": "SC.L1-3.13.1",
+    "targetControl": "SC.L1-3.13.5",
+    "relationshipType": "supports",
+    "reasoning": "Public-access system separation is a specific application of boundary protection — the DMZ exists as a distinct zone within the broader boundary architecture defined by SC.L1-3.13.1. SC.L1-3.13.5[b] (subnetwork separation) is enforced by the same firewall infrastructure used for SC.L1-3.13.1[e,f] (controlling communications at boundaries). Most organizations design and document both practices together since they share the network architecture diagram and firewall ruleset."
+  },
+  {
+    "sourceControl": "SC.L1-3.13.1",
+    "targetControl": "SC.L2-3.13.6",
+    "relationshipType": "prerequisite",
+    "reasoning": "The Assessment Guide explicitly states that SC.L2-3.13.6 'adds specifics for SC.L1-3.13.1' — the deny-all-permit-by-exception rule is a more specific requirement built on top of the broader boundary monitoring, control, and protection foundation. Without SC.L1-3.13.1's defined boundaries, there's nowhere to apply SC.L2-3.13.6's default-deny posture."
+  },
+  {
+    "sourceControl": "SC.L2-3.13.11",
+    "targetControl": "SC.L2-3.13.8",
+    "relationshipType": "supports",
+    "reasoning": "SC.L2-3.13.8 requires cryptographic protection of CUI in transit; SC.L2-3.13.11 specifies that the cryptography used must be FIPS-validated. The Assessment Guide explicitly identifies SC.L2-3.13.11 as the practice that 'specifies that the algorithms used must be FIPS-validated' for SC.L2-3.13.8. TLS implementations and VPN tunnels carrying CUI must use modules listed on the NIST CMVP."
+  },
+  {
+    "sourceControl": "SC.L2-3.13.11",
+    "targetControl": "SC.L2-3.13.16",
+    "relationshipType": "supports",
+    "reasoning": "SC.L2-3.13.16 requires protection of CUI at rest; SC.L2-3.13.11 specifies that when encryption is used, it must be FIPS-validated. The Assessment Guide explicitly identifies SC.L2-3.13.11 as complementing SC.L2-3.13.16. Disk encryption, database TDE, and cloud storage encryption must use CMVP-listed modules — provider default encryption that uses non-validated modules is a common gap."
+  },
+  {
+    "sourceControl": "SC.L2-3.13.10",
+    "targetControl": "SC.L2-3.13.11",
+    "relationshipType": "supports",
+    "reasoning": "FIPS-validated cryptography is only meaningful if the keys used by those validated modules are themselves protected. SC.L2-3.13.10 (key management) ensures that key generation, storage, distribution, rotation, and destruction follow secure practices — without it, even validated cryptographic modules become weak in practice. The Assessment Guide notes that SC.L2-3.13.10 'complements AC.L2-3.1.19 by specifying that any cryptographic keys in use must be protected,' and the same logic extends to all FIPS-required practices."
+  }
+]

@@ -1,0 +1,189 @@
+[
+  {
+    "id": "RA.L2-3.11.1",
+    "family": "Risk Assessment",
+    "title": "Risk Assessment",
+    "controlText": "Periodically assess the risk to organizational operations (including mission, functions, image, or reputation), organizational assets, and individuals, resulting from the operation of organizational systems and the associated processing, storage, or transmission of CUI.",
+    "plainEnglish": "Conduct formal, documented risk assessments on a regular schedule and whenever significant changes occur. A risk assessment evaluates what could go wrong (threats and vulnerabilities), how likely it is, and what the impact would be to the organization and CUI. The output is a risk assessment report that informs security decisions, resource prioritization, and the selection and tailoring of controls. This is not a vulnerability scan — it is a broader analysis that considers threat sources, threat events, likelihood, and impact. Many organizations conflate risk assessment with vulnerability scanning; assessors distinguish between them. The Assessment Guide notes that risk assessments must be 'periodically' performed and must address operations, assets, and individuals.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "the risk to organizational operations, assets, and individuals is assessed periodically",
+        "whatToLookFor": "Evidence that a formal risk assessment was performed within a defined period — typically annually or after significant system changes. The assessment should be documented as a report, not just informal notes. Evidence includes the risk assessment report itself, the date it was conducted, and who performed it.",
+        "commonEvidence": [
+          "Risk Assessment Report (current and previous cycle)",
+          "Risk Assessment Policy defining assessment frequency and scope",
+          "System Security Plan section on risk assessment results",
+          "Risk register or risk tracking documentation tied to the assessment"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "risk assessment results are documented",
+        "whatToLookFor": "A formal written risk assessment report — not just a spreadsheet of vulnerabilities. The report should identify threat sources, threat events, vulnerabilities, likelihood ratings, impact ratings, and risk levels. Documented results allow the organization to track risk posture over time and demonstrate to assessors that analysis occurred.",
+        "commonEvidence": [
+          "Written risk assessment report with threat/vulnerability/likelihood/impact analysis",
+          "Risk register showing identified risks with ratings",
+          "Board or leadership briefing on risk posture based on the assessment"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "risk assessment results are reviewed",
+        "whatToLookFor": "Evidence that results were presented to and reviewed by appropriate stakeholders — management sign-off, leadership briefing records, or risk committee meeting minutes referencing the assessment findings. An assessment that is produced but never reviewed by decision-makers has not completed the cycle.",
+        "commonEvidence": [
+          "Risk committee or leadership meeting minutes referencing the assessment",
+          "Management sign-off or approval on the risk assessment report",
+          "Action items or decisions traceable to the risk assessment findings"
+        ]
+      },
+      {
+        "id": "d",
+        "text": "risk assessment results are disseminated to appropriate personnel",
+        "whatToLookFor": "Evidence that assessment findings reached the people who needed to act on them — system owners, security operations, leadership. Distribution records, email notifications, or inclusion in security briefings.",
+        "commonEvidence": [
+          "Distribution list or circulation records for the risk assessment report",
+          "Security team briefing records referencing assessment results",
+          "System owner acknowledgment of risk findings"
+        ]
+      },
+      {
+        "id": "e",
+        "text": "risk assessment results are updated",
+        "whatToLookFor": "Evidence that risk assessments are refreshed — new assessments conducted on the defined schedule, or updates to reflect significant changes in the environment, threat landscape, or organizational mission. A single risk assessment completed at system authorization and never updated is a finding.",
+        "commonEvidence": [
+          "Multiple versions or cycles of risk assessment reports",
+          "Risk assessment conducted after major system changes",
+          "Dated risk register entries showing when risks were identified and last updated"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Risk Assessment Policy and Procedure",
+      "Risk Assessment Report (current and prior cycles)",
+      "Risk Register",
+      "System Security Plan section on risk assessment",
+      "Management review and sign-off records",
+      "Distribution records showing stakeholder dissemination"
+    ],
+    "commonGaps": [
+      "Risk assessment was completed at system authorization five years ago and never repeated",
+      "Vulnerability scan results presented as the risk assessment — not the same thing",
+      "Risk assessment conducted but results never reviewed by leadership or acted upon",
+      "No defined frequency for risk assessments — 'we do it when we need to'",
+      "Risk assessment scope limited to IT assets — organizational operations, mission, and CUI transmission not addressed",
+      "Risk assessment report produced by a consultant and filed away without internal dissemination or follow-through",
+      "Risk register exists but is disconnected from the formal risk assessment process"
+    ]
+  },
+  {
+    "id": "RA.L2-3.11.2",
+    "family": "Risk Assessment",
+    "title": "Vulnerability Scan",
+    "controlText": "Scan for vulnerabilities in organizational systems and applications periodically and when new vulnerabilities affecting those systems are identified.",
+    "plainEnglish": "Run automated vulnerability scans against all in-scope systems on a regular schedule and whenever new significant vulnerabilities are disclosed. Scans must be authenticated (credentialed) to produce meaningful results — unauthenticated scans miss the majority of software vulnerabilities. Scan coverage must include the entire in-scope environment: workstations, servers, network devices, cloud resources, and applications. The output — a vulnerability scan report showing discovered vulnerabilities with severity ratings — must be retained and acted on. This is a -5 Derived practice, indicating that without functional vulnerability scanning the overall CMMC posture degrades significantly.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "vulnerabilities in organizational systems and applications are scanned for periodically",
+        "whatToLookFor": "Scheduled vulnerability scans running against all in-scope assets on a defined cadence — typically monthly or quarterly at minimum. Scan tool configured to authenticate to target systems (credentialed scan). Scan coverage documented and verified to include servers, workstations, network devices, cloud infrastructure, and web applications.",
+        "commonEvidence": [
+          "Vulnerability scan reports from the most recent scan cycle",
+          "Scan schedule or scan job configuration showing frequency",
+          "Authenticated scan credential configuration",
+          "Asset list used as scan target inventory"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "vulnerabilities in organizational systems and applications are scanned for when new vulnerabilities affecting those systems are identified",
+        "whatToLookFor": "Evidence that out-of-cycle scans are triggered when significant vulnerabilities are disclosed — patch Tuesday scans, emergency scans after major CVEs (Log4Shell, ProxyLogon, etc.), or a defined process for evaluating and responding to new disclosures. Documented procedure for handling newly-discovered vulnerabilities.",
+        "commonEvidence": [
+          "Vulnerability scan reports showing out-of-cycle or ad-hoc scans",
+          "Documented vulnerability management procedure describing triggers for unscheduled scans",
+          "Records of targeted scans after major CVE disclosures",
+          "Vulnerability notification subscription records (NVD, CISA KEV, vendor alerts)"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "vulnerability scan findings are analyzed",
+        "whatToLookFor": "Evidence that scan results are reviewed and triaged — not just that scans are run and reports stored. Analysis should include severity rating, applicability determination, and false-positive identification. Vulnerability management staff should be able to discuss findings from recent scans.",
+        "commonEvidence": [
+          "Vulnerability management team review records or meeting notes",
+          "Remediation prioritization records based on scan findings",
+          "Documented false-positive determinations",
+          "Risk acceptance records for findings not immediately remediable"
+        ]
+      },
+      {
+        "id": "d",
+        "text": "identified vulnerabilities are remediated in accordance with risk assessments",
+        "whatToLookFor": "Remediation tracking that ties scan findings to patch deployment, configuration changes, or compensating controls. Remediation timelines based on severity (e.g., critical within 30 days, high within 60 days). Evidence that the remediation actually happened — rescan results showing the finding closed.",
+        "commonEvidence": [
+          "Vulnerability remediation tracking records (ticketing system tied to scan findings)",
+          "Patch deployment records corresponding to scan findings",
+          "Rescan reports confirming remediation of closed findings",
+          "Documented SLA for remediation based on severity rating"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Vulnerability scan reports (current and historical)",
+      "Vulnerability management policy and procedure",
+      "Scan tool configuration showing authenticated scan setup",
+      "Vulnerability remediation tracking records",
+      "Patch deployment records tied to vulnerability findings",
+      "Rescan reports confirming remediation",
+      "CISA KEV or NVD subscription records"
+    ],
+    "commonGaps": [
+      "Unauthenticated scans only — misses the majority of software vulnerabilities on local systems",
+      "Scans run against a subset of assets — cloud resources, network devices, or workstations excluded from scope",
+      "Scans run but results not analyzed or acted upon — 'scan and forget'",
+      "No process for out-of-cycle scans after major CVE disclosures",
+      "Vulnerability findings not tied to a remediation workflow — scan output is a report that sits in a folder",
+      "No defined SLA for remediation — critical vulnerabilities open for 6+ months",
+      "Scan credentials have insufficient privileges — scans authenticated but not credentialed with admin rights, producing incomplete results",
+      "Web application scanning not included — only infrastructure scans performed"
+    ]
+  },
+  {
+    "id": "RA.L2-3.11.3",
+    "family": "Risk Assessment",
+    "title": "Vulnerability Remediation",
+    "controlText": "Remediate vulnerabilities in accordance with risk assessments.",
+    "plainEnglish": "Discovering vulnerabilities is only valuable if you fix them. This practice requires a documented, risk-informed remediation process: prioritize based on severity and organizational risk context, remediate within defined timeframes, and verify that remediation was effective. The risk-informed framing matters — RA.L2-3.11.3 explicitly requires that remediation decisions align with the broader risk assessment from RA.L2-3.11.1. Organizations that patch everything with equal priority (or nothing at a critical severity) are not meeting this practice. Compensating controls and risk acceptance decisions must be documented when full remediation is not immediately possible.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "vulnerabilities are remediated in accordance with risk assessments",
+        "whatToLookFor": "A documented remediation process that maps vulnerability severity to remediation priority and timeframe — informed by the organization's risk posture. Evidence that critical and high vulnerabilities are being addressed faster than medium/low. Remediation decisions (patch, mitigate, accept) are traceable to documented risk rationale.",
+        "commonEvidence": [
+          "Vulnerability remediation SLA or priority matrix tied to severity ratings",
+          "Remediation tracking records showing vulnerability status and completion dates",
+          "Patch deployment records showing remediation of identified vulnerabilities",
+          "Risk acceptance records for vulnerabilities accepted rather than remediated",
+          "Rescan results confirming successful remediation"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Vulnerability management policy with remediation SLAs by severity",
+      "Remediation tracking records (vulnerability management platform or ticketing system)",
+      "Patch deployment records",
+      "Risk acceptance documentation for unremediable findings",
+      "Rescan reports confirming vulnerability closure",
+      "Aging report showing open vulnerabilities by severity and time-open"
+    ],
+    "commonGaps": [
+      "No defined remediation timeframes — critical findings sit open indefinitely",
+      "Patches deployed on an irregular schedule not tied to vulnerability severity",
+      "Risk acceptance decisions made informally without documentation",
+      "Remediation tracked in the scan tool but not verified via rescan",
+      "Long-open critical vulnerabilities with no documented compensating controls or risk acceptance",
+      "Vulnerability remediation prioritized by ease rather than risk — easy wins patched, hard ones ignored",
+      "Remediation process exists but does not reference the organizational risk assessment — disconnected from RA.L2-3.11.1"
+    ]
+  }
+]

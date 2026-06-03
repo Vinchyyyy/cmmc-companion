@@ -1,0 +1,921 @@
+/* =========================================================================
+   CMMC Companion — Design System
+
+   Aesthetic: professional GRC tooling. Calm, dense, readable, credible.
+   No gradients, no animations beyond subtle hover transitions, no purple.
+   Optimized for consultants who stare at this for hours during assessments.
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* -------------------------------------------------------------------------
+   Design tokens
+   ------------------------------------------------------------------------- */
+
+:root {
+  /* Type */
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --text-xs: 0.75rem;     /* 12px */
+  --text-sm: 0.875rem;    /* 14px */
+  --text-base: 0.9375rem; /* 15px — slightly tighter than default 16px for density */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.375rem;    /* 22px */
+  --text-2xl: 1.75rem;    /* 28px */
+
+  --leading-tight: 1.3;
+  --leading-normal: 1.55;
+  --leading-relaxed: 1.7;
+
+  /* Spacing scale (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* Slate palette — calm, neutral, GRC-appropriate */
+  --color-bg: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-surface-alt: #fafbfc;
+  --color-border: #e1e4e8;
+  --color-border-strong: #c8ccd1;
+  --color-text: #1f2328;
+  --color-text-muted: #57606a;
+  --color-text-subtle: #818a96;
+
+  /* Single accent — for links, focus rings, primary action */
+  --color-accent: #0969da;
+  --color-accent-hover: #0860c7;
+  --color-accent-bg: #ddf4ff;
+
+  /* Status semantic colors */
+  --color-met: #1a7f37;
+  --color-met-bg: #dafbe1;
+  --color-not-met: #c92a2a;
+  --color-not-met-bg: #ffebe9;
+  --color-in-progress: #d97706;
+  --color-in-progress-bg: #fff4e1;
+  --color-not-started: #6b7280;
+  --color-not-started-bg: #eff1f3;
+
+  /* Layout */
+  --container-max: 1100px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* Shadows — used sparingly, only for elevation cues */
+  --shadow-xs: 0 1px 0 rgba(31, 35, 40, 0.04);
+  --shadow-sm: 0 1px 3px rgba(31, 35, 40, 0.06), 0 1px 2px rgba(31, 35, 40, 0.04);
+
+  --transition: 120ms ease-out;
+}
+
+/* -------------------------------------------------------------------------
+   Base / reset
+   ------------------------------------------------------------------------- */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  color: var(--color-text);
+  margin: 0 0 var(--space-3);
+}
+
+h1 { font-size: var(--text-2xl); letter-spacing: -0.01em; }
+h2 { font-size: var(--text-xl); margin-top: var(--space-8); letter-spacing: -0.005em; }
+h3 { font-size: var(--text-lg); margin-top: var(--space-6); }
+h4 { font-size: var(--text-base); margin-top: var(--space-4); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; font-size: var(--text-xs); font-weight: 600; }
+
+p {
+  margin: 0 0 var(--space-3);
+}
+
+ul {
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-5);
+}
+
+li {
+  margin-bottom: var(--space-1);
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+a:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}
+
+strong {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+code, .mono {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+section {
+  margin-bottom: var(--space-6);
+}
+
+/* -------------------------------------------------------------------------
+   App shell
+   ------------------------------------------------------------------------- */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+/* -------------------------------------------------------------------------
+   Navigation
+   ------------------------------------------------------------------------- */
+
+.nav {
+  background: var(--color-text);
+  padding: var(--space-4) var(--space-6);
+  display: flex;
+  gap: var(--space-6);
+  align-items: center;
+  border-bottom: 1px solid #000;
+}
+
+.nav a {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-decoration: none;
+  padding: var(--space-1) 0;
+  border-bottom: 2px solid transparent;
+  transition: color var(--transition), border-color var(--transition);
+}
+
+.nav a:hover {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.nav a.active {
+  color: #ffffff;
+  border-bottom-color: #ffffff;
+}
+
+/* -------------------------------------------------------------------------
+   Page wrapper (existing class, refined)
+   ------------------------------------------------------------------------- */
+
+.page > h1:first-child,
+.page > p:first-child {
+  margin-top: 0;
+}
+
+/* The "back link" pattern at the top of detail pages */
+.page > p:first-of-type a {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.page > p:first-of-type a:hover {
+  color: var(--color-accent);
+}
+
+/* -------------------------------------------------------------------------
+   Cards — used implicitly by sections via the .page descendant selector,
+   plus the explicit .card class for opt-in card styling.
+   ------------------------------------------------------------------------- */
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5) var(--space-6);
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Make sections render as cards on detail-style pages */
+.page section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5) var(--space-6);
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-xs);
+}
+
+.page section h2:first-child {
+  margin-top: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Filter row — search + dropdowns sitting in a horizontal cluster
+   ------------------------------------------------------------------------- */
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-3);
+}
+
+.filter-row input[type="text"] {
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+
+/* -------------------------------------------------------------------------
+   Form controls — text inputs, selects, textareas
+   ------------------------------------------------------------------------- */
+
+input[type="text"],
+input[type="search"],
+select,
+textarea {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  line-height: var(--leading-normal);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+input[type="text"]:hover,
+input[type="search"]:hover,
+select:hover,
+textarea:hover {
+  border-color: #98a1ad;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.18);
+}
+
+input[type="text"]::placeholder,
+textarea::placeholder {
+  color: var(--color-text-subtle);
+}
+
+textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  font-family: var(--font-sans);
+  resize: vertical;
+  margin-top: var(--space-2);
+}
+
+select {
+  cursor: pointer;
+  padding-right: var(--space-6);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%2357606a' d='M2 4.5l4 4 4-4z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right var(--space-2) center;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+label strong {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  display: inline-block;
+  margin-bottom: var(--space-1);
+}
+
+/* -------------------------------------------------------------------------
+   Buttons
+   ------------------------------------------------------------------------- */
+
+button {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+
+button:hover {
+  background: var(--color-surface-alt);
+  border-color: #98a1ad;
+}
+
+button:active {
+  background: #f0f2f4;
+}
+
+button:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.18);
+}
+
+/* Buttons inside <Link> wrappers — strip the link underline on hover */
+a:has(> button):hover {
+  text-decoration: none;
+}
+
+/* -------------------------------------------------------------------------
+   Status badges — replace the inline color spans
+   ------------------------------------------------------------------------- */
+
+.status-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.02em;
+  vertical-align: baseline;
+}
+
+.status-badge--met {
+  color: var(--color-met);
+  background: var(--color-met-bg);
+}
+
+.status-badge--not-met {
+  color: var(--color-not-met);
+  background: var(--color-not-met-bg);
+}
+
+.status-badge--in-progress {
+  color: var(--color-in-progress);
+  background: var(--color-in-progress-bg);
+}
+
+.status-badge--not-started {
+  color: var(--color-not-started);
+  background: var(--color-not-started-bg);
+}
+
+.notes-indicator {
+  display: inline-block;
+  font-size: var(--text-sm);
+  margin-left: var(--space-1);
+  cursor: help;
+}
+
+/* -------------------------------------------------------------------------
+   Control list — the Library page's <ul> of controls
+   ------------------------------------------------------------------------- */
+
+.control-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.control-list li {
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  transition: background var(--transition);
+  margin-bottom: 0;
+}
+
+.control-list li:last-child {
+  border-bottom: none;
+}
+
+.control-list li:hover {
+  background: var(--color-surface-alt);
+}
+
+.control-list li .mono,
+.control-list li a {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+/* -------------------------------------------------------------------------
+   Result count — small muted text above lists
+   ------------------------------------------------------------------------- */
+
+.result-count {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin: var(--space-3) 0;
+}
+
+/* -------------------------------------------------------------------------
+   Notification / feedback messages (CSV import success/error)
+   ------------------------------------------------------------------------- */
+
+.feedback {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  margin-top: var(--space-3);
+  border: 1px solid transparent;
+}
+
+.feedback--ok {
+  color: var(--color-met);
+  background: var(--color-met-bg);
+  border-color: rgba(26, 127, 55, 0.2);
+}
+
+.feedback--error {
+  color: var(--color-not-met);
+  background: var(--color-not-met-bg);
+  border-color: rgba(201, 42, 42, 0.2);
+}
+
+/* -------------------------------------------------------------------------
+   Misc utilities
+   ------------------------------------------------------------------------- */
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.button-group {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin: var(--space-3) 0;
+}
+
+.button-group a {
+  text-decoration: none;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .content {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .nav {
+    padding: var(--space-3) var(--space-4);
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-row input[type="text"],
+  .filter-row select {
+    width: 100%;
+  }
+
+  textarea {
+    width: 100% !important;
+  }
+
+  h1 { font-size: var(--text-xl); }
+  h2 { font-size: var(--text-lg); }
+}
+
+/* -------------------------------------------------------------------------
+   Home — Assessment Progress status summary
+   ------------------------------------------------------------------------- */
+
+.status-summary {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.status-summary > li {
+  margin: 0;
+}
+
+.status-summary-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+/* Push count to the right in the Total row */
+.status-summary > li:first-child .status-summary-row {
+  justify-content: space-between;
+}
+
+/* Linked rows: pointer cursor, subtle hover lift, no underline */
+.status-summary-link {
+  text-decoration: none;
+  color: var(--color-text);
+  transition: background var(--transition), color var(--transition);
+  cursor: pointer;
+}
+
+.status-summary-link:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.status-summary-link:focus-visible {
+  outline: none;
+  background: var(--color-surface-alt);
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.18);
+}
+
+/* -------------------------------------------------------------------------
+   Home — Quick Search result groups
+   ------------------------------------------------------------------------- */
+
+.quick-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.quick-search-group-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-2);
+}
+
+.quick-search-group .control-list {
+  margin-top: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Home — Assessment Progress bar
+   ------------------------------------------------------------------------- */
+
+/* Header row: heading + family dropdown side by side */
+.progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+/* Family dropdown — compact, inherits form-control styling */
+.progress-family-select {
+  flex-shrink: 0;
+}
+
+/* Stacked bar container */
+.progress-bar {
+  display: flex;
+  height: 12px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-not-started-bg);
+  margin: var(--space-2) 0 var(--space-4);
+  gap: 2px;
+}
+
+/* Empty state — center the message instead of showing the bar */
+.progress-bar--empty {
+  align-items: center;
+  background: var(--color-border);
+}
+
+/* Individual segments */
+.progress-bar-segment {
+  height: 100%;
+  transition: width 300ms ease-out;
+  border-radius: 0;
+  min-width: 4px; /* visible even at < 1% */
+}
+
+/* First and last segments get outer radius so the bar still looks pill-shaped */
+.progress-bar-segment:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+.progress-bar-segment:last-child  { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.progress-bar-segment:only-child  { border-radius: var(--radius-sm); }
+
+/* Segment colours — mirror the status badge semantic colours */
+.progress-bar-segment--met         { background: var(--color-met); }
+.progress-bar-segment--not-met     { background: var(--color-not-met); }
+.progress-bar-segment--in-progress { background: var(--color-in-progress); }
+.progress-bar-segment--not-started { background: var(--color-not-started); }
+
+/* -------------------------------------------------------------------------
+   Inheritance badges
+   ------------------------------------------------------------------------- */
+
+/* Base badge — same shape as .status-badge */
+.inheritance-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.02em;
+  vertical-align: baseline;
+}
+
+/* None — gray (badge is hidden in the Library when value = None) */
+.inheritance-badge--none {
+  color: var(--color-not-started);
+  background: var(--color-not-started-bg);
+}
+
+/* Full — purple */
+.inheritance-badge--full {
+  color: #6d28d9;
+  background: #ede9fe;
+}
+
+/* Partial — blue */
+.inheritance-badge--partial {
+  color: #0369a1;
+  background: #e0f2fe;
+}
+
+/* -------------------------------------------------------------------------
+   Control Detail — status + inheritance side-by-side layout
+   ------------------------------------------------------------------------- */
+
+/* Flex row that holds the two meta fields (status + inheritance) */
+.control-meta-row {
+  display: flex;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+/* Each labelled field within the meta row */
+.control-meta-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.control-meta-field label strong {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+/* select + badge on the same horizontal line */
+.control-meta-input-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+@media (max-width: 640px) {
+  .control-meta-row {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Multi-select bulk actions
+   ------------------------------------------------------------------------- */
+
+/* Selected row highlight */
+.control-list-item--selected {
+  background: var(--color-accent-bg) !important;
+}
+
+/* Checkbox column sits to the left of the existing .control-list-link */
+.control-list li {
+  display: flex;
+  align-items: center;
+}
+
+/* Wrapper label around the checkbox — gives a larger click target */
+.control-list-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3) 0 var(--space-4);
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.control-list-checkbox-label input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+/* Select-all header sits above the rows, styled lighter */
+.control-list-select-all {
+  border-bottom: 1px solid var(--color-border) !important;
+  background: var(--color-surface-alt);
+  padding: var(--space-2) 0;
+}
+
+/* -------------------------------------------------------------------------
+   Bulk action toolbar
+   ------------------------------------------------------------------------- */
+
+.bulk-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-accent-bg);
+  border: 1px solid rgba(9, 105, 218, 0.25);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-3);
+}
+
+.bulk-toolbar-count {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-accent);
+  margin-right: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* Dropdowns inside the toolbar — compact */
+.bulk-toolbar-select {
+  font-size: var(--text-sm);
+  padding: var(--space-1) var(--space-5) var(--space-1) var(--space-2);
+}
+
+/* Clear Data — uses the existing button style but with a red tint */
+.bulk-toolbar-danger {
+  color: var(--color-not-met);
+  border-color: rgba(201, 42, 42, 0.4);
+}
+
+.bulk-toolbar-danger:hover {
+  background: var(--color-not-met-bg);
+  border-color: var(--color-not-met);
+  color: var(--color-not-met);
+}
+
+/* Clear Selection — muted */
+.bulk-toolbar-clear {
+  margin-left: auto; /* push to the right */
+  color: var(--color-text-muted);
+}
+
+.bulk-toolbar-clear:hover {
+  color: var(--color-text);
+}
+
+@media (max-width: 640px) {
+  .bulk-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .bulk-toolbar-clear {
+    margin-left: 0;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Scoring & POA&M badges
+   ------------------------------------------------------------------------- */
+
+/* Score badge — same shape as status-badge */
+.score-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.02em;
+  vertical-align: baseline;
+}
+
+/* -5  red */
+.score-badge--neg5 {
+  color: var(--color-not-met);
+  background: var(--color-not-met-bg);
+}
+
+/* -3  amber */
+.score-badge--neg3 {
+  color: var(--color-in-progress);
+  background: var(--color-in-progress-bg);
+}
+
+/* -1  neutral gray */
+.score-badge--neg1 {
+  color: var(--color-not-started);
+  background: var(--color-not-started-bg);
+}
+
+/* POA&M "Allowed" — green tint */
+.score-badge--poam-ok {
+  color: var(--color-met);
+  background: var(--color-met-bg);
+}
+
+/* Non-POA&Mable badge — dark red */
+.poam-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.02em;
+  vertical-align: baseline;
+  color: #9a1515;
+  background: #fde8e8;
+}
+
+/* -------------------------------------------------------------------------
+   Control Library — family group headers
+   ------------------------------------------------------------------------- */
+
+.control-family-header {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: var(--space-3) var(--space-3) var(--space-2);
+  margin-top: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}

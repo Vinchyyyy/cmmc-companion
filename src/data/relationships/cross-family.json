@@ -1,0 +1,632 @@
+[
+  {
+    "sourceControl": "IA.L1-3.5.1",
+    "targetControl": "AC.L1-3.1.1",
+    "relationshipType": "supports",
+    "reasoning": "Identification provides the unique identifiers \u2014 user accounts, service principals, device identities \u2014 that access control mechanisms use to enforce 'authorized users only.' The CMMC Assessment Guide explicitly notes that AC.L1-3.1.1 leverages IA.L1-3.5.1 to provide vetted, trusted identities. Without IA.L1-3.5.1, AC.L1-3.1.1 has nothing meaningful to grant or deny access to."
+  },
+  {
+    "sourceControl": "IA.L1-3.5.2",
+    "targetControl": "AC.L1-3.1.1",
+    "relationshipType": "supports",
+    "reasoning": "Authentication is what turns a claimed identity into a verified one. Access enforcement decisions under AC.L1-3.1.1 are only meaningful if the system can trust that the entity requesting access actually is who it claims to be. Weak or missing authentication \u2014 default passwords, hardcoded service account credentials, no device authentication \u2014 undermines every access control decision downstream, regardless of how well the access policies are written."
+  },
+  {
+    "sourceControl": "IA.L1-3.5.1",
+    "targetControl": "AC.L2-3.1.3",
+    "relationshipType": "supports",
+    "reasoning": "AC.L2-3.1.3 requires identification of designated sources and destinations for CUI within the system and between interconnected systems. Those sources and destinations are users, devices, and other systems \u2014 exactly the entities IA.L1-3.5.1 requires to be uniquely identified. Without IA.L1-3.5.1, flow control rules collapse to generic 'allow' or 'deny' with no basis for distinguishing one party from another, which makes meaningful enforcement impossible."
+  },
+  {
+    "sourceControl": "IA.L1-3.5.2",
+    "targetControl": "AC.L2-3.1.3",
+    "relationshipType": "supports",
+    "reasoning": "When CUI flows between systems or to external parties, both ends of the flow need authenticated identities for the flow rules to be trustworthy. An interconnection where the receiving party's identity has not been verified is functionally an unauthenticated trust relationship \u2014 and any flow control rule built on top of it inherits that weakness. This becomes especially relevant for cloud-to-cloud CUI flows, partner portals, federated authentication scenarios, and machine-to-machine API calls where weak authentication can quietly invalidate otherwise solid flow rules."
+  },
+  {
+    "sourceControl": "IA.L1-3.5.2",
+    "targetControl": "AC.L2-3.1.8",
+    "relationshipType": "prerequisite",
+    "reasoning": "Failed-logon tracking only makes sense when authentication is actually being enforced. AC.L2-3.1.8's lockout mechanism counts authentication failures, which means IA.L1-3.5.2 must be in place \u2014 there must be an authentication step to fail in the first place."
+  },
+  {
+    "sourceControl": "IA.L2-3.5.3",
+    "targetControl": "AC.L2-3.1.12",
+    "relationshipType": "supports",
+    "reasoning": "MFA on remote access is one of the technical controls that operationalizes AC.L2-3.1.12. The Assessment Guide identifies IA.L2-3.5.3 as a complementary remote access practice precisely because remote sessions without strong authentication are just controlled paths for attackers with stolen credentials. The two practices are usually implemented in the same configuration (VPN client, conditional access policies)."
+  },
+  {
+    "sourceControl": "IA.L2-3.5.3",
+    "targetControl": "AC.L2-3.1.15",
+    "relationshipType": "supports",
+    "reasoning": "MFA dramatically reduces the risk of remote privileged access being abused via stolen credentials. The Assessment Guide identifies IA.L2-3.5.3 as a complementary control to AC.L2-3.1.15. Privileged remote access without MFA is widely considered insufficient regardless of other controls \u2014 credential theft via phishing or malware is too common a vector."
+  },
+  {
+    "sourceControl": "IA.L1-3.5.1",
+    "targetControl": "AC.L2-3.1.18",
+    "relationshipType": "supports",
+    "reasoning": "Mobile device control under AC.L2-3.1.18 requires identifying mobile devices that handle CUI, which directly draws on IA.L1-3.5.1's device identification requirement. MDM-issued certificates or enrollment IDs satisfy both practices in a single mechanism \u2014 the mobile device identifier the MDM uses is the same identifier that proves the device is authorized to connect."
+  },
+  {
+    "sourceControl": "SC.L1-3.13.1",
+    "targetControl": "AC.L2-3.1.3",
+    "relationshipType": "supports",
+    "reasoning": "Boundary protection mechanisms \u2014 firewalls, gateways, segmentation \u2014 are the technical enforcement layer for AC.L2-3.1.3's CUI flow control. The Assessment Guide notes that flow control 'enforcement occurs in boundary protection devices.' AC.L2-3.1.3[e] (enforcing approved flow authorizations) directly depends on the firewall and segmentation infrastructure established under SC.L1-3.13.1."
+  },
+  {
+    "sourceControl": "SC.L2-3.13.6",
+    "targetControl": "AC.L2-3.1.3",
+    "relationshipType": "supports",
+    "reasoning": "Default-deny network communications (SC.L2-3.13.6) operationalizes CUI flow control (AC.L2-3.1.3) by ensuring that flow rules start from a posture of 'nothing is allowed' rather than 'everything is allowed.' Without default-deny, flow restrictions become an exhaustive list of what to block \u2014 which is impossible to maintain. With default-deny, flow control becomes a tractable list of explicitly permitted CUI paths."
+  },
+  {
+    "sourceControl": "SC.L2-3.13.11",
+    "targetControl": "AC.L2-3.1.13",
+    "relationshipType": "supports",
+    "reasoning": "AC.L2-3.1.13 requires cryptographic protection of remote access sessions; SC.L2-3.13.11 specifies that the cryptography used must be FIPS-validated. The Assessment Guide explicitly identifies SC.L2-3.13.11 as the central FIPS practice that AC.L2-3.1.13's encryption requirement depends on. A remote access encryption implementation that uses approved algorithms but a non-validated module satisfies AC.L2-3.1.13 in spirit but fails SC.L2-3.13.11 \u2014 both practices need to align."
+  },
+  {
+    "sourceControl": "SC.L2-3.13.11",
+    "targetControl": "AC.L2-3.1.17",
+    "relationshipType": "supports",
+    "reasoning": "AC.L2-3.1.17 requires wireless protection through encryption; SC.L2-3.13.11 requires that the cryptography be FIPS-validated. WPA2/WPA3 using AES is necessary but not sufficient \u2014 the wireless equipment's cryptographic module must be CMVP-listed. This is a frequently overlooked detail since vendors often advertise 'AES encryption' without distinguishing between approved-algorithm and validated-module status."
+  },
+  {
+    "sourceControl": "SC.L2-3.13.11",
+    "targetControl": "AC.L2-3.1.19",
+    "relationshipType": "supports",
+    "reasoning": "AC.L2-3.1.19 requires CUI on mobile devices and laptops to be encrypted; SC.L2-3.13.11 specifies that the cryptography used must be FIPS-validated. The Assessment Guide explicitly identifies SC.L2-3.13.11 as complementing AC.L2-3.1.19. BitLocker, FileVault, and equivalent disk encryption tools are FIPS-capable but must be configured in their FIPS-compliant operational mode for the combination to satisfy both practices."
+  },
+  {
+    "sourceControl": "SC.L2-3.13.10",
+    "targetControl": "AC.L2-3.1.19",
+    "relationshipType": "supports",
+    "reasoning": "Mobile device encryption (AC.L2-3.1.19) generates and uses cryptographic keys (BitLocker recovery keys, MDM-managed certificates, container encryption keys). SC.L2-3.13.10's key management requirements apply directly to those keys \u2014 escrow procedures for recovery keys, rotation when staff changes occur, secure destruction when devices are retired. The Assessment Guide explicitly identifies SC.L2-3.13.10 as complementing AC.L2-3.1.19."
+  },
+  {
+    "sourceControl": "SC.L2-3.13.8",
+    "targetControl": "AC.L2-3.1.3",
+    "relationshipType": "supports",
+    "reasoning": "AC.L2-3.1.3's CUI flow control depends on SC.L2-3.13.8's in-transit encryption to be meaningful. Flow rules can authorize CUI to travel between specific sources and destinations, but if those flows happen in plaintext over networks the organization doesn't control, the flow rules don't actually protect confidentiality. The two practices are usually evidenced together through the same TLS/SFTP/encrypted-email gateway configurations."
+  },
+  {
+    "sourceControl": "SC.L2-3.13.8",
+    "targetControl": "AC.L2-3.1.13",
+    "relationshipType": "supports",
+    "reasoning": "Both practices require FIPS-validated cryptography for data crossing networks \u2014 AC.L2-3.1.13 specifically for remote access sessions, SC.L2-3.13.8 broadly for any CUI in transit. Remote access sessions carrying CUI satisfy both simultaneously when implemented with FIPS-validated VPN or TLS. The two practices share their evidence: VPN configuration, TLS scan results, CMVP certificate references."
+  },
+  {
+    "sourceControl": "SC.L2-3.13.15",
+    "targetControl": "IA.L2-3.5.4",
+    "relationshipType": "supports",
+    "reasoning": "Both practices address session-level integrity. IA.L2-3.5.4 requires replay-resistant authentication; SC.L2-3.13.15 requires authentic communications sessions throughout \u2014 protection against man-in-the-middle, session hijacking, and false-information injection. Modern TLS with proper certificate validation and session token binding satisfies both. They are typically evidenced together via the TLS configuration and external scan results."
+  },
+  {
+    "sourceControl": "SC.L2-3.13.7",
+    "targetControl": "AC.L2-3.1.12",
+    "relationshipType": "supports",
+    "reasoning": "Split tunneling prevention (SC.L2-3.13.7) is one of the technical configurations that operationalizes remote access control (AC.L2-3.1.12). Allowing remote devices to bridge the corporate network and the public internet simultaneously creates an uncontrolled communication path that AC.L2-3.1.12's monitoring and control cannot see. The two practices are typically evidenced together via VPN client configuration showing full-tunnel mode."
+  },
+  {
+    "sourceControl": "SC.L2-3.13.9",
+    "targetControl": "AC.L2-3.1.11",
+    "relationshipType": "supports",
+    "reasoning": "AC.L2-3.1.11 (user session termination) and SC.L2-3.13.9 (network connection termination) address related risks at different layers. User-level session termination ensures the user is logged out; network-level connection termination ensures the underlying network connection is also closed and not left available for reuse. The two practices reinforce each other \u2014 terminating a user session without tearing down the network connection leaves a stale path that could be reused."
+  },
+  {
+    "sourceControl": "SC.L2-3.13.3",
+    "targetControl": "AC.L2-3.1.6",
+    "relationshipType": "supports",
+    "reasoning": "Both practices address the separation between user and administrative functions. AC.L2-3.1.6 requires admins to use non-privileged accounts for non-security work; SC.L2-3.13.3 requires technical separation between user functionality and system management functionality (different VLANs, jump hosts, separate management interfaces). The two practices are mutually reinforcing \u2014 the account separation under AC.L2-3.1.6 is most effective when paired with the network and system separation under SC.L2-3.13.3."
+  },
+  {
+    "sourceControl": "AC.L2-3.1.5",
+    "targetControl": "SC.L2-3.13.3",
+    "relationshipType": "supports",
+    "reasoning": "Least privilege (AC.L2-3.1.5) feeds directly into role separation (SC.L2-3.13.3). Identifying privileged accounts and security functions under AC.L2-3.1.5 is what makes it possible to define what user functionality vs system management functionality means in SC.L2-3.13.3. Without the privileged-vs-non-privileged distinction established by AC.L2-3.1.5, separating those functionalities at the system layer has no clear definitional basis."
+  },
+  {
+    "sourceControl": "SC.L1-3.13.1",
+    "targetControl": "AC.L1-3.1.20",
+    "relationshipType": "supports",
+    "reasoning": "Boundary protection (SC.L1-3.13.1) is the technical mechanism that enforces external connection limits required by AC.L1-3.1.20. The 'external system boundary' that SC.L1-3.13.1[a] requires defining is the same boundary across which AC.L1-3.1.20[c,e,f] verifies, controls, and limits external connections. The two practices share their boundary definition and the firewall infrastructure that enforces it."
+  },
+  {
+    "sourceControl": "SC.L2-3.13.13",
+    "targetControl": "AC.L2-3.1.3",
+    "relationshipType": "supports",
+    "reasoning": "Mobile code controls (SC.L2-3.13.13) help prevent unintended CUI flows. Macro-enabled documents, browser plugins, and embedded scripts can exfiltrate CUI to unauthorized destinations if unrestricted. Restricting mobile code to authorized types and destinations reinforces the authorized-flow-only posture required by AC.L2-3.1.3."
+  },
+  {
+    "sourceControl": "AC.L2-3.1.13",
+    "targetControl": "SC.L2-3.13.8",
+    "relationshipType": "supports",
+    "reasoning": "AC.L2-3.1.13 requires encryption of remote access sessions; SC.L2-3.13.8 requires encryption of CUI in transit. Remote access sessions carrying CUI fall under both practices, and the same TLS/VPN/IPsec implementation typically satisfies both. The relationship is bidirectional \u2014 strengthening either tends to strengthen the other since they share evidence (cipher suite configuration, FIPS module documentation, VPN tunnel configuration)."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.1",
+    "targetControl": "AC.L2-3.1.5",
+    "relationshipType": "supports",
+    "reasoning": "The asset and software inventory from CM.L2-3.4.1 directly supports least privilege scoping under AC.L2-3.1.5. You cannot grant least-privilege access to systems and software that are not inventoried \u2014 the inventory is what defines the scope of the access control problem. Both practices together ensure that access is granted only to known, inventoried assets."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.2",
+    "targetControl": "AC.L2-3.1.7",
+    "relationshipType": "supports",
+    "reasoning": "Security configuration enforcement (CM.L2-3.4.2) and privileged function control (AC.L2-3.1.7) share the same configuration surface. Configuration settings that enforce who can execute privileged functions \u2014 UAC settings, sudo configuration, RBAC group policies \u2014 are part of the security configuration baseline that 3.4.2 establishes and enforces. Changes to these settings surface in both practices."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.3",
+    "targetControl": "AU.L2-3.3.1",
+    "relationshipType": "supports",
+    "reasoning": "The change log from CM.L2-3.4.3[d] is itself an important audit record \u2014 it documents the who, what, and when of all system changes and supports investigation of incidents. ITSM change records and the system-level audit logs that capture configuration changes both feed into AU.L2-3.3.1's audit log corpus. An incident investigation without change records is missing a critical data source."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.3",
+    "targetControl": "AU.L2-3.3.3",
+    "relationshipType": "supports",
+    "reasoning": "The change management process (CM.L2-3.4.3) is a natural trigger for event type review under AU.L2-3.3.3. When new systems or services are introduced through the change process, the auditable events list should be updated to capture new event types. Change management and event review should be linked: significant changes should prompt a review of whether logging is still comprehensive."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.5",
+    "targetControl": "AC.L2-3.1.5",
+    "relationshipType": "supports",
+    "reasoning": "Access restrictions for change (CM.L2-3.4.5) are a specific application of least privilege (AC.L2-3.1.5) scoped to the change-making capability. Both require defining who has which access and enforcing it technically. The access matrix for change-capable roles is one part of the broader privileged access inventory that AC.L2-3.1.5 requires."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.6",
+    "targetControl": "SC.L1-3.13.1",
+    "relationshipType": "supports",
+    "reasoning": "Least functionality (CM.L2-3.4.6) reduces the attack surface at the system level \u2014 fewer services, fewer ports, fewer capabilities \u2014 which directly reduces what the boundary protection mechanisms in SC.L1-3.13.1 must defend. A system running only essential services presents fewer exploitable paths across the network boundary. The two practices complement each other: SC.L1-3.13.1 monitors and controls communications at boundaries; CM.L2-3.4.6 minimizes the services that generate those communications."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.7",
+    "targetControl": "SC.L2-3.13.6",
+    "relationshipType": "supports",
+    "reasoning": "Restricting nonessential ports and protocols (CM.L2-3.4.7[i,l]) at the host level reinforces the deny-by-default network posture required by SC.L2-3.13.6. Both practices converge on the same goal \u2014 only explicitly authorized traffic flows. CM.L2-3.4.7 enforces this at the endpoint/host layer; SC.L2-3.13.6 enforces it at the network layer. Defense-in-depth requires both: a firewall rule and a host-based restriction provide redundancy if one layer fails."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.7",
+    "targetControl": "SC.L1-3.13.5",
+    "relationshipType": "supports",
+    "reasoning": "Restricting nonessential services and ports (CM.L2-3.4.7) on publicly accessible system components directly supports the DMZ/subnet separation required by SC.L1-3.13.5. Public-facing systems with minimal services are less exploitable, reducing the likelihood that a compromise of a DMZ component can be leveraged for lateral movement into internal networks. The hardened public-facing surface from 3.4.7 and the network isolation from 3.13.5 together form the boundary defense."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.8",
+    "targetControl": "AC.L2-3.1.3",
+    "relationshipType": "supports",
+    "reasoning": "Application execution policy (CM.L2-3.4.8) supports CUI flow control (AC.L2-3.1.3) by preventing unauthorized applications from executing and potentially exfiltrating CUI to unauthorized destinations. Mobile code controls (SC.L2-3.13.13) and application execution policy together create layered controls on software that could initiate unauthorized CUI flows. An allow-list that prevents unapproved executables is also a control on what can transmit CUI."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.2",
+    "targetControl": "SC.L2-3.13.2",
+    "relationshipType": "supports",
+    "reasoning": "Security configuration enforcement (CM.L2-3.4.2) is one of the primary mechanisms by which the security engineering principles from SC.L2-3.13.2 are operationalized. Architecture and engineering define how systems should be built; CM.L2-3.4.2 enforces that the actual configurations match the intended design. Security configurations that drift from the secure-by-design baseline undermine the security engineering work, regardless of how well the architecture was planned."
+  },
+  {
+    "sourceControl": "AU.L2-3.3.1",
+    "targetControl": "IR.L2-3.6.1",
+    "relationshipType": "supports",
+    "reasoning": "Audit logs (AU.L2-3.3.1) are the primary data source for incident detection and analysis in IR.L2-3.6.1. The assessment guide for IR.L2-3.6.1 explicitly notes that 'incident-related information can be obtained from audit monitoring.' Without comprehensive, retained audit logs, incident analysis is severely limited — the IR team cannot reconstruct what happened, when it started, or what systems were affected. The quality and coverage of AU.L2-3.3.1 directly determines the effectiveness of IR.L2-3.6.1[c,d] (detection and analysis)."
+  },
+  {
+    "sourceControl": "AU.L2-3.3.5",
+    "targetControl": "IR.L2-3.6.1",
+    "relationshipType": "supports",
+    "reasoning": "Audit correlation (AU.L2-3.3.5) enables the multi-source investigation that IR.L2-3.6.1[d] (analysis) depends on. Individual log sources tell partial stories; correlated events across authentication logs, endpoint telemetry, and network flows allow IR analysts to reconstruct the full attack timeline. A SIEM correlation capability (AU.L2-3.3.5) is also the primary detection mechanism that surfaces IR.L2-3.6.1[c] (detection) — individual alerts become actionable incidents when correlated."
+  },
+  {
+    "sourceControl": "IR.L2-3.6.1",
+    "targetControl": "AU.L2-3.3.3",
+    "relationshipType": "supports",
+    "reasoning": "Incident response experience feeds directly into AU.L2-3.3.3 (event review). After-action reviews from real incidents regularly surface logging gaps — event types that were not captured and would have aided analysis. The IR.L2-3.6.1 after-action process is one of the most valuable triggers for updating the auditable events list, making the two practices mutually reinforcing. Organizations with active IR programs consistently maintain more comprehensive and current audit logging than those that only review events on a scheduled basis."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.3",
+    "targetControl": "IR.L2-3.6.1",
+    "relationshipType": "supports",
+    "reasoning": "Change management records (CM.L2-3.4.3) are critical during incident analysis (IR.L2-3.6.1[d]) to distinguish authorized changes from unauthorized ones. Analysts investigating anomalous system behavior need to quickly answer 'was this change authorized?' — without a complete change log, distinguishing incidents from maintenance activity is difficult and time-consuming. Change records also support containment decisions and post-incident root-cause analysis."
+  },
+  {
+    "sourceControl": "SC.L1-3.13.1",
+    "targetControl": "IR.L2-3.6.1",
+    "relationshipType": "supports",
+    "reasoning": "Boundary protection controls (SC.L1-3.13.1) generate the network monitoring events that feed IR.L2-3.6.1[c] (detection). Firewall logs, IDS/IPS alerts, and proxy logs from boundary monitoring are primary incident detection inputs. The assessment guide for IR.L2-3.6.1 notes that 'indicators may include alerts from sensors' — boundary sensors are the earliest detection layer for external threats. Boundary controls also directly support containment (IR.L2-3.6.1[e]) through emergency firewall rule changes to isolate affected systems."
+  },
+  {
+    "sourceControl": "IR.L2-3.6.2",
+    "targetControl": "AU.L2-3.3.1",
+    "relationshipType": "supports",
+    "reasoning": "Incident reporting (IR.L2-3.6.2) and audit logging (AU.L2-3.3.1) share a bidirectional reinforcement loop. DFARS 252.204-7012 reporting to DCSA requires submission of audit log excerpts as supporting evidence. This creates an operational incentive for IR teams to ensure AU.L2-3.3.1 logs are comprehensive and retained — an incident without adequate log support cannot be fully reported. IR.L2-3.6.2's documentation requirements also implicitly require the log data that AU.L2-3.3.1 produces."
+  },
+  {
+    "sourceControl": "IR.L2-3.6.1",
+    "targetControl": "CM.L2-3.4.3",
+    "relationshipType": "supports",
+    "reasoning": "Incident response (IR.L2-3.6.1) recovery activities often generate system changes — reimaging, patching, configuration remediation, account modifications — that should flow through the change management process (CM.L2-3.4.3). Organizations with mature IR programs route post-incident recovery changes through their ITSM tool, creating a complete record of what was changed in response to each incident. This traceability is important for post-incident review and for verifying that the root cause was actually addressed."
+  },
+  {
+    "sourceControl": "IR.L2-3.6.3",
+    "targetControl": "AU.L2-3.3.3",
+    "relationshipType": "supports",
+    "reasoning": "IR testing (IR.L2-3.6.3) exercises typically reveal gaps in detection capability, and detection gaps almost always trace back to logging gaps. Tabletop exercises where the simulated attacker's activities would not have been detected highlight exactly which event types are missing from the AU.L2-3.3.3 auditable events list. The after-action report from IR testing is therefore one of the strongest inputs to the periodic event review process, creating a feedback loop between IR testing and logging coverage."
+  },
+{
+    "sourceControl": "RA.L2-3.11.2",
+    "targetControl": "CM.L2-3.4.2",
+    "relationshipType": "supports",
+    "reasoning": "Vulnerability scan findings (RA.L2-3.11.2) are a primary input to security configuration enforcement (CM.L2-3.4.2). Scans frequently surface misconfigured systems that diverge from the approved security baseline — unpatched software, enabled services that should be disabled, or registry settings that deviate from the hardening guide. Acting on those findings closes the configuration gap, strengthening CM.L2-3.4.2. The two practices share evidence: a configuration compliance scan report simultaneously serves both controls."
+  },
+  {
+    "sourceControl": "RA.L2-3.11.2",
+    "targetControl": "CM.L2-3.4.1",
+    "relationshipType": "supports",
+    "reasoning": "Vulnerability scanning (RA.L2-3.11.2) is one of the most effective mechanisms for detecting unauthorized software, outdated components, and unapproved configurations that diverge from the baseline established under CM.L2-3.4.1. Scan-reported software inventory data supplements the endpoint management tool inventory. Discrepancies between the CM.L2-3.4.1 baseline and scan-discovered state are findings that both practices need to address."
+  },
+  {
+    "sourceControl": "RA.L2-3.11.3",
+    "targetControl": "CM.L2-3.4.3",
+    "relationshipType": "supports",
+    "reasoning": "Vulnerability remediation (RA.L2-3.11.3) typically produces system changes — patches, configuration updates, software removal — that must flow through the change management process (CM.L2-3.4.3). Organizations with mature programs route vulnerability-driven changes through their ITSM tool, creating a complete audit trail from scan finding to change ticket to verification. This linkage ensures remediation is tracked and approved, not applied ad-hoc outside the change process."
+  },
+  {
+    "sourceControl": "AU.L2-3.3.1",
+    "targetControl": "RA.L2-3.11.1",
+    "relationshipType": "supports",
+    "reasoning": "Audit logs (AU.L2-3.3.1) are a valuable input to risk assessments (RA.L2-3.11.1) — log analysis reveals actual threat patterns, failed access attempts, anomalous behavior, and historical incident data that should inform likelihood and impact ratings. A risk assessment conducted without reviewing audit telemetry is making assumptions about the threat environment that the organization's own logs could correct. The SIEM data from AU.L2-3.3.1 provides empirical evidence of the threat landscape the risk assessment is supposed to characterize."
+  },
+  {
+    "sourceControl": "IR.L2-3.6.1",
+    "targetControl": "RA.L2-3.11.1",
+    "relationshipType": "supports",
+    "reasoning": "Incident response data (IR.L2-3.6.1) directly informs risk assessments (RA.L2-3.11.1). The incident history — what attack types occurred, how long detection took, what the impact was — provides empirical evidence of realized risk that should update the threat event likelihood and impact ratings in the next risk assessment cycle. An organization whose risk assessment does not incorporate lessons from its own incident history is producing an incomplete risk picture."
+  },
+  {
+    "sourceControl": "RA.L2-3.11.1",
+    "targetControl": "IR.L2-3.6.1",
+    "relationshipType": "supports",
+    "reasoning": "Risk assessment results (RA.L2-3.11.1) should inform IR capability prioritization (IR.L2-3.6.1). The risk assessment identifies which threat events are most likely and most impactful — those findings should drive IR playbook development, the detection capabilities funded, and the severity thresholds that escalate incidents. An IR capability built without risk context may be well-prepared for low-likelihood threats and under-prepared for high-likelihood ones."
+  },
+  {
+    "sourceControl": "RA.L2-3.11.2",
+    "targetControl": "SC.L1-3.13.1",
+    "relationshipType": "supports",
+    "reasoning": "Vulnerability scanning (RA.L2-3.11.2) of boundary devices — firewalls, proxies, DMZ systems — directly validates and improves boundary protection (SC.L1-3.13.1). Scans surface unpatched boundary components, misconfigured rules exposed by vulnerability checks, and services that should not be internet-facing. The boundary protection control assumes boundary devices are hardened; scanning is a key mechanism to verify and maintain that hardened state."
+  },
+  {
+    "sourceControl": "RA.L2-3.11.1",
+    "targetControl": "CM.L2-3.4.4",
+    "relationshipType": "supports",
+    "reasoning": "Risk assessment results (RA.L2-3.11.1) inform the security impact analysis process (CM.L2-3.4.4). When assessors evaluate the security impact of proposed changes, they draw on the risk assessment's characterization of which assets are most sensitive, what the current threat environment looks like, and what the organization's risk tolerance is. Changes to high-risk assets in high-threat contexts receive more rigorous analysis than routine changes to low-risk systems."
+  },
+  {
+    "sourceControl": "RA.L2-3.11.3",
+    "targetControl": "AU.L2-3.3.3",
+    "relationshipType": "supports",
+    "reasoning": "Vulnerability remediation (RA.L2-3.11.3) can trigger updates to the audit event list (AU.L2-3.3.3). When a vulnerability is remediated by deploying new software, changing configurations, or modifying network architecture, the set of relevant security events to log may change. Organizations with mature programs review their auditable events list as part of the remediation closure process, ensuring the logging baseline stays current with the environment it is meant to monitor."
+  },
+{
+    "sourceControl": "RA.L2-3.11.1",
+    "targetControl": "CA.L2-3.12.2",
+    "relationshipType": "supports",
+    "reasoning": "The Assessment Guide explicitly states that CA.L2-3.12.2 (POA&M) 'is driven by risk management practice RA.L2-3.11.1, which promotes periodically assessing risk to organizational systems.' Risk assessment findings populate the POA&M — the risk register and assessment results identify deficiencies and vulnerabilities that become POA&M items. An organization whose POA&M is disconnected from the risk assessment is making remediation decisions without a risk-informed priority framework."
+  },
+  {
+    "sourceControl": "RA.L2-3.11.2",
+    "targetControl": "CA.L2-3.12.2",
+    "relationshipType": "supports",
+    "reasoning": "Vulnerability scan findings (RA.L2-3.11.2) are a major source of POA&M items (CA.L2-3.12.2). Vulnerabilities that cannot be immediately remediated must be tracked in the POA&M with documented remediation timelines and risk acceptance rationale. The scan-to-POA&M pipeline is one of the most operationally important integration points in a mature security program — without it, vulnerability findings are discovered and lost rather than tracked to closure."
+  },
+  {
+    "sourceControl": "CA.L2-3.12.3",
+    "targetControl": "AU.L2-3.3.1",
+    "relationshipType": "supports",
+    "reasoning": "Continuous monitoring (CA.L2-3.12.3) depends on the audit log infrastructure established by AU.L2-3.3.1. Log data is one of the primary inputs to continuous monitoring — SIEM dashboards, anomaly alerts, and security status reports are all derived from the audit records that AU.L2-3.3.1 produces. An organization with comprehensive audit logging has more visibility for continuous monitoring; one with poor logging has blind spots that monitoring cannot compensate for."
+  },
+  {
+    "sourceControl": "CA.L2-3.12.3",
+    "targetControl": "IR.L2-3.6.1",
+    "relationshipType": "supports",
+    "reasoning": "Continuous monitoring (CA.L2-3.12.3) is the detection layer that feeds incidents into the incident response process (IR.L2-3.6.1). Monitoring outputs — anomaly alerts, SIEM detections, configuration drift alerts — are the triggers that initiate IR.L2-3.6.1's detection and analysis phases. An organization with mature continuous monitoring detects incidents earlier and with more contextual information than one that relies on reactive discovery."
+  },
+  {
+    "sourceControl": "CA.L2-3.12.1",
+    "targetControl": "RA.L2-3.11.1",
+    "relationshipType": "supports",
+    "reasoning": "Security control assessment results (CA.L2-3.12.1) are a valuable input to risk assessments (RA.L2-3.11.1). Assessment findings reveal which controls are not operating as intended — that information directly updates the likelihood and impact ratings in the risk assessment. An organization that conducts risk assessments without incorporating security control assessment findings is working with incomplete information about its actual security posture."
+  },
+  {
+    "sourceControl": "CA.L2-3.12.4",
+    "targetControl": "AC.L2-3.1.3",
+    "relationshipType": "supports",
+    "reasoning": "The SSP (CA.L2-3.12.4) documents system interconnections and the boundaries across which CUI flows, directly informing the information flow control decisions required by AC.L2-3.1.3. The SSP's interconnection section identifies which external systems are authorized to receive CUI, which is the prerequisite for defining and enforcing the flow control rules AC.L2-3.1.3 requires. Assessors cross-reference the SSP interconnection list against the firewall and flow control configurations when evaluating AC.L2-3.1.3."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.3",
+    "targetControl": "CA.L2-3.12.4",
+    "relationshipType": "supports",
+    "reasoning": "Change management records (CM.L2-3.4.3) are the primary trigger for SSP updates (CA.L2-3.12.4[h]). Every significant system change — new components, new connections, changed configurations, scope changes — should trigger an SSP review and update. Organizations that link their change management process to SSP maintenance keep the SSP current with the actual system; those that don't end up with an SSP that describes a system that no longer exists."
+  },
+  {
+    "sourceControl": "CA.L2-3.12.2",
+    "targetControl": "RA.L2-3.11.3",
+    "relationshipType": "supports",
+    "reasoning": "The POA&M (CA.L2-3.12.2) and vulnerability remediation (RA.L2-3.11.3) operate on the same set of deficiencies from different angles. RA.L2-3.11.3 focuses on risk-informed remediation of vulnerabilities; CA.L2-3.12.2 focuses on tracking all deficiencies through to closure. In mature programs, vulnerability remediation tracking and POA&M management are the same workflow — a single system that satisfies both practices. Assessors look for consistent information across both, and gaps between the two suggest one is being maintained for compliance while the other reflects operational reality."
+  },
+{
+    "sourceControl": "SI.L1-3.14.1",
+    "targetControl": "RA.L2-3.11.2",
+    "relationshipType": "supports",
+    "reasoning": "Flaw remediation (SI.L1-3.14.1) and vulnerability scanning (RA.L2-3.11.2) are tightly coupled — SI.L1-3.14.1 is the operational process that closes the vulnerabilities RA.L2-3.11.2 discovers. The Assessment Guide example for SI.L1-3.14.1 explicitly describes using vulnerability scans as the flaw identification mechanism. Without the scanning capability of RA.L2-3.11.2, SI.L1-3.14.1 has no systematic way to identify flaws; without SI.L1-3.14.1's remediation process, RA.L2-3.11.2 produces findings with no systematic closure."
+  },
+  {
+    "sourceControl": "SI.L2-3.14.6",
+    "targetControl": "AU.L2-3.3.1",
+    "relationshipType": "supports",
+    "reasoning": "The Assessment Guide explicitly states that SI.L2-3.14.6 'supports the practice AU.L2-3.3.1, which involves creating and retaining records for monitoring, analysis, and investigations.' Network monitoring events from SI.L2-3.14.6 are audit records that AU.L2-3.3.1 must collect and retain. The monitoring output from SI.L2-3.14.6 feeds directly into the AU.L2-3.3.1 audit corpus — IDS/IPS alerts, firewall deny logs, and proxy events are all audit data."
+  },
+  {
+    "sourceControl": "SI.L2-3.14.6",
+    "targetControl": "IR.L2-3.6.1",
+    "relationshipType": "supports",
+    "reasoning": "The Assessment Guide explicitly states that 'output from system monitoring serves as input to continuous monitoring and incident response programs.' SI.L2-3.14.6's monitoring detections are the triggers for IR.L2-3.6.1's detection phase — network-layer attack indicators (IDS alerts, anomalous outbound traffic, C2 beaconing) are primary incident detection sources. An organization without SI.L2-3.14.6-level monitoring relies on user reports and reactive discovery rather than proactive network detection."
+  },
+  {
+    "sourceControl": "SI.L2-3.14.7",
+    "targetControl": "AU.L2-3.3.1",
+    "relationshipType": "prerequisite",
+    "reasoning": "The Assessment Guide explicitly identifies AU.L2-3.3.1 as one of the building blocks for SI.L2-3.14.7. Identifying unauthorized use requires audit records to observe — SI.L2-3.14.7's monitoring capability is built on the audit log infrastructure that AU.L2-3.3.1 establishes. Without comprehensive audit logging, the monitoring tools required to identify unauthorized use have no data to analyze."
+  },
+  {
+    "sourceControl": "SI.L2-3.14.7",
+    "targetControl": "AC.L1-3.1.1",
+    "relationshipType": "prerequisite",
+    "reasoning": "The Assessment Guide explicitly states that SI.L2-3.14.7 'is related to practices AC.L1-3.1.1 ... [which helps] create the building blocks that support SI.L2-3.14.7.' AC.L1-3.1.1 (authorized users) defines who is authorized — that definition is the prerequisite for SI.L2-3.14.7[a]'s requirement to define authorized use. Without the access control foundation of AC.L1-3.1.1, there is no authoritative user inventory from which an authorized use definition can be derived."
+  },
+  {
+    "sourceControl": "CA.L2-3.12.3",
+    "targetControl": "SI.L2-3.14.6",
+    "relationshipType": "supports",
+    "reasoning": "Continuous monitoring (CA.L2-3.12.3) and communications monitoring for attacks (SI.L2-3.14.6) are closely aligned — SI.L2-3.14.6 is one of the primary technical mechanisms that implements the continuous monitoring program required by CA.L2-3.12.3. The Assessment Guide references system monitoring tools (IDS, IPS, network monitoring software) under both practices. Organizations use the same SIEM/IDS infrastructure to satisfy both."
+  },
+  {
+    "sourceControl": "SI.L1-3.14.1",
+    "targetControl": "CA.L2-3.12.2",
+    "relationshipType": "supports",
+    "reasoning": "Flaws identified through SI.L1-3.14.1's flaw identification process become inputs to the Plan of Action (CA.L2-3.12.2) when they cannot be immediately remediated within the policy timeframe. The POA&M is the mechanism for tracking flaws that require extended remediation timelines, accepted risk, or compensating controls. The SI.L1-3.14.1 → CA.L2-3.12.2 pipeline is how unresolved vulnerability findings are formally managed and reported."
+  },
+  {
+    "sourceControl": "CM.L2-3.4.2",
+    "targetControl": "SI.L1-3.14.1",
+    "relationshipType": "supports",
+    "reasoning": "Security configuration enforcement (CM.L2-3.4.2) reduces the vulnerability surface that SI.L1-3.14.1 must remediate. Hardened configurations disable unnecessary services and features that frequently carry exploitable vulnerabilities — fewer unnecessary components means fewer patches required and faster overall remediation. Configuration compliance scanning (CM.L2-3.4.2) also identifies misconfiguration-based flaws that pure patch scanning misses, expanding the flaw identification scope of SI.L1-3.14.1."
+  },
+  {
+    "sourceControl": "SI.L2-3.14.3",
+    "targetControl": "RA.L2-3.11.1",
+    "relationshipType": "supports",
+    "reasoning": "Security alerts and advisories (SI.L2-3.14.3) are an important input to risk assessments (RA.L2-3.11.1). External threat intelligence from advisories updates the threat event likelihood and impact ratings in the risk assessment — a newly-disclosed vulnerability actively exploited in the wild (per CISA KEV) should increase the likelihood rating for that threat vector. Organizations that incorporate advisory intelligence into their risk assessments maintain a more accurate and current risk picture."
+  },
+  {
+    "sourceControl": "PS.L2-3.9.2",
+    "targetControl": "AC.L1-3.1.1",
+    "relationshipType": "supports",
+    "reasoning": "Personnel action procedures (PS.L2-3.9.2) are the primary operational mechanism for keeping the authorized user list (AC.L2-3.1.1) current. When employees leave or transfer, PS.L2-3.9.2 triggers the access revocation that removes them from the authorized user population. Without a functioning PS.L2-3.9.2 process, the AC.L2-3.1.1 authorized user list accumulates stale entries — departed employees retain access, violating the authorized-users-only requirement. The Assessment Guide explicitly notes that PS.L2-3.9.2 leverages IA.L1-3.5.1 (user identification) to ensure all accesses are identified and removed."
+  },
+  {
+    "sourceControl": "PS.L2-3.9.2",
+    "targetControl": "IA.L1-3.5.1",
+    "relationshipType": "supports",
+    "reasoning": "The Assessment Guide explicitly states that PS.L2-3.9.2 'leverages the identification of system users required by IA.L1-3.5.1 in order to ensure that all accesses are identified and removed.' Without a complete inventory of user accounts tied to specific individuals, the offboarding process cannot confirm that all of a departing person's accounts have been revoked. The quality of PS.L2-3.9.2 execution is directly bounded by the completeness of the IA.L1-3.5.1 user identification program."
+  },
+  {
+    "sourceControl": "PS.L2-3.9.1",
+    "targetControl": "IA.L1-3.5.2",
+    "relationshipType": "supports",
+    "reasoning": "The Assessment Guide explicitly notes that PS.L2-3.9.1 'improves upon the effectiveness of authentication performed in IA.L1-3.5.2.' Authentication verifies that someone is who they claim to be; screening verifies that the person is trustworthy enough to be authorized in the first place. An organization that authenticates users rigorously but skips background screening has verified identity without verifying trustworthiness — a gap that PS.L2-3.9.1 closes."
+  },
+  {
+    "sourceControl": "PS.L2-3.9.2",
+    "targetControl": "AC.L2-3.1.5",
+    "relationshipType": "supports",
+    "reasoning": "Transfer-related access changes under PS.L2-3.9.2 directly implement least privilege (AC.L2-3.1.5) at role transitions. When an employee moves to a new role, PS.L2-3.9.2 requires that old role access be revoked rather than accumulated. Without this, privilege accumulation over multiple role changes leads to users holding far more access than their current role requires — exactly the failure mode that AC.L2-3.1.5 is designed to prevent."
+  },
+  {
+    "sourceControl": "PS.L2-3.9.2",
+    "targetControl": "AU.L2-3.3.2",
+    "relationshipType": "supports",
+    "reasoning": "User accountability (AU.L2-3.3.2) requires that actions trace back to specific individuals — which becomes impossible if departed employees' accounts remain active. PS.L2-3.9.2's timely account revocation maintains the integrity of the user accountability model by ensuring that every active account maps to a current, identifiable employee. Stale accounts used by unauthorized parties after a departure create audit trails that cannot be attributed to anyone accountable."
+  },
+  {
+    "sourceControl": "PS.L2-3.9.1",
+    "targetControl": "CA.L2-3.12.1",
+    "relationshipType": "supports",
+    "reasoning": "Personnel security assessments — verification that screening records exist for current CUI users — are a component of the broader security control assessment (CA.L2-3.12.1). Assessors evaluating CA.L2-3.12.1 will test whether PS controls are operating effectively, which requires that PS.L2-3.9.1 screening records are current and accessible. Organizations that maintain screening records as part of a broader HR audit trail are better positioned to demonstrate PS control effectiveness during formal assessments."
+  },
+  {
+    "sourceControl": "PS.L2-3.9.2",
+    "targetControl": "IR.L2-3.6.1",
+    "relationshipType": "supports",
+    "reasoning": "Personnel actions and incident response intersect in insider threat scenarios and terminations for cause. PS.L2-3.9.2 requires timely — and for terminations for cause, immediate — account revocation. The Assessment Guide notes that 'for termination actions, timely execution is essential for individuals terminated for cause' and organizations should consider disabling accounts before the individual is notified. This process is effectively a security incident response workflow. A mature IR.L2-3.6.1 capability should include procedures for insider threat and termination-for-cause scenarios that align with PS.L2-3.9.2 requirements."
+  },
+{
+    "sourceControl": "PE.L1-3.10.1",
+    "targetControl": "AC.L1-3.1.1",
+    "relationshipType": "supports",
+    "reasoning": "PE.L1-3.10.1 (Limit Physical Access) and AC.L1-3.1.1 (Authorized Access Control) are parallel physical and logical layers of access control. The CMMC Assessment Guide for MA.L2-3.7.1 explicitly notes that PE.L1-3.10.1 governs physical access to systems and equipment — the same assets whose logical access AC.L1-3.1.1 controls. An attacker who bypasses physical access controls can circumvent logical controls entirely. Assessors frequently evaluate both controls together when reviewing server room and workstation access."
+  },
+  {
+    "sourceControl": "PE.L1-3.10.3",
+    "targetControl": "PS.L2-3.9.1",
+    "relationshipType": "supports",
+    "reasoning": "PE.L1-3.10.3 (Escort Visitors) and PS.L2-3.9.1 (Screen Individuals) address complementary stages of physical access governance. PS.L2-3.9.1 determines who becomes an authorized individual through screening; PE.L1-3.10.3 controls those who have not been through screening (visitors). Together they cover the full personnel lifecycle: screened individuals get authorized access, unscreened individuals are escorted. An organization that screens employees but has no visitor escort process — or escorts visitors but never screens employees before granting unescorted access — has a gap in one of the two controls."
+  },
+  {
+    "sourceControl": "PE.L1-3.10.4",
+    "targetControl": "AU.L2-3.3.1",
+    "relationshipType": "supports",
+    "reasoning": "PE.L1-3.10.4 (Physical Access Logs) produces physical audit records that complement the system audit logs required by AU.L2-3.3.1 (Create and Retain System Audit Logs). Incident investigations often require correlating physical access records (who was in the server room at a given time) with system audit logs (what account activity occurred at that same time). The combination of physical and logical audit trails provides investigators with a complete picture of events. Both controls share the same retention discipline — physical access records kept alongside system audit records create a coherent audit package."
+  },
+  {
+    "sourceControl": "PE.L1-3.10.4",
+    "targetControl": "IR.L2-3.6.1",
+    "relationshipType": "supports",
+    "reasoning": "Physical access logs (PE.L1-3.10.4) are a key evidence source for incident response (IR.L2-3.6.1). During investigation of a potential insider threat, data theft, or unauthorized system access, the IR team uses physical access logs to determine who was physically present in affected areas during the relevant timeframe. This correlates with system audit logs and network logs to build a complete incident picture. The Assessment Guide for IR.L2-3.6.1 requires an operational IR capability including analysis — physical access logs are part of the analysis evidence base for incidents with a physical component."
+  },
+  {
+    "sourceControl": "PE.L2-3.10.2",
+    "targetControl": "IR.L2-3.6.1",
+    "relationshipType": "supports",
+    "reasoning": "Physical facility monitoring (PE.L2-3.10.2) is a detection layer that feeds directly into incident response (IR.L2-3.6.1). Guards, cameras, and sensor systems required by PE.L2-3.10.2 may be the first point of detection for physical security incidents that trigger IR processes. The Assessment Guide for PE.L2-3.10.2 specifically includes personnel with incident response responsibilities among the interview subjects, indicating assessors expect a direct operational connection between facility monitoring output and IR escalation procedures."
+  },
+  {
+    "sourceControl": "PE.L2-3.10.2",
+    "targetControl": "CA.L2-3.12.1",
+    "relationshipType": "supports",
+    "reasoning": "PE.L2-3.10.2 (Monitor Facility) is a physical security control within scope of the periodic security assessments required by CA.L2-3.12.1 (Security Assessments). Security assessments must evaluate physical protection controls, including whether facility monitoring is operational and effective. The physical protection family controls are assessed as part of the CA.L2-3.12.1 assessment scope — assessors conducting security assessments will test PE.L2-3.10.2 implementation as part of the broader assessment activity."
+  },
+  {
+    "sourceControl": "PE.L2-3.10.6",
+    "targetControl": "AC.L2-3.1.12",
+    "relationshipType": "supports",
+    "reasoning": "PE.L2-3.10.6 (Alternative Work Sites) and AC.L2-3.1.12 (Remote Access) govern overlapping aspects of remote work. AC.L2-3.1.12 addresses the technical controls for remote access connections to organizational systems; PE.L2-3.10.6 addresses the physical environment at the remote location where those connections originate. The Assessment Guide example for PE.L2-3.10.6 cites VPN with split-tunnel prevention and MFA — the same technical controls governed by AC.L2-3.1.12 — demonstrating that the two controls are evaluated together for remote worker scenarios."
+  },
+  {
+    "sourceControl": "PE.L2-3.10.6",
+    "targetControl": "SC.L2-3.13.8",
+    "relationshipType": "supports",
+    "reasoning": "PE.L2-3.10.6 (Alternative Work Sites) requires safeguarding CUI at remote locations, and the Assessment Guide example explicitly cites full-disk encryption as a required safeguard for remote worker laptops. SC.L2-3.13.8 (Cryptographic Protection) requires implementing cryptographic mechanisms to protect CUI during transmission and at rest. At alternate work sites, physical exposure risk (device left unattended, accessible to household members, or stolen during travel) makes the encryption required by SC.L2-3.13.8 the primary implementation mechanism for the physical safeguarding requirement of PE.L2-3.10.6."
+  },
+  {
+    "sourceControl": "AT.L2-3.2.1",
+    "targetControl": "IR.L2-3.6.1",
+    "relationshipType": "supports",
+    "reasoning": "AT.L2-3.2.1 (Role-Based Risk Awareness) directly supports IR.L2-3.6.1 (Incident Handling) through the user response activities objective. IR.L2-3.6.1[g] requires that users know how to recognize and report potential incidents — this is satisfied through the security awareness training that AT.L2-3.2.1 mandates. The Assessment Guide for IR.L2-3.6.1 notes that users are often the first detection layer; awareness training is what arms them to play that role. An AT program that covers incident recognition and reporting procedures directly feeds the user response component of the IR capability."
+  },
+  {
+    "sourceControl": "AT.L2-3.2.2",
+    "targetControl": "IR.L2-3.6.1",
+    "relationshipType": "supports",
+    "reasoning": "AT.L2-3.2.2 (Role-Based Training) supports IR.L2-3.6.1 (Incident Handling) by ensuring that personnel assigned to incident response roles — IR team members, help desk staff, system administrators — are trained to execute their specific IR responsibilities. The Assessment Guide for IR.L2-3.6.1[b] (preparation) explicitly cites training as a preparation activity. Role-based IR training that covers detection, containment, escalation, and notification procedures is the mechanism that makes the IR capability operational rather than just documented."
+  },
+  {
+    "sourceControl": "AT.L2-3.2.1",
+    "targetControl": "PS.L2-3.9.1",
+    "relationshipType": "supports",
+    "reasoning": "AT.L2-3.2.1 (Role-Based Risk Awareness) supports PS.L2-3.9.1 (Screen Individuals) by ensuring that managers and HR personnel involved in the screening process understand the security risks associated with personnel placement decisions. Awareness training covering insider threat indicators, CUI access risks, and the security implications of role assignments contextualizes why screening matters and what risk it is designed to mitigate."
+  },
+  {
+    "sourceControl": "AT.L2-3.2.1",
+    "targetControl": "CA.L2-3.12.1",
+    "relationshipType": "supports",
+    "reasoning": "AT.L2-3.2.1 (Role-Based Risk Awareness) supports CA.L2-3.12.1 (System Assessment) by ensuring that personnel involved in the assessment process — system owners, control owners, and assessors — understand the security risks and applicable policies relevant to their system roles. Assessors must understand what risks the controls are designed to mitigate; control owners must understand the policies they are expected to implement. Awareness training provides the shared security context that makes a meaningful assessment possible."
+  },
+  {
+    "sourceControl": "AT.L2-3.2.2",
+    "targetControl": "CA.L2-3.12.1",
+    "relationshipType": "supports",
+    "reasoning": "AT.L2-3.2.2 (Role-Based Training) supports CA.L2-3.12.1 (System Assessment) because personnel who conduct or participate in security assessments must be trained in assessment methodology, control evaluation techniques, and their specific assessment responsibilities. The Assessment Guide for CA.L2-3.12.1 requires that personnel performing assessments have the skills to evaluate control effectiveness — this is precisely the role-specific training AT.L2-3.2.2 requires for personnel with security assessment duties."
+  },
+  {
+    "sourceControl": "AT.L2-3.2.1",
+    "targetControl": "AC.L1-3.1.1",
+    "relationshipType": "supports",
+    "reasoning": "AT.L2-3.2.1 (Role-Based Risk Awareness) supports AC.L1-3.1.1 (Authorized Access Control) by ensuring that users understand the access control policies they are expected to comply with. Technical access controls are undermined when users do not understand why those controls exist, what they are permitted to do, or how to report unauthorized access attempts. Awareness training covering access control concepts and acceptable use directly supports the behavioral compliance dimension of AC.L1-3.1.1."
+  },
+  {
+    "sourceControl": "AT.L2-3.2.2",
+    "targetControl": "AC.L2-3.1.3",
+    "relationshipType": "supports",
+    "reasoning": "AT.L2-3.2.2 (Role-Based Training) supports AC.L2-3.1.3 (CUI Flow Control) by ensuring that system administrators and data owners who configure and manage information flow controls are trained on CUI handling requirements, data classification, and the technical controls used to enforce flow restrictions. The Assessment Guide for AC.L2-3.1.3 requires personnel to identify and enforce authorized CUI flows — personnel cannot do this effectively without role-specific training on CUI handling procedures and the relevant technical controls."
+  },
+  {
+    "sourceControl": "MA.L2-3.7.3",
+    "targetControl": "MP.L1-3.8.3",
+    "relationshipType": "supports",
+    "reasoning": "MA.L2-3.7.3 (Equipment Sanitization) and MP.L1-3.8.3 (Media Disposal) both implement NIST SP 800-88 sanitization methods to ensure CUI/FCI does not leave organizational control on media. MA.L2-3.7.3 addresses the pre-maintenance-handoff scenario (equipment leaving for off-site repair); MP.L1-3.8.3 addresses the pre-disposal and pre-reuse scenarios. The sanitization procedures, approved tools, and documentation practices developed for MP.L1-3.8.3 are directly reusable for MA.L2-3.7.3 — organizations with mature media disposal processes need only extend the trigger condition (off-site maintenance, not just disposal) to satisfy MA.L2-3.7.3."
+  },
+  {
+    "sourceControl": "MP.L2-3.8.7",
+    "targetControl": "SI.L1-3.14.2",
+    "relationshipType": "supports",
+    "reasoning": "MP.L2-3.8.7 (Removable Media) supports SI.L1-3.14.2 (Malicious Code Protection) because removable media is a primary vector for introducing malicious code into organizational systems. The Assessment Guide for MP.L2-3.8.7 explicitly calls out scanning removable media for viruses as part of the control implementation. Controlling removable media use — restricting it to organization-issued, vetted devices and requiring malware scans before use — directly reduces the attack surface that SI.L1-3.14.2's malicious code protection mechanisms must defend against."
+  },
+  {
+    "sourceControl": "MP.L2-3.8.6",
+    "targetControl": "SC.L2-3.13.8",
+    "relationshipType": "supports",
+    "reasoning": "MP.L2-3.8.6 (Portable Storage Encryption) and SC.L2-3.13.8 (Cryptographic Protection) both require cryptographic mechanisms to protect CUI confidentiality. SC.L2-3.13.8 establishes the general requirement to implement cryptographic mechanisms to prevent unauthorized disclosure of CUI; MP.L2-3.8.6 applies that requirement specifically to portable digital media during transport. The FIPS 140-2 cryptographic standard referenced in MP.L2-3.8.6 aligns directly with SC.L2-3.13.8's implementation requirement — the same FIPS-validated encryption solutions satisfy both controls in the portable media context."
+  },
+  {
+    "sourceControl": "MP.L2-3.8.9",
+    "targetControl": "SC.L2-3.13.8",
+    "relationshipType": "supports",
+    "reasoning": "MP.L2-3.8.9 (Protect Backups) requires confidentiality protection for backup CUI at storage locations. SC.L2-3.13.8 (Cryptographic Protection) requires cryptographic mechanisms to protect CUI. The primary implementation mechanism for MP.L2-3.8.9 — backup encryption — is a direct application of SC.L2-3.13.8's cryptographic protection requirement. Backup data often contains the most sensitive and complete snapshot of CUI in the environment; ensuring SC.L2-3.13.8's encryption standard is applied to backup storage satisfies both controls simultaneously."
+  },
+  {
+    "sourceControl": "MP.L2-3.8.1",
+    "targetControl": "PE.L1-3.10.1",
+    "relationshipType": "supports",
+    "reasoning": "MP.L2-3.8.1 (Media Protection) depends on PE.L1-3.10.1 (Limit Physical Access) for the physical security controls that make media storage secure. The locked drawers, cabinets, and access-controlled rooms required for secure media storage under MP.L2-3.8.1 are governed by the physical access control requirements of PE.L1-3.10.1. Without effective physical access controls on the facility and storage areas, media protection controls can be bypassed — an unauthorized individual who can reach the storage location circumvents all logical access controls on the media itself."
+  },
+  {
+    "sourceControl": "MP.L2-3.8.5",
+    "targetControl": "AC.L2-3.1.3",
+    "relationshipType": "supports",
+    "reasoning": "MP.L2-3.8.5 (Media Accountability) supports AC.L2-3.1.3 (CUI Flow Control) by tracking the movement of CUI on physical media as it flows through and out of the organization. AC.L2-3.1.3 requires controlling the flow of CUI to authorized destinations; media transport is one of the physical channels through which CUI flows. The chain-of-custody and transport records required by MP.L2-3.8.5 provide the audit trail for physical CUI flows that AC.L2-3.1.3's information flow enforcement requires."
+  },
+  {
+    "sourceControl": "MP.L1-3.8.3",
+    "targetControl": "AC.L1-3.1.2",
+    "relationshipType": "supports",
+    "reasoning": "MP.L1-3.8.3 (Media Disposal) supports AC.L1-3.1.2 (Limit Access to Authorized Transactions and Functions) by ensuring that CUI is not inadvertently accessible through disposed or reused media. AC.L1-3.1.2 limits authorized users to the transactions and functions they are permitted — media that has not been properly sanitized can expose CUI to individuals who receive the disposed equipment and who are not authorized to access that information. Proper media sanitization under MP.L1-3.8.3 is the end-of-lifecycle enforcement of the access limitation that AC.L1-3.1.2 establishes during active use."
+  },
+  {
+    "sourceControl": "MA.L2-3.7.4",
+    "targetControl": "SI.L1-3.14.2",
+    "relationshipType": "supports",
+    "reasoning": "The Assessment Guide explicitly states that MA.L2-3.7.4 (Media Inspection) extends SI.L1-3.14.2 (Malicious Code Protection) to the maintenance context. SI.L1-3.14.2 requires implementing malicious code protection mechanisms for organizational systems; MA.L2-3.7.4 applies that requirement specifically to diagnostic and test media brought into the environment for maintenance purposes. Maintenance media is a vector that SI.L1-3.14.2's general endpoint protection may not fully cover — MA.L2-3.7.4 fills that gap."
+  },
+  {
+    "sourceControl": "MA.L2-3.7.4",
+    "targetControl": "SI.L1-3.14.4",
+    "relationshipType": "supports",
+    "reasoning": "The Assessment Guide explicitly states that MA.L2-3.7.4 (Media Inspection) extends SI.L1-3.14.4 (Update Malicious Code Protection) to the maintenance context. SI.L1-3.14.4 requires keeping malicious code protection mechanisms current; MA.L2-3.7.4 requires that those mechanisms — when applied to maintenance media inspection — use current, up-to-date signatures capable of detecting the latest threats in vendor-provided diagnostic tools and utilities."
+  },
+  {
+    "sourceControl": "MA.L2-3.7.5",
+    "targetControl": "IA.L2-3.5.3",
+    "relationshipType": "supports",
+    "reasoning": "The Assessment Guide explicitly notes that MA.L2-3.7.5 (Nonlocal Maintenance) reflects the network access requirements of IA.L2-3.5.3 (Multifactor Authentication). IA.L2-3.5.3 requires MFA for network access to non-privileged accounts; MA.L2-3.7.5 extends this requirement specifically to nonlocal maintenance sessions established via external network connections. The MFA implementation satisfying IA.L2-3.5.3 is the same mechanism that must be applied to maintenance sessions under MA.L2-3.7.5 — assessors evaluate both controls against the same authentication infrastructure."
+  },
+  {
+    "sourceControl": "MA.L2-3.7.5",
+    "targetControl": "AC.L2-3.1.12",
+    "relationshipType": "supports",
+    "reasoning": "The Assessment Guide for MA.L2-3.7.5 explicitly identifies AC.L2-3.1.12 (Control Remote Access) as one of five complementary controls. AC.L2-3.1.12 requires organizations to control remote access sessions; MA.L2-3.7.5 applies that control to the specific scenario of remote maintenance sessions, adding MFA and session-termination requirements on top of the general remote access controls. The session management infrastructure used for AC.L2-3.1.12 is the same infrastructure on which MA.L2-3.7.5's termination requirement is implemented."
+  },
+  {
+    "sourceControl": "MA.L2-3.7.5",
+    "targetControl": "AC.L2-3.1.13",
+    "relationshipType": "supports",
+    "reasoning": "The Assessment Guide for MA.L2-3.7.5 explicitly cites AC.L2-3.1.13 (Remote Access Confidentiality) as a complementary control. AC.L2-3.1.13 requires cryptographic mechanisms for remote sessions; MA.L2-3.7.5 requires MFA for the same nonlocal connections used for maintenance. Both controls apply simultaneously to remote maintenance sessions — the encrypted channel required by AC.L2-3.1.13 is the transport over which the MFA-authenticated session required by MA.L2-3.7.5 operates."
+  },
+  {
+    "sourceControl": "MA.L2-3.7.6",
+    "targetControl": "PE.L1-3.10.1",
+    "relationshipType": "supports",
+    "reasoning": "The Assessment Guide for MA.L2-3.7.6 explicitly distinguishes it from PE.L1-3.10.1: MA.L2-3.7.6 addresses personnel performing hardware or software maintenance on organizational systems, while PE.L1-3.10.1 addresses physical access for individuals whose maintenance duties place them within the physical protection perimeter. For on-site vendor maintenance, both controls apply simultaneously — PE.L1-3.10.1 governs physical access to the facility and equipment area, while MA.L2-3.7.6 governs supervision of the actual maintenance work. Together they provide defense-in-depth for the on-site maintenance scenario."
+  },
+  {
+    "sourceControl": "MA.L2-3.7.1",
+    "targetControl": "CM.L2-3.4.1",
+    "relationshipType": "supports",
+    "reasoning": "MA.L2-3.7.1 (Perform Maintenance) supports CM.L2-3.4.1 (System Baselining) because maintenance activities — particularly corrective and adaptive maintenance — can alter the system configuration. Every maintenance action that modifies hardware, firmware, or software has the potential to drift the system from its established baseline. The maintenance records required by MA.L2-3.7.1 feed directly into the configuration change tracking that CM.L2-3.4.1's baseline management requires. Maintenance without baseline updates leaves the CM program with an inaccurate picture of the system state."
+  },
+  {
+    "sourceControl": "MA.L2-3.7.2",
+    "targetControl": "IR.L2-3.6.1",
+    "relationshipType": "supports",
+    "reasoning": "MA.L2-3.7.2 (System Maintenance Control) supports IR.L2-3.6.1 (Incident Handling) because controlled maintenance tools and techniques reduce the attack surface that malicious code introduction through maintenance channels creates. The media inspection requirement in MA.L2-3.7.4 (which flows from MA.L2-3.7.2's tool control framework) also feeds the IR program: MA.L2-3.7.4 and MA.L2-3.7.2 both explicitly require that if malicious code is detected during maintenance, it is handled per incident handling policies. The maintenance control framework thus becomes a detection surface that connects to the IR capability."
+  }
+]

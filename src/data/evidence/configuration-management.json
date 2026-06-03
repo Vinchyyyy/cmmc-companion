@@ -1,0 +1,72 @@
+[
+  {
+    "name": "Configuration Management Policy and Plan",
+    "description": "Written policy and procedures governing configuration management — including baseline establishment, change management, security impact analysis, access restrictions for change, and roles responsible for CM activities.",
+    "likelyControls": [
+      "CM.L2-3.4.1",
+      "CM.L2-3.4.2",
+      "CM.L2-3.4.3",
+      "CM.L2-3.4.4",
+      "CM.L2-3.4.5"
+    ],
+    "reasoning": "The foundational policy document for the CM family. CM.L2-3.4.1 requires documented baseline establishment procedures. CM.L2-3.4.2 requires documented security configuration settings and deviation management. CM.L2-3.4.3 requires a tracked, reviewed, approved change process. CM.L2-3.4.4 requires a security impact analysis process. CM.L2-3.4.5 requires defined and documented access restrictions for change. Assessors request this document first when evaluating the CM family — it establishes intent and scope before evidence of technical controls is examined."
+  },
+  {
+    "name": "Baseline Configuration Documentation",
+    "description": "Approved baseline configuration documents per system class (workstations, servers, network devices, cloud environments, mobile devices) — specifying hardware, software, firmware, configuration parameters, and network placement. Includes the CIS Benchmark, DISA STIG, or organizational hardening guide used as the source.",
+    "likelyControls": [
+      "CM.L2-3.4.1",
+      "CM.L2-3.4.2",
+      "CM.L2-3.4.6",
+      "CM.L2-3.4.7"
+    ],
+    "reasoning": "The primary artifact for CM.L2-3.4.1 [a,b,c] (baseline establishment and maintenance) and the source document for CM.L2-3.4.2 (security configuration enforcement). CM.L2-3.4.6 (least functionality) and CM.L2-3.4.7 (nonessential functionality) both operationalize what the baseline defines — the baseline is where the approved capabilities, enabled services, allowed ports, and permitted protocols are specified. Assessors compare the baseline documentation against what is actually configured; any divergence is a finding under one or more of these practices."
+  },
+  {
+    "name": "Configuration Compliance Scan Reports",
+    "description": "Reports from configuration compliance scanning tools (Tenable.sc, Qualys Policy Compliance, SCCM Compliance Baselines, CIS-CAT) showing the percentage of systems meeting the defined security configuration baseline, with per-check pass/fail detail and remediation tracking.",
+    "likelyControls": [
+      "CM.L2-3.4.2",
+      "CM.L2-3.4.6",
+      "CM.L2-3.4.7"
+    ],
+    "reasoning": "Configuration compliance scanning is the primary technical evidence that CM.L2-3.4.2 (security configuration enforcement) and CM.L2-3.4.6/3.4.7 (least and nonessential functionality) are actually working in practice. Assessors look for two things: the scan exists and runs regularly, AND the findings are acted on. A scan showing 40% compliance with no remediation plan is a worse position than no scan at all, because it documents knowledge of non-compliance. Trend data over time is the most compelling evidence."
+  },
+  {
+    "name": "Change Management Records",
+    "description": "Records from the ITSM change management system (ServiceNow, Jira Service Management, Freshservice) covering the complete change lifecycle — request, stakeholder review, approval decision, implementation, and post-implementation review. Includes both normal and emergency change records.",
+    "likelyControls": [
+      "CM.L2-3.4.3",
+      "CM.L2-3.4.4",
+      "CM.L2-3.4.5"
+    ],
+    "reasoning": "The primary evidence for CM.L2-3.4.3 (all four objectives — track, review, approve, log). Security impact analysis records from CM.L2-3.4.4 typically live in the change ticket as a required section. CM.L2-3.4.5 (access restrictions for change) is verified by examining whether change tickets include authorization records for the individuals who performed physical and logical changes. Assessors sample a cross-section of change tickets — routine, emergency, and rejected — to assess the completeness and rigor of the process."
+  },
+  {
+    "name": "Application Allow/Block List Configuration",
+    "description": "Configuration and enforcement output from application control tools (AppLocker, Windows Defender Application Control, Carbon Black App Control, Crowdstrike Allowlisting) — including the allow-list or block-list rules, enforcement mode, and blocked execution event logs.",
+    "likelyControls": [
+      "CM.L2-3.4.8",
+      "CM.L2-3.4.9"
+    ],
+    "reasoning": "Direct evidence for CM.L2-3.4.8 [b,c] (the defined list of allowed/blocked software and its enforcement). Also supports CM.L2-3.4.9 [b] (technical control preventing user software installation) since the same allow-list mechanisms often enforce both controls. The enforcement logs are as important as the configuration — a policy in audit mode only is not meeting the spirit of either practice. Assessors look for the list to be maintained (not just a one-time setup), enforcement mode to be active, and blocked events to be reviewed."
+  },
+  {
+    "name": "Software Inventory and Change Reports",
+    "description": "Periodic software inventory exports from endpoint management platforms (SCCM, Intune, Jamf, Tanium) showing installed applications with versions, plus change detection reports highlighting new software installed since the last review.",
+    "likelyControls": [
+      "CM.L2-3.4.1",
+      "CM.L2-3.4.9"
+    ],
+    "reasoning": "Addresses CM.L2-3.4.1 [d,e,f] (system inventory establishment and maintenance — software component specifically) and CM.L2-3.4.9 [c] (monitoring user-installed software). The change detection output is particularly important for CM.L2-3.4.9 — it shows whether the monitoring is actually surfacing unauthorized installs and what happens when they are found. Software installed outside the approved channel and appearing in these reports without a corresponding approval record is a direct finding."
+  },
+  {
+    "name": "Port and Service Audit Results",
+    "description": "Network and host-based scan results showing open ports per system (Nmap, Nessus, Qualys), running services from endpoint management or configuration scan, and any associated open/close history. Should be compared against the approved ports and services baseline.",
+    "likelyControls": [
+      "CM.L2-3.4.6",
+      "CM.L2-3.4.7"
+    ],
+    "reasoning": "Provides technical verification for CM.L2-3.4.6 [b] (systems provide only defined essential capabilities) and CM.L2-3.4.7 [i,l,o] (nonessential ports, protocols, and services restricted). Assessors compare scan results against the approved baseline and treat any undocumented open port or running service as a finding. The scan must be current — old scan results do not demonstrate current compliance. The most useful form is a comparison report: current state vs baseline, with delta highlighting items that should not be open."
+  }
+]

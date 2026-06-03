@@ -1,0 +1,228 @@
+[
+  {
+    "name": "Asset Inventory",
+    "description": "A maintained list of all hardware assets — endpoints, servers, network devices, printers, IoT/OT, mobile — with identifying attributes such as hostname, MAC address, owner, location, and CUI handling classification.",
+    "likelyControls": [
+      "AC.L1-3.1.1",
+      "IA.L1-3.5.1"
+    ],
+    "reasoning": "An asset inventory is the primary evidence that you have identified the devices authorized to connect to your systems (AC.L1-3.1.1[c]) and that those devices have unique identifiers (IA.L1-3.5.1[c]). Assessors commonly cross-check the inventory against NAC, MDM, and DHCP data to confirm what is documented matches what is actually on the network. A stale or partial inventory is one of the most common findings against both controls."
+  },
+  {
+    "name": "Active Directory Export",
+    "description": "A current export of users, groups, and group memberships from your identity provider (Active Directory, Entra ID, Okta, Google Workspace, etc.) showing account names, status, group affiliations, and last login.",
+    "likelyControls": [
+      "AC.L1-3.1.1",
+      "AC.L1-3.1.2",
+      "IA.L1-3.5.1",
+      "IA.L1-3.5.2",
+      "IA.L2-3.5.3",
+      "IA.L2-3.5.5",
+      "IA.L2-3.5.6",
+      "AU.L2-3.3.2"
+    ],
+    "reasoning": "An IDP export touches almost every fundamental access and authentication control. It demonstrates that authorized users are identified (AC.L1-3.1.1[a]) and uniquely identified (IA.L1-3.5.1[a]); it shows what permissions are enforced via group membership (AC.L1-3.1.2[b]); account status and last-login fields demonstrate authentication is enforced (IA.L1-3.5.2[a]); MFA status per account supports IA.L2-3.5.3[a-d]; and account creation/disablement timestamps demonstrate identifier reuse and inactivity controls (IA.L2-3.5.5[b], IA.L2-3.5.6[b]). For a CMMC assessment, an IDP export is often the first artifact requested because it grounds many other conversations. AU.L2-3.3.2 (user accountability) requires that audit records trace to uniquely identified users — the same IDP roster supplies the identifiers that make accountability possible."
+  },
+  {
+    "name": "User Account List",
+    "description": "A roster of named human users with active accounts on in-scope systems, including their roles, departments, account status, and access scope.",
+    "likelyControls": [
+      "AC.L1-3.1.1",
+      "AC.L1-3.1.2",
+      "IA.L1-3.5.1"
+    ],
+    "reasoning": "Directly satisfies the requirement that authorized users are identified (AC.L1-3.1.1[a]) and uniquely identified (IA.L1-3.5.1[a]). When combined with a role/permission matrix, it also supports AC.L1-3.1.2[b] by demonstrating that access aligns with documented roles. Assessors typically sample a few users from this list and trace them through onboarding tickets, role assignments, and termination records to confirm the full lifecycle is being managed — not just initial provisioning."
+  },
+  {
+    "name": "Service Account Inventory",
+    "description": "A documented list of non-human accounts — service accounts, automation accounts, API service principals — including each account's owner, business purpose, permission scope, and credential rotation status.",
+    "likelyControls": [
+      "AC.L1-3.1.1",
+      "AC.L2-3.1.5",
+      "IA.L1-3.5.1",
+      "IA.L1-3.5.2"
+    ],
+    "reasoning": "Non-human identities are a frequently overlooked gap. This inventory satisfies the requirement that processes acting on behalf of authorized users are identified (AC.L1-3.1.1[b], IA.L1-3.5.1[b]), that those processes are authenticated (IA.L1-3.5.2[b]), and that least-privilege scoping is documented for service accounts that hold elevated permissions (AC.L2-3.1.5[a,b]). Assessors specifically probe for orphaned service accounts — accounts whose original owner has left the organization and whose purpose nobody can explain — because they are a frequent source of standing privilege and lateral movement risk."
+  },
+  {
+    "name": "Data Flow Diagram",
+    "description": "A visual diagram showing how CUI moves through the organization — origination points, storage locations, processing systems, transmission paths, and destinations including external parties such as primes and government customers.",
+    "likelyControls": [
+      "AC.L2-3.1.3",
+      "AC.L1-3.1.1",
+      "SC.L1-3.13.1",
+      "SC.L1-3.13.5",
+      "SC.L2-3.13.8"
+    ],
+    "reasoning": "A current CUI data flow diagram is the foundational artifact for AC.L2-3.1.3, directly supporting identification of designated sources and destinations (AC.L2-3.1.3[c]). It also reinforces AC.L1-3.1.1 by helping identify which systems and external connections handle CUI (AC.L1-3.1.1[c, f]). On the SC side, the DFD anchors boundary protection (SC.L1-3.13.1[a,b]) by making external and key internal boundaries visible, supports public-access separation (SC.L1-3.13.5[a]) by identifying which components face the public internet, and grounds in-transit encryption decisions (SC.L2-3.13.8) by showing every path CUI travels. Without a DFD, an assessor has no way to evaluate whether information flow controls and boundary protections are actually aligned with the data they are meant to protect."
+  },
+  {
+    "name": "VPN Configuration",
+    "description": "VPN concentrator or gateway configuration including authentication methods, encryption protocols and FIPS validation status, session timeouts, split-tunnel rules, and traffic routing.",
+    "likelyControls": [
+      "AC.L2-3.1.12",
+      "AC.L2-3.1.13",
+      "AC.L2-3.1.14",
+      "IA.L2-3.5.3",
+      "SC.L2-3.13.7",
+      "SC.L2-3.13.8",
+      "SC.L2-3.13.9"
+    ],
+    "reasoning": "The VPN config is the central artifact for remote access controls — multiple practices reference what the VPN is doing. AC.L2-3.1.12[c] (controlling remote access sessions), AC.L2-3.1.13[a,b] (FIPS-validated cryptography for remote sessions), AC.L2-3.1.14[a,b] (routing remote access through managed access control points), and IA.L2-3.5.3[c,d] (MFA enforcement on network access) all draw from this configuration. SC.L2-3.13.7 (split tunneling prevention) is enforced via VPN client config; SC.L2-3.13.8 (data in transit) relies on the VPN's encryption; SC.L2-3.13.9 (connections termination) on its session timeout settings. Assessors will dig into the cipher suite specifically and verify the cryptographic module appears on the NIST CMVP list — a strong algorithm in a non-validated module is a finding."
+  },
+  {
+    "name": "Remote Access Session Logs",
+    "description": "Connection and session activity logs from VPN, RDP gateway, SSH bastion, and identity-aware proxy — including connection timestamps, source IPs, user identity, session duration, and where applicable, command activity.",
+    "likelyControls": [
+      "AC.L2-3.1.12",
+      "AC.L2-3.1.15",
+      "SC.L2-3.13.9",
+      "AU.L2-3.3.1",
+      "AU.L2-3.3.2"
+    ],
+    "reasoning": "Session logs are the monitoring component of AC.L2-3.1.12[d]. For privileged remote access (AC.L2-3.1.15[c,d]), logs prove which authorized commands were actually executed remotely and by whom. They also evidence SC.L2-3.13.9[c] enforcement — confirming that idle network connections actually terminate per the defined policy. Assessors typically want to see two things: that logs exist with sufficient detail, and that someone actually reviews them — log generation without review is a frequently-cited gap. SIEM-forwarded logs with documented review cadences carry more weight than raw VPN logs nobody looks at. The same logs support AU.L2-3.3.1 (audit record generation and retention for remote access events) and AU.L2-3.3.2 (user accountability for remote sessions)."
+  },
+  {
+    "name": "MDM Policy Configuration",
+    "description": "Configuration of the mobile device management platform (Intune, Jamf, Workspace ONE, Kandji) showing enrollment requirements, compliance baselines, app management, and conditional access integration.",
+    "likelyControls": [
+      "AC.L2-3.1.18",
+      "AC.L2-3.1.19",
+      "IA.L1-3.5.1",
+      "IA.L1-3.5.2"
+    ],
+    "reasoning": "MDM is foundational for mobile device controls. AC.L2-3.1.18[a,b] (identification and authorization of mobile device connections) and AC.L2-3.1.19[b] (enforcement of CUI encryption on mobile) both depend on MDM policy. It also feeds IA.L1-3.5.1[c] (device identification via per-device certificates or identifiers) and IA.L1-3.5.2[c] (device authentication via MDM-issued certificates). Without MDM, evidence for these mobile controls falls back to policy alone, which is rarely sufficient."
+  },
+  {
+    "name": "Conditional Access Policy",
+    "description": "Conditional access policies from cloud identity provider (Entra ID Conditional Access, Okta Sign-On Policies) governing when MFA is required, what devices are permitted, and which apps are accessible under which conditions.",
+    "likelyControls": [
+      "AC.L1-3.1.1",
+      "AC.L2-3.1.12",
+      "IA.L2-3.5.3"
+    ],
+    "reasoning": "The single most powerful artifact for cloud-based access enforcement. IA.L2-3.5.3[c,d] (MFA for network access) is satisfied via these policies. AC.L2-3.1.12[c] (controlled remote access to cloud apps) operates through Conditional Access. AC.L1-3.1.1[d,f] (limiting access to authorized users and devices) is enforced here. Assessors will sample policies looking for gaps — emergency-access exclusions still requiring MFA, no app left without policy, legacy authentication protocols disabled at the tenant level."
+  },
+  {
+    "name": "TLS Configuration",
+    "description": "TLS configuration on web servers, application endpoints, and authentication services — including supported protocol versions, cipher suite ordering, certificate validity, and disabled legacy protocols.",
+    "likelyControls": [
+      "AC.L2-3.1.13",
+      "IA.L2-3.5.4",
+      "IA.L2-3.5.10",
+      "SC.L2-3.13.8",
+      "SC.L2-3.13.15"
+    ],
+    "reasoning": "TLS is the encryption mechanism for many in-scope authentication and data flows. AC.L2-3.1.13[a,b] depends on FIPS-validated TLS for remote access sessions. IA.L2-3.5.4 (replay resistance) is provided by TLS's built-in session protection. IA.L2-3.5.10[b] requires passwords transmitted only via cryptographically protected channels — TLS being the most common one. SC.L2-3.13.8[c] uses TLS as the dominant in-transit protection mechanism, and SC.L2-3.13.15 (communications authenticity) depends on TLS certificate validation and session integrity. Assessors want both the configuration AND a recent scan result (Qualys SSL Labs, sslyze, internal scan) confirming actual cipher suite usage. Configuration that allows weak ciphers as fallback is a finding even if clients normally negotiate strong ones."
+  },
+  {
+    "name": "Disk Encryption Status Report",
+    "description": "Report from MDM or endpoint management platform showing disk encryption status (BitLocker, FileVault, LUKS) per device, including FIPS-mode enablement and recovery key escrow status.",
+    "likelyControls": [
+      "AC.L2-3.1.19",
+      "SC.L2-3.13.16"
+    ],
+    "reasoning": "Demonstrates AC.L2-3.1.19[b] enforcement on mobile/laptop devices, and supports SC.L2-3.13.16[a] (CUI at rest) for the same fleet. Assessors look for the gap between devices in scope (handling CUI) and devices reporting as encrypted — a common finding is a small number of devices missing encryption that 'fell through the cracks' on enrollment. They also look for FIPS-compliant mode specifically — BitLocker or FileVault enabled in non-FIPS mode is technically encryption but does not satisfy the FIPS-validated cryptography requirement. Recovery key escrow practices are a related concern: storing recovery keys insecurely defeats the purpose."
+  },
+  {
+    "name": "FIPS Validation Documentation",
+    "description": "Documentation of FIPS 140-2 or 140-3 validation for cryptographic modules used in the environment, including CMVP certificate numbers, validated module versions, and operational mode requirements.",
+    "likelyControls": [
+      "AC.L2-3.1.13",
+      "AC.L2-3.1.17",
+      "AC.L2-3.1.19",
+      "IA.L2-3.5.10",
+      "SC.L2-3.13.8",
+      "SC.L2-3.13.11",
+      "SC.L2-3.13.16"
+    ],
+    "reasoning": "One of the most frequently-missed artifacts. SC.L2-3.13.11 is the central FIPS practice — it explicitly leverages the same evidence that AC.L2-3.1.13 (remote access), AC.L2-3.1.17 (wireless), AC.L2-3.1.19 (mobile encryption), SC.L2-3.13.8 (data in transit), SC.L2-3.13.16 (data at rest), and IA.L2-3.5.10 (password storage and transit) all rely on. The Assessment Guide explicitly states that 3.13.11 'complements AC.L2-3.1.19, MP.L2-3.8.6, SC.L2-3.13.8, and SC.L2-3.13.16 by specifying that FIPS-validated cryptography must be used.' The gap is usually subtle: organizations use AES-256 (an approved algorithm) but the surrounding module has not been through CMVP, or the certified module exists but is being run outside its certified operational mode."
+  },
+  {
+    "name": "Privileged Account Inventory",
+    "description": "Inventory of privileged accounts (domain admin, root, application admin, cloud root or owner accounts, break-glass accounts) with named owner, business purpose, and access scope.",
+    "likelyControls": [
+      "AC.L2-3.1.5",
+      "AC.L2-3.1.6",
+      "AC.L2-3.1.7",
+      "IA.L2-3.5.3",
+      "AU.L2-3.3.9"
+    ],
+    "reasoning": "Required for AC.L2-3.1.5[a] (identification of privileged accounts) and AC.L2-3.1.7[a,b] (defining privileged users and functions). It supports AC.L2-3.1.6[a] by establishing the privileged-vs-non-privileged distinction that the practice depends on. It is also a precondition for IA.L2-3.5.3[a], which requires identifying privileged accounts before MFA can be enforced on them. Without this inventory, the consultant has no defensible answer to 'who are your privileged users?' — and gaps like cloud root accounts without MFA are common findings. AU.L2-3.3.9 (audit management) requires defining a subset of privileged users authorized to manage audit logging — that subset is identified from the broader privileged account inventory."
+  },
+  {
+    "name": "Account Lifecycle Records",
+    "description": "Records covering the full account lifecycle — provisioning tickets with HR-to-IT handoff, access modification approvals, periodic access reviews, and termination/disablement timestamps with evidence of actual disablement.",
+    "likelyControls": [
+      "AC.L1-3.1.1",
+      "IA.L2-3.5.5",
+      "IA.L2-3.5.6",
+      "IA.L2-3.5.9"
+    ],
+    "reasoning": "Demonstrates the full lifecycle of identifiers — not just creation. IA.L2-3.5.5[b] (preventing identifier reuse) requires evidence of when accounts were disabled and how identifier collisions are handled. IA.L2-3.5.6[b] (disabling inactive identifiers) requires sampling of disablement actions. IA.L2-3.5.9[a] (forced change of temporary passwords) is verified via account-creation records. AC.L1-3.1.1[a,d] depends on a controlled lifecycle from provisioning through removal. Assessors typically pick 5-10 sample users and trace their full lifecycle from hire ticket through current access state — gaps usually surface at the deprovisioning side."
+  },
+  {
+    "name": "External Connection Inventory & ISAs",
+    "description": "Inventory of external system connections (partner VPNs, cloud SaaS containing FCI/CUI, federated authentication providers, supplier portals) with corresponding Interconnection Security Agreements or equivalent terms-and-conditions documentation.",
+    "likelyControls": [
+      "AC.L1-3.1.20",
+      "AC.L2-3.1.3",
+      "SC.L1-3.13.1"
+    ],
+    "reasoning": "AC.L1-3.1.20[a-f] is largely about identifying, verifying, and limiting external connections — this inventory is the foundational artifact. AC.L2-3.1.3[c] (designated sources and destinations including external systems) overlaps significantly. SC.L1-3.13.1[a] (defining the external system boundary) depends on knowing what those external connections actually are. ISAs themselves are the verification layer for external connections — without them, the relationship is technical but not formally authorized. Subcontractor connections set up ad hoc without ISAs are a frequent finding, particularly in DIB supply chains where flow-down obligations exist but are not documented at the connection layer."
+  },
+  {
+    "name": "Firewall Configuration",
+    "description": "Configuration export from perimeter firewalls, internal segmentation firewalls, host-based firewalls, and cloud security groups — including rule sets with documented purpose, default-deny posture, and change history.",
+    "likelyControls": [
+      "AC.L2-3.1.3",
+      "SC.L1-3.13.1",
+      "SC.L1-3.13.5",
+      "SC.L2-3.13.6"
+    ],
+    "reasoning": "Firewall configurations are the single most central technical artifact for the SC family. SC.L1-3.13.1[c-h] depends on firewall rules to monitor, control, and protect both external and internal boundaries. SC.L1-3.13.5[b] uses firewall rules to enforce DMZ separation. SC.L2-3.13.6[a,b] is essentially an audit of the firewall ruleset's default-deny posture and per-rule justifications. AC.L2-3.1.3[b,e] also depends on firewall rules to enforce CUI flow control. Assessors typically request the actual rule export (not just summary screenshots) and sample a few rules to verify documented business justification. Allow-any rules and undocumented legacy entries are the most common findings."
+  },
+  {
+    "name": "Network Segmentation Rules",
+    "description": "Documentation of internal network segmentation — VLAN assignments, microsegmentation policies, internal firewall rules, software-defined network policies — restricting traffic between segments based on business need.",
+    "likelyControls": [
+      "AC.L2-3.1.3",
+      "SC.L1-3.13.1",
+      "SC.L2-3.13.3",
+      "SC.L2-3.13.6"
+    ],
+    "reasoning": "Internal segmentation is what enforces SC.L1-3.13.1[d,f,h] (monitoring, controlling, and protecting communications at key internal boundaries). It also operationalizes SC.L2-3.13.3[c] by typically separating user and management networks via VLAN or microsegmentation. SC.L2-3.13.6 (deny-by-default) applies at internal segmentation points just as at the perimeter. AC.L2-3.1.3[e] (CUI flow enforcement) depends on segmentation to prevent CUI from drifting between enclaves. The frequent finding here is a flat network with the CUI enclave existing only in policy, with no actual layer-3 separation between CUI and non-CUI workloads."
+  },
+  {
+    "name": "DNS / Web Filtering Configuration",
+    "description": "Configuration of DNS filtering services, web proxy or secure web gateway, and CASB — including blocked categories, blocklists, allow-lists for sanctioned cloud services, and TLS inspection scope.",
+    "likelyControls": [
+      "AC.L1-3.1.20",
+      "SC.L1-3.13.1",
+      "SC.L2-3.13.6"
+    ],
+    "reasoning": "Web filtering is one of the dominant mechanisms for boundary protection (SC.L1-3.13.1[c,e,g]) on outbound traffic — many environments rely on it as the practical implementation of deny-by-default outbound (SC.L2-3.13.6[a,b]). It also supports AC.L1-3.1.20[e,f] by limiting the external systems users can reach. Assessors look for two things: (1) the filtering categories and lists are current and reflect actual organizational policy; (2) TLS inspection is enabled where required to make the filtering meaningful (filtering by hostname only catches a fraction of what category-based filtering can detect with TLS inspection). Allow-any DNS resolution from internal endpoints bypasses the entire filtering layer and is a common finding."
+  },
+  {
+    "name": "Email Protection Configuration",
+    "description": "Configuration of email security gateway and tenant settings — including SPF/DKIM/DMARC enforcement, anti-phishing rules, attachment sandboxing, encrypted email gateway, and disabled legacy authentication protocols.",
+    "likelyControls": [
+      "AC.L2-3.1.3",
+      "SC.L1-3.13.1",
+      "SC.L2-3.13.6",
+      "SC.L2-3.13.8"
+    ],
+    "reasoning": "Email is one of the highest-volume CUI flow paths, making email gateway configuration central to AC.L2-3.1.3 (CUI flow), SC.L1-3.13.1[c,e,g] (boundary protection on inbound and outbound mail), SC.L2-3.13.6[a,b] (default-deny at the email perimeter), and SC.L2-3.13.8 (data in transit, particularly for encrypted email). Assessors look for outbound DLP rules detecting CUI being sent to unauthorized domains, mandatory encryption to specific external domains, and disabled legacy authentication protocols (POP3, IMAP, SMTP basic auth) that would otherwise bypass MFA. Modern Microsoft 365 / Google Workspace tenants have their email security configuration in the same admin console as much of the conditional access logic, making this a high-leverage artifact."
+  },
+  {
+    "name": "PAM Tool Configuration & Session Logs",
+    "description": "Configuration of the privileged access management platform (CyberArk, BeyondTrust, Delinea, AWS Systems Manager Session Manager) including vaulted credentials, just-in-time elevation policies, session recording, and privileged command audit logs.",
+    "likelyControls": [
+      "AC.L2-3.1.5",
+      "AC.L2-3.1.7",
+      "AC.L2-3.1.15",
+      "AU.L2-3.3.2"
+    ],
+    "reasoning": "PAM is the technical mechanism that operationalizes privileged access controls. AC.L2-3.1.5[b] (authorization of privileged access per least privilege), AC.L2-3.1.7[d] (logging the execution of privileged functions), and AC.L2-3.1.15[c,d] (authorization and tracking of remote privileged commands) all benefit from a PAM solution. Session recordings and command logs are particularly powerful evidence for AC.L2-3.1.15. Where PAM is not deployed, organizations need compensating evidence covering each of these — generally requiring more disparate artifacts. AU.L2-3.3.2 (user accountability) is satisfied directly by PAM session recordings that capture which named user initiated each privileged action."
+  }
+]

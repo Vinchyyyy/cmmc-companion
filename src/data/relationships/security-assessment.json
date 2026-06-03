@@ -1,0 +1,32 @@
+[
+  {
+    "sourceControl": "CA.L2-3.12.4",
+    "targetControl": "CA.L2-3.12.1",
+    "relationshipType": "prerequisite",
+    "reasoning": "The Assessment Guide explicitly states that security control assessments (CA.L2-3.12.1) are conducted on the controls as documented in the SSP (CA.L2-3.12.4). Without a written SSP defining which controls are in scope and how they are implemented, there is no documented baseline against which to assess. Assessors use the SSP as the guide for what to test — if no SSP exists, the assessment has no anchor. This is also why CA.L2-3.12.4 is non-POA&Mable: you cannot assess what has not been documented."
+  },
+  {
+    "sourceControl": "CA.L2-3.12.1",
+    "targetControl": "CA.L2-3.12.2",
+    "relationshipType": "supports",
+    "reasoning": "Security control assessment findings (CA.L2-3.12.1) are a primary source of deficiencies that feed into the Plan of Action (CA.L2-3.12.2). The assessment report identifies what is not working; the POA&M is where remediation of those findings is planned and tracked. An organization that conducts assessments but does not feed findings into the POA&M has broken the remediation loop. Conversely, a POA&M with no entries sourced from formal assessments suggests assessments are not being conducted or their findings are not being captured."
+  },
+  {
+    "sourceControl": "CA.L2-3.12.3",
+    "targetControl": "CA.L2-3.12.2",
+    "relationshipType": "supports",
+    "reasoning": "Continuous monitoring (CA.L2-3.12.3) continuously surfaces new deficiencies and control degradation between formal assessments. Those findings should flow into the POA&M (CA.L2-3.12.2) just as assessment findings do. The Assessment Guide explicitly notes that CA.L2-3.12.2 'promotes monitoring security controls on an ongoing basis as defined in CA.L2-3.12.3,' establishing the relationship between the two. A POA&M that only captures point-in-time assessment findings but not ongoing monitoring findings is incomplete."
+  },
+  {
+    "sourceControl": "CA.L2-3.12.1",
+    "targetControl": "CA.L2-3.12.3",
+    "relationshipType": "supports",
+    "reasoning": "Periodic security control assessments (CA.L2-3.12.1) and continuous monitoring (CA.L2-3.12.3) are complementary parts of the same assurance program. The Assessment Guide states that CA.L2-3.12.1 'promotes effective security assessments required by CA.L2-3.12.3.' Assessments provide the deep, formal review; continuous monitoring provides the ongoing between-assessment awareness. Assessment findings inform what controls need closer monitoring attention, and monitoring findings inform what gets more scrutiny in the next assessment cycle."
+  },
+  {
+    "sourceControl": "CA.L2-3.12.4",
+    "targetControl": "CA.L2-3.12.3",
+    "relationshipType": "supports",
+    "reasoning": "The SSP (CA.L2-3.12.4) defines which controls are in scope — which directly determines what continuous monitoring (CA.L2-3.12.3) needs to cover. The Assessment Guide notes that CA.L2-3.12.3 'directly relates to activities discussed in CA.L2-3.12.4.' A continuous monitoring program that monitors controls not in the SSP is monitoring noise; one that fails to monitor in-scope controls is leaving gaps."
+  }
+]

@@ -1,0 +1,251 @@
+[
+  {
+    "id": "CA.L2-3.12.1",
+    "family": "Security Assessment",
+    "title": "Security Control Assessment",
+    "controlText": "Periodically assess the security controls in organizational systems to determine if the controls are effective in their application.",
+    "plainEnglish": "At a defined frequency — typically annually — formally test and review whether the security controls you have in place are actually working. This is not the same as a vulnerability scan. A security control assessment examines whether controls are implemented correctly, operating as intended, and producing the desired security outcome. The output is a documented assessment report showing what was tested, what passed, what failed, and what needs remediation. The Assessment Guide notes that assessments should be conducted on the controls documented in the SSP — which is why CA.L2-3.12.4 is a prerequisite in practice.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "the frequency of security control assessments is defined",
+        "whatToLookFor": "A documented policy or procedure specifying how often security controls are assessed — typically annually, but some organizations assess higher-risk controls more frequently. The frequency must be written down, not just assumed. Assessors look for a defined schedule that matches organizational risk tolerance and any contractual requirements.",
+        "commonEvidence": [
+          "Security Assessment Policy defining assessment frequency",
+          "System Security Plan section on assessment schedule",
+          "Continuous monitoring strategy with defined assessment cadence"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "security controls are assessed with the defined frequency to determine if the controls are effective in their application",
+        "whatToLookFor": "Actual assessment records showing that assessments occur on the defined schedule. The assessment should be documented — not just a mental review but a written assessment plan, evidence gathered, and a report of findings. Assessors check that the most recent assessment is within the defined period and that the output includes documented results with identified deficiencies.",
+        "commonEvidence": [
+          "Security Assessment Report from the most recent assessment cycle",
+          "Security Assessment Plan documenting scope, methodology, and controls assessed",
+          "Assessment evidence artifacts (interview records, test results, document reviews)",
+          "Historical assessment reports showing recurring cadence"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Security Assessment Policy and Procedure",
+      "Security Assessment Plan",
+      "Security Assessment Report (current and prior cycles)",
+      "Assessment evidence package",
+      "System Security Plan used as assessment baseline",
+      "Deficiency findings list"
+    ],
+    "commonGaps": [
+      "Security assessment conducted at initial authorization and never repeated",
+      "Annual assessment exists in policy but no records show it actually occurs",
+      "Assessment consists of reviewing the SSP document rather than testing whether controls work",
+      "Assessment performed by the system owner without independent review",
+      "No written security assessment plan — assessment is ad hoc",
+      "Findings from the assessment not documented or tracked to remediation",
+      "Assessment scope does not match the SSP — controls listed in the SSP not evaluated"
+    ]
+  },
+  {
+    "id": "CA.L2-3.12.2",
+    "family": "Security Assessment",
+    "title": "Plan of Action",
+    "controlText": "Develop and implement plans of action designed to correct deficiencies and reduce or eliminate vulnerabilities in organizational systems.",
+    "plainEnglish": "A Plan of Action and Milestones (POA&M) is the document that tracks security deficiencies — from any source including assessments, audits, vulnerability scans, and self-identified gaps — and shows what you're doing to fix them. The Assessment Guide explicitly notes that POA&M connects to both RA.L2-3.11.1 (risk assessment drives what gets into the POA&M) and CA.L2-3.12.3 (continuous monitoring surfaces new items). A POA&M isn't just a list of problems; it must identify who is responsible, when remediation will complete, and how progress is measured. CMMC assessors treat the POA&M as a live document — a one-time document that was never updated is a finding on its own.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "deficiencies and vulnerabilities to be addressed by the plan of action are identified",
+        "whatToLookFor": "The POA&M contains a list of identified deficiencies and vulnerabilities with enough detail to understand each item — the control or requirement not met, the system or component affected, and the source of the finding (assessment, scan, self-assessment, audit). Assessors verify that known deficiencies from recent assessment and scanning activities are reflected in the POA&M.",
+        "commonEvidence": [
+          "Current POA&M with itemized deficiencies and vulnerability findings",
+          "Mapping of assessment findings to POA&M items",
+          "Mapping of vulnerability scan findings to POA&M items"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "a plan of action is developed to correct identified deficiencies and reduce or eliminate identified vulnerabilities",
+        "whatToLookFor": "Each POA&M item has a documented remediation plan — not just 'fix it' but specific steps, responsible parties, and target completion dates. Milestones for complex items allow progress tracking. The Assessment Guide example mentions identifying people responsible, how to fix it, when it will complete, and how verification will occur.",
+        "commonEvidence": [
+          "POA&M entries with assigned owners, remediation descriptions, and target dates",
+          "Milestone breakdown for multi-step remediation items",
+          "Change management tickets tied to POA&M items"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "the plan of action is implemented to correct identified deficiencies and reduce or eliminate identified vulnerabilities",
+        "whatToLookFor": "Evidence that the POA&M is being worked — items being closed, status updated as milestones are reached, and some items showing actual completion with verification. A POA&M with dozens of items and no status changes over the past year is not being implemented.",
+        "commonEvidence": [
+          "POA&M with updated status fields and closed items",
+          "Verification records for completed POA&M items (rescan results, re-assessment evidence)",
+          "Management review records showing POA&M status was reported to leadership"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Plan of Action and Milestones (POA&M) document",
+      "POA&M status history showing updates over time",
+      "Assessment and scan findings that fed into the POA&M",
+      "Closed POA&M items with verification evidence",
+      "Management review records referencing POA&M status"
+    ],
+    "commonGaps": [
+      "No POA&M exists — deficiencies are tracked informally in email or spreadsheets",
+      "POA&M created at initial assessment and never updated",
+      "POA&M items have no assigned owners or target completion dates",
+      "POA&M items open for 12+ months with no status change or documented rationale",
+      "Vulnerability scan findings and assessment findings not reflected in the POA&M",
+      "POA&M exists but is not shared with leadership — used only as an internal IT tracker",
+      "Items marked closed without verification evidence that the deficiency was actually corrected"
+    ]
+  },
+  {
+    "id": "CA.L2-3.12.3",
+    "family": "Security Assessment",
+    "title": "Security Control Monitoring",
+    "controlText": "Monitor security controls on an ongoing basis to ensure the continued effectiveness of the controls.",
+    "plainEnglish": "Between formal periodic assessments (CA.L2-3.12.1), security controls must be monitored continuously. Continuous monitoring is not a single activity — it's a program of ongoing activities: log review, vulnerability scanning, configuration drift detection, access rights reviews, and security dashboards. The Assessment Guide is explicit that continuous monitoring occurs 'more frequently than the periodic assessments.' The output — monitoring reports, dashboards, alerts — is provided to stakeholders for risk-based decision-making. Without continuous monitoring, the organization only knows its security posture at point-in-time assessment intervals; with it, control degradation is detected and addressed quickly.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "security controls are monitored on an ongoing basis to ensure the continued effectiveness of those controls",
+        "whatToLookFor": "A documented continuous monitoring strategy identifying which controls are monitored, at what frequency, how, and by whom. Evidence that monitoring is actually occurring: SIEM dashboards with regular review records, vulnerability scan reports on a recurring schedule, configuration compliance reports, access review records, and summary reports provided to management.",
+        "commonEvidence": [
+          "Continuous Monitoring Strategy or Plan",
+          "SIEM dashboards and recurring review records",
+          "Recurring vulnerability scan reports showing ongoing coverage",
+          "Configuration compliance scan reports on a defined schedule",
+          "Periodic access rights review records",
+          "Security status reports or dashboards provided to management",
+          "Automated alerting configuration showing real-time control monitoring"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "Continuous Monitoring Strategy",
+      "SIEM or security dashboard configuration and sample reports",
+      "Recurring vulnerability scan reports",
+      "Configuration compliance reports",
+      "Access rights review records",
+      "Security metrics reports to management",
+      "Automated alerting records"
+    ],
+    "commonGaps": [
+      "No continuous monitoring strategy — monitoring activities are ad hoc",
+      "Monitoring limited to infrastructure uptime; security control effectiveness not monitored",
+      "Vulnerability scanning treated as the only monitoring activity — configuration, access, and policy controls not monitored",
+      "Monitoring output exists but never reviewed by anyone — dashboards with no audience",
+      "Monitoring frequency insufficient — monthly SIEM review when weekly is needed for risk environment",
+      "No mechanism to escalate monitoring findings — alerts fire but no one acts on them",
+      "Continuous monitoring defined in policy but no evidence of implementation"
+    ]
+  },
+  {
+    "id": "CA.L2-3.12.4",
+    "family": "Security Assessment",
+    "title": "System Security Plan",
+    "controlText": "Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements are implemented, and the relationships with or connections to other systems.",
+    "plainEnglish": "The System Security Plan (SSP) is the authoritative document describing what your system is, what it does, where its boundary is, how each security requirement is met, and how it connects to other systems. It is the foundational document for the entire CMMC assessment — assessors use the SSP as the baseline against which all other evidence is compared. The SSP must not be a one-time artifact: it must be updated when the system changes, when new connections are established, when the boundary expands, or on a defined periodic schedule. CA.L2-3.12.4 is non-POA&Mable — you must have an SSP at time of assessment, not a plan to write one later.",
+    "objectives": [
+      {
+        "id": "a",
+        "text": "a system security plan is developed",
+        "whatToLookFor": "An actual written SSP document — not a template shell, not a spreadsheet of controls, but a narrative document describing the system, its boundary, its operational environment, and how each security requirement is implemented. The NIST SP 800-171A guidance explicitly calls for examining the SSP.",
+        "commonEvidence": [
+          "System Security Plan document",
+          "SSP approval records",
+          "SSP version history"
+        ]
+      },
+      {
+        "id": "b",
+        "text": "the system boundary is described and documented in the system security plan",
+        "whatToLookFor": "A clear, specific system boundary description — what hardware, software, and components are in scope, network boundaries, and what is explicitly excluded. Should align with the network architecture diagram. Vague boundaries ('all company IT systems') that cannot be verified are a finding.",
+        "commonEvidence": [
+          "SSP system boundary section",
+          "Network architecture diagram referenced in the SSP",
+          "Asset inventory aligned to the SSP boundary"
+        ]
+      },
+      {
+        "id": "c",
+        "text": "the system environment of operation is described and documented in the system security plan",
+        "whatToLookFor": "Documentation of the operational environment — physical and logical infrastructure, data center or cloud environment, geographic locations, personnel operating the system. Enough detail for an assessor to understand the context in which controls must operate.",
+        "commonEvidence": [
+          "SSP operational environment section",
+          "Data flow diagram showing where CUI is processed, stored, and transmitted",
+          "Cloud or hosting environment documentation referenced in the SSP"
+        ]
+      },
+      {
+        "id": "d",
+        "text": "the security requirements identified and approved by the designated authority as non-applicable are identified",
+        "whatToLookFor": "Any security requirements excluded from implementation are documented with a formal non-applicability determination and approval — not simply omitted. Each N/A determination should include the justification.",
+        "commonEvidence": [
+          "SSP N/A determination section with justifications",
+          "Approved N/A determinations signed or approved by designated authority"
+        ]
+      },
+      {
+        "id": "e",
+        "text": "the method of security requirement implementation is described and documented in the system security plan",
+        "whatToLookFor": "For each in-scope security requirement, the SSP describes how it is implemented — which technical controls, policies, or procedures satisfy it. Implementation descriptions should be specific enough to verify ('MFA enforced via Azure AD Conditional Access policy CA-001') not generic ('we use MFA').",
+        "commonEvidence": [
+          "SSP control implementation descriptions per requirement",
+          "Referenced policy and procedure documents with version numbers",
+          "Technical configuration documentation referenced in implementation descriptions"
+        ]
+      },
+      {
+        "id": "f",
+        "text": "the relationship with or connection to other systems is described and documented in the system security plan",
+        "whatToLookFor": "External system connections documented — partner systems, cloud services, government networks, contractor systems. Each interconnection should be described with the data exchanged, the authorization basis, and any applicable ISA or ISCA.",
+        "commonEvidence": [
+          "SSP interconnections section",
+          "External Connection Inventory referenced in the SSP",
+          "Interconnection Security Agreements referenced in the SSP"
+        ]
+      },
+      {
+        "id": "g",
+        "text": "the frequency to update the system security plan is defined",
+        "whatToLookFor": "A defined review and update schedule in the SSP or in the supporting policy — typically annual review plus event-driven updates for significant changes.",
+        "commonEvidence": [
+          "SSP update frequency statement in policy or within the SSP itself",
+          "Change management procedure triggering SSP updates"
+        ]
+      },
+      {
+        "id": "h",
+        "text": "system security plan is updated with the defined frequency",
+        "whatToLookFor": "Evidence that the SSP has actually been updated — version history, change logs, or dated review records showing the SSP was reviewed and updated within the defined period. An SSP last updated three years ago when the defined frequency is annual is a finding.",
+        "commonEvidence": [
+          "SSP version history or change log",
+          "SSP dated review records",
+          "Change management tickets triggering SSP updates after system changes"
+        ]
+      }
+    ],
+    "commonArtifacts": [
+      "System Security Plan (complete document with all required sections)",
+      "SSP version history or revision log",
+      "Network architecture diagram referenced in the SSP",
+      "Data flow diagram",
+      "External connections inventory and ISAs",
+      "SSP review and update records",
+      "N/A determination documentation"
+    ],
+    "commonGaps": [
+      "SSP consists of a template with minimal customization — does not accurately describe this organization's system",
+      "System boundary defined so broadly it is unverifiable, or so narrowly it excludes assets that process CUI",
+      "Implementation descriptions are generic ('we implement MFA') with no specifics that can be verified",
+      "SSP not updated after significant system changes — new cloud services, acquired companies, or expanded CUI scope not reflected",
+      "N/A determinations made informally without documentation or approval",
+      "External system connections not documented — shadow IT connections and SaaS services missing",
+      "SSP last reviewed years ago with no evidence of update since initial assessment",
+      "Multiple versions of the SSP in circulation with no authoritative current version identified"
+    ]
+  }
+]

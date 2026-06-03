@@ -1,0 +1,38 @@
+[
+  {
+    "sourceControl": "SI.L1-3.14.1",
+    "targetControl": "SI.L1-3.14.2",
+    "relationshipType": "supports",
+    "reasoning": "Flaw remediation (SI.L1-3.14.1) and malicious code protection (SI.L1-3.14.2) address two of the three most common exploit delivery mechanisms. SI.L1-3.14.1 closes the vulnerabilities that malicious code exploits; SI.L1-3.14.2 detects and blocks the malicious code itself. The two practices form a layered defense: even when SI.L1-3.14.1 has not yet patched a vulnerability, SI.L1-3.14.2 provides a compensating detection layer, and vice versa. The Assessment Guide treats them as companion Level 1 practices for this reason."
+  },
+  {
+    "sourceControl": "SI.L1-3.14.4",
+    "targetControl": "SI.L1-3.14.2",
+    "relationshipType": "prerequisite",
+    "reasoning": "Updating malicious code protection (SI.L1-3.14.4) is the prerequisite that keeps SI.L1-3.14.2 (malicious code protection) effective. A deployed AV solution with stale definitions is not 'providing protection' in any meaningful sense — the Assessment Guide states explicitly that 'malware changes on an hourly or daily basis.' SI.L1-3.14.2 establishes that protection exists; SI.L1-3.14.4 ensures that protection remains current enough to be effective."
+  },
+  {
+    "sourceControl": "SI.L1-3.14.4",
+    "targetControl": "SI.L1-3.14.5",
+    "relationshipType": "prerequisite",
+    "reasoning": "Periodic and real-time scanning (SI.L1-3.14.5) depends on current signatures from SI.L1-3.14.4 to be effective. A scan with outdated definitions will miss recently-identified malware variants. The two practices are operationally linked: SI.L1-3.14.4 ensures the detection content is current; SI.L1-3.14.5 applies that content through scheduled and on-access scanning. Current signatures without scanning are unused; scanning without current signatures is ineffective."
+  },
+  {
+    "sourceControl": "SI.L2-3.14.3",
+    "targetControl": "SI.L1-3.14.1",
+    "relationshipType": "supports",
+    "reasoning": "Security alerts and advisories (SI.L2-3.14.3) are a primary external input to the flaw identification process (SI.L1-3.14.1). Vendor advisories and CVE notifications surface flaws that may not appear in scheduled vulnerability scans — zero-day disclosures, vendor-specific advisories, and CISA Known Exploited Vulnerabilities often require immediate targeted action outside the normal scan cycle. SI.L2-3.14.3 is what triggers out-of-cycle identification and response under SI.L1-3.14.1."
+  },
+  {
+    "sourceControl": "SI.L2-3.14.6",
+    "targetControl": "SI.L2-3.14.7",
+    "relationshipType": "supports",
+    "reasoning": "Communications monitoring (SI.L2-3.14.6) is one of the primary mechanisms for identifying unauthorized use (SI.L2-3.14.7). Anomalous outbound traffic, connections to unusual destinations, and unusual protocol usage are all communications-layer indicators that a user or process is doing something unauthorized. The Assessment Guide lists network monitoring software among the tools for SI.L2-3.14.7, and the outbound monitoring required by SI.L2-3.14.6[c] specifically targets unauthorized data flows and system signaling."
+  },
+  {
+    "sourceControl": "SI.L1-3.14.5",
+    "targetControl": "SI.L2-3.14.6",
+    "relationshipType": "supports",
+    "reasoning": "System and file scanning (SI.L1-3.14.5) contributes to the broader communications and attack monitoring required by SI.L2-3.14.6. File scanning generates detection events that feed into the monitoring picture — malware detected on an endpoint may indicate a broader compromise that SI.L2-3.14.6's network monitoring can then trace. The two practices together provide coverage at both the endpoint layer (SI.L1-3.14.5) and the network layer (SI.L2-3.14.6)."
+  }
+]

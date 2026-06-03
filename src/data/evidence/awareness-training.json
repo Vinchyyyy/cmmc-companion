@@ -1,0 +1,75 @@
+[
+  {
+    "name": "Security Awareness Training Policy and Program Documentation",
+    "description": "Written policy establishing the organization's security awareness training program — scope, frequency, required audiences, content requirements, and accountability. Includes the program plan describing how training is delivered (in-person, LMS, phishing simulations, posters, email campaigns), how completion is tracked, and how the program is refreshed.",
+    "likelyControls": [
+      "AT.L2-3.2.1"
+    ],
+    "reasoning": "AT.L2-3.2.1[a,b,c,d] requires that personnel are made aware of risks and applicable policies. The awareness training policy is the foundational artifact showing the program exists and is structured to meet these objectives. Assessors use the policy to verify that all four populations (managers, sysadmins, general users) are in scope, that both risks and policies are required training content, and that a refresh cadence is defined. A program that exists in practice but is not documented in policy cannot be reliably demonstrated to an assessor."
+  },
+  {
+    "name": "Training Completion Records",
+    "description": "Evidence that personnel actually completed security awareness and role-based training — LMS completion reports, sign-in sheets, e-learning certificates, acknowledgment forms, or quiz results. Should be organized to show completion by role category (manager, sysadmin, general user) and should be current (within the past year for annual programs).",
+    "likelyControls": [
+      "AT.L2-3.2.1",
+      "AT.L2-3.2.2"
+    ],
+    "reasoning": "The most frequently cited gap for both AT controls is the absence of training records. AT.L2-3.2.1[c,d] requires managers, sysadmins, and users to be made aware — without records, this cannot be demonstrated. AT.L2-3.2.2[c] requires that personnel in security roles are adequately trained — completion records are the direct evidence. Assessors typically sample records across multiple role categories, looking for completeness of coverage and recency. LMS reports that show a completion percentage below 100% are a finding; records that show only onboarding training with no refresher are also a finding."
+  },
+  {
+    "name": "Security Awareness Training Curriculum and Materials",
+    "description": "The actual content delivered in the awareness training program — course outlines, slide decks, e-learning module content, phishing simulation scenarios, security reminder posters, email advisories. Should demonstrate that risk topics (phishing, removable media, social engineering, CUI handling) and applicable policies (acceptable use, data handling, incident reporting) are explicitly covered.",
+    "likelyControls": [
+      "AT.L2-3.2.1"
+    ],
+    "reasoning": "AT.L2-3.2.1[a,b] requires that security risks and applicable policies are identified as the basis for training. The training materials are how assessors verify that the content of the program actually addresses both dimensions. A training curriculum that covers general cybersecurity hygiene but never references the organization's own policies by name, or that discusses phishing but not the risks specific to CUI handling, leaves objectives [a] or [b] unsatisfied. Materials also demonstrate tailoring to organizational context rather than off-the-shelf content used without customization."
+  },
+  {
+    "name": "Security Roles and Responsibilities Documentation",
+    "description": "Documentation formally defining which information security duties attach to each role in the organization — typically the System Security Plan security roles section, position descriptions, a security responsibilities matrix, or a RACI chart. Should name specific duties (patch management, firewall administration, user account management, log review) and assign them to named roles.",
+    "likelyControls": [
+      "AT.L2-3.2.2"
+    ],
+    "reasoning": "AT.L2-3.2.2[a,b] requires that information security duties are defined and assigned. This documentation is the direct evidence for both objectives. Assessors use it to verify that security responsibilities are explicit (not implied), current (reflecting the actual organizational structure), and assigned to living, breathing roles rather than generic 'IT department' references. It also anchors AT.L2-3.2.2[c] — assessors compare the defined duties against the role-specific training content to confirm the training actually covers what the role requires."
+  },
+  {
+    "name": "Role-Based Training Plans and Curricula",
+    "description": "Training plans specifying what training is required for each security role, and the curriculum or course materials that constitute that training. Should show that content is matched to duties — a sysadmin's training plan covers privileged account management, patch deployment, and log review; a developer's plan covers secure coding; an incident responder's plan covers IR procedures and DFARS reporting obligations.",
+    "likelyControls": [
+      "AT.L2-3.2.2"
+    ],
+    "reasoning": "AT.L2-3.2.2[c] requires personnel to be adequately trained — 'adequately' is the key qualifier. Role-specific training plans establish what adequate means for each role, and the curriculum shows that training content is actually matched to duties. Assessors look for specificity: a plan that says 'attend annual security training' for a sysadmin with privileged access and firewall responsibilities does not demonstrate adequacy. Role-based training plans are the mechanism that translates the duty definitions from AT.L2-3.2.2[a] into actionable training requirements."
+  },
+  {
+    "name": "Policy Acknowledgment Records",
+    "description": "Signed acknowledgments or acceptance records confirming that personnel have read and understood the applicable security policies, acceptable use policy, CUI handling procedures, and related standards. May be part of onboarding, annual refresher processes, or tied to system access grants.",
+    "likelyControls": [
+      "AT.L2-3.2.1"
+    ],
+    "reasoning": "AT.L2-3.2.1[d] specifically requires that personnel are made aware of applicable policies, standards, and procedures. Policy acknowledgment records are direct evidence that this awareness was communicated and that personnel confirmed receipt. Assessors view acknowledgment records as corroboration alongside training completion records — training that includes policy content plus acknowledgment that policies were received satisfies [d] more robustly than either artifact alone. Organizations that distribute policy updates but do not obtain acknowledgment records cannot demonstrate that personnel actually received the update."
+  },
+  {
+    "name": "Vendor and Certification Training Records",
+    "description": "Third-party training certificates, vendor course completions, and professional certifications held by personnel in security-specific roles — firewall vendor training, SIEM vendor training, security certifications (Security+, CISSP, CEH), cloud security training, and similar role-relevant credentials.",
+    "likelyControls": [
+      "AT.L2-3.2.2"
+    ],
+    "reasoning": "AT.L2-3.2.2[c] requires adequate training to carry out assigned duties. For technical security roles — sysadmins, network admins, security analysts — vendor and certification training is often the most credible evidence that the person actually has the knowledge to perform their duties. Assessors treat vendor-specific training and recognized security certifications as strong evidence of adequacy for the corresponding role responsibilities. Internal training alone may not satisfy 'adequate' for technically complex roles if the content depth cannot be demonstrated."
+  },
+  {
+    "name": "Insider Threat Awareness Training Materials and Records",
+    "description": "Training content covering insider threat indicator recognition and reporting procedures — either as a dedicated module or integrated into the security awareness program — along with completion records showing that both manager and employee populations received the training. Content must identify specific behavioral indicators (e.g., abnormal access patterns, unexplained financial resources, significant behavioral changes, serious policy violations) and provide a defined reporting channel.",
+    "likelyControls": [
+      "AT.L2-3.2.3"
+    ],
+    "reasoning": "AT.L2-3.2.3[b] requires that security awareness training on recognizing and reporting insider threat indicators is provided to managers and employees. The training materials and completion records are the direct evidence for this objective. Assessors look for both dimensions: the content must address indicator recognition (satisfying [a] through the training materials) and reporting procedures (telling personnel what to do when they observe something). Records must cover both population categories — manager training and employee training — since the Assessment Guide calls both out explicitly. Integration into the existing AT.L2-3.2.1 program is acceptable; separate standalone training is not required."
+  },
+  {
+    "name": "Insider Threat Indicator Reference Documentation",
+    "description": "The enumerated list of insider threat indicators the organization uses as the basis for its training content — drawn from law enforcement bulletins, CISA resources, NITTF guidance, or similar authoritative sources. Documents the specific behavioral patterns the organization has identified as potential insider threat indicators for the purposes of AT.L2-3.2.3[a].",
+    "likelyControls": [
+      "AT.L2-3.2.3"
+    ],
+    "reasoning": "AT.L2-3.2.3[a] requires that potential indicators associated with insider threats are identified — this is a prerequisite to delivering training, since training content must be grounded in a defined set of indicators. Assessors evaluate whether the organization has done the deliberate work of identifying what constitutes an indicator in its context, rather than relying on vague or generic language. Reference documentation showing the authoritative sources used (NITTF, CISA, law enforcement bulletins) and the specific indicators derived from them demonstrates that [a] was addressed with intent rather than as a checkbox."
+  }
+]

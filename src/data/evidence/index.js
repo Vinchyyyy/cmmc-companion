@@ -1,0 +1,35 @@
+import accessControl from './access-control.json'
+import identificationAuthentication from './identification-authentication.json'
+import systemCommunicationsProtection from './system-communications-protection.json'
+import auditAccountability from './audit-accountability.json'
+import configurationManagement from './configuration-management.json'
+import incidentResponse from './incident-response.json'
+import riskAssessment from './risk-assessment.json'
+import securityAssessment from './security-assessment.json'
+import systemInformationIntegrity from './system-information-integrity.json'
+import personnelSecurity from './personnel-security.json'
+import physicalProtection from './physical-protection.json'
+import awarenessTraining from './awareness-training.json'
+import maintenance from './maintenance.json'
+import mediaProtection from './media-protection.json'
+import shared from './shared.json'
+
+const evidence = [
+  ...accessControl,
+  ...identificationAuthentication,
+  ...systemCommunicationsProtection,
+  ...auditAccountability,
+  ...configurationManagement,
+  ...incidentResponse,
+  ...riskAssessment,
+  ...securityAssessment,
+  ...systemInformationIntegrity,
+  ...personnelSecurity,
+  ...physicalProtection,
+  ...awarenessTraining,
+  ...maintenance,
+  ...mediaProtection,
+  ...shared,
+]
+
+export default evidence

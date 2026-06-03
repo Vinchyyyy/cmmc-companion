@@ -1,0 +1,14 @@
+[
+  {
+    "sourceControl": "AT.L2-3.2.1",
+    "targetControl": "AT.L2-3.2.2",
+    "relationshipType": "prerequisite",
+    "reasoning": "General risk awareness (AT.L2-3.2.1) is the baseline layer that role-based training (AT.L2-3.2.2) builds upon. The Assessment Guide explicitly distinguishes the two: AT.L2-3.2.1 provides broad security awareness to influence user behavior, while AT.L2-3.2.2 provides the specific knowledge, skills, and abilities needed for a job function. Role-based training presupposes that personnel already have the general security context that awareness training establishes. Without AT.L2-3.2.1, the role-specific content of AT.L2-3.2.2 lacks the foundational framing it assumes."
+  },
+  {
+    "sourceControl": "AT.L2-3.2.1",
+    "targetControl": "AT.L2-3.2.3",
+    "relationshipType": "supports",
+    "reasoning": "AT.L2-3.2.1 (Role-Based Risk Awareness) supports AT.L2-3.2.3 (Insider Threat Awareness) because the general security awareness program established by AT.L2-3.2.1 is the vehicle through which insider threat training content is typically delivered. The Assessment Guide for AT.L2-3.2.3 explicitly states that organizations may choose to integrate insider threat topics into their standard security awareness training programs rather than running separate training. AT.L2-3.2.1's program infrastructure — delivery mechanisms, completion tracking, refresh cadence, and audience coverage — is the platform AT.L2-3.2.3 content rides on."
+  }
+]

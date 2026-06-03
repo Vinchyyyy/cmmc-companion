@@ -1,0 +1,38 @@
+[
+  {
+    "sourceControl": "PE.L1-3.10.1",
+    "targetControl": "PE.L1-3.10.3",
+    "relationshipType": "supports",
+    "reasoning": "PE.L1-3.10.1 defines who is authorized for physical access, establishing the boundary between authorized individuals and visitors. PE.L1-3.10.3 directly depends on this distinction — the escort requirement applies to everyone who is not an authorized individual. Without the authorized access list produced by PE.L1-3.10.1, there is no principled basis for determining who must be escorted versus who may move freely."
+  },
+  {
+    "sourceControl": "PE.L1-3.10.1",
+    "targetControl": "PE.L1-3.10.5",
+    "relationshipType": "supports",
+    "reasoning": "PE.L1-3.10.1 identifies who is authorized for physical access. PE.L1-3.10.5 manages the devices (keys, badges, card readers) that grant that access. The authorization roster from PE.L1-3.10.1 is what PE.L1-3.10.5 uses to determine who should hold which physical access credentials. When someone leaves the authorized list (PE.L1-3.10.1), their physical access devices must be revoked (PE.L1-3.10.5) — the two controls share the same personnel data."
+  },
+  {
+    "sourceControl": "PE.L1-3.10.3",
+    "targetControl": "PE.L1-3.10.4",
+    "relationshipType": "supports",
+    "reasoning": "PE.L1-3.10.3[b] requires monitoring visitor activity, and the Assessment Guide discussion explicitly identifies audit logs as the primary mechanism for visitor monitoring. PE.L1-3.10.4 is the control that mandates maintaining those physical access audit logs. The visitor log that satisfies PE.L1-3.10.3 is a subset of the broader physical access log required by PE.L1-3.10.4. Assessors reviewing visitor monitoring evidence examine the physical access logs maintained under PE.L1-3.10.4."
+  },
+  {
+    "sourceControl": "PE.L1-3.10.5",
+    "targetControl": "PE.L1-3.10.1",
+    "relationshipType": "supports",
+    "reasoning": "PE.L1-3.10.5 maintains the operational effectiveness of PE.L1-3.10.1. Limiting physical access to authorized individuals (PE.L1-3.10.1) depends entirely on the integrity of the physical access devices (PE.L1-3.10.5) — if devices are not actively managed, credentials exist for people who are no longer authorized, undermining the access restriction. A current authorized access list (PE.L1-3.10.1) paired with unrevoked credentials for former employees (PE.L1-3.10.5 failure) is not a functioning implementation of either control."
+  },
+  {
+    "sourceControl": "PE.L1-3.10.4",
+    "targetControl": "PE.L2-3.10.2",
+    "relationshipType": "supports",
+    "reasoning": "PE.L1-3.10.4 produces the physical access logs that PE.L2-3.10.2 depends on for its monitoring function. The Assessment Guide assessment methods for PE.L2-3.10.2 explicitly list 'review of physical access logs' as a monitoring process. Without the logging established by PE.L1-3.10.4, PE.L2-3.10.2's monitoring requirement has no documentary foundation. The logs are not just retained — they must be actively reviewed to satisfy PE.L2-3.10.2's monitoring objective."
+  },
+  {
+    "sourceControl": "PE.L1-3.10.1",
+    "targetControl": "PE.L2-3.10.2",
+    "relationshipType": "supports",
+    "reasoning": "PE.L2-3.10.2 extends and monitors the access restrictions established by PE.L1-3.10.1. While PE.L1-3.10.1 defines who may access controlled areas and puts controls in place, PE.L2-3.10.2 provides the detection layer that identifies when those controls are challenged or bypassed — through guards, cameras, and sensors. The Assessment Guide notes that PE.L2-3.10.2 monitoring includes publicly accessible areas of the facility, the same scope addressed by PE.L1-3.10.1's operating environment restrictions."
+  }
+]
