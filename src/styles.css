@@ -78,6 +78,105 @@
 }
 
 /* -------------------------------------------------------------------------
+   Dark theme overrides
+   Applied when document.documentElement has data-theme="dark"
+   ------------------------------------------------------------------------- */
+
+[data-theme="dark"] {
+  /* Surface & background */
+  --color-bg:           #0d1117;
+  --color-surface:      #161b22;
+  --color-surface-alt:  #1c2128;
+
+  /* Borders */
+  --color-border:        #30363d;
+  --color-border-strong: #444c56;
+
+  /* Text */
+  --color-text:         #e6edf3;
+  --color-text-muted:   #8b949e;
+  --color-text-subtle:  #6e7681;
+
+  /* Accent */
+  --color-accent:       #58a6ff;
+  --color-accent-hover: #79b8ff;
+  --color-accent-bg:    #0c2d6b;
+
+  /* Status semantic — text colors stay vivid; backgrounds become dark tints */
+  --color-met:              #3fb950;
+  --color-met-bg:           #0f2d1a;
+  --color-not-met:          #f85149;
+  --color-not-met-bg:       #2d0f0f;
+  --color-in-progress:      #e3b341;
+  --color-in-progress-bg:   #2d1f00;
+  --color-not-started:      #8b949e;
+  --color-not-started-bg:   #21262d;
+
+  /* Shadows — lighten slightly so they read on dark surfaces */
+  --shadow-xs: 0 1px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Hardcoded color overrides — badges and interactive states that use
+   literal hex values instead of variables */
+
+[data-theme="dark"] input[type="text"]:hover,
+[data-theme="dark"] input[type="search"]:hover,
+[data-theme="dark"] select:hover,
+[data-theme="dark"] textarea:hover {
+  border-color: #6e7681;
+}
+
+[data-theme="dark"] button:hover {
+  background: var(--color-surface-alt);
+  border-color: #6e7681;
+}
+
+[data-theme="dark"] button:active {
+  background: #21262d;
+}
+
+/* Inheritance badges */
+[data-theme="dark"] .inheritance-badge--full {
+  color: #c084fc;
+  background: #2d1b4e;
+}
+
+[data-theme="dark"] .inheritance-badge--partial {
+  color: #38bdf8;
+  background: #0c2d45;
+}
+
+/* POA&M non-eligible badge */
+[data-theme="dark"] .poam-badge {
+  color: #fca5a5;
+  background: #3b1414;
+}
+
+/* Feedback borders */
+[data-theme="dark"] .feedback--ok {
+  border-color: rgba(63, 185, 80, 0.3);
+}
+
+[data-theme="dark"] .feedback--error {
+  border-color: rgba(248, 81, 73, 0.3);
+}
+
+/* Bulk toolbar selected-item highlight */
+[data-theme="dark"] .bulk-toolbar {
+  border-color: rgba(88, 166, 255, 0.3);
+}
+
+/* Confirm / export dialog */
+[data-theme="dark"] .confirm-overlay {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] .confirm-dialog {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* -------------------------------------------------------------------------
    Base / reset
    ------------------------------------------------------------------------- */
 
@@ -200,6 +299,32 @@ section {
 .nav a.active {
   color: #ffffff;
   border-bottom-color: #ffffff;
+}
+
+.nav-theme-toggle {
+  margin-left: auto;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+  white-space: nowrap;
+}
+
+.nav-theme-toggle:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.nav-theme-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
 }
 
 /* -------------------------------------------------------------------------
