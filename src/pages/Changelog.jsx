@@ -9,10 +9,98 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v1.1.2 — current release, open by default */}
+      {/* v1.2.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v{APP_VERSION}</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span>Evidence Pool MVP</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 4, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Workflow</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added control-level Evidence Pool for reusable artifact references</li>
+              <li>Added objective-level Artifact References for mapping evidence directly to assessment objectives</li>
+              <li>Added artifact suggestion/typeahead functionality sourced from the control's Evidence Pool</li>
+              <li>Automatic Evidence Pool population when artifacts are entered directly within objectives</li>
+              <li>Artifact counters and visual artifact tracking within controls</li>
+              <li>Objective artifact assignment workflow designed around real-world assessment usage</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Data Persistence</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Evidence Pool entries persist across browser refreshes</li>
+              <li>Objective Artifact references persist across browser refreshes</li>
+              <li>Evidence data survives normal browser sessions</li>
+              <li>Existing control notes, statuses, and inheritance tracking remain unchanged</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Backup &amp; Restore</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Evidence Pool entries are included in Project JSON exports</li>
+              <li>Objective Artifact references are included in Project JSON exports</li>
+              <li>Project JSON restore fully restores Evidence Pool and objective artifact assignments</li>
+              <li>Backward compatibility maintained — Version 1 backup files continue to import successfully</li>
+              <li>Missing Evidence Pool data in older backups does not overwrite existing local Evidence Pool data</li>
+              <li>Added Schema Version 2 support for future expansion</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Status Automation</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Controls automatically transition from Not Started to In Progress when Evidence Pool activity occurs</li>
+              <li>Controls automatically transition from Not Started to In Progress when objective artifact references are added</li>
+              <li>Objective artifact creation automatically adds new artifacts to the control-level Evidence Pool</li>
+              <li>Existing MET and NOT MET protections remain unchanged</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Control Library</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added 📎 Artifact Indicator for controls containing objective artifact references</li>
+              <li>Added Has Artifacts filter to the Control Library</li>
+              <li>Artifact filtering integrates with all existing filter systems</li>
+              <li>Artifact filters participate in URL-based state persistence</li>
+              <li>Artifact filters are included in Clear Filters behavior</li>
+              <li>Fixed stale render — Control Library now re-reads localStorage on every navigation event</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Privacy &amp; Security</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>No files are uploaded, stored, or transmitted by the application</li>
+              <li>No cloud synchronization or backend database</li>
+              <li>Artifact entries are text metadata only (for example: SSP.pdf, RBAC Configuration.png, User Export.xlsx)</li>
+              <li>Imported project backups remain local to the user's browser</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Dataset unchanged — no control, evidence, or relationship modifications</li>
+              <li>Controls: 110 · Evidence types: 130 · Relationships: 189 · Families: 14/14</li>
+              <li>Validator: Pass · Build: Pass</li>
+            </ul>
+          </section>
+
+        </div>
+      </details>
+
+      {/* v1.1.2 — collapsed */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v1.1.2</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
           <span>Workflow &amp; Ownership Update</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 4, 2026</span>

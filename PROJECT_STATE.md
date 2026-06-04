@@ -3,6 +3,7 @@
 
 | Version | Date | Summary |
 |---|---|---|
+| 1.2.0 | June 4, 2026 | Evidence Pool MVP — control-level pool, objective artifact references, typeahead, status promotion, JSON backup/restore support (schema v2), 📎 indicator + filter in Control Library |
 | 1.1.2 | June 4, 2026 | Auto-resizing textareas; auto-status Not Started ↔ In Progress based on notes; hide MET controls toggle; ownership/copyright/independence disclosures |
 | 1.1.1 | June 3, 2026 | Import hardening (extension + MIME + size validation, JSON restore confirmation); export filename timestamps |
 | 1.0.1 | June 3, 2026 | First production deployment; bulk Clear Data / Set Status bug fix; Clear Data confirmation dialog |
@@ -154,15 +155,17 @@ Score metadata intentionally absent from ControlDetail page (removed as UI refin
 
 ControlLibrary URL filter keys:
 
-['search', 'family', 'status', 'notes', 'inheritance', 'score', 'poam']
+['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam']
 
 ```
 Any new filter must be added to this array to be included in Clear Filters behavior.
 
 ## Project JSON Schema Version
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+ACCEPTED_SCHEMA_VERSIONS = [1, 2]
 
-Exports per control: status, note, objectiveNotes, inheritance.
+Exports per control: status, note, objectiveNotes, inheritance, evidencePool (when non-empty), objectiveArtifacts (when non-empty).
 Does NOT export: scoring metadata (read-only, never stored in localStorage).
+V1 imports accepted — missing evidencePool/objectiveArtifacts fields are no-ops (do not clear existing local data).
 ```

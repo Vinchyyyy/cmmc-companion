@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams, useLocation } from 'react-router-dom'
 import controls from '../data/controls/index'
 import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
 import { readNote, writeNote } from '../utils/notes'
 import { hasObjectiveNotes, writeObjectiveNote } from '../utils/objectiveNotes'
+import { hasObjectiveArtifacts } from '../utils/objectiveArtifacts'
 import {
   INHERITANCE_VALUES,
   DEFAULT_INHERITANCE,
@@ -28,6 +29,7 @@ const DEFAULTS = {
   family: 'All',
   status: 'All',
   notes: 'All',
+  artifacts: 'All',
   inheritance: 'All',
   score: 'All',
   poam: 'All',
@@ -51,7 +53,7 @@ const FAMILY_ORDER = [
   'System and Information Integrity',
 ]
 
-const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'inheritance', 'score', 'poam']
+const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam']
 const SEARCH_DEBOUNCE_MS = 500
 
 function ControlLibrary() {
@@ -60,10 +62,13 @@ function ControlLibrary() {
   const urlSearch     = searchParams.get('search')      ?? DEFAULTS.search
   const familyFilter  = searchParams.get('family')      ?? DEFAULTS.family
   const statusFilter  = searchParams.get('status')      ?? DEFAULTS.status
-  const notesFilter   = searchParams.get('notes')       ?? DEFAULTS.notes
-  const inheritFilter = searchParams.get('inheritance') ?? DEFAULTS.inheritance
+  const notesFilter      = searchParams.get('notes')     ?? DEFAULTS.notes
+  const artifactsFilter  = searchParams.get('artifacts') ?? DEFAULTS.artifacts
+  const inheritFilter    = searchParams.get('inheritance') ?? DEFAULTS.inheritance
   const scoreFilter   = searchParams.get('score')       ?? DEFAULTS.score
   const poamFilter    = searchParams.get('poam')        ?? DEFAULTS.poam
+
+  const location = useLocation()
 
   const [searchInput, setSearchInput] = useState(urlSearch)
   const [selected, setSelected]       = useState(new Set())
@@ -71,6 +76,14 @@ function ControlLibrary() {
   const [confirmClear, setConfirmClear] = useState(false)
   const [hideMet, setHideMet] = useState(() => localStorage.getItem('cmmc-hide-met-controls') === 'true')
   const forceUpdate = () => setUpdateKey((k) => k + 1)
+
+  // Re-read localStorage whenever the user navigates to this page (e.g. returning
+  // from ControlDetail after adding notes or artifacts). location.key is unique
+  // per navigation event, so this fires on every client-side route transition.
+  useEffect(() => {
+    forceUpdate()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.key])
 
   const toggleHideMet = () => setHideMet((prev) => {
     const next = !prev
@@ -129,6 +142,10 @@ function ControlLibrary() {
     if (notesFilter === 'All') return true
     return notesFilter === 'Has Notes' ? hasAnyNote(c) : !hasAnyNote(c)
   }
+  const matchesArtifacts   = (c) => {
+    if (artifactsFilter === 'All') return true
+    return artifactsFilter === 'Yes' ? hasObjectiveArtifacts(c) : !hasObjectiveArtifacts(c)
+  }
   const matchesInheritance = (c) => inheritFilter === 'All' || readInheritance(c.id) === inheritFilter
   const matchesScore       = (c) => scoreFilter === 'All' || getScore(c.id) === Number(scoreFilter)
   const matchesPoam        = (c) => {
@@ -144,8 +161,8 @@ function ControlLibrary() {
   // Preserve official index.js order — do NOT sort by compareIds
   const results = controls.filter((c) =>
     matchesSearch(c) && matchesFamily(c) && matchesStatus(c) &&
-    matchesNotes(c) && matchesInheritance(c) && matchesScore(c) && matchesPoam(c) &&
-    matchesHideMet(c)
+    matchesNotes(c) && matchesArtifacts(c) && matchesInheritance(c) &&
+    matchesScore(c) && matchesPoam(c) && matchesHideMet(c)
   )
 
   // Group by family in official CMMC order
@@ -236,6 +253,11 @@ function ControlLibrary() {
           <option value="All">All notes</option>
           <option value="Has Notes">Has notes</option>
           <option value="No Notes">No notes</option>
+        </select>
+        <select value={artifactsFilter} onChange={(e) => writeFilter('artifacts', e.target.value)}>
+          <option value="All">All artifacts</option>
+          <option value="Yes">Has artifacts</option>
+          <option value="No">No artifacts</option>
         </select>
         <select value={inheritFilter} onChange={(e) => writeFilter('inheritance', e.target.value)}>
           <option value="All">All inheritance</option>
@@ -330,8 +352,9 @@ function ControlLibrary() {
                   const inheritance = readInheritance(control.id)
                   const score       = getScore(control.id)
                   const poamOk      = isPoamAllowed(control.id)
-                  const hasNote     = hasAnyNote(control)
-                  const isSelected  = selected.has(control.id)
+                  const hasNote      = hasAnyNote(control)
+                  const hasArtifacts = hasObjectiveArtifacts(control)
+                  const isSelected   = selected.has(control.id)
                   return (
                     <li key={control.id} className={isSelected ? 'control-list-item--selected' : ''}>
                       <label className="control-list-checkbox-label" onClick={(e) => e.stopPropagation()}>
@@ -351,6 +374,9 @@ function ControlLibrary() {
                         )}
                         {hasNote && (
                           <span className="notes-indicator" title="This control has notes (control or objective level)">📝</span>
+                        )}
+                        {hasArtifacts && (
+                          <span className="notes-indicator" title="This control has objective artifact references">📎</span>
                         )}
                         {!poamOk && (
                           <span className="poam-badge" title="Cannot be placed on a POA&M">Non-POA&amp;M</span>

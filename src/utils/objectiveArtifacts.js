@@ -29,6 +29,17 @@ export function readObjectiveArtifacts(controlId, objectiveId) {
   }
 }
 
+// True if any of the control's objectives has at least one artifact reference.
+// Stops at the first non-empty objective found.
+// Checks objective artifact storage only — ignores the Evidence Pool.
+export function hasObjectiveArtifacts(control) {
+  if (!control || !Array.isArray(control.objectives)) return false
+  for (const obj of control.objectives) {
+    if (readObjectiveArtifacts(control.id, obj.id).length > 0) return true
+  }
+  return false
+}
+
 // Safe localStorage write — removes the key entirely when items is empty,
 // silently fails if storage is unavailable.
 export function writeObjectiveArtifacts(controlId, objectiveId, items) {
