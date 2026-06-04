@@ -6,6 +6,7 @@ import EvidenceLookup from './pages/EvidenceLookup.jsx'
 import ControlDetail from './pages/ControlDetail.jsx'
 import RelationshipExplorer from './pages/RelationshipExplorer.jsx'
 import About from './pages/About.jsx'
+import Faq from './pages/Faq.jsx'
 import Changelog from './pages/Changelog.jsx'
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
           <Route path="/evidence" element={<EvidenceLookup />} />
           <Route path="/relationships" element={<RelationshipExplorer />} />
           <Route path="/about" element={<About />} />
+          <Route path="/faq" element={<Faq />} />
           <Route path="/changelog" element={<Changelog />} />
           <Route path="*" element={<Home />} />
         </Routes>

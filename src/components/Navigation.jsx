@@ -8,6 +8,7 @@ function Navigation() {
       <NavLink to="/evidence">Evidence Lookup</NavLink>
       <NavLink to="/relationships">Relationship Explorer</NavLink>
       <NavLink to="/about">About</NavLink>
+      <NavLink to="/faq">FAQ</NavLink>
       <NavLink to="/changelog">Changelog</NavLink>
     </nav>
   )
