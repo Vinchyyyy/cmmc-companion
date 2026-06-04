@@ -1,4 +1,78 @@
 
+## Version 1.1.1 — Production Readiness, Security & Usability Update
+Date: June 3, 2026
+
+### Assessment Workflow
+- Fixed bulk status update functionality — `writeStatus` import was missing, silently preventing all bulk writes to localStorage
+- Added Clear Data confirmation dialog — explicit modal listing exactly what will and will not be cleared before any data is modified
+- Improved Home page assessment progress dashboard — replaced vertical status summary list with a 2×2 status card grid
+- Added status card grid with count, percentage, and status color treatment per card
+- All status cards remain clickable — link to Control Library filtered by status and family
+
+### Import & Export
+- Added OSC / Client Name and Assessment Name prompts before CSV and JSON exports
+- Added timestamped filenames (`YYYY-MM-DD_HHMM` using local browser time) to prevent same-day collisions
+- Added Project Backup tracking — Home page displays time of last successful JSON export
+- Added CSV import validation: `.csv` extension required, MIME allowlist, 1 MB size limit
+- Added JSON import validation: `.json` extension required, MIME allowlist, 2 MB size limit
+- Added JSON restore confirmation dialog — lists exactly what will and will not be overwritten before any data is modified; Cancel discards pending import with no side effects
+- Added pre-validation of JSON schema and version before showing the restore dialog
+- Added import/export section descriptions to Home page for first-time user orientation
+- Added Tip line distinguishing CSV (progress sharing) from JSON (full backup and recovery)
+
+### Security & Privacy
+- Reworked About page — replaced separate Data & Privacy and Limitations sections with a consolidated Data Handling, Privacy & Limitations section covering: Intended Use, Not Intended For, Storage Architecture, Export Responsibility, Limitations, and Important notice
+- Added explicit guidance that CUI, SSPs, network diagrams, system inventories, device configurations, screenshots, and sensitive customer documentation should not be stored in the application
+- Clarified that no assessment data is transmitted to the developer, GitHub, or Cloudflare
+- Clarified user responsibility for handling and distributing exported files
+- Added FAQ page covering: official tool status, server storage model, CUI policy, multi-assessor sharing, browser data loss, import transmission, import protections, export format differences, internet access requirements, dataset update cadence, tool origin, data encryption posture, and external file sharing responsibility
+
+### User Experience
+- Added light/dark theme toggle with localStorage persistence and flash prevention on hard refresh
+- Theme toggle placed on Home page footer row alongside deep link
+- Navigation bar locked to permanently dark in both themes for consistent visual identity
+- Added export/import descriptions directly beneath each button group on the Home page
+- Added backup status indicator (Last Project Backup: date or Never)
+- Added application version and deployment environment display on Home page
+- Added FAQ page to navigation between About and Changelog
+
+### Infrastructure & Deployment
+- First GitHub production release: https://github.com/Vinchyyyy/cmmc-companion
+- First Cloudflare Pages deployment: https://cmmc-companion.pages.dev
+- Automatic CI/CD deployment from `main` branch verified
+- `public/_redirects` (`/* /index.html 200`) confirmed working for SPA deep-link routing
+- Deployment tracking added to PROJECT_STATE.md
+
+### Documentation
+- Added dedicated FAQ page (`/faq`) addressing supervisor and security-review concerns
+- Expanded About page with structured compliance-oriented guidance
+- Updated PROJECT_STATE.md version history
+- Improved CHANGELOG structure and release tracking
+
+### Maintenance
+- Removed unused legacy `.status-summary`, `.status-summary-row`, `.status-summary-link` CSS after grid migration
+- Added `src/utils/version.js` as single source of truth for version and deployment constant
+- Added `src/utils/theme.js` for localStorage-backed theme management
+- Added `src/utils/exportMeta.js` for export naming, backup timestamp, and filename sanitization
+- General codebase hardening and UI consistency improvements
+
+### Validation
+- Controls: 110
+- Evidence Types: 130
+- Relationships: 189
+- Families: 14/14
+- Validator: Pass
+
+### Deployment Status
+- Status: Production
+- GitHub: https://github.com/Vinchyyyy/cmmc-companion
+- Cloudflare Pages: https://cmmc-companion.pages.dev
+
+### Notes
+This release focuses on production readiness, import safety, privacy guidance, usability improvements, and deployment maturity rather than new assessment content. No control data, evidence mappings, relationship definitions, or scoring metadata were modified.
+
+---
+
 ## Version 1.1.1 — Import Hardening and Export Improvements
 Date: June 3, 2026
 
