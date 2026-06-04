@@ -1,16 +1,24 @@
 // Shared utility for full project state export and import.
-// Covers all four localStorage layers:
-//   - control status         (cmmc-status-{controlId})
-//   - control-level notes    (cmmc-note-{controlId})
-//   - objective-level notes  (cmmc-objective-note-{controlId}-{objectiveId})
-//   - inheritance            (cmmc-inheritance-{controlId})
+// Covers all localStorage layers:
+//   - control status              (cmmc-status-{controlId})
+//   - control-level notes         (cmmc-note-{controlId})
+//   - objective-level notes       (cmmc-objective-note-{controlId}-{objectiveId})
+//   - inheritance                 (cmmc-inheritance-{controlId})
+//   - control-level evidence pool (cmmc-pool-{controlId})
+//   - objective-level artifacts   (cmmc-obj-artifacts-{controlId}-{objectiveId})
 
 import { STATUSES, readStatus, writeStatus } from './status'
 import { readNote, writeNote } from './notes'
 import { readObjectiveNote, writeObjectiveNote } from './objectiveNotes'
 import { INHERITANCE_VALUES, DEFAULT_INHERITANCE, readInheritance, writeInheritance } from './inheritance'
+import { readPool, writePool } from './evidencePool'
+import { readObjectiveArtifacts, writeObjectiveArtifacts } from './objectiveArtifacts'
 
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 2
+
+// All schema versions this app can import. Add new versions here as the
+// schema evolves — never remove old ones while users may have older backups.
+export const ACCEPTED_SCHEMA_VERSIONS = [1, 2]
 
 // =========================================================================
 // Export
@@ -24,13 +32,26 @@ export function exportProjectState(controls) {
       if (note.trim() !== '') objectiveNotes[obj.id] = note
     }
 
-    return {
+    const pool = readPool(control.id)
+
+    const objectiveArtifacts = {}
+    for (const obj of control.objectives ?? []) {
+      const artifacts = readObjectiveArtifacts(control.id, obj.id)
+      if (artifacts.length > 0) objectiveArtifacts[obj.id] = artifacts
+    }
+
+    const entry = {
       id: control.id,
       status: readStatus(control.id),
       note: readNote(control.id),
       objectiveNotes,
       inheritance: readInheritance(control.id),
     }
+
+    if (pool.length > 0) entry.evidencePool = pool
+    if (Object.keys(objectiveArtifacts).length > 0) entry.objectiveArtifacts = objectiveArtifacts
+
+    return entry
   })
 
   return {
@@ -56,11 +77,11 @@ export function importProjectState(projectJson, controls) {
   if (!projectJson || typeof projectJson !== 'object') {
     return { ok: false, error: 'Invalid JSON: expected an object.' }
   }
-  if (projectJson.schemaVersion !== SCHEMA_VERSION) {
+  if (!ACCEPTED_SCHEMA_VERSIONS.includes(projectJson.schemaVersion)) {
     return {
       ok: false,
       error: `Unsupported schema version ${projectJson.schemaVersion}. ` +
-             `Expected version ${SCHEMA_VERSION}.`,
+             `Expected version 1 or 2.`,
     }
   }
   if (!Array.isArray(projectJson.controls)) {
@@ -79,6 +100,8 @@ export function importProjectState(projectJson, controls) {
     notesWritten: 0,
     objectiveNotesWritten: 0,
     inheritanceWritten: 0,
+    evidencePoolsWritten: 0,
+    objectiveArtifactsWritten: 0,
     skippedUnknownId: 0,
     skippedInvalidStatus: 0,
     skippedUnknownObjective: 0,
@@ -89,6 +112,8 @@ export function importProjectState(projectJson, controls) {
     if (!control) { summary.skippedUnknownId++; continue }
 
     summary.controlsProcessed++
+
+    const knownObjectiveIds = new Set((control.objectives ?? []).map((o) => o.id))
 
     // Status
     const normalizedStatus = STATUS_NORMALIZER[String(entry.status ?? '').trim().toLowerCase()]
@@ -106,7 +131,6 @@ export function importProjectState(projectJson, controls) {
     }
 
     // Objective notes
-    const knownObjectiveIds = new Set((control.objectives ?? []).map((o) => o.id))
     if (entry.objectiveNotes && typeof entry.objectiveNotes === 'object') {
       for (const [objId, objNote] of Object.entries(entry.objectiveNotes)) {
         if (!knownObjectiveIds.has(objId)) { summary.skippedUnknownObjective++; continue }
@@ -127,6 +151,37 @@ export function importProjectState(projectJson, controls) {
       }
       // Invalid inheritance values are silently skipped (no summary count —
       // they're rare enough that polluting the message isn't worth it)
+    }
+
+    // Evidence Pool
+    // Only write when the field is explicitly present in the entry.
+    // Missing field = backward-compatible no-op (does not clear existing pool).
+    // Explicit empty array = intentionally clear the pool.
+    if ('evidencePool' in entry) {
+      if (Array.isArray(entry.evidencePool)) {
+        const filtered = entry.evidencePool.filter((v) => typeof v === 'string')
+        writePool(control.id, filtered)
+        if (filtered.length > 0) summary.evidencePoolsWritten++
+      }
+    }
+
+    // Objective Artifacts
+    // Same missing-vs-explicit-empty distinction as Evidence Pool above.
+    if ('objectiveArtifacts' in entry) {
+      if (
+        entry.objectiveArtifacts !== null &&
+        typeof entry.objectiveArtifacts === 'object' &&
+        !Array.isArray(entry.objectiveArtifacts)
+      ) {
+        for (const [objId, artifacts] of Object.entries(entry.objectiveArtifacts)) {
+          if (!knownObjectiveIds.has(objId)) { summary.skippedUnknownObjective++; continue }
+          if (Array.isArray(artifacts)) {
+            const filtered = artifacts.filter((v) => typeof v === 'string')
+            writeObjectiveArtifacts(control.id, objId, filtered)
+            if (filtered.length > 0) summary.objectiveArtifactsWritten++
+          }
+        }
+      }
     }
   }
 

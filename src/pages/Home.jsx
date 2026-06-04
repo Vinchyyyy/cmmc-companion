@@ -11,6 +11,7 @@ import {
   importProjectState,
   downloadProjectJson,
   SCHEMA_VERSION,
+  ACCEPTED_SCHEMA_VERSIONS,
 } from '../utils/projectState'
 import { readExportMeta, writeExportMeta, buildExportFilename, readLastBackup, writeLastBackup, formatLastBackup } from '../utils/exportMeta'
 import { THEME_LIGHT, THEME_DARK, readTheme, writeTheme, applyTheme } from '../utils/theme'
@@ -394,8 +395,8 @@ function Home() {
         if (!parsed || typeof parsed !== 'object') {
           setJsonResult({ ok: false, message: 'Invalid JSON: expected an object.' }); return
         }
-        if (parsed.schemaVersion !== SCHEMA_VERSION) {
-          setJsonResult({ ok: false, message: `Unsupported schema version ${parsed.schemaVersion}. Expected version ${SCHEMA_VERSION}.` }); return
+        if (!ACCEPTED_SCHEMA_VERSIONS.includes(parsed.schemaVersion)) {
+          setJsonResult({ ok: false, message: `Unsupported schema version ${parsed.schemaVersion}. Expected version 1 or 2.` }); return
         }
         if (!Array.isArray(parsed.controls)) {
           setJsonResult({ ok: false, message: 'Invalid JSON: "controls" must be an array.' }); return
@@ -420,6 +421,8 @@ function Home() {
           `${summary.statusesWritten} status${summary.statusesWritten === 1 ? '' : 'es'}, ` +
           `${summary.notesWritten} note${summary.notesWritten === 1 ? '' : 's'}, ` +
           `${summary.objectiveNotesWritten} objective note${summary.objectiveNotesWritten === 1 ? '' : 's'}` +
+          (summary.evidencePoolsWritten > 0 ? `, ${summary.evidencePoolsWritten} evidence pool${summary.evidencePoolsWritten === 1 ? '' : 's'}` : '') +
+          (summary.objectiveArtifactsWritten > 0 ? `, ${summary.objectiveArtifactsWritten} objective artifact set${summary.objectiveArtifactsWritten === 1 ? '' : 's'}` : '') +
           (summary.skippedUnknownId > 0 ? `, skipped ${summary.skippedUnknownId} unknown ID${summary.skippedUnknownId === 1 ? '' : 's'}` : '') + '.',
       })
       setRefreshKey((k) => k + 1)
@@ -724,6 +727,8 @@ function Home() {
               <li>Inheritance selections</li>
               <li>Control notes</li>
               <li>Objective notes</li>
+              <li>Evidence Pool entries</li>
+              <li>Objective artifact references</li>
             </ul>
             <p>This does not modify:</p>
             <ul>

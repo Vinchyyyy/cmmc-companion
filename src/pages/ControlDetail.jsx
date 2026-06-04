@@ -13,6 +13,8 @@ import {
   readInheritance,
   writeInheritance,
 } from '../utils/inheritance'
+import { readPool, writePool } from '../utils/evidencePool'
+import { readObjectiveArtifacts, writeObjectiveArtifacts } from '../utils/objectiveArtifacts'
 
 // scoring.js is intentionally NOT imported here — the Scoring & POA&M
 // section has been removed from the detail view. Metadata remains available
@@ -37,12 +39,22 @@ function ControlDetail() {
   const [note, setNote]               = useState(() => readNote(id))
   const [inheritance, setInheritance] = useState(() => readInheritance(id))
   const [objectiveNotes, setObjectiveNotes] = useState(() => loadObjectiveNotes(id, control))
+  const [pool, setPool]               = useState(() => readPool(id))
+  const [poolInput, setPoolInput]     = useState('')
+  const [objectiveArtifacts, setObjectiveArtifacts] = useState(() => loadObjectiveArtifacts(id, control))
+  const [objArtifactInputs, setObjArtifactInputs]   = useState({})
+  const [focusedObjId, setFocusedObjId]             = useState(null)
 
   useEffect(() => {
     setStatus(readStatus(id))
     setNote(readNote(id))
     setInheritance(readInheritance(id))
     setObjectiveNotes(loadObjectiveNotes(id, control))
+    setPool(readPool(id))
+    setPoolInput('')
+    setObjectiveArtifacts(loadObjectiveArtifacts(id, control))
+    setObjArtifactInputs({})
+    setFocusedObjId(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
@@ -59,6 +71,92 @@ function ControlDetail() {
     setObjectiveNotes(nextObjNotes)
     writeObjectiveNote(id, objId, value)
     syncAutoStatus(note, nextObjNotes, status, id, setStatus)
+  }
+
+  const commitPoolInput = (raw) => {
+    const trimmed = raw.trim()
+    if (!trimmed || pool.includes(trimmed)) { setPoolInput(''); return }
+    const next = [...pool, trimmed]
+    setPool(next)
+    writePool(id, next)
+    setPoolInput('')
+    promoteToInProgress(status, id, setStatus)
+  }
+
+  const handlePoolInputChange = (e) => { setPoolInput(e.target.value) }
+
+  const handlePoolKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault()
+      commitPoolInput(poolInput)
+    }
+  }
+
+  const handleRemovePoolItem = (item) => {
+    const nextPool = pool.filter((p) => p !== item)
+    setPool(nextPool)
+    writePool(id, nextPool)
+
+    // Cascade: remove this artifact from every objective's artifact list
+    const nextObjArtifacts = {}
+    for (const [objId, artifacts] of Object.entries(objectiveArtifacts)) {
+      const filtered = artifacts.filter((a) => a !== item)
+      nextObjArtifacts[objId] = filtered
+      writeObjectiveArtifacts(id, objId, filtered)
+    }
+    setObjectiveArtifacts(nextObjArtifacts)
+  }
+
+  const getObjSuggestions = (objId) => {
+    const input = (objArtifactInputs[objId] ?? '').trim()
+    if (!input) return []
+    const assigned = objectiveArtifacts[objId] ?? []
+    const lower = input.toLowerCase()
+    return pool.filter((item) => item.toLowerCase().includes(lower) && !assigned.includes(item))
+  }
+
+  const commitObjArtifact = (objId, raw) => {
+    const trimmed = raw.trim()
+    if (!trimmed) { setObjArtifactInputs((prev) => ({ ...prev, [objId]: '' })); return }
+
+    const current = objectiveArtifacts[objId] ?? []
+    const needsObjectiveUpdate = !current.includes(trimmed)
+    const needsPoolUpdate = !pool.includes(trimmed)
+
+    // Both already present — nothing to write
+    if (!needsObjectiveUpdate && !needsPoolUpdate) {
+      setObjArtifactInputs((prev) => ({ ...prev, [objId]: '' }))
+      return
+    }
+
+    if (needsObjectiveUpdate) {
+      const next = [...current, trimmed]
+      setObjectiveArtifacts((prev) => ({ ...prev, [objId]: next }))
+      writeObjectiveArtifacts(id, objId, next)
+    }
+
+    if (needsPoolUpdate) {
+      const nextPool = [...pool, trimmed]
+      setPool(nextPool)
+      writePool(id, nextPool)
+    }
+
+    promoteToInProgress(status, id, setStatus)
+    setObjArtifactInputs((prev) => ({ ...prev, [objId]: '' }))
+  }
+
+  const handleObjArtifactKeyDown = (e, objId) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault()
+      commitObjArtifact(objId, objArtifactInputs[objId] ?? '')
+    }
+  }
+
+  const handleRemoveObjArtifact = (objId, item) => {
+    const current = objectiveArtifacts[objId] ?? []
+    const next = current.filter((a) => a !== item)
+    setObjectiveArtifacts((prev) => ({ ...prev, [objId]: next }))
+    writeObjectiveArtifacts(id, objId, next)
   }
 
   if (!control) {
@@ -135,6 +233,40 @@ function ControlDetail() {
           />
         </div>
 
+        <div style={{ marginTop: 'var(--space-4)' }}>
+          <label htmlFor="pool-input">
+            <strong>Evidence Pool{pool.length > 0 ? ` (${pool.length})` : ''}</strong>
+          </label>
+          <p className="muted" style={{ fontSize: 'var(--text-xs)', margin: 'var(--space-1) 0 var(--space-2)' }}>
+            Artifact names only — no file contents, no sensitive data. Examples: SSP.pdf, RBAC Policy.docx
+          </p>
+          <input
+            id="pool-input"
+            type="text"
+            className="evidence-pool-input"
+            value={poolInput}
+            onChange={handlePoolInputChange}
+            onKeyDown={handlePoolKeyDown}
+            placeholder="Type an artifact name, press Enter or comma to add"
+            autoComplete="off"
+          />
+          {pool.length > 0 && (
+            <div className="evidence-chips">
+              {pool.map((item) => (
+                <span key={item} className="evidence-chip">
+                  <span className="evidence-chip-name" title={item}>{item}</span>
+                  <button
+                    type="button"
+                    className="evidence-chip-remove"
+                    onClick={() => handleRemovePoolItem(item)}
+                    aria-label={`Remove ${item} from Evidence Pool`}
+                  >×</button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="button-group">
           <Link to={`/relationships?control=${control.id}`}>
             <button>View Relationships</button>
@@ -159,6 +291,9 @@ function ControlDetail() {
         <h2>Assessment Objectives</h2>
         {control.objectives.map((obj) => {
           const objNoteId = `obj-note-${control.id}-${obj.id}`
+          const objArtifactInputId = `obj-artifacts-${control.id}-${obj.id}`
+          const suggestions = focusedObjId === obj.id ? getObjSuggestions(obj.id) : []
+          const assignedArtifacts = objectiveArtifacts[obj.id] ?? []
           return (
             <div key={obj.id} style={{ marginBottom: 'var(--space-6)' }}>
               <h3>
@@ -170,7 +305,56 @@ function ControlDetail() {
               <ul>
                 {obj.commonEvidence.map((item, i) => <li key={i}>{item}</li>)}
               </ul>
-              <div>
+
+              <div style={{ marginTop: 'var(--space-3)' }}>
+                <label htmlFor={objArtifactInputId}>
+                  <strong>Artifacts{assignedArtifacts.length > 0 ? ` (${assignedArtifacts.length})` : ''}</strong>
+                </label>
+                <div className="obj-artifact-input-wrap">
+                  <input
+                    id={objArtifactInputId}
+                    type="text"
+                    className="evidence-pool-input"
+                    value={objArtifactInputs[obj.id] ?? ''}
+                    onChange={(e) => setObjArtifactInputs((prev) => ({ ...prev, [obj.id]: e.target.value }))}
+                    onKeyDown={(e) => handleObjArtifactKeyDown(e, obj.id)}
+                    onFocus={() => setFocusedObjId(obj.id)}
+                    onBlur={() => setFocusedObjId(null)}
+                    placeholder={pool.length > 0 ? 'Type to filter pool entries, or enter a new name' : 'Type an artifact name, press Enter or comma to add'}
+                    autoComplete="off"
+                  />
+                  {suggestions.length > 0 && (
+                    <ul className="artifact-suggestions">
+                      {suggestions.map((s) => (
+                        <li
+                          key={s}
+                          className="artifact-suggestion-item"
+                          onMouseDown={(e) => { e.preventDefault(); commitObjArtifact(obj.id, s) }}
+                        >
+                          {s}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                {assignedArtifacts.length > 0 && (
+                  <div className="evidence-chips">
+                    {assignedArtifacts.map((item) => (
+                      <span key={item} className="evidence-chip">
+                        <span className="evidence-chip-name" title={item}>{item}</span>
+                        <button
+                          type="button"
+                          className="evidence-chip-remove"
+                          onClick={() => handleRemoveObjArtifact(obj.id, item)}
+                          aria-label={`Remove ${item} from objective ${obj.id}`}
+                        >×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ marginTop: 'var(--space-3)' }}>
                 <label htmlFor={objNoteId}>
                   <strong>Objective Notes</strong>
                 </label>
@@ -225,6 +409,14 @@ function ControlDetail() {
   )
 }
 
+// Artifact-driven promotion only. Never reverts — reversion stays note-driven
+// via syncAutoStatus.
+function promoteToInProgress(currentStatus, controlId, setStatus) {
+  if (currentStatus !== 'Not Started') return
+  writeStatus(controlId, 'In Progress')
+  setStatus('In Progress')
+}
+
 function syncAutoStatus(assessmentNote, objNotes, currentStatus, controlId, setStatus) {
   if (currentStatus !== 'Not Started' && currentStatus !== 'In Progress') return
   const allEmpty =
@@ -240,6 +432,13 @@ function loadObjectiveNotes(controlId, control) {
   if (!control) return {}
   const map = {}
   for (const obj of control.objectives) map[obj.id] = readObjectiveNote(controlId, obj.id)
+  return map
+}
+
+function loadObjectiveArtifacts(controlId, control) {
+  if (!control) return {}
+  const map = {}
+  for (const obj of control.objectives) map[obj.id] = readObjectiveArtifacts(controlId, obj.id)
   return map
 }
 

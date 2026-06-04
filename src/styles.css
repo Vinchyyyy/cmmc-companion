@@ -1208,3 +1208,110 @@ a:has(> button):hover {
   margin-top: var(--space-4);
   border-bottom: 1px solid var(--color-border);
 }
+
+/* -------------------------------------------------------------------------
+   Evidence Pool — chip input and artifact tags
+   ------------------------------------------------------------------------- */
+
+.evidence-pool-input {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-1);
+}
+
+.evidence-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.evidence-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text);
+  max-width: 320px;
+  line-height: var(--leading-tight);
+}
+
+.evidence-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.evidence-chip-remove {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0 var(--space-1);
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+  line-height: 1;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  transition: color var(--transition);
+}
+
+.evidence-chip-remove:hover {
+  color: var(--color-not-met);
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.evidence-chip-remove:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+/* -------------------------------------------------------------------------
+   Objective Artifacts — suggestion dropdown
+   ------------------------------------------------------------------------- */
+
+.obj-artifact-input-wrap {
+  position: relative;
+  margin-top: var(--space-1);
+}
+
+.artifact-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  list-style: none;
+  margin: 2px 0 0;
+  padding: var(--space-1) 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.artifact-suggestion-item {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  color: var(--color-text);
+  cursor: pointer;
+  margin-bottom: 0;
+  transition: background var(--transition), color var(--transition);
+}
+
+.artifact-suggestion-item:hover {
+  background: var(--color-accent-bg);
+  color: var(--color-accent);
+}
