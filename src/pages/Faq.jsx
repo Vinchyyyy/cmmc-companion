@@ -16,6 +16,16 @@ function Faq() {
       </section>
 
       <section>
+        <h2>Is this tool affiliated with a C3PAO, The Cyber AB, DIBCAC, NIST, or the Department of Defense?</h2>
+        <p>
+          No. CMMC Companion is an independently developed project created by Vincent Azada. It is
+          not affiliated with, endorsed by, sponsored by, or operated on behalf of any C3PAO, The
+          Cyber AB, DIBCAC, NIST, the Department of Defense, or any government agency. The tool is
+          intended to assist with assessment preparation and workflow organization only.
+        </p>
+      </section>
+
+      <section>
         <h2>Does this tool store data on a server?</h2>
         <p>
           No. Assessment data is stored locally within the browser using <code>localStorage</code>.

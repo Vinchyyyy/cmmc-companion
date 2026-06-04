@@ -14,7 +14,7 @@ function About() {
         <h2>Project Author</h2>
         <p>
           <strong>Vincent Azada, CCA</strong><br />
-          Certified CMMC Assessor (CCA)<br />
+          Certified CMMC Assessor (CCA), Spider-Man (SM)<br />
           Bachelor of Science in Cybersecurity &amp; Information Assurance
         </p>
         <p>
@@ -29,7 +29,31 @@ function About() {
         </p>
       </section>
 
-      {/* 2. Data Handling, Privacy & Limitations */}
+      {/* 2. Copyright & Ownership */}
+      <section>
+        <h2>Copyright &amp; Ownership</h2>
+        <p>Copyright &copy; 2026 Vincent Azada. All rights reserved.</p>
+        <p>
+          CMMC Companion is proprietary software and an independent personal project created and
+          maintained by Vincent Azada.
+        </p>
+        <p>
+          Unauthorized reproduction, redistribution, resale, commercial repackaging, or creation
+          of derivative works is prohibited without prior written permission from the author.
+        </p>
+
+        <h3>Independence &amp; Affiliation</h3>
+        <ul>
+          <li>CMMC Companion is an independently developed software project.</li>
+          <li>This project is not affiliated with, endorsed by, sponsored by, operated by, or maintained on behalf of any C3PAO.</li>
+          <li>This project is not affiliated with The Cyber AB, DIBCAC, the Department of Defense, NIST, or any government agency.</li>
+          <li>References to CMMC, NIST publications, assessment methodologies, controls, objectives, evidence requirements, and assessment workflows are provided solely for educational and workflow-support purposes.</li>
+          <li>Use of this software does not constitute an official assessment, certification, validation, consulting engagement, or compliance determination.</li>
+          <li>Users remain solely responsible for assessment decisions, evidence evaluation, documentation, and compliance determinations.</li>
+        </ul>
+      </section>
+
+      {/* 3. Data Handling, Privacy & Limitations */}
       <section>
         <h2>Data Handling, Privacy &amp; Limitations</h2>
 
@@ -103,7 +127,7 @@ function About() {
         </p>
       </section>
 
-      {/* 3. How to Use */}
+      {/* 4. How to Use */}
       <section>
         <h2>How to Use</h2>
         <ul>
@@ -116,7 +140,7 @@ function About() {
         </ul>
       </section>
 
-      {/* 4. Dataset */}
+      {/* 5. Dataset */}
       <section>
         <h2>Dataset</h2>
         <p>All data is derived from official CMMC and NIST source documents.</p>
@@ -137,7 +161,7 @@ function About() {
         </table>
       </section>
 
-      {/* 5. Source Methodology */}
+      {/* 6. Source Methodology */}
       <section>
         <h2>Source Methodology</h2>
         <p>Control data, scoring, and POA&amp;M eligibility are derived from:</p>

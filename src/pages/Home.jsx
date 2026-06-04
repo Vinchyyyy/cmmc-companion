@@ -669,6 +669,9 @@ function Home() {
       <p className="muted" style={{ fontSize: 'var(--text-xs)', marginTop: 'var(--space-2)' }}>
         Version {APP_VERSION} — {APP_DEPLOYMENT}
       </p>
+      <p className="muted" style={{ fontSize: 'var(--text-xs)', marginTop: 'var(--space-1)' }}>
+        Copyright &copy; 2026 Vincent Azada. Independent project. All rights reserved.
+      </p>
 
       {exportDialog && (
         <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="export-dialog-title">
