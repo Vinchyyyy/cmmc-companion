@@ -47,12 +47,18 @@ function ControlDetail() {
   }, [id])
 
   const handleStatusChange      = (e) => { const v = e.target.value; setStatus(v); writeStatus(id, v) }
-  const handleNoteChange        = (e) => { const v = e.target.value; setNote(v); writeNote(id, v); promoteIfNotStarted(v, status, id, setStatus) }
+  const handleNoteChange        = (e) => {
+    const v = e.target.value
+    setNote(v)
+    writeNote(id, v)
+    syncAutoStatus(v, objectiveNotes, status, id, setStatus)
+  }
   const handleInheritanceChange = (e) => { const v = e.target.value; setInheritance(v); writeInheritance(id, v) }
   const handleObjectiveNoteChange = (objId, value) => {
-    setObjectiveNotes((prev) => ({ ...prev, [objId]: value }))
+    const nextObjNotes = { ...objectiveNotes, [objId]: value }
+    setObjectiveNotes(nextObjNotes)
     writeObjectiveNote(id, objId, value)
-    promoteIfNotStarted(value, status, id, setStatus)
+    syncAutoStatus(note, nextObjNotes, status, id, setStatus)
   }
 
   if (!control) {
@@ -219,11 +225,15 @@ function ControlDetail() {
   )
 }
 
-function promoteIfNotStarted(newValue, currentStatus, controlId, setStatus) {
-  if (currentStatus === 'Not Started' && newValue.trim() !== '') {
-    writeStatus(controlId, 'In Progress')
-    setStatus('In Progress')
-  }
+function syncAutoStatus(assessmentNote, objNotes, currentStatus, controlId, setStatus) {
+  if (currentStatus !== 'Not Started' && currentStatus !== 'In Progress') return
+  const allEmpty =
+    assessmentNote.trim() === '' &&
+    Object.values(objNotes).every((v) => (v ?? '').trim() === '')
+  const targetStatus = allEmpty ? 'Not Started' : 'In Progress'
+  if (targetStatus === currentStatus) return
+  writeStatus(controlId, targetStatus)
+  setStatus(targetStatus)
 }
 
 function loadObjectiveNotes(controlId, control) {
