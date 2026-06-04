@@ -1,5 +1,34 @@
 const OSC_KEY        = 'cmmc-export-osc'
 const ASSESSMENT_KEY = 'cmmc-export-assessment'
+const LAST_BACKUP_KEY = 'cmmc-last-backup'
+
+export function readLastBackup() {
+  try {
+    return localStorage.getItem(LAST_BACKUP_KEY) ?? null
+  } catch {
+    return null
+  }
+}
+
+export function writeLastBackup() {
+  try {
+    localStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString())
+  } catch {
+    // localStorage unavailable — proceed silently
+  }
+}
+
+export function formatLastBackup(isoString) {
+  if (!isoString) return 'Never'
+  try {
+    return new Date(isoString).toLocaleString(undefined, {
+      year: 'numeric', month: 'long', day: 'numeric',
+      hour: 'numeric', minute: '2-digit',
+    })
+  } catch {
+    return 'Unknown'
+  }
+}
 
 export function readExportMeta() {
   try {

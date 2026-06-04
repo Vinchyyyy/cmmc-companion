@@ -12,8 +12,9 @@ import {
   downloadProjectJson,
   SCHEMA_VERSION,
 } from '../utils/projectState'
-import { readExportMeta, writeExportMeta, buildExportFilename } from '../utils/exportMeta'
+import { readExportMeta, writeExportMeta, buildExportFilename, readLastBackup, writeLastBackup, formatLastBackup } from '../utils/exportMeta'
 import { THEME_LIGHT, THEME_DARK, readTheme, writeTheme, applyTheme } from '../utils/theme'
+import { APP_VERSION, APP_DEPLOYMENT } from '../utils/version'
 
 const KNOWN_CONTROL_IDS = new Set(controls.map((c) => c.id))
 
@@ -225,6 +226,7 @@ function Home() {
   // exportDialog: null (closed) | { mode: 'csv'|'json', osc: string, assessment: string }
   const [exportDialog, setExportDialog] = useState(null)
   const [pendingJsonImport, setPendingJsonImport] = useState(null)
+  const [lastBackup, setLastBackup] = useState(() => readLastBackup())
   const [theme, setTheme] = useState(() => readTheme())
 
   const toggleTheme = () => {
@@ -283,6 +285,8 @@ function Home() {
       const filename = buildExportFilename(osc, assessment, 'ProjectBackup', 'json')
       const state = exportProjectState(controls)
       downloadProjectJson(state, filename)
+      writeLastBackup()
+      setLastBackup(readLastBackup())
       setJsonResult({ ok: true, message: `Project exported — ${controls.length} controls, schema v${SCHEMA_VERSION}.` })
     }
     closeExportDialog()
@@ -642,6 +646,9 @@ function Home() {
         <p className="io-description">
           Tip: CSV exports are best for sharing assessment progress. JSON exports are intended for full project backup and recovery.
         </p>
+        <p className="muted" style={{ fontSize: 'var(--text-xs)', marginTop: 'var(--space-2)' }}>
+          Last Project Backup: <strong style={{ fontWeight: 500 }}>{formatLastBackup(lastBackup)}</strong>
+        </p>
       </section>
 
       <div className="home-footer-row">
@@ -658,6 +665,10 @@ function Home() {
           {theme === THEME_LIGHT ? 'Dark' : 'Light'}
         </button>
       </div>
+
+      <p className="muted" style={{ fontSize: 'var(--text-xs)', marginTop: 'var(--space-2)' }}>
+        Version {APP_VERSION} — {APP_DEPLOYMENT}
+      </p>
 
       {exportDialog && (
         <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="export-dialog-title">
