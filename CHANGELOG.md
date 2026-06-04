@@ -1,4 +1,40 @@
 
+## Version 1.1.2 — Assessment Workflow & Disclosure Update
+Date: June 4, 2026
+
+### Assessment Workflow
+- Auto-resizing textareas — Assessment Notes and all Objective Notes in ControlDetail now expand automatically as content grows and shrink when content is removed; no internal scrollbar during normal use; implemented via a reusable `AutoResizeTextarea` component (`src/components/AutoResizeTextarea.jsx`)
+- Auto-status promotion — typing into any note field on a Not Started control automatically promotes it to In Progress; implemented via `syncAutoStatus()` helper in ControlDetail.jsx
+- Auto-status demotion — clearing all note fields on an In Progress control automatically reverts it to Not Started; evaluated across Assessment Notes and all Objective Notes together
+- Auto-status guards — MET and NOT MET statuses are never modified by auto-promotion or demotion; only Not Started ↔ In Progress transitions are automatic; manual dropdown changes are unaffected
+- Hide MET controls toggle — Control Library now includes a persistent checkbox to hide MET controls from the list; preference stored in localStorage (`cmmc-hide-met-controls`); helper text displayed when active; if the Status filter is explicitly set to MET, MET controls are shown regardless of toggle; toggle is not reset by Clear Filters
+
+### Legal & Ownership
+- Added Copyright & Ownership section to About page — copyright notice, proprietary software statement, unauthorized use prohibition
+- Added Independence & Affiliation subsection to About page — six-point disclosure establishing independence from C3PAOs, The Cyber AB, DIBCAC, DoD, NIST, and government agencies; clarifying that use does not constitute an official assessment or compliance determination
+- Added copyright footer to Home page — muted line beneath version information
+- Added affiliation FAQ entry to FAQ page — positioned second (directly after official-assessment-tool question) to address primary reviewer concern early
+
+### Infrastructure
+- No changes to data files, control definitions, evidence mappings, relationship definitions, scoring metadata, routing, validator, or export/import logic
+
+### Validation
+- Controls: 110
+- Evidence Types: 130
+- Relationships: 189
+- Families: 14/14
+- Validator: Pass
+
+### Deployment Status
+- Status: Production
+- GitHub: https://github.com/Vinchyyyy/cmmc-companion
+- Cloudflare Pages: https://cmmc-companion.pages.dev
+
+### Notes
+No assessment data was modified. All changes are UI behavior, component architecture, and legal disclosure additions. The `AutoResizeTextarea` component is the only new file introduced.
+
+---
+
 ## Version 1.1.1 — Production Readiness, Security & Usability Update
 Date: June 3, 2026
 
