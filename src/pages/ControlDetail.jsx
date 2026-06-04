@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import AutoResizeTextarea from '../components/AutoResizeTextarea'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
 import controls from '../data/controls/index.js'
 import evidenceTypes from '../data/evidence/index.js'
@@ -118,7 +119,7 @@ function ControlDetail() {
           <label htmlFor="assessment-notes">
             <strong>Assessment Notes</strong>
           </label>
-          <textarea
+          <AutoResizeTextarea
             id="assessment-notes"
             value={note}
             onChange={handleNoteChange}
@@ -166,7 +167,7 @@ function ControlDetail() {
                 <label htmlFor={objNoteId}>
                   <strong>Objective Notes</strong>
                 </label>
-                <textarea
+                <AutoResizeTextarea
                   id={objNoteId}
                   value={objectiveNotes[obj.id] ?? ''}
                   onChange={(e) => handleObjectiveNoteChange(obj.id, e.target.value)}
