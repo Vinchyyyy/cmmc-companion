@@ -576,25 +576,31 @@ function Home() {
           </div>
         )}
 
-        {/* Clickable status rows */}
-        <ul className="status-summary">
-          <li className="status-summary-row">
-            <span>Total Controls</span>
-            <span>{total}</span>
-          </li>
-          {STATUSES.map((status) => (
-            <li key={status}>
+        {/* Total Controls */}
+        <p className="status-total-row">
+          <span className="muted" style={{ fontSize: 'var(--text-sm)' }}>Total Controls</span>
+          <strong style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-sm)' }}>{total}</strong>
+        </p>
+
+        {/* 2×2 status grid */}
+        <div className="status-grid">
+          {STATUSES.map((status) => {
+            const count = counts[status]
+            const pct   = total === 0 ? 0 : Math.round((count / total) * 100)
+            return (
               <Link
+                key={status}
                 to={libraryUrlForStatus(status, selectedFamily)}
-                className="status-summary-row status-summary-link"
-                title={`View ${counts[status]} ${status} control${counts[status] === 1 ? '' : 's'}`}
+                className={`status-card status-card--${STATUS_BADGE_CLASS[status].replace('status-badge--', '')}`}
+                title={`View ${count} ${status} control${count === 1 ? '' : 's'}`}
               >
-                <span className={`status-badge ${STATUS_BADGE_CLASS[status]}`}>{status}</span>
-                <span>{counts[status]}</span>
+                <span className="status-card-label">{status}</span>
+                <span className="status-card-count">{count}</span>
+                <span className="status-card-pct">{pct}%</span>
               </Link>
-            </li>
-          ))}
-        </ul>
+            )
+          })}
+        </div>
 
         {/* CSV */}
         <p className="muted" style={{ marginBottom: 'var(--space-1)', fontSize: 'var(--text-xs)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
