@@ -120,6 +120,11 @@
 /* Hardcoded color overrides — badges and interactive states that use
    literal hex values instead of variables */
 
+[data-theme="dark"] .nav {
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+}
+
 [data-theme="dark"] input[type="text"]:hover,
 [data-theme="dark"] input[type="search"]:hover,
 [data-theme="dark"] select:hover,
@@ -273,7 +278,7 @@ section {
    ------------------------------------------------------------------------- */
 
 .nav {
-  background: var(--color-text);
+  background: #1f2328;
   padding: var(--space-4) var(--space-6);
   display: flex;
   gap: var(--space-6);
