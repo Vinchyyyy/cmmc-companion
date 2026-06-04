@@ -47,11 +47,12 @@ function ControlDetail() {
   }, [id])
 
   const handleStatusChange      = (e) => { const v = e.target.value; setStatus(v); writeStatus(id, v) }
-  const handleNoteChange        = (e) => { const v = e.target.value; setNote(v); writeNote(id, v) }
+  const handleNoteChange        = (e) => { const v = e.target.value; setNote(v); writeNote(id, v); promoteIfNotStarted(v, status, id, setStatus) }
   const handleInheritanceChange = (e) => { const v = e.target.value; setInheritance(v); writeInheritance(id, v) }
   const handleObjectiveNoteChange = (objId, value) => {
     setObjectiveNotes((prev) => ({ ...prev, [objId]: value }))
     writeObjectiveNote(id, objId, value)
+    promoteIfNotStarted(value, status, id, setStatus)
   }
 
   if (!control) {
@@ -216,6 +217,13 @@ function ControlDetail() {
       </section>
     </div>
   )
+}
+
+function promoteIfNotStarted(newValue, currentStatus, controlId, setStatus) {
+  if (currentStatus === 'Not Started' && newValue.trim() !== '') {
+    writeStatus(controlId, 'In Progress')
+    setStatus('In Progress')
+  }
 }
 
 function loadObjectiveNotes(controlId, control) {
