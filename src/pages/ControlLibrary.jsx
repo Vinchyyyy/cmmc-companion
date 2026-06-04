@@ -69,7 +69,14 @@ function ControlLibrary() {
   const [selected, setSelected]       = useState(new Set())
   const [updateKey, setUpdateKey]     = useState(0)
   const [confirmClear, setConfirmClear] = useState(false)
+  const [hideMet, setHideMet] = useState(() => localStorage.getItem('cmmc-hide-met-controls') === 'true')
   const forceUpdate = () => setUpdateKey((k) => k + 1)
+
+  const toggleHideMet = () => setHideMet((prev) => {
+    const next = !prev
+    localStorage.setItem('cmmc-hide-met-controls', String(next))
+    return next
+  })
 
   useEffect(() => { setSearchInput(urlSearch) }, [urlSearch])
 
@@ -129,10 +136,16 @@ function ControlLibrary() {
     return poamFilter === 'Allowed' ? isPoamAllowed(c.id) : !isPoamAllowed(c.id)
   }
 
+  const matchesHideMet = (c) => {
+    if (!hideMet || statusFilter === 'MET') return true
+    return readStatus(c.id) !== 'MET'
+  }
+
   // Preserve official index.js order — do NOT sort by compareIds
   const results = controls.filter((c) =>
     matchesSearch(c) && matchesFamily(c) && matchesStatus(c) &&
-    matchesNotes(c) && matchesInheritance(c) && matchesScore(c) && matchesPoam(c)
+    matchesNotes(c) && matchesInheritance(c) && matchesScore(c) && matchesPoam(c) &&
+    matchesHideMet(c)
   )
 
   // Group by family in official CMMC order
@@ -247,6 +260,18 @@ function ControlLibrary() {
           Clear Filters
         </button>
       </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginTop: 'var(--space-3)' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', fontSize: 'var(--text-sm)' }}>
+          <input type="checkbox" checked={hideMet} onChange={toggleHideMet} />
+          Hide MET controls
+        </label>
+      </div>
+      {hideMet && statusFilter !== 'MET' && (
+        <p className="muted" style={{ fontSize: 'var(--text-xs)', marginTop: 'var(--space-1)' }}>
+          MET controls are hidden. Use the Status filter to view MET controls.
+        </p>
+      )}
 
       <p className="result-count">
         Showing {results.length} of {controls.length} controls
