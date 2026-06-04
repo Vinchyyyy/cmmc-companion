@@ -9,10 +9,63 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v1.1.1 — current release, open by default */}
+      {/* v1.1.2 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v{APP_VERSION}</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span>Workflow &amp; Ownership Update</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 4, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Workflow</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Auto-resizing Assessment Notes textareas — height expands as content grows, shrinks when content is removed, no internal scrollbar during normal use</li>
+              <li>Auto-resizing Objective Notes textareas — same behavior for all per-objective note fields</li>
+              <li>Automatic Not Started → In Progress promotion — typing into any note field on a Not Started control automatically promotes it to In Progress</li>
+              <li>Automatic In Progress → Not Started reversion — clearing all note fields on an In Progress control automatically reverts it to Not Started</li>
+              <li>MET and NOT MET statuses protected — automatic status changes never affect controls marked MET or NOT MET; manual dropdown changes are unaffected</li>
+              <li>Hide MET Controls toggle added to Control Library — hides MET controls from the list to let assessors focus on remaining work</li>
+              <li>Hide MET Controls preference persists between sessions via localStorage</li>
+              <li>If Status filter is explicitly set to MET, MET controls are shown regardless of the hide toggle</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Ownership &amp; Disclosure</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added Copyright &amp; Ownership section to About page — copyright notice, proprietary software statement, unauthorized use prohibition</li>
+              <li>Added Independence &amp; Affiliation disclosures to About page — six-point statement establishing independence from C3PAOs, The Cyber AB, DIBCAC, DoD, NIST, and government agencies</li>
+              <li>Added copyright footer to Home page — muted line beneath version information</li>
+              <li>Added affiliation FAQ entry — positioned second (directly after official-assessment-tool question) to address primary reviewer concern early</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Project Personality</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added "Certified CMMC Assessor (CCA), Spider-Man (SM)" credential line to About page author section</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Dataset unchanged — no control, evidence, or relationship modifications</li>
+              <li>Controls: 110 · Evidence types: 130 · Relationships: 189 · Families: 14/14</li>
+              <li>Validator: Pass</li>
+            </ul>
+          </section>
+
+        </div>
+      </details>
+
+      {/* v1.1.1 — collapsed by default */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v1.1.1</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
           <span>Production Readiness, Security &amp; Usability Update</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 3, 2026</span>
