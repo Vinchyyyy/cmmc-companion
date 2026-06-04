@@ -1,14 +1,85 @@
+import { APP_VERSION } from '../utils/version'
+
 function Changelog() {
   return (
     <div className="page">
       <h1>Version History</h1>
       <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-6)' }}>
         A curated release history for CMMC Companion, focused on major milestones rather than every internal development note.
+        Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
+      {/* v1.1.1 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v1.0.0</span>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v{APP_VERSION}</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span>Production Readiness, Security &amp; Usability Update</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 3, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Workflow</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Improved assessment progress dashboard — replaced status list with a 2×2 status card grid showing count and percentage per status</li>
+              <li>Status cards are clickable — link to Control Library filtered by status and family</li>
+              <li>Added bulk action safeguard — Clear Data now requires confirmation before overwriting any control data</li>
+              <li>Fixed bulk status update and bulk Clear Data — both were silently failing due to a missing import</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Import &amp; Export</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>OSC / Client Name and Assessment Name prompts before CSV and JSON exports — pre-filled from previous export</li>
+              <li>Timestamped filenames (<code>YYYY-MM-DD_HHMM</code> using local browser time) to prevent same-day collisions</li>
+              <li>Last Project Backup indicator on Home page — shows when the most recent JSON backup was created</li>
+              <li>CSV import: <code>.csv</code> extension required, MIME allowlist enforced, 1 MB size limit</li>
+              <li>JSON import: <code>.json</code> extension required, MIME allowlist enforced, 2 MB size limit</li>
+              <li>JSON restore confirmation dialog — shows exactly what will and will not be overwritten before restoring; Cancel discards with no side effects</li>
+              <li>Added import/export section descriptions on Home page for first-time orientation</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Security &amp; Privacy</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Reworked About page — consolidated Data &amp; Privacy and Limitations into a single structured section covering intended use, prohibited content, storage architecture, export responsibility, and limitations</li>
+              <li>Added explicit guidance against storing CUI, SSPs, network diagrams, system inventories, device configurations, screenshots, or sensitive customer documentation</li>
+              <li>Clarified that no assessment data is transmitted to the developer, GitHub, or Cloudflare</li>
+              <li>Added FAQ page covering 13 common questions: official tool status, server storage, CUI policy, multi-assessor sharing, browser data loss, import transmission, import protections, export format differences, internet requirements, dataset updates, tool origin, data encryption, and external file sharing</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>User Experience</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Light / Dark theme toggle with localStorage persistence — preference survives page refresh</li>
+              <li>Flash prevention on hard reload — theme applied before React boots via inline head script</li>
+              <li>Navigation bar permanently dark in both themes for consistent visual identity</li>
+              <li>Application version and deployment environment displayed on Home page</li>
+              <li>FAQ added to navigation between About and Changelog</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Infrastructure</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>First GitHub production release — <a href="https://github.com/Vinchyyyy/cmmc-companion" target="_blank" rel="noopener noreferrer">github.com/Vinchyyyy/cmmc-companion</a></li>
+              <li>First Cloudflare Pages deployment — <a href="https://cmmc-companion.pages.dev" target="_blank" rel="noopener noreferrer">cmmc-companion.pages.dev</a></li>
+              <li>Automatic CI/CD deployment enabled — push to <code>main</code> triggers build and deploy</li>
+              <li>SPA routing confirmed working via <code>public/_redirects</code></li>
+            </ul>
+          </section>
+
+        </div>
+      </details>
+
+      {/* v1.0.0 — collapsed by default */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v1.0.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
           <span>Initial V1 Release</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 3, 2026</span>
