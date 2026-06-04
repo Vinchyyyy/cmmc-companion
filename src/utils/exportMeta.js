@@ -35,30 +35,37 @@ function sanitizeSegment(s) {
     .replace(/^_+|_+$/g, '')
 }
 
+function pad2(n) { return String(n).padStart(2, '0') }
+
 // Build an export filename from optional OSC and assessment name.
+// Timestamp uses local browser time in YYYY-MM-DD_HHMM format.
 //
 // suffix: 'AssessmentProgress' | 'ProjectBackup'
 // ext:    'csv' | 'json'
 //
 // Examples:
 //   ('Acme Corp', 'Q2 2026', 'AssessmentProgress', 'csv')
-//     → 'Acme_Corp_Q2_2026_AssessmentProgress_2026-06-03.csv'
+//     → 'Acme_Corp_Q2_2026_AssessmentProgress_2026-06-03_1642.csv'
 //   ('Acme Corp', '', 'ProjectBackup', 'json')
-//     → 'Acme_Corp_ProjectBackup_2026-06-03.json'
+//     → 'Acme_Corp_ProjectBackup_2026-06-03_1642.json'
 //   ('', '', 'AssessmentProgress', 'csv')
-//     → 'CMMC_Companion_AssessmentProgress_2026-06-03.csv'
+//     → 'CMMC_Companion_AssessmentProgress_2026-06-03_1642.csv'
 export function buildExportFilename(osc, assessment, suffix, ext) {
-  const date           = new Date().toISOString().split('T')[0]
-  const cleanOsc       = sanitizeSegment(osc)
+  const now  = new Date()
+  const date = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`
+  const hhmm = `${pad2(now.getHours())}${pad2(now.getMinutes())}`
+  const ts   = `${date}_${hhmm}`
+
+  const cleanOsc        = sanitizeSegment(osc)
   const cleanAssessment = sanitizeSegment(assessment)
 
   if (!cleanOsc) {
-    return `CMMC_Companion_${suffix}_${date}.${ext}`
+    return `CMMC_Companion_${suffix}_${ts}.${ext}`
   }
 
   const parts = [cleanOsc]
   if (cleanAssessment) parts.push(cleanAssessment)
-  parts.push(suffix, date)
+  parts.push(suffix, ts)
 
   return parts.join('_') + '.' + ext
 }

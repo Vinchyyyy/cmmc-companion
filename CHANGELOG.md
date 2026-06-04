@@ -1,4 +1,42 @@
 
+## Version 1.1.1 — Import Hardening and Export Improvements
+Date: June 3, 2026
+
+### Summary
+Defensive-depth hardening of the CSV and JSON import pipeline. Extension-first file validation, size limits, and a restore confirmation dialog for JSON imports prevent accidental misuse and address supervisor and security-review concerns about file handling. Export filenames now include a local-time `HHMM` component to prevent same-day collisions.
+
+### Features Added
+- **JSON restore confirmation dialog** — importing a project backup now shows a confirmation dialog before overwriting any data. The dialog lists exactly what will and will not be affected and confirms that files are processed locally and not uploaded to a server. Cancel discards the pending import with no side effects.
+- **Export filename timestamps** — filenames now include `YYYY-MM-DD_HHMM` using local browser time. Multiple exports on the same day no longer collide.
+
+### Fixes / Hardening
+- **CSV import: extension validation** — files must have a `.csv` extension; files without it are rejected even if the MIME type is `text/plain`
+- **CSV import: MIME type validation** — accepted MIME types: `text/csv`, `application/csv`, `application/vnd.ms-excel`, `text/plain`, empty string (for browsers that do not populate `file.type`); all others rejected with a clear error message
+- **CSV import: size limit** — files larger than 1 MB are rejected before reading
+- **JSON import: extension validation** — files must have a `.json` extension; files without it are rejected even if the MIME type is `text/plain`
+- **JSON import: MIME type validation** — accepted MIME types: `application/json`, `text/plain`, empty string; all others rejected
+- **JSON import: size limit** — files larger than 2 MB are rejected before reading
+- **JSON import: pre-validation before dialog** — schema version and structural checks run before the confirmation dialog appears; malformed files surface errors immediately without prompting
+
+### Infrastructure
+- No changes to data files, routing, validator, theme system, or deployment configuration
+
+### Validation
+- Controls: 110
+- Evidence Types: 130
+- Relationships: 189
+- Families: 14/14
+- Validator: Pass
+
+### Deployment Status
+- GitHub: Yes
+- Cloudflare Pages: Yes — auto-deploys on push to `main`
+
+### Notes
+Extension is the primary validation control. MIME type is browser-determined and inconsistent across platforms; a `.txt` file will not pass as a `.csv` or `.json` regardless of its MIME type. Size limits (1 MB CSV / 2 MB JSON) are orders of magnitude larger than any legitimate CMMC Companion export (~15 KB for a full 110-control JSON backup).
+
+---
+
 ## Version 1.0.1 — First Production Deployment
 Date: June 3, 2026
 

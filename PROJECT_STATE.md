@@ -3,6 +3,7 @@
 
 | Version | Date | Summary |
 |---|---|---|
+| 1.1.1 | June 3, 2026 | Import hardening (extension + MIME + size validation, JSON restore confirmation); export filename timestamps |
 | 1.0.1 | June 3, 2026 | First production deployment; bulk Clear Data / Set Status bug fix; Clear Data confirmation dialog |
 | 1.0.0 | June 3, 2026 | Initial release — all 14 CMMC Level 2 families complete |
 

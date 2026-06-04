@@ -224,6 +224,7 @@ function Home() {
   const [selectedFamily, setSelectedFamily] = useState('All')
   // exportDialog: null (closed) | { mode: 'csv'|'json', osc: string, assessment: string }
   const [exportDialog, setExportDialog] = useState(null)
+  const [pendingJsonImport, setPendingJsonImport] = useState(null)
   const [theme, setTheme] = useState(() => readTheme())
 
   const toggleTheme = () => {
@@ -289,10 +290,27 @@ function Home() {
 
   const handleCsvImportClick = () => csvFileRef.current?.click()
 
+  const CSV_MAX_BYTES = 1 * 1024 * 1024  // 1 MB
+  const CSV_ALLOWED_TYPES = new Set(['text/csv', 'application/csv', 'application/vnd.ms-excel', 'text/plain', ''])
+
   const handleCsvFileChange = (e) => {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
+
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      setCsvResult({ ok: false, message: 'Invalid file. Please select a .csv file.' })
+      return
+    }
+    if (!CSV_ALLOWED_TYPES.has(file.type)) {
+      setCsvResult({ ok: false, message: `Unexpected file type "${file.type}". Please select a valid CSV file.` })
+      return
+    }
+    if (file.size > CSV_MAX_BYTES) {
+      setCsvResult({ ok: false, message: 'File too large. CSV imports must be under 1 MB.' })
+      return
+    }
+
     const reader = new FileReader()
     reader.onload = () => {
       try { processCsv(String(reader.result ?? '')) }
@@ -342,25 +360,43 @@ function Home() {
 
   const handleJsonImportClick = () => jsonFileRef.current?.click()
 
+  const JSON_MAX_BYTES = 2 * 1024 * 1024  // 2 MB
+  const JSON_ALLOWED_TYPES = new Set(['application/json', 'text/plain', ''])
+
   const handleJsonFileChange = (e) => {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
+
+    if (!file.name.toLowerCase().endsWith('.json')) {
+      setJsonResult({ ok: false, message: 'Invalid file. Please select a .json file.' })
+      return
+    }
+    if (!JSON_ALLOWED_TYPES.has(file.type)) {
+      setJsonResult({ ok: false, message: `Unexpected file type "${file.type}". Please select a valid JSON file.` })
+      return
+    }
+    if (file.size > JSON_MAX_BYTES) {
+      setJsonResult({ ok: false, message: 'File too large. JSON imports must be under 2 MB.' })
+      return
+    }
+
     const reader = new FileReader()
     reader.onload = () => {
       try {
         const parsed = JSON.parse(String(reader.result ?? ''))
-        const summary = importProjectState(parsed, controls)
-        if (!summary.ok) { setJsonResult({ ok: false, message: summary.error }); return }
-        setJsonResult({
-          ok: true,
-          message: `Restored ${summary.controlsProcessed} controls — ` +
-            `${summary.statusesWritten} status${summary.statusesWritten === 1 ? '' : 'es'}, ` +
-            `${summary.notesWritten} note${summary.notesWritten === 1 ? '' : 's'}, ` +
-            `${summary.objectiveNotesWritten} objective note${summary.objectiveNotesWritten === 1 ? '' : 's'}` +
-            (summary.skippedUnknownId > 0 ? `, skipped ${summary.skippedUnknownId} unknown ID${summary.skippedUnknownId === 1 ? '' : 's'}` : '') + '.',
-        })
-        setRefreshKey((k) => k + 1)
+        // Pre-validate structure before showing the confirm dialog so errors
+        // surface immediately rather than after the user clicks Restore Backup
+        if (!parsed || typeof parsed !== 'object') {
+          setJsonResult({ ok: false, message: 'Invalid JSON: expected an object.' }); return
+        }
+        if (parsed.schemaVersion !== SCHEMA_VERSION) {
+          setJsonResult({ ok: false, message: `Unsupported schema version ${parsed.schemaVersion}. Expected version ${SCHEMA_VERSION}.` }); return
+        }
+        if (!Array.isArray(parsed.controls)) {
+          setJsonResult({ ok: false, message: 'Invalid JSON: "controls" must be an array.' }); return
+        }
+        setPendingJsonImport(parsed)
       } catch {
         setJsonResult({ ok: false, message: 'Could not parse file — is it a valid CMMC Companion project JSON?' })
       }
@@ -368,6 +404,29 @@ function Home() {
     reader.onerror = () => setJsonResult({ ok: false, message: 'Could not read file.' })
     reader.readAsText(file)
   }
+
+  const confirmJsonRestore = () => {
+    if (!pendingJsonImport) return
+    try {
+      const summary = importProjectState(pendingJsonImport, controls)
+      if (!summary.ok) { setJsonResult({ ok: false, message: summary.error }); return }
+      setJsonResult({
+        ok: true,
+        message: `Restored ${summary.controlsProcessed} controls — ` +
+          `${summary.statusesWritten} status${summary.statusesWritten === 1 ? '' : 'es'}, ` +
+          `${summary.notesWritten} note${summary.notesWritten === 1 ? '' : 's'}, ` +
+          `${summary.objectiveNotesWritten} objective note${summary.objectiveNotesWritten === 1 ? '' : 's'}` +
+          (summary.skippedUnknownId > 0 ? `, skipped ${summary.skippedUnknownId} unknown ID${summary.skippedUnknownId === 1 ? '' : 's'}` : '') + '.',
+      })
+      setRefreshKey((k) => k + 1)
+    } catch {
+      setJsonResult({ ok: false, message: 'Restore failed — unexpected error.' })
+    } finally {
+      setPendingJsonImport(null)
+    }
+  }
+
+  const cancelJsonRestore = () => setPendingJsonImport(null)
 
   // -----------------------------------------------------------------------
   // Render
@@ -629,6 +688,34 @@ function Home() {
               <button onClick={confirmExport}>
                 {exportDialog.mode === 'csv' ? 'Export CSV' : 'Create Backup'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pendingJsonImport && (
+        <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="restore-dialog-title">
+          <div className="confirm-dialog">
+            <h2 id="restore-dialog-title">Restore Project Backup?</h2>
+            <p>This will replace your current browser project data with the selected backup file.</p>
+            <p>This may overwrite:</p>
+            <ul>
+              <li>Control statuses</li>
+              <li>Inheritance selections</li>
+              <li>Control notes</li>
+              <li>Objective notes</li>
+            </ul>
+            <p>This does not modify:</p>
+            <ul>
+              <li>Control definitions</li>
+              <li>Scoring metadata</li>
+              <li>Evidence mappings</li>
+              <li>Relationships</li>
+            </ul>
+            <p>Files are processed locally in your browser and are not uploaded to a server.</p>
+            <div className="confirm-dialog-buttons">
+              <button onClick={cancelJsonRestore}>Cancel</button>
+              <button className="bulk-toolbar-danger" onClick={confirmJsonRestore}>Restore Backup</button>
             </div>
           </div>
         </div>
