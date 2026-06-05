@@ -689,7 +689,7 @@ function ControlLibrary() {
             <p><strong>◐</strong> — Trending Status: In Progress. At least one objective has been reviewed, but the control is not fully trending MET or NOT MET.</p>
             <p><strong>○</strong> — Trending Status: Not Started. No objectives have been reviewed.</p>
             <p><strong>▾ / ▴</strong> — Expands or collapses the Assessment Progress quick look panel for the control.</p>
-            <p><strong>⚠</strong> — Status consistency warning. Assessment Status and Trending Status may conflict or need review. A red ⚠ indicates a hard conflict (for example, MET status with a NOT MET objective). An amber ⚠ indicates a softer mismatch or incomplete objective review.</p>
+            <p><strong>⚠</strong> — Warning. This control contains information that may require review. Warnings identify potential assessment inconsistencies, incomplete documentation, missing inheritance details, or other items needing attention.</p>
             <p><strong>Non-POA&amp;M</strong> — This control is marked as not eligible for POA&amp;M treatment.</p>
             <p><strong>(5), (3), (1)</strong> — CMMC scoring value for the control.</p>
             <div className="confirm-dialog-buttons">

@@ -3,16 +3,31 @@
 //   - control status              (cmmc-status-{controlId})
 //   - control-level notes         (cmmc-note-{controlId})
 //   - objective-level notes       (cmmc-objective-note-{controlId}-{objectiveId})
+//   - objective-level statuses    (cmmc-obj-status-{controlId}-{objectiveId})
 //   - inheritance                 (cmmc-inheritance-{controlId})
+//   - inheritance source          (cmmc-inheritance-source-{controlId})
 //   - control-level evidence pool (cmmc-pool-{controlId})
 //   - objective-level artifacts   (cmmc-obj-artifacts-{controlId}-{objectiveId})
 
 import { STATUSES, readStatus, writeStatus } from './status'
 import { readNote, writeNote } from './notes'
 import { readObjectiveNote, writeObjectiveNote } from './objectiveNotes'
-import { INHERITANCE_VALUES, DEFAULT_INHERITANCE, readInheritance, writeInheritance } from './inheritance'
+import {
+  INHERITANCE_VALUES,
+  DEFAULT_INHERITANCE,
+  readInheritance,
+  writeInheritance,
+  readInheritanceSource,
+  writeInheritanceSource,
+} from './inheritance'
 import { readPool, writePool } from './evidencePool'
 import { readObjectiveArtifacts, writeObjectiveArtifacts } from './objectiveArtifacts'
+import {
+  OBJECTIVE_STATUSES,
+  OBJECTIVE_STATUS_UNREVIEWED,
+  readObjectiveStatus,
+  writeObjectiveStatus,
+} from './objectiveStatus'
 
 export const SCHEMA_VERSION = 2
 
@@ -40,16 +55,24 @@ export function exportProjectState(controls) {
       if (artifacts.length > 0) objectiveArtifacts[obj.id] = artifacts
     }
 
+    const objectiveStatuses = {}
+    for (const obj of control.objectives ?? []) {
+      const s = readObjectiveStatus(control.id, obj.id)
+      if (s !== OBJECTIVE_STATUS_UNREVIEWED) objectiveStatuses[obj.id] = s
+    }
+
     const entry = {
       id: control.id,
       status: readStatus(control.id),
       note: readNote(control.id),
       objectiveNotes,
       inheritance: readInheritance(control.id),
+      inheritanceSource: readInheritanceSource(control.id),
     }
 
     if (pool.length > 0) entry.evidencePool = pool
     if (Object.keys(objectiveArtifacts).length > 0) entry.objectiveArtifacts = objectiveArtifacts
+    if (Object.keys(objectiveStatuses).length > 0) entry.objectiveStatuses = objectiveStatuses
 
     return entry
   })
@@ -93,12 +116,18 @@ export function importProjectState(projectJson, controls) {
     return acc
   }, {})
 
+  const OBJECTIVE_STATUS_NORMALIZER = OBJECTIVE_STATUSES.reduce((acc, s) => {
+    acc[s.toLowerCase()] = s
+    return acc
+  }, {})
+
   const summary = {
     ok: true,
     controlsProcessed: 0,
     statusesWritten: 0,
     notesWritten: 0,
     objectiveNotesWritten: 0,
+    objectiveStatusesWritten: 0,
     inheritanceWritten: 0,
     evidencePoolsWritten: 0,
     objectiveArtifactsWritten: 0,
@@ -141,6 +170,24 @@ export function importProjectState(projectJson, controls) {
       }
     }
 
+    // Objective Statuses (drives Trending Status — trending is always re-derived at render time)
+    if ('objectiveStatuses' in entry) {
+      if (
+        entry.objectiveStatuses !== null &&
+        typeof entry.objectiveStatuses === 'object' &&
+        !Array.isArray(entry.objectiveStatuses)
+      ) {
+        for (const [objId, objStatus] of Object.entries(entry.objectiveStatuses)) {
+          if (!knownObjectiveIds.has(objId)) { summary.skippedUnknownObjective++; continue }
+          const normalized = OBJECTIVE_STATUS_NORMALIZER[String(objStatus ?? '').trim().toLowerCase()]
+          if (normalized) {
+            writeObjectiveStatus(control.id, objId, normalized)
+            if (normalized !== OBJECTIVE_STATUS_UNREVIEWED) summary.objectiveStatusesWritten++
+          }
+        }
+      }
+    }
+
     // Inheritance — case-insensitive, falls back to DEFAULT_INHERITANCE if absent/invalid
     if (entry.inheritance !== undefined) {
       const normalizedInheritance =
@@ -151,6 +198,11 @@ export function importProjectState(projectJson, controls) {
       }
       // Invalid inheritance values are silently skipped (no summary count —
       // they're rare enough that polluting the message isn't worth it)
+    }
+
+    // Inheritance Source
+    if (typeof entry.inheritanceSource === 'string') {
+      writeInheritanceSource(control.id, entry.inheritanceSource)
     }
 
     // Evidence Pool
