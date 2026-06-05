@@ -578,14 +578,110 @@ a:has(> button):hover {
 }
 
 .control-list li {
-  padding: var(--space-3) var(--space-5);
+  padding: 0;
   border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  transition: background var(--transition);
+  margin-bottom: 0;
+}
+
+/* Top row inside each list item — checkbox + link + eye button */
+.control-row-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-4) var(--space-4) 0;
+  min-width: 0;
+}
+
+/* Link fills remaining row space */
+.control-list-link {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--space-2);
   flex-wrap: wrap;
-  transition: background var(--transition);
-  margin-bottom: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Inline SVG icon wrapper — notes, paperclip, trending */
+.row-icon {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  flex-shrink: 0;
+  cursor: help;
+}
+
+/* Disclosure chevron — expand/collapse Assessment Progress panel */
+.quick-look-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.quick-look-btn:hover {
+  color: var(--color-accent);
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-alt);
+}
+.quick-look-btn[aria-expanded="true"] {
+  color: var(--color-accent);
+  border-color: var(--color-border-strong);
+  background: var(--color-accent-bg);
+}
+
+/* Inline progress panel — expands below the control row */
+.quick-look-panel {
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + 15px + var(--space-3) + var(--space-2));
+  background: var(--color-surface-alt);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  display: flex;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+/* Restore deeper indent when checkbox is present (multi-select mode) */
+.quick-look-panel--multiselect {
+  padding-left: 52px;
+}
+
+.quick-look-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quick-look-stat-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.quick-look-stat-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 .control-list li:last-child {
@@ -952,12 +1048,6 @@ a:has(> button):hover {
   background: var(--color-accent-bg) !important;
 }
 
-/* Checkbox column sits to the left of the existing .control-list-link */
-.control-list li {
-  display: flex;
-  align-items: center;
-}
-
 /* Wrapper label around the checkbox — gives a larger click target */
 .control-list-checkbox-label {
   display: flex;
@@ -976,11 +1066,181 @@ a:has(> button):hover {
   cursor: pointer;
 }
 
-/* Select-all header sits above the rows, styled lighter */
-.control-list-select-all {
-  border-bottom: 1px solid var(--color-border) !important;
+/* Spacer that preserves left gutter in normal mode to match checkbox column */
+.control-row-spacer {
+  flex: 0 0 calc(var(--space-4) + 15px + var(--space-3));
+}
+
+/* Content area in multi-select mode — acts as the selectable hit target */
+.control-list-link--selectable {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Warning indicator button — sits between content area and quick-look chevron */
+.warning-indicator-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+
+.warning-indicator-btn--warning {
+  color: var(--color-not-met);
+}
+
+.warning-indicator-btn--caution {
+  color: var(--color-in-progress);
+}
+
+.warning-indicator-btn:hover {
+  border-color: var(--color-border-strong);
   background: var(--color-surface-alt);
-  padding: var(--space-2) 0;
+}
+
+.warning-indicator-btn[aria-expanded="true"] {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-alt);
+}
+
+/* Inline warning panel — same surface treatment as quick-look-panel */
+.warning-panel {
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + 15px + var(--space-3) + var(--space-2));
+  background: var(--color-surface-alt);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.warning-panel--warning {
+  border-left: 3px solid var(--color-not-met);
+}
+
+.warning-panel--caution {
+  border-left: 3px solid var(--color-in-progress);
+}
+
+/* Individual warning entry inside a multi-warning panel */
+.warning-panel-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.warning-panel-item:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.warning-panel-item--warning .warning-panel-title {
+  color: var(--color-not-met);
+}
+
+.warning-panel-item--caution .warning-panel-title {
+  color: var(--color-in-progress);
+}
+
+.warning-panel-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.warning-panel-message {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.warning-panel-note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+/* Unified utility bar — hide toggle, result count, select all */
+.control-utility-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-3) 0;
+  flex-wrap: wrap;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.control-utility-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.control-utility-count {
+  flex: 1 1 auto;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.control-utility-select {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Multi-select mode group — select-all + exit button */
+.control-utility-multiselect-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+/* Multi-Select entry button (normal mode) */
+.control-utility-multiselect-btn {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Exit Multi-Select button */
+.control-utility-exit-btn {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  flex-shrink: 0;
+  color: var(--color-accent);
+  border-color: rgba(9, 105, 218, 0.4);
+}
+
+.control-utility-exit-btn:hover {
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 /* -------------------------------------------------------------------------
@@ -1199,14 +1459,58 @@ a:has(> button):hover {
    ------------------------------------------------------------------------- */
 
 .control-family-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-3) var(--space-2);
+  margin-top: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.control-family-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: var(--space-3) var(--space-3) var(--space-2);
-  margin-top: var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+}
+
+.control-family-header-progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+
+.family-progress-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.family-progress-sep {
+  color: var(--color-border-strong);
+  margin-left: var(--space-2);
+}
+
+/* Select / Deselect family button — compact, no uppercase */
+.family-select-btn {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  padding: 2px var(--space-2);
+  flex-shrink: 0;
+  color: var(--color-accent);
+  border-color: rgba(9, 105, 218, 0.3);
+  background: none;
 }
 
 /* -------------------------------------------------------------------------

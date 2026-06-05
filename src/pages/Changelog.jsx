@@ -9,10 +9,135 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v1.2.0 — current release, open by default */}
+      {/* v1.3.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v{APP_VERSION}</span>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v1.3.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span>Assessment Workflow &amp; Visibility Update</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 4, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Objective-Level Assessment Tracking</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added Objective Status tracking for every assessment objective</li>
+              <li>Objectives can now be marked Unreviewed, MET, or NOT MET</li>
+              <li>Objective status selections automatically persist locally</li>
+              <li>Controls automatically promote from Not Started to In Progress when objective review begins</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Trending Status</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added derived Trending Status calculations based on objective-level assessments</li>
+              <li>Trending Status automatically evaluates objective review results: Not Started, In Progress, MET, NOT MET</li>
+              <li>Added visual Trending Status indicators throughout the Control Library</li>
+              <li>Trending Status is displayed within Quick Look summaries</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Evidence &amp; Artifact Management</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added Evidence Pool support for controls</li>
+              <li>Added Objective Artifact assignment and tracking</li>
+              <li>Objective artifacts automatically contribute to Evidence Pool suggestions</li>
+              <li>Added visual indicators showing controls that contain artifact references</li>
+              <li>Backup and restore now support Evidence Pool and Objective Artifact data</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Warnings Framework</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added Status Consistency Warning system detecting conflicts between Assessment Status and Trending Status</li>
+              <li>Detects incomplete inheritance documentation</li>
+              <li>Added warning indicators directly in the Control Library</li>
+              <li>Added expandable warning panels with detailed explanations</li>
+              <li>Added support for multiple warnings per control with aggregation into a single warning panel</li>
+              <li>Added warning guidance and explanatory context for each warning type</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Inheritance Documentation</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added Inheritance Source tracking for controls using Partial or Full inheritance</li>
+              <li>Added "Inherited From" documentation field in Control Detail</li>
+              <li>Added inheritance validation warnings when source documentation is missing</li>
+              <li>Quick Look now displays inheritance status and source information</li>
+              <li>Bulk inheritance assignment now requires inheritance source documentation</li>
+              <li>Bulk inheritance operations apply inheritance source data to multiple controls simultaneously</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Control Library Enhancements</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added Quick Look expandable assessment summaries per control</li>
+              <li>Added warning filtering: All warnings, Has warnings, No warnings</li>
+              <li>Added Trending Status filtering</li>
+              <li>Added artifact filtering</li>
+              <li>Added inheritance filtering improvements</li>
+              <li>Added family-level progress summaries showing Assessment Status breakdown per family</li>
+              <li>Added family-level selection actions in Multi-Select mode</li>
+              <li>Added Select Family and Deselect Family workflows</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Multi-Select Workflow</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Replaced always-visible row checkboxes with dedicated Multi-Select mode</li>
+              <li>Entire row is clickable during normal browsing</li>
+              <li>Entire row becomes selectable during Multi-Select mode</li>
+              <li>Added Select All Visible controls workflow</li>
+              <li>Added family-level bulk selection</li>
+              <li>Added cleaner utility bar layout reducing visual clutter</li>
+              <li>Improved bulk editing workflows</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>User Guidance &amp; Onboarding</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added first-run acknowledgement notice and Data Handling, Privacy &amp; Limitations workflow</li>
+              <li>Added Icon Guide reference modal</li>
+              <li>Added explanations for notes, artifact, trending, warning, and scoring indicators</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Backup &amp; Restore</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Upgraded project backup format to Schema Version 2</li>
+              <li>Added support for Evidence Pool entries and Objective Artifact assignments in backups</li>
+              <li>Added backward compatibility for Version 1 backups</li>
+              <li>Improved import validation and reporting</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Existing assessment data remains compatible</li>
+              <li>Existing Version 1 backups remain importable</li>
+              <li>Local-only data handling model preserved — no cloud storage, no CUI transmission, no authentication introduced</li>
+              <li>Controls: 110 · Evidence types: 130 · Relationships: 189 · Families: 14/14</li>
+              <li>Validator: Pass · Build: Pass</li>
+            </ul>
+          </section>
+
+        </div>
+      </details>
+
+      {/* v1.2.0 — collapsed */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v{APP_VERSION}</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
           <span>Evidence Pool MVP</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 4, 2026</span>

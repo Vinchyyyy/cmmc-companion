@@ -54,7 +54,7 @@ function About() {
       </section>
 
       {/* 3. Data Handling, Privacy & Limitations */}
-      <section>
+      <section id="data-handling">
         <h2>Data Handling, Privacy &amp; Limitations</h2>
 
         <h3>Intended Use</h3>

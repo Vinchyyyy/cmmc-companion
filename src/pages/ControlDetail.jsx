@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import AutoResizeTextarea from '../components/AutoResizeTextarea'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
 import controls from '../data/controls/index.js'
@@ -12,9 +12,18 @@ import {
   INHERITANCE_BADGE_CLASS,
   readInheritance,
   writeInheritance,
+  readInheritanceSource,
+  writeInheritanceSource,
 } from '../utils/inheritance'
 import { readPool, writePool } from '../utils/evidencePool'
 import { readObjectiveArtifacts, writeObjectiveArtifacts } from '../utils/objectiveArtifacts'
+import {
+  OBJECTIVE_STATUSES,
+  OBJECTIVE_STATUS_UNREVIEWED,
+  readObjectiveStatus,
+  writeObjectiveStatus,
+  getTrendingStatus,
+} from '../utils/objectiveStatus'
 
 // scoring.js is intentionally NOT imported here — the Scoring & POA&M
 // section has been removed from the detail view. Metadata remains available
@@ -38,9 +47,11 @@ function ControlDetail() {
   const [status, setStatus]           = useState(() => readStatus(id))
   const [note, setNote]               = useState(() => readNote(id))
   const [inheritance, setInheritance] = useState(() => readInheritance(id))
+  const [inheritanceSource, setInheritanceSource] = useState(() => readInheritanceSource(id))
   const [objectiveNotes, setObjectiveNotes] = useState(() => loadObjectiveNotes(id, control))
   const [pool, setPool]               = useState(() => readPool(id))
   const [poolInput, setPoolInput]     = useState('')
+  const [objectiveStatuses, setObjectiveStatuses]   = useState(() => loadObjectiveStatuses(id, control))
   const [objectiveArtifacts, setObjectiveArtifacts] = useState(() => loadObjectiveArtifacts(id, control))
   const [objArtifactInputs, setObjArtifactInputs]   = useState({})
   const [focusedObjId, setFocusedObjId]             = useState(null)
@@ -49,7 +60,9 @@ function ControlDetail() {
     setStatus(readStatus(id))
     setNote(readNote(id))
     setInheritance(readInheritance(id))
+    setInheritanceSource(readInheritanceSource(id))
     setObjectiveNotes(loadObjectiveNotes(id, control))
+    setObjectiveStatuses(loadObjectiveStatuses(id, control))
     setPool(readPool(id))
     setPoolInput('')
     setObjectiveArtifacts(loadObjectiveArtifacts(id, control))
@@ -57,6 +70,11 @@ function ControlDetail() {
     setFocusedObjId(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
+
+  const trendingStatus = useMemo(
+    () => getTrendingStatus(control?.objectives ?? [], objectiveStatuses),
+    [control, objectiveStatuses]
+  )
 
   const handleStatusChange      = (e) => { const v = e.target.value; setStatus(v); writeStatus(id, v) }
   const handleNoteChange        = (e) => {
@@ -66,6 +84,13 @@ function ControlDetail() {
     syncAutoStatus(v, objectiveNotes, status, id, setStatus)
   }
   const handleInheritanceChange = (e) => { const v = e.target.value; setInheritance(v); writeInheritance(id, v) }
+  const handleInheritanceSourceChange = (e) => { const v = e.target.value; setInheritanceSource(v); writeInheritanceSource(id, v) }
+  const handleObjectiveStatusChange = (objId, value) => {
+    setObjectiveStatuses((prev) => ({ ...prev, [objId]: value }))
+    writeObjectiveStatus(id, objId, value)
+    if (value !== OBJECTIVE_STATUS_UNREVIEWED) promoteToInProgress(status, id, setStatus)
+  }
+
   const handleObjectiveNoteChange = (objId, value) => {
     const nextObjNotes = { ...objectiveNotes, [objId]: value }
     setObjectiveNotes(nextObjNotes)
@@ -218,6 +243,30 @@ function ControlDetail() {
               )}
             </div>
           </div>
+
+          {inheritance !== DEFAULT_INHERITANCE && (
+            <div className="control-meta-field">
+              <label htmlFor="inheritance-source">
+                <strong>Inherited From</strong>
+              </label>
+              <input
+                id="inheritance-source"
+                type="text"
+                value={inheritanceSource}
+                onChange={handleInheritanceSourceChange}
+                placeholder="e.g. Microsoft 365 GCC High, AWS GovCloud"
+              />
+            </div>
+          )}
+
+          <div className="control-meta-field">
+            <label><strong>Trending Status</strong></label>
+            <div className="control-meta-input-row" style={{ marginTop: 'var(--space-1)' }}>
+              <span className={`status-badge ${STATUS_BADGE_CLASS[trendingStatus]}`}>
+                {trendingStatus}
+              </span>
+            </div>
+          </div>
         </div>
 
         <div style={{ marginTop: 'var(--space-4)' }}>
@@ -290,6 +339,7 @@ function ControlDetail() {
       <section>
         <h2>Assessment Objectives</h2>
         {control.objectives.map((obj) => {
+          const objStatusId = `obj-status-${control.id}-${obj.id}`
           const objNoteId = `obj-note-${control.id}-${obj.id}`
           const objArtifactInputId = `obj-artifacts-${control.id}-${obj.id}`
           const suggestions = focusedObjId === obj.id ? getObjSuggestions(obj.id) : []
@@ -299,6 +349,20 @@ function ControlDetail() {
               <h3>
                 <span className="mono">[{obj.id}]</span> {obj.text}
               </h3>
+
+              <div style={{ marginBottom: 'var(--space-3)' }}>
+                <label htmlFor={objStatusId}><strong>Objective Status</strong></label>
+                <div className="control-meta-input-row" style={{ marginTop: 'var(--space-1)' }}>
+                  <select
+                    id={objStatusId}
+                    value={objectiveStatuses[obj.id] ?? OBJECTIVE_STATUS_UNREVIEWED}
+                    onChange={(e) => handleObjectiveStatusChange(obj.id, e.target.value)}
+                  >
+                    {OBJECTIVE_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+
               <h4>What to look for</h4>
               <p>{obj.whatToLookFor}</p>
               <h4>Common evidence</h4>
@@ -432,6 +496,13 @@ function loadObjectiveNotes(controlId, control) {
   if (!control) return {}
   const map = {}
   for (const obj of control.objectives) map[obj.id] = readObjectiveNote(controlId, obj.id)
+  return map
+}
+
+function loadObjectiveStatuses(controlId, control) {
+  if (!control) return {}
+  const map = {}
+  for (const obj of control.objectives) map[obj.id] = readObjectiveStatus(controlId, obj.id)
   return map
 }
 

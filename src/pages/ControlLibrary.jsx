@@ -4,13 +4,26 @@ import controls from '../data/controls/index'
 import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
 import { readNote, writeNote } from '../utils/notes'
 import { hasObjectiveNotes, writeObjectiveNote } from '../utils/objectiveNotes'
-import { hasObjectiveArtifacts } from '../utils/objectiveArtifacts'
+import { hasObjectiveArtifacts, writeObjectiveArtifacts } from '../utils/objectiveArtifacts'
+import { writePool } from '../utils/evidencePool'
+import {
+  getTrendingStatusFromStorage,
+  writeObjectiveStatus,
+  readObjectiveStatus,
+  OBJECTIVE_STATUS_UNREVIEWED,
+  OBJECTIVE_STATUS_MET,
+  OBJECTIVE_STATUS_NOT_MET,
+  getStatusConsistencyWarning,
+} from '../utils/objectiveStatus'
 import {
   INHERITANCE_VALUES,
   DEFAULT_INHERITANCE,
   INHERITANCE_BADGE_CLASS,
   readInheritance,
   writeInheritance,
+  readInheritanceSource,
+  writeInheritanceSource,
+  getInheritanceSourceWarning,
 } from '../utils/inheritance'
 import {
   SCORE_VALUES,
@@ -18,10 +31,40 @@ import {
   getScore,
   isPoamAllowed,
 } from '../utils/scoring'
+import { IconNotes, IconPaperclip, IconTrendingUp, IconTrendingDown } from '../components/icons'
+
+const TRENDING_INDICATOR = {
+  'MET':         { color: 'var(--color-met)',         title: 'Trending: MET' },
+  'NOT MET':     { color: 'var(--color-not-met)',     title: 'Trending: NOT MET' },
+  'In Progress': { color: 'var(--color-in-progress)', title: 'Trending: In Progress', symbol: '◐' },
+  'Not Started': { color: 'var(--color-text-muted)',  title: 'Trending: Not Started', symbol: '○' },
+}
+
+function getControlWarnings(control) {
+  const status      = readStatus(control.id)
+  const trending    = getTrendingStatusFromStorage(control)
+  const inheritance = readInheritance(control.id)
+  const source      = readInheritanceSource(control.id)
+  const out         = []
+  const sw = getStatusConsistencyWarning(status, trending)
+  if (sw) out.push(sw)
+  const iw = getInheritanceSourceWarning(inheritance, source)
+  if (iw) out.push(iw)
+  return out
+}
 
 function hasAnyNote(control) {
   if (readNote(control.id).trim() !== '') return true
   return hasObjectiveNotes(control)
+}
+
+function getObjectiveProgress(control) {
+  const objectives = control.objectives ?? []
+  const total = objectives.length
+  const statuses = objectives.map((obj) => readObjectiveStatus(control.id, obj.id))
+  const met      = statuses.filter((s) => s === OBJECTIVE_STATUS_MET).length
+  const notMet   = statuses.filter((s) => s === OBJECTIVE_STATUS_NOT_MET).length
+  return { total, reviewed: met + notMet, met, notMet, unreviewed: total - met - notMet }
 }
 
 const DEFAULTS = {
@@ -33,6 +76,8 @@ const DEFAULTS = {
   inheritance: 'All',
   score: 'All',
   poam: 'All',
+  trending: 'All',
+  warnings: 'All',
 }
 
 // Official CMMC assessment order per Assessment Guide TOC
@@ -53,28 +98,35 @@ const FAMILY_ORDER = [
   'System and Information Integrity',
 ]
 
-const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam']
+const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'trending', 'warnings']
 const SEARCH_DEBOUNCE_MS = 500
 
 function ControlLibrary() {
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const urlSearch     = searchParams.get('search')      ?? DEFAULTS.search
-  const familyFilter  = searchParams.get('family')      ?? DEFAULTS.family
-  const statusFilter  = searchParams.get('status')      ?? DEFAULTS.status
-  const notesFilter      = searchParams.get('notes')     ?? DEFAULTS.notes
-  const artifactsFilter  = searchParams.get('artifacts') ?? DEFAULTS.artifacts
-  const inheritFilter    = searchParams.get('inheritance') ?? DEFAULTS.inheritance
-  const scoreFilter   = searchParams.get('score')       ?? DEFAULTS.score
-  const poamFilter    = searchParams.get('poam')        ?? DEFAULTS.poam
+  const urlSearch      = searchParams.get('search')      ?? DEFAULTS.search
+  const familyFilter   = searchParams.get('family')      ?? DEFAULTS.family
+  const statusFilter   = searchParams.get('status')      ?? DEFAULTS.status
+  const notesFilter    = searchParams.get('notes')       ?? DEFAULTS.notes
+  const artifactsFilter = searchParams.get('artifacts')  ?? DEFAULTS.artifacts
+  const inheritFilter  = searchParams.get('inheritance') ?? DEFAULTS.inheritance
+  const scoreFilter    = searchParams.get('score')       ?? DEFAULTS.score
+  const poamFilter     = searchParams.get('poam')        ?? DEFAULTS.poam
+  const trendingFilter  = searchParams.get('trending')  ?? DEFAULTS.trending
+  const warningsFilter  = searchParams.get('warnings')  ?? DEFAULTS.warnings
 
   const location = useLocation()
 
-  const [searchInput, setSearchInput] = useState(urlSearch)
-  const [selected, setSelected]       = useState(new Set())
-  const [updateKey, setUpdateKey]     = useState(0)
+  const [searchInput, setSearchInput]   = useState(urlSearch)
+  const [selected, setSelected]         = useState(new Set())
+  const [updateKey, setUpdateKey]       = useState(0)
   const [confirmClear, setConfirmClear] = useState(false)
+  const [bulkInheritanceModal, setBulkInheritanceModal] = useState(null)
+  const [showIconGuide, setShowIconGuide] = useState(false)
   const [hideMet, setHideMet] = useState(() => localStorage.getItem('cmmc-hide-met-controls') === 'true')
+  const [openQuickLook, setOpenQuickLook] = useState(null)
+  const [multiSelectMode, setMultiSelectMode] = useState(false)
+  const [openWarning, setOpenWarning] = useState(null)
   const forceUpdate = () => setUpdateKey((k) => k + 1)
 
   // Re-read localStorage whenever the user navigates to this page (e.g. returning
@@ -152,6 +204,15 @@ function ControlLibrary() {
     if (poamFilter === 'All') return true
     return poamFilter === 'Allowed' ? isPoamAllowed(c.id) : !isPoamAllowed(c.id)
   }
+  const matchesTrending    = (c) => {
+    if (trendingFilter === 'All') return true
+    return getTrendingStatusFromStorage(c) === trendingFilter
+  }
+  const matchesWarnings    = (c) => {
+    if (warningsFilter === 'All') return true
+    const hasWarnings = getControlWarnings(c).length > 0
+    return warningsFilter === 'Has warnings' ? hasWarnings : !hasWarnings
+  }
 
   const matchesHideMet = (c) => {
     if (!hideMet || statusFilter === 'MET') return true
@@ -162,7 +223,8 @@ function ControlLibrary() {
   const results = controls.filter((c) =>
     matchesSearch(c) && matchesFamily(c) && matchesStatus(c) &&
     matchesNotes(c) && matchesArtifacts(c) && matchesInheritance(c) &&
-    matchesScore(c) && matchesPoam(c) && matchesHideMet(c)
+    matchesScore(c) && matchesPoam(c) && matchesTrending(c) && matchesHideMet(c) &&
+    matchesWarnings(c)
   )
 
   // Group by family in official CMMC order
@@ -199,16 +261,30 @@ function ControlLibrary() {
     }
   }
   const clearSelection   = () => setSelected(new Set())
+  const enterMultiSelect = () => { setMultiSelectMode(true); setOpenQuickLook(null) }
+  const exitMultiSelect  = () => { setMultiSelectMode(false); setOpenQuickLook(null); setSelected(new Set()) }
   const selectedControls = controls.filter((c) => selected.has(c.id))
 
   const bulkSetStatus      = (s) => { for (const id of selected) writeStatus(id, s); forceUpdate() }
-  const bulkSetInheritance = (v) => { for (const id of selected) writeInheritance(id, v); forceUpdate() }
+  const bulkSetInheritance = (v, source = '') => {
+    for (const id of selected) {
+      writeInheritance(id, v)
+      writeInheritanceSource(id, v === DEFAULT_INHERITANCE ? '' : source)
+    }
+    forceUpdate()
+  }
   const bulkClearData      = () => {
     for (const ctrl of selectedControls) {
       writeStatus(ctrl.id, 'Not Started')
       writeInheritance(ctrl.id, DEFAULT_INHERITANCE)
+      writeInheritanceSource(ctrl.id, '')
       writeNote(ctrl.id, '')
-      for (const obj of ctrl.objectives ?? []) writeObjectiveNote(ctrl.id, obj.id, '')
+      writePool(ctrl.id, [])
+      for (const obj of ctrl.objectives ?? []) {
+        writeObjectiveNote(ctrl.id, obj.id, '')
+        writeObjectiveStatus(ctrl.id, obj.id, OBJECTIVE_STATUS_UNREVIEWED)
+        writeObjectiveArtifacts(ctrl.id, obj.id, [])
+      }
     }
     forceUpdate()
   }
@@ -274,6 +350,18 @@ function ControlLibrary() {
           <option value="Allowed">POA&amp;M Allowed</option>
           <option value="Not Allowed">Non-POA&amp;Mable</option>
         </select>
+        <select value={trendingFilter} onChange={(e) => writeFilter('trending', e.target.value)}>
+          <option value="All">All trending</option>
+          <option value="Not Started">Trending: Not Started</option>
+          <option value="In Progress">Trending: In Progress</option>
+          <option value="MET">Trending: MET</option>
+          <option value="NOT MET">Trending: NOT MET</option>
+        </select>
+        <select value={warningsFilter} onChange={(e) => writeFilter('warnings', e.target.value)}>
+          <option value="All">All warnings</option>
+          <option value="Has warnings">Has warnings</option>
+          <option value="No warnings">No warnings</option>
+        </select>
         <button
           onClick={handleClearFilters}
           disabled={!hasActiveFilters}
@@ -281,25 +369,45 @@ function ControlLibrary() {
         >
           Clear Filters
         </button>
+        <button onClick={() => setShowIconGuide(true)}>Icon Guide</button>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginTop: 'var(--space-3)' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', fontSize: 'var(--text-sm)' }}>
+      <div className="control-utility-bar">
+        <label className="control-utility-toggle">
           <input type="checkbox" checked={hideMet} onChange={toggleHideMet} />
-          Hide MET controls
+          Automatically hide MET controls
         </label>
+        <span className="control-utility-count">
+          Showing {results.length} of {controls.length} controls
+        </span>
+        {multiSelectMode ? (
+          <div className="control-utility-multiselect-group">
+            <label className="control-utility-select">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected }}
+                onChange={toggleAll}
+              />
+              {allSelected ? 'Deselect all' : 'Select all visible'} ({allResultIds.length})
+            </label>
+            <button className="control-utility-exit-btn" onClick={exitMultiSelect}>
+              Exit Multi-Select
+            </button>
+          </div>
+        ) : (
+          <button className="control-utility-multiselect-btn" onClick={enterMultiSelect}>
+            Multi-Select
+          </button>
+        )}
       </div>
       {hideMet && statusFilter !== 'MET' && (
-        <p className="muted" style={{ fontSize: 'var(--text-xs)', marginTop: 'var(--space-1)' }}>
-          MET controls are hidden. Use the Status filter to view MET controls.
+        <p className="muted" style={{ fontSize: 'var(--text-xs)', marginTop: 'calc(-1 * var(--space-2))', marginBottom: 'var(--space-3)' }}>
+          When enabled, MET controls are hidden so you can focus on remaining assessment work. Use the Status filter to view MET controls.
         </p>
       )}
 
-      <p className="result-count">
-        Showing {results.length} of {controls.length} controls
-      </p>
-
-      {selectedCount > 0 && (
+      {multiSelectMode && selectedCount > 0 && (
         <div className="bulk-toolbar">
           <span className="bulk-toolbar-count">
             {selectedCount} control{selectedCount === 1 ? '' : 's'} selected
@@ -310,7 +418,16 @@ function ControlLibrary() {
             {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
           <select className="bulk-toolbar-select" defaultValue=""
-            onChange={(e) => { if (e.target.value) { bulkSetInheritance(e.target.value); e.target.value = '' } }}>
+            onChange={(e) => {
+              const v = e.target.value
+              e.target.value = ''
+              if (!v) return
+              if (v === DEFAULT_INHERITANCE) {
+                bulkSetInheritance(DEFAULT_INHERITANCE)
+              } else {
+                setBulkInheritanceModal({ value: v, source: '' })
+              }
+            }}>
             <option value="" disabled>Set inheritance…</option>
             {INHERITANCE_VALUES.map((v) => <option key={v} value={v}>{v}</option>)}
           </select>
@@ -318,7 +435,7 @@ function ControlLibrary() {
             title="Reset status, inheritance, and all notes for selected controls">
             Clear Data
           </button>
-          <button className="bulk-toolbar-clear" onClick={clearSelection}>Clear Selection</button>
+          <button className="bulk-toolbar-clear" onClick={exitMultiSelect}>Exit Multi-Select</button>
         </div>
       )}
 
@@ -326,86 +443,316 @@ function ControlLibrary() {
         <p className="muted">No controls match the current filters.</p>
       ) : (
         <>
-          <ul className="control-list" style={{ marginBottom: 0 }}>
-            <li className="control-list-select-all">
-              <label className="control-list-checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected }}
-                  onChange={toggleAll}
-                />
-                <span className="muted" style={{ fontSize: 'var(--text-xs)' }}>
-                  {allSelected ? 'Deselect all' : 'Select all'} ({allResultIds.length})
-                </span>
-              </label>
-            </li>
-          </ul>
-          {groups.map(({ family, controls: groupControls }) => (
+          {groups.map(({ family, controls: groupControls }) => {
+            const familyIds = groupControls.map((c) => c.id)
+            const allFamilySelected = familyIds.length > 0 && familyIds.every((id) => selected.has(id))
+            const toggleFamily = () => setSelected((prev) => {
+              const next = new Set(prev)
+              if (allFamilySelected) { for (const id of familyIds) next.delete(id) }
+              else                   { for (const id of familyIds) next.add(id) }
+              return next
+            })
+
+            const statusCounts = {}
+            for (const c of groupControls) {
+              const s = readStatus(c.id)
+              statusCounts[s] = (statusCounts[s] || 0) + 1
+            }
+            const STATUS_DISPLAY_ORDER = ['MET', 'In Progress', 'NOT MET', 'Not Started']
+            const STATUS_VAR_COLOR = {
+              'MET':         'var(--color-met)',
+              'In Progress': 'var(--color-in-progress)',
+              'NOT MET':     'var(--color-not-met)',
+              'Not Started': 'var(--color-not-started)',
+            }
+
+            return (
             <div key={family}>
               <div className="control-family-header">
-                {family} — {groupControls.length} control{groupControls.length === 1 ? '' : 's'}
+                <div className="control-family-header-top">
+                  <span>{family} — {groupControls.length} control{groupControls.length === 1 ? '' : 's'}</span>
+                  {multiSelectMode && (
+                    <button type="button" className="family-select-btn" onClick={toggleFamily}>
+                      {allFamilySelected ? 'Deselect family' : 'Select family'}
+                    </button>
+                  )}
+                </div>
+                <div className="control-family-header-progress">
+                  {STATUS_DISPLAY_ORDER.filter((s) => statusCounts[s] > 0).map((s, i, arr) => (
+                    <span key={s} className="family-progress-item">
+                      <span style={{ color: STATUS_VAR_COLOR[s], fontWeight: 600 }}>{statusCounts[s]}</span>
+                      {' '}<span>{s}</span>
+                      {i < arr.length - 1 && <span className="family-progress-sep"> •</span>}
+                    </span>
+                  ))}
+                </div>
               </div>
               <ul className="control-list">
                 {groupControls.map((control) => {
-                  const status      = readStatus(control.id)
-                  const inheritance = readInheritance(control.id)
-                  const score       = getScore(control.id)
-                  const poamOk      = isPoamAllowed(control.id)
+                  const status       = readStatus(control.id)
+                  const inheritance  = readInheritance(control.id)
+                  const score        = getScore(control.id)
+                  const poamOk       = isPoamAllowed(control.id)
                   const hasNote      = hasAnyNote(control)
                   const hasArtifacts = hasObjectiveArtifacts(control)
-                  const isSelected   = selected.has(control.id)
+                  const trending     = getTrendingStatusFromStorage(control)
+                  const trendInd     = TRENDING_INDICATOR[trending]
+                  const isSelected        = selected.has(control.id)
+                  const isOpen            = openQuickLook === control.id
+                  const panelId           = `quick-look-${control.id}`
+                  const inheritanceSource = readInheritanceSource(control.id)
+                  const isWarnOpen        = openWarning === control.id
+                  const warnPanelId       = `warning-panel-${control.id}`
+
+                  const warnings     = getControlWarnings(control)
+                  const maxSeverity  = warnings.some((w) => w.severity === 'warning') ? 'warning' : 'caution'
+
+                  const rowContent = (
+                    <>
+                      <span className="mono">{control.id}</span>
+                      <span>— {control.title}</span>
+                      <span className={`status-badge ${STATUS_BADGE_CLASS[status]}`}>{status}</span>
+                      {inheritance !== DEFAULT_INHERITANCE && (
+                        <span className={`inheritance-badge ${INHERITANCE_BADGE_CLASS[inheritance]}`}>
+                          {inheritance}
+                        </span>
+                      )}
+                      <span
+                        className={`score-badge ${SCORE_BADGE_CLASS[String(score)]}`}
+                        title={`${Math.abs(score)}-point deduction if not met`}
+                      >
+                        ({Math.abs(score)})
+                      </span>
+                      {hasNote && (
+                        <span className="row-icon" style={{ color: 'var(--color-text-muted)' }} title="This control has assessment notes or objective notes">
+                          <IconNotes size="14px" />
+                        </span>
+                      )}
+                      {hasArtifacts && (
+                        <span className="row-icon" style={{ color: 'var(--color-text-muted)' }} title="This control has objective artifact references">
+                          <IconPaperclip size="14px" />
+                        </span>
+                      )}
+                      <span className="row-icon" style={{ color: trendInd.color }} title={trendInd.title}>
+                        {trending === 'MET'         && <IconTrendingUp size="14px" />}
+                        {trending === 'NOT MET'     && <IconTrendingDown size="14px" />}
+                        {trending !== 'MET' && trending !== 'NOT MET' && trendInd.symbol}
+                      </span>
+                      {!poamOk && (
+                        <span className="poam-badge" title="Cannot be placed on a POA&M">Non-POA&amp;M</span>
+                      )}
+                    </>
+                  )
+
+                  const warningBtn = warnings.length > 0 && (
+                    <button
+                      type="button"
+                      className={`warning-indicator-btn warning-indicator-btn--${maxSeverity}`}
+                      aria-expanded={isWarnOpen}
+                      aria-controls={warnPanelId}
+                      aria-label={isWarnOpen ? 'Hide status warnings' : 'View status warnings'}
+                      title={warnings.length === 1 ? warnings[0].title : 'Multiple status warnings'}
+                      onClick={(e) => { e.stopPropagation(); setOpenWarning((prev) => prev === control.id ? null : control.id) }}
+                    >
+                      ⚠
+                    </button>
+                  )
+
+                  const warningPanelNote = warnings.length === 1
+                    ? warnings[0].note
+                    : 'Warnings identify incomplete or potentially inconsistent assessment tracking data.'
+
+                  const warningPanel = warnings.length > 0 && isWarnOpen && (
+                    <div className={`warning-panel warning-panel--${maxSeverity}`} id={warnPanelId} role="note">
+                      {warnings.map((w, i) => (
+                        <div key={i} className={`warning-panel-item warning-panel-item--${w.severity}`}>
+                          <strong className="warning-panel-title">{w.title}</strong>
+                          <p className="warning-panel-message">{w.message}</p>
+                        </div>
+                      ))}
+                      {warningPanelNote && <p className="warning-panel-note">{warningPanelNote}</p>}
+                    </div>
+                  )
+
+                  const quickLookBtn = (
+                    <button
+                      type="button"
+                      className="quick-look-btn"
+                      aria-expanded={isOpen}
+                      aria-controls={panelId}
+                      aria-label={isOpen ? 'Hide assessment progress' : 'Show assessment progress'}
+                      title={isOpen ? 'Hide assessment progress' : 'Show assessment progress'}
+                      onClick={() => setOpenQuickLook((prev) => prev === control.id ? null : control.id)}
+                    >
+                      {isOpen ? '▴' : '▾'}
+                    </button>
+                  )
+
+                  const quickLookPanel = isOpen && (() => {
+                    const { total, reviewed, met, notMet, unreviewed } = getObjectiveProgress(control)
+                    return (
+                      <div className={`quick-look-panel${multiSelectMode ? ' quick-look-panel--multiselect' : ''}`} id={panelId}>
+                        <div className="quick-look-stat">
+                          <span className="quick-look-stat-label">Reviewed</span>
+                          <span className="quick-look-stat-value">{reviewed} / {total}</span>
+                        </div>
+                        <div className="quick-look-stat">
+                          <span className="quick-look-stat-label">MET</span>
+                          <span className="quick-look-stat-value" style={{ color: met > 0 ? 'var(--color-met)' : undefined }}>{met}</span>
+                        </div>
+                        <div className="quick-look-stat">
+                          <span className="quick-look-stat-label">NOT MET</span>
+                          <span className="quick-look-stat-value" style={{ color: notMet > 0 ? 'var(--color-not-met)' : undefined }}>{notMet}</span>
+                        </div>
+                        <div className="quick-look-stat">
+                          <span className="quick-look-stat-label">Unreviewed</span>
+                          <span className="quick-look-stat-value">{unreviewed}</span>
+                        </div>
+                        <div className="quick-look-stat">
+                          <span className="quick-look-stat-label">Trending</span>
+                          <span className="quick-look-stat-value" style={{ color: trendInd.color }}>{trending}</span>
+                        </div>
+                        {inheritance !== DEFAULT_INHERITANCE && (
+                          <>
+                            <div className="quick-look-stat">
+                              <span className="quick-look-stat-label">Inheritance</span>
+                              <span className="quick-look-stat-value">{inheritance}</span>
+                            </div>
+                            <div className="quick-look-stat">
+                              <span className="quick-look-stat-label">Inherited From</span>
+                              {inheritanceSource.trim() ? (
+                                <span className="quick-look-stat-value">{inheritanceSource}</span>
+                              ) : (
+                                <span className="quick-look-stat-value" style={{ color: 'var(--color-in-progress)' }}>Not documented</span>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )
+                  })()
+
                   return (
                     <li key={control.id} className={isSelected ? 'control-list-item--selected' : ''}>
-                      <label className="control-list-checkbox-label" onClick={(e) => e.stopPropagation()}>
-                        <input type="checkbox" checked={isSelected} onChange={() => toggleOne(control.id)} />
-                      </label>
-                      <Link
-                        to={`/controls/${encodeURIComponent(control.id)}${fromSuffix}`}
-                        className="control-list-link"
-                      >
-                        <span className="mono">{control.id}</span>
-                        <span>— {control.title}</span>
-                        <span className={`status-badge ${STATUS_BADGE_CLASS[status]}`}>{status}</span>
-                        {inheritance !== DEFAULT_INHERITANCE && (
-                          <span className={`inheritance-badge ${INHERITANCE_BADGE_CLASS[inheritance]}`}>
-                            {inheritance}
-                          </span>
-                        )}
-                        {hasNote && (
-                          <span className="notes-indicator" title="This control has notes (control or objective level)">📝</span>
-                        )}
-                        {hasArtifacts && (
-                          <span className="notes-indicator" title="This control has objective artifact references">📎</span>
-                        )}
-                        {!poamOk && (
-                          <span className="poam-badge" title="Cannot be placed on a POA&M">Non-POA&amp;M</span>
-                        )}
-                        <span
-                          className={`score-badge ${SCORE_BADGE_CLASS[String(score)]}`}
-                          title={`${Math.abs(score)}-point deduction if not met`}
-                        >
-                          ({Math.abs(score)})
-                        </span>
-                      </Link>
+                      {multiSelectMode ? (
+                        <div className="control-row-top">
+                          <label className="control-list-checkbox-label">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleOne(control.id)}
+                              aria-label={`Select ${control.id}`}
+                            />
+                          </label>
+                          <div
+                            className="control-list-link control-list-link--selectable"
+                            onClick={() => toggleOne(control.id)}
+                          >
+                            {rowContent}
+                          </div>
+                          {warningBtn}
+                          {quickLookBtn}
+                        </div>
+                      ) : (
+                        <div className="control-row-top">
+                          <span className="control-row-spacer" aria-hidden="true" />
+                          <Link
+                            to={`/controls/${encodeURIComponent(control.id)}${fromSuffix}`}
+                            className="control-list-link"
+                          >
+                            {rowContent}
+                          </Link>
+                          {warningBtn}
+                          {quickLookBtn}
+                        </div>
+                      )}
+                      {quickLookPanel}
+                      {warningPanel}
                     </li>
                   )
                 })}
               </ul>
             </div>
-          ))}
+            )
+          })}
         </>
       )}
+
+      {showIconGuide && (
+        <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="icon-guide-title">
+          <div className="confirm-dialog">
+            <h2 id="icon-guide-title">Icon Guide</h2>
+            <p><strong><IconNotes size="14px" style={{ verticalAlign: 'middle' }} /></strong> — This control has assessment notes or objective notes.</p>
+            <p><strong><IconPaperclip size="14px" style={{ verticalAlign: 'middle' }} /></strong> — This control has objective artifact references.</p>
+            <p><strong><IconTrendingUp size="14px" style={{ verticalAlign: 'middle', color: 'var(--color-met)' }} /></strong> — Trending Status: MET. All objectives are currently marked MET.</p>
+            <p><strong><IconTrendingDown size="14px" style={{ verticalAlign: 'middle', color: 'var(--color-not-met)' }} /></strong> — Trending Status: NOT MET. At least one objective is currently marked NOT MET.</p>
+            <p><strong>◐</strong> — Trending Status: In Progress. At least one objective has been reviewed, but the control is not fully trending MET or NOT MET.</p>
+            <p><strong>○</strong> — Trending Status: Not Started. No objectives have been reviewed.</p>
+            <p><strong>▾ / ▴</strong> — Expands or collapses the Assessment Progress quick look panel for the control.</p>
+            <p><strong>⚠</strong> — Status consistency warning. Assessment Status and Trending Status may conflict or need review. A red ⚠ indicates a hard conflict (for example, MET status with a NOT MET objective). An amber ⚠ indicates a softer mismatch or incomplete objective review.</p>
+            <p><strong>Non-POA&amp;M</strong> — This control is marked as not eligible for POA&amp;M treatment.</p>
+            <p><strong>(5), (3), (1)</strong> — CMMC scoring value for the control.</p>
+            <div className="confirm-dialog-buttons">
+              <button onClick={() => setShowIconGuide(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {bulkInheritanceModal && (
+        <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="bulk-inheritance-title">
+          <div className="confirm-dialog">
+            <h2 id="bulk-inheritance-title">Set Inheritance Source</h2>
+            <p>
+              You are setting inheritance to <strong>{bulkInheritanceModal.value}</strong> for{' '}
+              {selectedCount} control{selectedCount === 1 ? '' : 's'}.
+            </p>
+            <div className="control-meta-field" style={{ marginTop: 'var(--space-3)' }}>
+              <label htmlFor="bulk-inheritance-source" style={{ display: 'block', marginBottom: 'var(--space-1)', fontWeight: 600, fontSize: 'var(--text-sm)' }}>
+                Inherited From
+              </label>
+              <input
+                id="bulk-inheritance-source"
+                type="text"
+                value={bulkInheritanceModal.source}
+                onChange={(e) => setBulkInheritanceModal((prev) => ({ ...prev, source: e.target.value }))}
+                placeholder="e.g. Microsoft 365 GCC High, AWS GovCloud"
+                style={{ width: '100%', boxSizing: 'border-box' }}
+                autoFocus
+              />
+              <p style={{ marginTop: 'var(--space-1)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                Enter the provider, service, or source responsible for the inherited control implementation.
+              </p>
+            </div>
+            <div className="confirm-dialog-buttons">
+              <button onClick={() => setBulkInheritanceModal(null)}>Cancel</button>
+              <button
+                disabled={!bulkInheritanceModal.source.trim()}
+                onClick={() => {
+                  bulkSetInheritance(bulkInheritanceModal.value, bulkInheritanceModal.source.trim())
+                  setBulkInheritanceModal(null)
+                }}
+              >
+                Apply Inheritance
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {confirmClear && (
         <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
           <div className="confirm-dialog">
             <h2 id="confirm-title">Clear selected control data?</h2>
             <p>This will reset the selected controls to:</p>
             <ul>
-              <li>Status: Not Started</li>
+              <li>Assessment Status: Not Started</li>
               <li>Inheritance: None</li>
-              <li>Control notes: deleted</li>
-              <li>Objective notes: deleted</li>
+              <li>Assessment Notes: deleted</li>
+              <li>Objective Notes: deleted</li>
+              <li>Objective Statuses: Unreviewed</li>
+              <li>Evidence Pool entries: deleted</li>
+              <li>Objective Artifact references: deleted</li>
             </ul>
             <p>Scoring metadata, POA&amp;M eligibility, control text, evidence mappings, and relationships will not be changed.</p>
             <p>This only affects data stored in this browser.</p>

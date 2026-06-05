@@ -38,3 +38,48 @@ export function writeInheritance(controlId, value) {
     // localStorage may be unavailable (private browsing, quota, etc.)
   }
 }
+
+// -------------------------------------------------------------------------
+// Inheritance source — documents where inherited coverage comes from.
+// Keyed separately from the inheritance status so each field can evolve
+// independently (e.g. future structured source metadata).
+// -------------------------------------------------------------------------
+
+const SOURCE_PREFIX = 'cmmc-inheritance-source-'
+
+// Returns the stored source string, or '' if unset or storage unavailable.
+export function readInheritanceSource(controlId) {
+  if (!controlId) return ''
+  try {
+    return localStorage.getItem(`${SOURCE_PREFIX}${controlId}`) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+// Persists the source string. Removes the key when value is blank.
+export function writeInheritanceSource(controlId, value) {
+  if (!controlId) return
+  try {
+    if (!value || !value.trim()) {
+      localStorage.removeItem(`${SOURCE_PREFIX}${controlId}`)
+    } else {
+      localStorage.setItem(`${SOURCE_PREFIX}${controlId}`, value)
+    }
+  } catch {
+    // localStorage may be unavailable (private browsing, quota, etc.)
+  }
+}
+
+// Returns a warning object when inheritance is set but source is undocumented,
+// or null when source is present or inheritance is None.
+export function getInheritanceSourceWarning(inheritance, source) {
+  if ((inheritance === 'Partial' || inheritance === 'Full') && (!source || !source.trim()))
+    return {
+      severity: 'caution',
+      title: 'Inheritance Provider Not Documented',
+      message: 'Inheritance Status is set, but no inheritance provider has been documented.',
+      note: 'Inheritance Status identifies whether the control is inherited. Inherited From documents the provider, service, or source responsible for that inheritance.',
+    }
+  return null
+}
