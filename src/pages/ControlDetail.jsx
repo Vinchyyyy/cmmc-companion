@@ -17,6 +17,7 @@ import {
 } from '../utils/inheritance'
 import { readPool, writePool } from '../utils/evidencePool'
 import { readObjectiveArtifacts, writeObjectiveArtifacts } from '../utils/objectiveArtifacts'
+import { readObjectiveResult, writeObjectiveResult } from '../utils/objectiveResults'
 import {
   OBJECTIVE_STATUSES,
   OBJECTIVE_STATUS_UNREVIEWED,
@@ -53,6 +54,7 @@ function ControlDetail() {
   const [poolInput, setPoolInput]     = useState('')
   const [objectiveStatuses, setObjectiveStatuses]   = useState(() => loadObjectiveStatuses(id, control))
   const [objectiveArtifacts, setObjectiveArtifacts] = useState(() => loadObjectiveArtifacts(id, control))
+  const [objectiveResults, setObjectiveResults]     = useState(() => loadObjectiveResults(id, control))
   const [objArtifactInputs, setObjArtifactInputs]   = useState({})
   const [focusedObjId, setFocusedObjId]             = useState(null)
 
@@ -66,6 +68,7 @@ function ControlDetail() {
     setPool(readPool(id))
     setPoolInput('')
     setObjectiveArtifacts(loadObjectiveArtifacts(id, control))
+    setObjectiveResults(loadObjectiveResults(id, control))
     setObjArtifactInputs({})
     setFocusedObjId(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -96,6 +99,14 @@ function ControlDetail() {
     setObjectiveNotes(nextObjNotes)
     writeObjectiveNote(id, objId, value)
     syncAutoStatus(note, nextObjNotes, status, id, setStatus)
+  }
+
+  const handleObjectiveResultChange = (objId, field, value) => {
+    const current = objectiveResults[objId] ?? { interviews: '', examine: '', test: '', overallComments: '' }
+    const next = { ...current, [field]: value }
+    setObjectiveResults((prev) => ({ ...prev, [objId]: next }))
+    writeObjectiveResult(id, objId, next)
+    promoteToInProgress(status, id, setStatus)
   }
 
   const commitPoolInput = (raw) => {
@@ -269,18 +280,10 @@ function ControlDetail() {
           </div>
         </div>
 
-        <div style={{ marginTop: 'var(--space-4)' }}>
-          <label htmlFor="assessment-notes">
-            <strong>Assessment Notes</strong>
-          </label>
-          <AutoResizeTextarea
-            id="assessment-notes"
-            value={note}
-            onChange={handleNoteChange}
-            rows={6}
-            placeholder="Findings, evidence references, follow-ups, blockers..."
-          />
-        </div>
+        {/* Assessment Notes UI removed — field hidden but fully retained for backward compatibility.
+            Storage key, read/write logic, import/export support, and localStorage data are preserved.
+            Assessment data collection has moved to the objective level (Interview, Examine, Test,
+            Overall Comments). Re-expose this block to restore the UI. */}
 
         <div style={{ marginTop: 'var(--space-4)' }}>
           <label htmlFor="pool-input">
@@ -418,18 +421,31 @@ function ControlDetail() {
                 )}
               </div>
 
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label htmlFor={objNoteId}>
-                  <strong>Objective Notes</strong>
-                </label>
-                <AutoResizeTextarea
-                  id={objNoteId}
-                  value={objectiveNotes[obj.id] ?? ''}
-                  onChange={(e) => handleObjectiveNoteChange(obj.id, e.target.value)}
-                  rows={3}
-                  placeholder="Findings or evidence references for this specific objective..."
-                />
-              </div>
+              {[
+                { field: 'interviews',      label: 'Interviews',       placeholder: 'Interview findings for this objective…' },
+                { field: 'examine',         label: 'Examine',          placeholder: 'Examined artifacts or documents…' },
+                { field: 'test',            label: 'Test',             placeholder: 'Test results or observations…' },
+                { field: 'overallComments', label: 'Overall Comments', placeholder: 'Overall assessment comments for this objective…' },
+              ].map(({ field, label, placeholder }) => {
+                const fieldId = `obj-${field}-${control.id}-${obj.id}`
+                return (
+                  <div key={field} style={{ marginTop: 'var(--space-3)' }}>
+                    <label htmlFor={fieldId}><strong>{label}</strong></label>
+                    <AutoResizeTextarea
+                      id={fieldId}
+                      value={(objectiveResults[obj.id] ?? {})[field] ?? ''}
+                      onChange={(e) => handleObjectiveResultChange(obj.id, field, e.target.value)}
+                      rows={3}
+                      placeholder={placeholder}
+                    />
+                  </div>
+                )
+              })}
+
+              {/* Objective Notes UI removed — field hidden but fully retained for backward compatibility.
+                  Storage keys, read/write logic, import/export support, and existing localStorage data
+                  are preserved. Structured result fields (Interviews, Examine, Test, Overall Comments)
+                  replace this field. Re-expose this block to restore the UI. */}
             </div>
           )
         })}
@@ -510,6 +526,13 @@ function loadObjectiveArtifacts(controlId, control) {
   if (!control) return {}
   const map = {}
   for (const obj of control.objectives) map[obj.id] = readObjectiveArtifacts(controlId, obj.id)
+  return map
+}
+
+function loadObjectiveResults(controlId, control) {
+  if (!control) return {}
+  const map = {}
+  for (const obj of control.objectives) map[obj.id] = readObjectiveResult(controlId, obj.id)
   return map
 }
 

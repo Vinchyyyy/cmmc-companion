@@ -69,16 +69,16 @@ function pad2(n) { return String(n).padStart(2, '0') }
 // Build an export filename from optional OSC and assessment name.
 // Timestamp uses local browser time in YYYY-MM-DD_HHMM format.
 //
-// suffix: 'AssessmentProgress' | 'ProjectBackup'
-// ext:    'csv' | 'json'
+// suffix: 'AssessmentProgress' | 'AssessmentReport' | 'ProjectBackup'
+// ext:    'csv' | 'xlsx' | 'json'
 //
 // Examples:
-//   ('Acme Corp', 'Q2 2026', 'AssessmentProgress', 'csv')
-//     → 'Acme_Corp_Q2_2026_AssessmentProgress_2026-06-03_1642.csv'
+//   ('Acme Corp', 'Q2 2026', 'AssessmentReport', 'xlsx')
+//     → 'Acme_Corp_Q2_2026_AssessmentReport_2026-06-03_1642.xlsx'
 //   ('Acme Corp', '', 'ProjectBackup', 'json')
 //     → 'Acme_Corp_ProjectBackup_2026-06-03_1642.json'
-//   ('', '', 'AssessmentProgress', 'csv')
-//     → 'CMMC_Companion_AssessmentProgress_2026-06-03_1642.csv'
+//   ('', '', 'AssessmentReport', 'xlsx')
+//     → 'CMMC_Companion_AssessmentReport_2026-06-03_1642.xlsx'
 export function buildExportFilename(osc, assessment, suffix, ext) {
   const now  = new Date()
   const date = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`

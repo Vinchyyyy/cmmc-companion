@@ -1390,6 +1390,108 @@ a:has(> button):hover {
 }
 
 /* -------------------------------------------------------------------------
+   Advanced JSON Import Options — collapsible panel inside restore dialog
+   ------------------------------------------------------------------------- */
+
+.advanced-options-panel {
+  margin-top: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.advanced-options-toggle {
+  cursor: pointer;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  user-select: none;
+  list-style: none;
+}
+
+.advanced-options-toggle::-webkit-details-marker { display: none; }
+
+.advanced-options-toggle::before {
+  content: '▸ ';
+  font-size: 0.65rem;
+  vertical-align: middle;
+}
+
+details[open] > .advanced-options-toggle::before {
+  content: '▾ ';
+}
+
+.advanced-options-body {
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.advanced-options-hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+  margin: 0 0 var(--space-3);
+  line-height: 1.5;
+}
+
+.import-options-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-subtle);
+  margin: 0 0 var(--space-2);
+}
+
+.import-mode-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.import-option-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.import-option-row input {
+  margin-top: 0.2em;
+  flex-shrink: 0;
+  accent-color: var(--color-accent);
+}
+
+.import-option-desc {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.import-category-section {
+  margin-top: var(--space-2);
+}
+
+.import-category-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2) var(--space-3);
+}
+
+@media (max-width: 480px) {
+  .import-category-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.import-zero-categories-warning {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-danger, #cf222e);
+}
+
+/* -------------------------------------------------------------------------
    I/O section descriptions — helper text beneath export/import buttons
    ------------------------------------------------------------------------- */
 

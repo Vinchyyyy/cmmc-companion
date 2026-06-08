@@ -10,10 +10,12 @@ import {
   exportProjectState,
   importProjectState,
   downloadProjectJson,
+  DEFAULT_IMPORT_OPTIONS,
   SCHEMA_VERSION,
   ACCEPTED_SCHEMA_VERSIONS,
 } from '../utils/projectState'
 import { readExportMeta, writeExportMeta, buildExportFilename, readLastBackup, writeLastBackup, formatLastBackup } from '../utils/exportMeta'
+import { buildAssessmentWorkbook, downloadWorkbook } from '../utils/exportXlsx'
 import { THEME_LIGHT, THEME_DARK, readTheme, writeTheme, applyTheme } from '../utils/theme'
 import { APP_VERSION, APP_DEPLOYMENT } from '../utils/version'
 
@@ -123,39 +125,12 @@ function searchRelationships(term) {
 }
 
 // =========================================================================
-// CSV export helpers
+// XLSX export handler
 // =========================================================================
 
-function escapeCsvField(value) {
-  let str = String(value ?? '')
-  if (/^[=+\-@]/.test(str)) str = `'${str}`
-  if (/[",\n\r]/.test(str)) return `"${str.replace(/"/g, '""')}"`
-  return str
-}
-
-function todayStamp() {
-  const d = new Date()
-  const yyyy = d.getFullYear()
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}`
-}
-
-function handleCsvExport(filename) {
-  const headers = ['Control ID', 'Family', 'Title', 'Status', 'Notes']
-  const rows = controls.map((c) => [
-    c.id, c.family, c.title, readStatus(c.id), readNote(c.id),
-  ])
-  const csv = [headers, ...rows].map((row) => row.map(escapeCsvField).join(',')).join('\r\n')
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename ?? `cmmc-status-export-${todayStamp()}.csv`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  setTimeout(() => URL.revokeObjectURL(url), 0)
+async function handleXlsxExport(filename) {
+  const wb = buildAssessmentWorkbook(controls)
+  await downloadWorkbook(wb, filename)
 }
 
 // =========================================================================
@@ -224,9 +199,10 @@ function Home() {
   const [jsonResult, setJsonResult] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedFamily, setSelectedFamily] = useState('All')
-  // exportDialog: null (closed) | { mode: 'csv'|'json', osc: string, assessment: string }
+  // exportDialog: null (closed) | { mode: 'xlsx'|'json', osc: string, assessment: string }
   const [exportDialog, setExportDialog] = useState(null)
   const [pendingJsonImport, setPendingJsonImport] = useState(null)
+  const [importOptions, setImportOptions] = useState(DEFAULT_IMPORT_OPTIONS)
   const [lastBackup, setLastBackup] = useState(() => readLastBackup())
   const [theme, setTheme] = useState(() => readTheme())
 
@@ -272,16 +248,15 @@ function Home() {
   const anyResults = controlResults.length > 0 || evidenceResults.length > 0 || relResults.length > 0
 
   // -----------------------------------------------------------------------
-  // CSV handlers
+  // Export handlers
   // -----------------------------------------------------------------------
 
   const confirmExport = () => {
     const { mode, osc, assessment } = exportDialog
     writeExportMeta(osc, assessment)
-    if (mode === 'csv') {
-      const filename = buildExportFilename(osc, assessment, 'AssessmentProgress', 'csv')
-      handleCsvExport(filename)
-      setCsvResult(null)
+    if (mode === 'xlsx') {
+      const filename = buildExportFilename(osc, assessment, 'ConsultingReport', 'xlsx')
+      handleXlsxExport(filename)
     } else {
       const filename = buildExportFilename(osc, assessment, 'ProjectBackup', 'json')
       const state = exportProjectState(controls)
@@ -401,6 +376,7 @@ function Home() {
         if (!Array.isArray(parsed.controls)) {
           setJsonResult({ ok: false, message: 'Invalid JSON: "controls" must be an array.' }); return
         }
+        setImportOptions(DEFAULT_IMPORT_OPTIONS)
         setPendingJsonImport(parsed)
       } catch {
         setJsonResult({ ok: false, message: 'Could not parse file — is it a valid CMMC Companion project JSON?' })
@@ -413,18 +389,35 @@ function Home() {
   const confirmJsonRestore = () => {
     if (!pendingJsonImport) return
     try {
-      const summary = importProjectState(pendingJsonImport, controls)
+      const summary = importProjectState(pendingJsonImport, controls, importOptions)
       if (!summary.ok) { setJsonResult({ ok: false, message: summary.error }); return }
-      setJsonResult({
-        ok: true,
-        message: `Restored ${summary.controlsProcessed} controls — ` +
-          `${summary.statusesWritten} status${summary.statusesWritten === 1 ? '' : 'es'}, ` +
-          `${summary.notesWritten} note${summary.notesWritten === 1 ? '' : 's'}, ` +
-          `${summary.objectiveNotesWritten} objective note${summary.objectiveNotesWritten === 1 ? '' : 's'}` +
-          (summary.evidencePoolsWritten > 0 ? `, ${summary.evidencePoolsWritten} evidence pool${summary.evidencePoolsWritten === 1 ? '' : 's'}` : '') +
-          (summary.objectiveArtifactsWritten > 0 ? `, ${summary.objectiveArtifactsWritten} objective artifact set${summary.objectiveArtifactsWritten === 1 ? '' : 's'}` : '') +
-          (summary.skippedUnknownId > 0 ? `, skipped ${summary.skippedUnknownId} unknown ID${summary.skippedUnknownId === 1 ? '' : 's'}` : '') + '.',
-      })
+      const p = (n, singular, plural) => n > 0 ? `${n} ${n === 1 ? singular : plural}` : null
+      const parts = [
+        p(summary.statusesWritten,          'status',               'statuses'),
+        p(summary.notesWritten,             'note',                 'notes'),
+        p(summary.objectiveNotesWritten,    'objective note',       'objective notes'),
+        p(summary.objectiveStatusesWritten, 'objective status',     'objective statuses'),
+        p(summary.inheritanceWritten,       'inheritance value',    'inheritance values'),
+        p(summary.inheritanceSourcesWritten,'inheritance source',   'inheritance sources'),
+        p(summary.evidencePoolsWritten,     'evidence pool',        'evidence pools'),
+        p(summary.objectiveArtifactsWritten,'objective artifact set','objective artifact sets'),
+        p(summary.objectiveResultsWritten,  'objective result',     'objective results'),
+      ].filter(Boolean)
+      const skipSuffix = summary.skippedBecauseExisting > 0
+        ? ` Skipped ${summary.skippedBecauseExisting} existing field${summary.skippedBecauseExisting === 1 ? '' : 's'} — Fill Empty Only mode.`
+        : ''
+      const unknownSuffix = summary.skippedUnknownId > 0
+        ? ` (${summary.skippedUnknownId} unknown ID${summary.skippedUnknownId === 1 ? '' : 's'} skipped)`
+        : ''
+      let message
+      if (summary.controlsProcessed === 0) {
+        message = 'No matching controls found in the backup file.'
+      } else if (parts.length === 0) {
+        message = `Backup processed${unknownSuffix}. No selected categories contained restorable values.${skipSuffix}`
+      } else {
+        message = `Restored ${summary.controlsProcessed} control${summary.controlsProcessed === 1 ? '' : 's'} — ${parts.join(', ')}${unknownSuffix}.${skipSuffix}`
+      }
+      setJsonResult({ ok: true, message })
       setRefreshKey((k) => k + 1)
     } catch {
       setJsonResult({ ok: false, message: 'Restore failed — unexpected error.' })
@@ -609,17 +602,32 @@ function Home() {
           })}
         </div>
 
-        {/* CSV */}
+        {/* Consulting Report export temporarily hidden pending redesign. */}
         <p className="muted" style={{ marginBottom: 'var(--space-1)', fontSize: 'var(--text-xs)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
-          Status CSV
+          Consulting Report{' '}
+          <span
+            className="status-badge"
+            style={{
+              background: 'var(--color-in-progress-bg)',
+              color: 'var(--color-in-progress)',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              verticalAlign: 'middle',
+              marginLeft: 'var(--space-2)',
+            }}
+          >
+            Under Maintenance
+          </span>
+        </p>
+        <p style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--color-in-progress)', margin: '0 0 var(--space-3)', lineHeight: 1.5 }}>
+          The Consulting Report export is currently being redesigned and is temporarily unavailable.
         </p>
         <div className="button-group">
-          <button onClick={() => openExportDialog('csv')}>Export CSV</button>
           <button onClick={handleCsvImportClick}>Import CSV</button>
           <input ref={csvFileRef} type="file" accept=".csv,text/csv" onChange={handleCsvFileChange} style={{ display: 'none' }} />
         </div>
         <p className="io-description">
-          <strong>Export CSV</strong> — Export assessment progress including statuses, inheritance selections, and notes. Useful for sharing assessment progress or reviewing data in Excel.<br />
           <strong>Import CSV</strong> — Import a previously exported assessment CSV to restore statuses, inheritance selections, and notes.
         </p>
         {csvResult && (
@@ -680,7 +688,7 @@ function Home() {
         <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="export-dialog-title">
           <div className="confirm-dialog">
             <h2 id="export-dialog-title">
-              {exportDialog.mode === 'csv' ? 'Export Assessment Progress' : 'Create Project Backup'}
+              {exportDialog.mode === 'xlsx' ? 'Export Consulting Report' : 'Create Project Backup'}
             </h2>
             <p>These fields are optional. If left blank, a generic filename will be used.</p>
             <div className="export-dialog-fields">
@@ -709,42 +717,117 @@ function Home() {
             <div className="confirm-dialog-buttons">
               <button onClick={closeExportDialog}>Cancel</button>
               <button onClick={confirmExport}>
-                {exportDialog.mode === 'csv' ? 'Export CSV' : 'Create Backup'}
+                {exportDialog.mode === 'xlsx' ? 'Export Consulting Report' : 'Create Backup'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {pendingJsonImport && (
-        <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="restore-dialog-title">
-          <div className="confirm-dialog">
-            <h2 id="restore-dialog-title">Restore Project Backup?</h2>
-            <p>This will replace your current browser project data with the selected backup file.</p>
-            <p>This may overwrite:</p>
-            <ul>
-              <li>Control statuses</li>
-              <li>Inheritance selections</li>
-              <li>Control notes</li>
-              <li>Objective notes</li>
-              <li>Evidence Pool entries</li>
-              <li>Objective artifact references</li>
-            </ul>
-            <p>This does not modify:</p>
-            <ul>
-              <li>Control definitions</li>
-              <li>Scoring metadata</li>
-              <li>Evidence mappings</li>
-              <li>Relationships</li>
-            </ul>
-            <p>Files are processed locally in your browser and are not uploaded to a server.</p>
-            <div className="confirm-dialog-buttons">
-              <button onClick={cancelJsonRestore}>Cancel</button>
-              <button className="bulk-toolbar-danger" onClick={confirmJsonRestore}>Restore Backup</button>
+      {pendingJsonImport && (() => {
+        const noCategoriesSelected = !Object.values(importOptions.categories).some(Boolean)
+        return (
+          <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="restore-dialog-title">
+            <div className="confirm-dialog">
+              <h2 id="restore-dialog-title">Restore Project Backup?</h2>
+              <p>This will restore your project data from the selected backup file.</p>
+              <p>This does not modify:</p>
+              <ul>
+                <li>Control definitions</li>
+                <li>Scoring metadata</li>
+                <li>Evidence mappings</li>
+                <li>Relationships</li>
+              </ul>
+              <p>Files are processed locally in your browser and are not uploaded to a server.</p>
+
+              <details className="advanced-options-panel">
+                <summary className="advanced-options-toggle">Advanced Options</summary>
+                <div className="advanced-options-body">
+                  <p className="advanced-options-hint">
+                    Use advanced options to control which project data is restored and whether existing local work should be overwritten.
+                  </p>
+
+                  <div className="import-mode-group">
+                    <p className="import-options-label">Import Mode</p>
+                    <label className="import-option-row">
+                      <input
+                        type="radio"
+                        name="importMode"
+                        value="replace"
+                        checked={importOptions.mode === 'replace'}
+                        onChange={() => setImportOptions((o) => ({ ...o, mode: 'replace' }))}
+                      />
+                      <span>
+                        <strong>Replace existing data</strong>
+                        <span className="import-option-desc"> — Imported values overwrite existing local values for the selected categories.</span>
+                      </span>
+                    </label>
+                    <label className="import-option-row">
+                      <input
+                        type="radio"
+                        name="importMode"
+                        value="fill-empty"
+                        checked={importOptions.mode === 'fill-empty'}
+                        onChange={() => setImportOptions((o) => ({ ...o, mode: 'fill-empty' }))}
+                      />
+                      <span>
+                        <strong>Fill empty fields only</strong>
+                        <span className="import-option-desc"> — Imported values are only written when the current local field is blank or default.</span>
+                      </span>
+                    </label>
+                  </div>
+
+                  <div className="import-category-section">
+                    <p className="import-options-label">Import Categories</p>
+                    <div className="import-category-grid">
+                      {[
+                        ['statuses',         'Assessment statuses'],
+                        ['notes',            'Assessment notes'],
+                        ['objectiveNotes',   'Objective notes'],
+                        ['objectiveStatuses','Objective statuses'],
+                        ['inheritance',      'Inheritance status'],
+                        ['inheritanceSource','Inheritance source'],
+                        ['evidencePool',     'Evidence Pool'],
+                        ['objectiveArtifacts','Objective Artifacts'],
+                        ['objectiveResults',  'Objective Results'],
+                      ].map(([key, label]) => (
+                        <label key={key} className="import-option-row">
+                          <input
+                            type="checkbox"
+                            checked={importOptions.categories[key]}
+                            onChange={(e) => setImportOptions((o) => ({
+                              ...o,
+                              categories: { ...o.categories, [key]: e.target.checked },
+                            }))}
+                          />
+                          <span>{label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </details>
+
+              {noCategoriesSelected && (
+                <p className="import-zero-categories-warning">
+                  Select at least one data category to restore.
+                </p>
+              )}
+
+              <div className="confirm-dialog-buttons">
+                <button onClick={cancelJsonRestore}>Cancel</button>
+                <button
+                  className="bulk-toolbar-danger"
+                  onClick={confirmJsonRestore}
+                  disabled={noCategoriesSelected}
+                >
+                  Restore Backup
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
     </div>
   )
 }
