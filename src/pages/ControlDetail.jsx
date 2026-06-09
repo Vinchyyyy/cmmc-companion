@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import AutoResizeTextarea from '../components/AutoResizeTextarea'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
 import controls from '../data/controls/index.js'
+import { PROVIDERS } from '../data/providers'
 import evidenceTypes from '../data/evidence/index.js'
 import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
 import { readNote, writeNote } from '../utils/notes'
@@ -260,13 +261,49 @@ function ControlDetail() {
               <label htmlFor="inheritance-source">
                 <strong>Inherited From</strong>
               </label>
-              <input
-                id="inheritance-source"
-                type="text"
-                value={inheritanceSource}
-                onChange={handleInheritanceSourceChange}
-                placeholder="e.g. Microsoft 365 GCC High, AWS GovCloud"
-              />
+              <div className="provider-picker-wrapper">
+                <input
+                  id="inheritance-source"
+                  type="text"
+                  value={inheritanceSource}
+                  onChange={handleInheritanceSourceChange}
+                  placeholder="e.g. Microsoft 365 GCC High, AWS GovCloud"
+                  autoComplete="off"
+                  className={
+                    inheritanceSource.trim() &&
+                    !PROVIDERS.some((p) => p.name === inheritanceSource)
+                      ? 'provider-picker-input--open'
+                      : ''
+                  }
+                />
+                {inheritanceSource.trim() &&
+                  !PROVIDERS.some((p) => p.name === inheritanceSource) &&
+                  (() => {
+                    const q = inheritanceSource.toLowerCase()
+                    const suggestions = PROVIDERS.filter(
+                      (p) =>
+                        p.name.toLowerCase().includes(q) ||
+                        p.category.toLowerCase().includes(q)
+                    ).slice(0, 8)
+                    return suggestions.length > 0 ? (
+                      <ul className="provider-picker-results">
+                        {suggestions.map((p) => (
+                          <li
+                            key={p.id}
+                            className="provider-picker-result"
+                            onMouseDown={(e) => {
+                              e.preventDefault()
+                              setInheritanceSource(p.name)
+                              writeInheritanceSource(id, p.name)
+                            }}
+                          >
+                            {p.name}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null
+                  })()}
+              </div>
             </div>
           )}
 

@@ -4,6 +4,7 @@ import controls from '../data/controls/index.js'
 import evidenceTypes from '../data/evidence/index.js'
 import relationships from '../data/relationships/index.js'
 import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
+import { readInheritanceSource } from '../utils/inheritance'
 import { readNote, writeNote } from '../utils/notes'
 import { getScoringSearchTerms } from '../utils/scoring'
 import {
@@ -20,6 +21,17 @@ import { THEME_LIGHT, THEME_DARK, readTheme, writeTheme, applyTheme } from '../u
 import { APP_VERSION, APP_DEPLOYMENT } from '../utils/version'
 
 const KNOWN_CONTROL_IDS = new Set(controls.map((c) => c.id))
+
+function getInheritanceSources(allControls) {
+  const counts = new Map()
+  for (const c of allControls) {
+    const src = readInheritanceSource(c.id).trim()
+    if (src) counts.set(src, (counts.get(src) ?? 0) + 1)
+  }
+  return [...counts.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+}
 
 const STATUS_NORMALIZER = STATUSES.reduce((acc, s) => {
   acc[s.toLowerCase()] = s
@@ -205,6 +217,7 @@ function Home() {
   const [importOptions, setImportOptions] = useState(DEFAULT_IMPORT_OPTIONS)
   const [lastBackup, setLastBackup] = useState(() => readLastBackup())
   const [theme, setTheme] = useState(() => readTheme())
+  const [sourceLimit, setSourceLimit] = useState('5')
 
   const toggleTheme = () => {
     const next = theme === THEME_LIGHT ? THEME_DARK : THEME_LIGHT
@@ -601,6 +614,51 @@ function Home() {
             )
           })}
         </div>
+
+        {/* Inheritance Sources summary */}
+        {(() => {
+          const allSources = getInheritanceSources(controls)
+          const displayed = sourceLimit === 'All' ? allSources : allSources.slice(0, Number(sourceLimit))
+          const max = allSources[0]?.count ?? 1
+          return (
+            <div style={{ marginBottom: 'var(--space-4)' }}>
+              <div className="inh-sources-header">
+                <h2>Inheritance Sources</h2>
+                {allSources.length > 0 && (
+                  <select
+                    value={sourceLimit}
+                    onChange={(e) => setSourceLimit(e.target.value)}
+                    aria-label="Show top N inheritance sources"
+                  >
+                    <option value="5">Top 5</option>
+                    <option value="10">Top 10</option>
+                    <option value="All">All</option>
+                  </select>
+                )}
+              </div>
+              {allSources.length === 0 ? (
+                <p className="muted">No inheritance sources documented yet.</p>
+              ) : (
+                <div className="inh-source-list">
+                  {displayed.map(({ name, count }) => (
+                    <Link
+                      key={name}
+                      to={`/controls?inheritanceSource=${encodeURIComponent(name)}`}
+                      className="inh-source-row"
+                      title={`View controls inherited from ${name}`}
+                    >
+                      <span className="inh-source-name">{name}</span>
+                      <div className="inh-source-bar-wrap" aria-hidden="true">
+                        <div className="inh-source-bar" style={{ width: `${Math.round((count / max) * 100)}%` }} />
+                      </div>
+                      <span className="inh-source-count">{count}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })()}
 
         {/* Consulting Report export temporarily hidden pending redesign. */}
         <p className="muted" style={{ marginBottom: 'var(--space-1)', fontSize: 'var(--text-xs)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>

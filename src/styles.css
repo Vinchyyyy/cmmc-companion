@@ -310,6 +310,80 @@ section {
    Home page footer row — deep link + theme toggle
    ------------------------------------------------------------------------- */
 
+.inh-sources-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.inh-sources-header h2 {
+  margin: 0;
+}
+
+.inh-source-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.inh-source-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: background var(--transition);
+}
+
+.inh-source-row:hover {
+  background: var(--color-surface-alt);
+  cursor: pointer;
+}
+
+.inh-source-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inh-source-bar-wrap {
+  width: 180px;
+  height: 8px;
+  background: var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.inh-source-bar {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: var(--radius-sm);
+  transition: width 0.2s ease;
+}
+
+.inh-source-count {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  min-width: 2ch;
+  text-align: right;
+}
+
+@media (max-width: 480px) {
+  .inh-source-bar-wrap {
+    width: 100px;
+  }
+}
+
 .home-footer-row {
   display: flex;
   justify-content: space-between;
@@ -410,6 +484,16 @@ section {
 .filter-row input[type="text"] {
   flex: 1 1 240px;
   min-width: 200px;
+}
+
+.advanced-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  width: 100%;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  align-items: center;
 }
 
 /* -------------------------------------------------------------------------
@@ -1353,6 +1437,108 @@ a:has(> button):hover {
   gap: 0.5rem;
   justify-content: flex-end;
   margin-top: 1.25rem;
+}
+
+/* -------------------------------------------------------------------------
+   Source picker — searchable control picker inside Copy From Control modal
+   ------------------------------------------------------------------------- */
+
+.source-picker-input--open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.source-picker-results {
+  border: 1px solid var(--color-border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: var(--color-surface);
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.source-picker-result {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.source-picker-result:last-child {
+  border-bottom: none;
+}
+
+.source-picker-result:hover {
+  background: var(--color-accent-bg);
+  color: var(--color-accent);
+}
+
+.source-picker-overflow {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+  border-top: 1px solid var(--color-border);
+  list-style: none;
+}
+
+.source-picker-empty {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+  list-style: none;
+}
+
+.source-picker-selected {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-met);
+  margin-top: var(--space-2);
+}
+
+.provider-picker-wrapper {
+  position: relative;
+}
+
+.provider-picker-input--open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.provider-picker-results {
+  border: 1px solid var(--color-border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: var(--color-surface);
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.provider-picker-result {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.provider-picker-result:last-child {
+  border-bottom: none;
+}
+
+.provider-picker-result:hover {
+  background: var(--color-accent-bg);
+  color: var(--color-accent);
 }
 
 .export-dialog-fields {

@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams, useLocation } from 'react-router-dom'
 import controls from '../data/controls/index'
+import { PROVIDERS } from '../data/providers'
 import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
 import { readNote, writeNote } from '../utils/notes'
 import { hasObjectiveNotes, writeObjectiveNote } from '../utils/objectiveNotes'
 import { hasObjectiveArtifacts, writeObjectiveArtifacts } from '../utils/objectiveArtifacts'
-import { writePool } from '../utils/evidencePool'
+import { readPool, writePool } from '../utils/evidencePool'
 import {
   getTrendingStatusFromStorage,
   writeObjectiveStatus,
@@ -78,6 +79,7 @@ const DEFAULTS = {
   poam: 'All',
   trending: 'All',
   warnings: 'All',
+  inheritanceSource: 'All',
 }
 
 // Official CMMC assessment order per Assessment Guide TOC
@@ -98,8 +100,17 @@ const FAMILY_ORDER = [
   'System and Information Integrity',
 ]
 
-const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'trending', 'warnings']
+const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'trending', 'warnings', 'inheritanceSource']
 const SEARCH_DEBOUNCE_MS = 500
+
+function getProviderSuggestions(value) {
+  if (!value.trim()) return []
+  if (PROVIDERS.some((p) => p.name === value)) return []
+  const q = value.toLowerCase()
+  return PROVIDERS.filter(
+    (p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
+  ).slice(0, 8)
+}
 
 function ControlLibrary() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -114,6 +125,7 @@ function ControlLibrary() {
   const poamFilter     = searchParams.get('poam')        ?? DEFAULTS.poam
   const trendingFilter  = searchParams.get('trending')  ?? DEFAULTS.trending
   const warningsFilter  = searchParams.get('warnings')  ?? DEFAULTS.warnings
+  const inheritanceSourceFilter = searchParams.get('inheritanceSource') ?? DEFAULTS.inheritanceSource
 
   const location = useLocation()
 
@@ -122,6 +134,9 @@ function ControlLibrary() {
   const [updateKey, setUpdateKey]       = useState(0)
   const [confirmClear, setConfirmClear] = useState(false)
   const [bulkInheritanceModal, setBulkInheritanceModal] = useState(null)
+  const [copyAttrsModal, setCopyAttrsModal] = useState(null)
+  const [copyAttrsResult, setCopyAttrsResult] = useState(null)
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [showIconGuide, setShowIconGuide] = useState(false)
   const [hideMet, setHideMet] = useState(() => localStorage.getItem('cmmc-hide-met-controls') === 'true')
   const [openQuickLook, setOpenQuickLook] = useState(null)
@@ -136,6 +151,9 @@ function ControlLibrary() {
     forceUpdate()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.key])
+
+  // Clear copy-attributes feedback whenever the selection changes.
+  useEffect(() => { setCopyAttrsResult(null) }, [selected])
 
   const toggleHideMet = () => setHideMet((prev) => {
     const next = !prev
@@ -164,6 +182,11 @@ function ControlLibrary() {
   const hasActiveFilters = FILTER_KEYS.some(
     (key) => (searchParams.get(key) ?? DEFAULTS[key]) !== DEFAULTS[key]
   )
+
+  const ADVANCED_FILTER_KEYS = ['notes', 'artifacts', 'inheritance', 'score', 'poam', 'inheritanceSource']
+  const activeAdvancedCount = ADVANCED_FILTER_KEYS.filter(
+    (key) => (searchParams.get(key) ?? DEFAULTS[key]) !== DEFAULTS[key]
+  ).length
 
   const handleClearFilters = () => {
     if (debounceRef.current) { clearTimeout(debounceRef.current); debounceRef.current = null }
@@ -219,12 +242,20 @@ function ControlLibrary() {
     return readStatus(c.id) !== 'MET'
   }
 
+  const usedInheritanceSources = useMemo(() =>
+    [...new Set(controls.map((c) => readInheritanceSource(c.id).trim()).filter(Boolean))].sort()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  , [updateKey])
+
+  const matchesInheritanceSource = (c) =>
+    inheritanceSourceFilter === 'All' || readInheritanceSource(c.id).trim() === inheritanceSourceFilter
+
   // Preserve official index.js order — do NOT sort by compareIds
   const results = controls.filter((c) =>
     matchesSearch(c) && matchesFamily(c) && matchesStatus(c) &&
     matchesNotes(c) && matchesArtifacts(c) && matchesInheritance(c) &&
     matchesScore(c) && matchesPoam(c) && matchesTrending(c) && matchesHideMet(c) &&
-    matchesWarnings(c)
+    matchesWarnings(c) && matchesInheritanceSource(c)
   )
 
   // Group by family in official CMMC order
@@ -262,7 +293,7 @@ function ControlLibrary() {
   }
   const clearSelection   = () => setSelected(new Set())
   const enterMultiSelect = () => { setMultiSelectMode(true); setOpenQuickLook(null) }
-  const exitMultiSelect  = () => { setMultiSelectMode(false); setOpenQuickLook(null); setSelected(new Set()) }
+  const exitMultiSelect  = () => { setMultiSelectMode(false); setOpenQuickLook(null); setSelected(new Set()); setCopyAttrsResult(null) }
   const selectedControls = controls.filter((c) => selected.has(c.id))
 
   const bulkSetStatus      = (s) => { for (const id of selected) writeStatus(id, s); forceUpdate() }
@@ -298,6 +329,7 @@ function ControlLibrary() {
       <h1>Control Library</h1>
 
       <div className="filter-row">
+        {/* Primary filters */}
         <input
           type="text"
           placeholder="Search by ID, title, family, plain English, artifacts, or gaps..."
@@ -325,31 +357,6 @@ function ControlLibrary() {
           <option value="All">All statuses</option>
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
-        <select value={notesFilter} onChange={(e) => writeFilter('notes', e.target.value)}>
-          <option value="All">All notes</option>
-          <option value="Has Notes">Has notes</option>
-          <option value="No Notes">No notes</option>
-        </select>
-        <select value={artifactsFilter} onChange={(e) => writeFilter('artifacts', e.target.value)}>
-          <option value="All">All artifacts</option>
-          <option value="Yes">Has artifacts</option>
-          <option value="No">No artifacts</option>
-        </select>
-        <select value={inheritFilter} onChange={(e) => writeFilter('inheritance', e.target.value)}>
-          <option value="All">All inheritance</option>
-          {INHERITANCE_VALUES.map((v) => <option key={v} value={v}>{v}</option>)}
-        </select>
-        <select value={scoreFilter} onChange={(e) => writeFilter('score', e.target.value)}>
-          <option value="All">All scores</option>
-          {SCORE_VALUES.map((v) => (
-            <option key={v} value={v}>({Math.abs(v)}) pts</option>
-          ))}
-        </select>
-        <select value={poamFilter} onChange={(e) => writeFilter('poam', e.target.value)}>
-          <option value="All">All POA&amp;M</option>
-          <option value="Allowed">POA&amp;M Allowed</option>
-          <option value="Not Allowed">Non-POA&amp;Mable</option>
-        </select>
         <select value={trendingFilter} onChange={(e) => writeFilter('trending', e.target.value)}>
           <option value="All">All trending</option>
           <option value="Not Started">Trending: Not Started</option>
@@ -369,7 +376,45 @@ function ControlLibrary() {
         >
           Clear Filters
         </button>
+        <button onClick={() => setShowAdvancedFilters((v) => !v)}>
+          More Filters{activeAdvancedCount > 0 ? ` (${activeAdvancedCount})` : ''} {showAdvancedFilters ? '▴' : '▾'}
+        </button>
         <button onClick={() => setShowIconGuide(true)}>Icon Guide</button>
+
+        {/* Advanced filters */}
+        {showAdvancedFilters && (
+          <div className="advanced-filter-row">
+            <select value={notesFilter} onChange={(e) => writeFilter('notes', e.target.value)}>
+              <option value="All">All notes</option>
+              <option value="Has Notes">Has notes</option>
+              <option value="No Notes">No notes</option>
+            </select>
+            <select value={artifactsFilter} onChange={(e) => writeFilter('artifacts', e.target.value)}>
+              <option value="All">All artifacts</option>
+              <option value="Yes">Has artifacts</option>
+              <option value="No">No artifacts</option>
+            </select>
+            <select value={inheritFilter} onChange={(e) => writeFilter('inheritance', e.target.value)}>
+              <option value="All">All inheritance</option>
+              {INHERITANCE_VALUES.map((v) => <option key={v} value={v}>{v}</option>)}
+            </select>
+            <select value={scoreFilter} onChange={(e) => writeFilter('score', e.target.value)}>
+              <option value="All">All scores</option>
+              {SCORE_VALUES.map((v) => (
+                <option key={v} value={v}>({Math.abs(v)}) pts</option>
+              ))}
+            </select>
+            <select value={poamFilter} onChange={(e) => writeFilter('poam', e.target.value)}>
+              <option value="All">All POA&amp;M</option>
+              <option value="Allowed">POA&amp;M Allowed</option>
+              <option value="Not Allowed">Non-POA&amp;Mable</option>
+            </select>
+            <select value={inheritanceSourceFilter} onChange={(e) => writeFilter('inheritanceSource', e.target.value)}>
+              <option value="All">All sources</option>
+              {usedInheritanceSources.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+        )}
       </div>
 
       <div className="control-utility-bar">
@@ -431,12 +476,23 @@ function ControlLibrary() {
             <option value="" disabled>Set inheritance…</option>
             {INHERITANCE_VALUES.map((v) => <option key={v} value={v}>{v}</option>)}
           </select>
+          <button
+            onClick={() => {
+              setCopyAttrsResult(null)
+              setCopyAttrsModal({ sourceId: '', sourceSearch: '', attrs: { status: false, inheritance: true, inheritanceSource: true, evidencePool: true } })
+            }}
+          >
+            Copy From Control
+          </button>
           <button className="bulk-toolbar-danger" onClick={() => setConfirmClear(true)}
             title="Reset status, inheritance, and all notes for selected controls">
             Clear Data
           </button>
           <button className="bulk-toolbar-clear" onClick={exitMultiSelect}>Exit Multi-Select</button>
         </div>
+      )}
+      {copyAttrsResult && (
+        <p className="feedback feedback--ok" style={{ marginTop: 'var(--space-2)' }}>{copyAttrsResult}</p>
       )}
 
       {results.length === 0 ? (
@@ -711,15 +767,35 @@ function ControlLibrary() {
               <label htmlFor="bulk-inheritance-source" style={{ display: 'block', marginBottom: 'var(--space-1)', fontWeight: 600, fontSize: 'var(--text-sm)' }}>
                 Inherited From
               </label>
-              <input
-                id="bulk-inheritance-source"
-                type="text"
-                value={bulkInheritanceModal.source}
-                onChange={(e) => setBulkInheritanceModal((prev) => ({ ...prev, source: e.target.value }))}
-                placeholder="e.g. Microsoft 365 GCC High, AWS GovCloud"
-                style={{ width: '100%', boxSizing: 'border-box' }}
-                autoFocus
-              />
+              <div className="provider-picker-wrapper">
+                <input
+                  id="bulk-inheritance-source"
+                  type="text"
+                  value={bulkInheritanceModal.source}
+                  onChange={(e) => setBulkInheritanceModal((prev) => ({ ...prev, source: e.target.value }))}
+                  placeholder="e.g. Microsoft 365 GCC High, AWS GovCloud"
+                  style={{ width: '100%', boxSizing: 'border-box' }}
+                  autoComplete="off"
+                  autoFocus
+                  className={getProviderSuggestions(bulkInheritanceModal.source).length > 0 ? 'provider-picker-input--open' : ''}
+                />
+                {getProviderSuggestions(bulkInheritanceModal.source).length > 0 && (
+                  <ul className="provider-picker-results">
+                    {getProviderSuggestions(bulkInheritanceModal.source).map((p) => (
+                      <li
+                        key={p.id}
+                        className="provider-picker-result"
+                        onMouseDown={(e) => {
+                          e.preventDefault()
+                          setBulkInheritanceModal((prev) => ({ ...prev, source: p.name }))
+                        }}
+                      >
+                        {p.name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
               <p style={{ marginTop: 'var(--space-1)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
                 Enter the provider, service, or source responsible for the inherited control implementation.
               </p>
@@ -739,6 +815,198 @@ function ControlLibrary() {
           </div>
         </div>
       )}
+
+      {copyAttrsModal && (() => {
+        const { sourceId, sourceSearch, attrs } = copyAttrsModal
+        const sourceLabel = (c) => `${c.id} — ${c.title}`
+        const sourceTerm  = sourceSearch.trim().toLowerCase()
+        const allMatches  = sourceTerm.length === 0 ? [] : controls.filter((c) =>
+          c.id.toLowerCase().includes(sourceTerm) ||
+          c.title.toLowerCase().includes(sourceTerm) ||
+          c.family.toLowerCase().includes(sourceTerm)
+        )
+        const showResults  = sourceTerm.length > 0 && sourceId === ''
+        const resultRows   = allMatches.slice(0, 10)
+        const hasOverflow  = allMatches.length > 10
+        const targetCount  = [...selected].filter((id) => id !== sourceId).length
+        const canApply     = sourceId !== '' && Object.values(attrs).some(Boolean) && targetCount > 0
+        return (
+          <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="copy-attrs-title">
+            <div className="confirm-dialog">
+              <h2 id="copy-attrs-title">Copy From Control</h2>
+
+              <div style={{ marginBottom: 'var(--space-4)' }}>
+                <p style={{ margin: '0 0 var(--space-2)', fontSize: 'var(--text-base)' }}>
+                  <strong>Selected Targets:</strong>{' '}
+                  <span style={{
+                    display: 'inline-block',
+                    background: 'var(--color-in-progress-bg)',
+                    color: 'var(--color-in-progress)',
+                    fontWeight: 700,
+                    fontSize: 'var(--text-sm)',
+                    padding: '2px var(--space-2)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontFamily: 'var(--font-mono)',
+                  }}>
+                    {targetCount} control{targetCount === 1 ? '' : 's'}
+                  </span>
+                </p>
+                <p style={{ margin: 0, fontSize: 'var(--text-xs)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: 'var(--space-1)' }}>
+                  How it works
+                </p>
+                <p style={{ margin: 0, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
+                  Choose a source control below. The selected controls will receive the chosen attributes from that source.
+                </p>
+              </div>
+
+              <div className="control-meta-field" style={{ marginTop: 'var(--space-3)' }}>
+                <label htmlFor="copy-attrs-source" style={{ display: 'block', marginBottom: 'var(--space-1)', fontWeight: 600, fontSize: 'var(--text-sm)' }}>
+                  Source Control
+                </label>
+                <input
+                  id="copy-attrs-source"
+                  type="text"
+                  className={showResults ? 'source-picker-input--open' : ''}
+                  placeholder="Search by control ID or title…"
+                  value={sourceSearch}
+                  autoFocus
+                  autoComplete="off"
+                  style={{ width: '100%', boxSizing: 'border-box' }}
+                  onChange={(e) => {
+                    const text = e.target.value
+                    setCopyAttrsModal((prev) => {
+                      const selectedControl = controls.find((c) => c.id === prev.sourceId)
+                      const stillMatches = selectedControl && text === sourceLabel(selectedControl)
+                      return { ...prev, sourceSearch: text, sourceId: stillMatches ? prev.sourceId : '' }
+                    })
+                  }}
+                />
+                {showResults && (
+                  <ul className="source-picker-results">
+                    {resultRows.length === 0 ? (
+                      <li className="source-picker-empty">No matching controls found.</li>
+                    ) : (
+                      <>
+                        {resultRows.map((c) => (
+                          <li
+                            key={c.id}
+                            className="source-picker-result"
+                            onMouseDown={(e) => {
+                              e.preventDefault()
+                              setCopyAttrsModal((prev) => ({ ...prev, sourceId: c.id, sourceSearch: sourceLabel(c) }))
+                            }}
+                          >
+                            <span className="mono">{c.id}</span> — {c.title}
+                          </li>
+                        ))}
+                        {hasOverflow && (
+                          <li className="source-picker-overflow">
+                            Showing first 10 matches. Keep typing to narrow results.
+                          </li>
+                        )}
+                      </>
+                    )}
+                  </ul>
+                )}
+                {sourceId !== '' && (
+                  <p className="source-picker-selected">
+                    ✓ Selected: {sourceSearch}
+                  </p>
+                )}
+              </div>
+
+              <div style={{ marginTop: 'var(--space-4)' }}>
+                <p style={{ fontWeight: 600, fontSize: 'var(--text-sm)', marginBottom: 'var(--space-2)' }}>Attributes to copy</p>
+                {[
+                  ['status',            'Assessment Status'],
+                  ['inheritance',       'Inheritance Status'],
+                  ['inheritanceSource', 'Inheritance Source'],
+                  ['evidencePool',      'Evidence Pool'],
+                ].map(([key, label]) => (
+                  <label key={key} className="import-option-row">
+                    <input
+                      type="checkbox"
+                      checked={attrs[key]}
+                      onChange={(e) => setCopyAttrsModal((prev) => ({
+                        ...prev,
+                        attrs: { ...prev.attrs, [key]: e.target.checked },
+                      }))}
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
+              </div>
+
+              <p style={{ marginTop: 'var(--space-3)', fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
+                Attributes are copied from the source control to the {targetCount} selected target control{targetCount === 1 ? '' : 's'}.
+                {sourceId !== '' && selected.has(sourceId) && ' Source control is excluded from targets.'}
+                {' '}Objective-level data is not copied.
+              </p>
+
+              <div className="confirm-dialog-buttons">
+                <button onClick={() => setCopyAttrsModal(null)}>Cancel</button>
+                <button
+                  disabled={!canApply}
+                  onClick={() => {
+                    // TEMP DEBUG — remove before release
+                    console.group('[CopyAttrs] Apply clicked')
+                    console.log('sourceId:', sourceId)
+                    console.log('attrs snapshot:', JSON.stringify(attrs))
+                    console.log('selected:', [...selected])
+                    console.log('source status    :', readStatus(sourceId))
+                    console.log('source inherit   :', readInheritance(sourceId))
+                    console.log('source inheritSrc:', readInheritanceSource(sourceId))
+                    console.log('source pool      :', readPool(sourceId))
+
+                    const targets = [...selected].filter((id) => id !== sourceId)
+                    console.log('targets (excl. source):', targets)
+
+                    for (const targetId of targets) {
+                      console.group(`  target: ${targetId}`)
+                      if (attrs.status) {
+                        const v = readStatus(sourceId)
+                        console.log('  writeStatus ->', v)
+                        writeStatus(targetId, v)
+                        console.log('  localStorage[cmmc-status-' + targetId + '] after write:', localStorage.getItem('cmmc-status-' + targetId))
+                      } else { console.log('  writeStatus SKIPPED (attrs.status=false)') }
+
+                      if (attrs.inheritance) {
+                        const v = readInheritance(sourceId)
+                        console.log('  writeInheritance ->', v)
+                        writeInheritance(targetId, v)
+                        console.log('  localStorage[cmmc-inheritance-' + targetId + '] after write:', localStorage.getItem('cmmc-inheritance-' + targetId))
+                      } else { console.log('  writeInheritance SKIPPED (attrs.inheritance=false)') }
+
+                      if (attrs.inheritanceSource) {
+                        const v = readInheritanceSource(sourceId)
+                        console.log('  writeInheritanceSource ->', v)
+                        writeInheritanceSource(targetId, v)
+                        console.log('  localStorage[cmmc-inheritance-source-' + targetId + '] after write:', localStorage.getItem('cmmc-inheritance-source-' + targetId))
+                      } else { console.log('  writeInheritanceSource SKIPPED (attrs.inheritanceSource=false)') }
+
+                      if (attrs.evidencePool) {
+                        const v = readPool(sourceId)
+                        console.log('  writePool ->', v)
+                        writePool(targetId, v)
+                        console.log('  localStorage[cmmc-pool-' + targetId + '] after write:', localStorage.getItem('cmmc-pool-' + targetId))
+                      } else { console.log('  writePool SKIPPED (attrs.evidencePool=false)') }
+                      console.groupEnd()
+                    }
+                    console.groupEnd()
+                    // END TEMP DEBUG
+
+                    setCopyAttrsModal(null)
+                    setCopyAttrsResult(`Copied selected attributes to ${targets.length} control${targets.length === 1 ? '' : 's'}.`)
+                    forceUpdate()
+                  }}
+                >
+                  Apply Attributes
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {confirmClear && (
         <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
