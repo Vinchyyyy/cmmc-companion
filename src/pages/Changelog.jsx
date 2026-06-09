@@ -9,10 +9,175 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v1.3.0 — current release, open by default */}
+      {/* v1.4.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v1.3.0</span>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v1.4.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span>Assessment Collaboration &amp; Provider Catalog Update</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 8, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assignment Tracking</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added Assigned To field in Control Detail — assign any control to a named assessor or team member</li>
+              <li>Assignments are free-text with name suggestions drawn from existing local assignments</li>
+              <li>Blank assignment clears the field and removes the storage key</li>
+              <li>Added Assigned To display in Quick Look panel — shows assignee or "Unassigned"</li>
+              <li>Added bulk Set Assignment action in Multi-Select toolbar — write or clear assignments across multiple controls simultaneously</li>
+              <li>Assignment suggestions in the bulk modal reflect currently used names</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assignment Import/Export</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Assignments are included in Project JSON exports when nonblank</li>
+              <li>Assignments are restored during Project JSON import</li>
+              <li>Added Assignments category to Advanced Import Options</li>
+              <li>Import summary reports the number of assignments written</li>
+              <li>Replace and Fill Empty Only modes both supported for assignments</li>
+              <li>Older backups without assignment data import normally — backward compatible</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assignment Coverage Dashboard</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added Assignment Coverage section to Home page dashboard</li>
+              <li>Displays Assigned Controls count and Unassigned Controls count</li>
+              <li>Assigned Controls count links to Control Library filtered to assigned controls</li>
+              <li>Unassigned Controls count links to Control Library filtered to unassigned controls</li>
+              <li>Section is read-only — no localStorage writes from the dashboard</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Provider Catalog</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added provider catalog with 31 curated entries across 7 categories: Identity &amp; Access, Endpoint Management, Microsoft 365, Cloud, Security Operations, Backup, and Network/Infrastructure</li>
+              <li>Inheritance Source field in Control Detail now shows searchable provider suggestions while typing</li>
+              <li>Suggestions match provider name and category — case-insensitive</li>
+              <li>Clicking a suggestion writes the exact canonical provider name</li>
+              <li>Custom provider names and free-text values remain fully supported — no forced selection</li>
+              <li>Provider suggestions also available in the bulk inheritance modal</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Inheritance Sources Dashboard</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added Inheritance Sources summary to Home page dashboard</li>
+              <li>Displays providers and sources currently in use with proportional bar visualization</li>
+              <li>Counts sourced directly from local data — custom providers appear automatically</li>
+              <li>Includes Top 5 / Top 10 / All view selector</li>
+              <li>Each row is clickable — links to Control Library filtered by that source</li>
+              <li>Section placed directly below assessment status cards for immediate visibility</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Advanced Filtering Expansion</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added Inheritance Source filter in Advanced Filters — shows only sources actively used in local data</li>
+              <li>Added Assigned To filter in Advanced Filters — options: All assignees, Assigned, Unassigned, or specific assignee name</li>
+              <li>Both filters participate in URL-based filter state persistence</li>
+              <li>Both filters are included in Clear Filters behavior</li>
+              <li>Both filters contribute to the More Filters active count badge</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Inheritance Badge Improvements</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Inheritance badges in Control Library rows now display the source alongside the status</li>
+              <li>Format: Partial — AWS GovCloud / Full — Microsoft 365 GCC High</li>
+              <li>Badge tooltip includes full inheritance label for long source names</li>
+              <li>Falls back to status-only label when no source is documented</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Objective Results Framework</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added structured assessment result fields per objective: Interview, Examine, Test, and Overall Comments</li>
+              <li>Objective result fields persist locally per control and objective</li>
+              <li>Objective results included in Project JSON export and import</li>
+              <li>Import summary reports objective results written</li>
+              <li>Older backups without objective result data import normally</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Sticky Multi-Select Toolbar</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Multi-Select bulk action toolbar is now sticky — remains visible while scrolling through the Control Library</li>
+              <li>Toolbar pins to the top of the viewport when the user scrolls past it</li>
+              <li>All bulk actions remain accessible without scrolling back to the top</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Copy From Control Workflow</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added Copy From Control action in Multi-Select toolbar</li>
+              <li>Allows copying assessment attributes from one source control to multiple selected controls</li>
+              <li>Copyable attributes: Assessment Status, Inheritance Status, Inheritance Source, Evidence Pool</li>
+              <li>Source control is selected using a searchable picker</li>
+              <li>Copy operation is scoped to selected controls only — no unintended writes</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Notes &amp; Objective Notes Simplification</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Assessment Notes field hidden from Control Detail UI to reduce clutter — field data and storage are fully preserved</li>
+              <li>Objective Notes section streamlined for focus on objective-level assessment work</li>
+              <li>All note data remains accessible via export/import and is not removed from storage</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Import Summary Improvements</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Import result summary now reports assignments written</li>
+              <li>Import summary reports objective results written</li>
+              <li>Fill Empty Only mode skips count reported when values are not overwritten</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Searchable Source Pickers</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Inheritance Source field uses a provider-catalog-backed suggestion dropdown</li>
+              <li>Assigned To field uses a local-name-backed suggestion dropdown</li>
+              <li>Copy From Control uses a control-search picker with ID and title matching</li>
+              <li>All pickers use onMouseDown to avoid focus-loss issues during selection</li>
+              <li>All pickers support keyboard-accessible custom entry — no forced catalog selection</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Existing assessment data remains compatible — no migration required</li>
+              <li>Existing project backups remain importable</li>
+              <li>Assignment storage uses separate localStorage key prefix — no conflicts with existing data</li>
+              <li>Local-only data handling model preserved — no cloud storage, no CUI transmission, no authentication introduced</li>
+              <li>Controls: 110 · Evidence types: 130 · Relationships: 189 · Families: 14/14</li>
+              <li>Validator: Pass · Build: Pass</li>
+            </ul>
+          </section>
+
+        </div>
+      </details>
+
+      {/* v1.3.0 — collapsed */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v1.3.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
           <span>Assessment Workflow &amp; Visibility Update</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 4, 2026</span>
@@ -137,7 +302,7 @@ function Changelog() {
       {/* v1.2.0 — collapsed */}
       <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v{APP_VERSION}</span>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v1.2.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
           <span>Evidence Pool MVP</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 4, 2026</span>

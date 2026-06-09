@@ -16,6 +16,7 @@ import {
   readInheritanceSource,
   writeInheritanceSource,
 } from '../utils/inheritance'
+import { readAssignedTo, writeAssignedTo } from '../utils/assignment'
 import { readPool, writePool } from '../utils/evidencePool'
 import { readObjectiveArtifacts, writeObjectiveArtifacts } from '../utils/objectiveArtifacts'
 import { readObjectiveResult, writeObjectiveResult } from '../utils/objectiveResults'
@@ -50,6 +51,7 @@ function ControlDetail() {
   const [note, setNote]               = useState(() => readNote(id))
   const [inheritance, setInheritance] = useState(() => readInheritance(id))
   const [inheritanceSource, setInheritanceSource] = useState(() => readInheritanceSource(id))
+  const [assignedTo, setAssignedTo] = useState(() => readAssignedTo(id))
   const [objectiveNotes, setObjectiveNotes] = useState(() => loadObjectiveNotes(id, control))
   const [pool, setPool]               = useState(() => readPool(id))
   const [poolInput, setPoolInput]     = useState('')
@@ -64,6 +66,7 @@ function ControlDetail() {
     setNote(readNote(id))
     setInheritance(readInheritance(id))
     setInheritanceSource(readInheritanceSource(id))
+    setAssignedTo(readAssignedTo(id))
     setObjectiveNotes(loadObjectiveNotes(id, control))
     setObjectiveStatuses(loadObjectiveStatuses(id, control))
     setPool(readPool(id))
@@ -89,6 +92,7 @@ function ControlDetail() {
   }
   const handleInheritanceChange = (e) => { const v = e.target.value; setInheritance(v); writeInheritance(id, v) }
   const handleInheritanceSourceChange = (e) => { const v = e.target.value; setInheritanceSource(v); writeInheritanceSource(id, v) }
+  const handleAssignedToChange = (e) => { const v = e.target.value; setAssignedTo(v); writeAssignedTo(id, v) }
   const handleObjectiveStatusChange = (objId, value) => {
     setObjectiveStatuses((prev) => ({ ...prev, [objId]: value }))
     writeObjectiveStatus(id, objId, value)
@@ -313,6 +317,52 @@ function ControlDetail() {
               <span className={`status-badge ${STATUS_BADGE_CLASS[trendingStatus]}`}>
                 {trendingStatus}
               </span>
+            </div>
+          </div>
+
+          <div className="control-meta-field">
+            <label htmlFor="assigned-to">
+              <strong>Assigned To</strong>
+            </label>
+            <div className="provider-picker-wrapper">
+              <input
+                id="assigned-to"
+                type="text"
+                value={assignedTo}
+                onChange={handleAssignedToChange}
+                placeholder="Type a person's name..."
+                autoComplete="off"
+                className={(() => {
+                  if (!assignedTo.trim()) return ''
+                  const used = [...new Set(controls.map((c) => readAssignedTo(c.id)).filter(Boolean))]
+                  return used.includes(assignedTo) ? '' : 'provider-picker-input--open'
+                })()}
+              />
+              {(() => {
+                if (!assignedTo.trim()) return null
+                const used = [...new Set(controls.map((c) => readAssignedTo(c.id)).filter(Boolean))].sort()
+                if (used.includes(assignedTo)) return null
+                const q = assignedTo.toLowerCase()
+                const suggestions = used.filter((n) => n.toLowerCase().includes(q)).slice(0, 8)
+                if (suggestions.length === 0) return null
+                return (
+                  <ul className="provider-picker-results">
+                    {suggestions.map((name) => (
+                      <li
+                        key={name}
+                        className="provider-picker-result"
+                        onMouseDown={(e) => {
+                          e.preventDefault()
+                          setAssignedTo(name)
+                          writeAssignedTo(id, name)
+                        }}
+                      >
+                        {name}
+                      </li>
+                    ))}
+                  </ul>
+                )
+              })()}
             </div>
           </div>
         </div>

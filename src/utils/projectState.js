@@ -21,6 +21,7 @@ import {
   readInheritanceSource,
   writeInheritanceSource,
 } from './inheritance'
+import { readAssignedTo, writeAssignedTo } from './assignment'
 import { readPool, writePool } from './evidencePool'
 import { readObjectiveArtifacts, writeObjectiveArtifacts } from './objectiveArtifacts'
 import { readObjectiveResult, writeObjectiveResult } from './objectiveResults'
@@ -42,6 +43,7 @@ export const DEFAULT_IMPORT_OPTIONS = {
     objectiveStatuses: true,
     inheritance: true,
     inheritanceSource: true,
+    assignments: true,
     evidencePool: true,
     objectiveArtifacts: true,
     objectiveResults: true,
@@ -84,6 +86,8 @@ export function exportProjectState(controls) {
       if (Object.values(r).some((v) => v.trim() !== '')) objectiveResults[obj.id] = r
     }
 
+    const assignedTo = readAssignedTo(control.id)
+
     const entry = {
       id: control.id,
       status: readStatus(control.id),
@@ -92,6 +96,8 @@ export function exportProjectState(controls) {
       inheritance: readInheritance(control.id),
       inheritanceSource: readInheritanceSource(control.id),
     }
+
+    if (assignedTo) entry.assignedTo = assignedTo
 
     if (pool.length > 0) entry.evidencePool = pool
     if (Object.keys(objectiveArtifacts).length > 0) entry.objectiveArtifacts = objectiveArtifacts
@@ -169,6 +175,7 @@ export function importProjectState(projectJson, controls, options = {}) {
     objectiveStatusesWritten: 0,
     inheritanceWritten: 0,
     inheritanceSourcesWritten: 0,
+    assignmentsWritten: 0,
     evidencePoolsWritten: 0,
     objectiveArtifactsWritten: 0,
     objectiveResultsWritten: 0,
@@ -268,6 +275,16 @@ export function importProjectState(projectJson, controls, options = {}) {
         if (canWrite(readInheritanceSource(control.id).trim() === '', opts, summary)) {
           writeInheritanceSource(control.id, entry.inheritanceSource)
           if (entry.inheritanceSource.trim() !== '') summary.inheritanceSourcesWritten++
+        }
+      }
+    }
+
+    // Assigned To
+    if (opts.categories.assignments) {
+      if (typeof entry.assignedTo === 'string') {
+        if (canWrite(readAssignedTo(control.id) === '', opts, summary)) {
+          writeAssignedTo(control.id, entry.assignedTo)
+          if (entry.assignedTo.trim() !== '') summary.assignmentsWritten++
         }
       }
     }

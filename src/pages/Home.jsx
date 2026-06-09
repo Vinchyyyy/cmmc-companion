@@ -5,6 +5,7 @@ import evidenceTypes from '../data/evidence/index.js'
 import relationships from '../data/relationships/index.js'
 import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
 import { readInheritanceSource } from '../utils/inheritance'
+import { readAssignedTo } from '../utils/assignment'
 import { readNote, writeNote } from '../utils/notes'
 import { getScoringSearchTerms } from '../utils/scoring'
 import {
@@ -412,6 +413,7 @@ function Home() {
         p(summary.objectiveStatusesWritten, 'objective status',     'objective statuses'),
         p(summary.inheritanceWritten,       'inheritance value',    'inheritance values'),
         p(summary.inheritanceSourcesWritten,'inheritance source',   'inheritance sources'),
+        p(summary.assignmentsWritten,       'assignment',           'assignments'),
         p(summary.evidencePoolsWritten,     'evidence pool',        'evidence pools'),
         p(summary.objectiveArtifactsWritten,'objective artifact set','objective artifact sets'),
         p(summary.objectiveResultsWritten,  'objective result',     'objective results'),
@@ -614,6 +616,37 @@ function Home() {
             )
           })}
         </div>
+
+        {/* Assignment Coverage */}
+        {(() => {
+          const assignedCount   = controls.filter((c) => readAssignedTo(c.id).trim() !== '').length
+          const unassignedCount = controls.length - assignedCount
+          return (
+            <div style={{ marginBottom: 'var(--space-4)' }}>
+              <h2>Assignment Coverage</h2>
+              <p className="status-total-row">
+                <span className="muted" style={{ fontSize: 'var(--text-sm)' }}>Assigned Controls</span>
+                <Link
+                  to="/controls?assignedTo=Assigned"
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-sm)', fontWeight: 700 }}
+                  title="View assigned controls"
+                >
+                  {assignedCount} / {controls.length}
+                </Link>
+              </p>
+              <p className="status-total-row">
+                <span className="muted" style={{ fontSize: 'var(--text-sm)' }}>Unassigned Controls</span>
+                <Link
+                  to="/controls?assignedTo=Unassigned"
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-sm)', fontWeight: 700 }}
+                  title="View unassigned controls"
+                >
+                  {unassignedCount}
+                </Link>
+              </p>
+            </div>
+          )
+        })()}
 
         {/* Inheritance Sources summary */}
         {(() => {
@@ -845,6 +878,7 @@ function Home() {
                         ['objectiveStatuses','Objective statuses'],
                         ['inheritance',      'Inheritance status'],
                         ['inheritanceSource','Inheritance source'],
+                        ['assignments',      'Assignments'],
                         ['evidencePool',     'Evidence Pool'],
                         ['objectiveArtifacts','Objective Artifacts'],
                         ['objectiveResults',  'Objective Results'],

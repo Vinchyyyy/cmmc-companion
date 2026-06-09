@@ -33,6 +33,7 @@ import {
   isPoamAllowed,
 } from '../utils/scoring'
 import { IconNotes, IconPaperclip, IconTrendingUp, IconTrendingDown } from '../components/icons'
+import { readAssignedTo, writeAssignedTo } from '../utils/assignment'
 
 const TRENDING_INDICATOR = {
   'MET':         { color: 'var(--color-met)',         title: 'Trending: MET' },
@@ -80,6 +81,7 @@ const DEFAULTS = {
   trending: 'All',
   warnings: 'All',
   inheritanceSource: 'All',
+  assignedTo: 'All',
 }
 
 // Official CMMC assessment order per Assessment Guide TOC
@@ -100,7 +102,7 @@ const FAMILY_ORDER = [
   'System and Information Integrity',
 ]
 
-const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'trending', 'warnings', 'inheritanceSource']
+const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'trending', 'warnings', 'inheritanceSource', 'assignedTo']
 const SEARCH_DEBOUNCE_MS = 500
 
 function getProviderSuggestions(value) {
@@ -126,6 +128,7 @@ function ControlLibrary() {
   const trendingFilter  = searchParams.get('trending')  ?? DEFAULTS.trending
   const warningsFilter  = searchParams.get('warnings')  ?? DEFAULTS.warnings
   const inheritanceSourceFilter = searchParams.get('inheritanceSource') ?? DEFAULTS.inheritanceSource
+  const assignedToFilter = searchParams.get('assignedTo') ?? DEFAULTS.assignedTo
 
   const location = useLocation()
 
@@ -134,6 +137,7 @@ function ControlLibrary() {
   const [updateKey, setUpdateKey]       = useState(0)
   const [confirmClear, setConfirmClear] = useState(false)
   const [bulkInheritanceModal, setBulkInheritanceModal] = useState(null)
+  const [bulkAssignmentModal, setBulkAssignmentModal] = useState(null)
   const [copyAttrsModal, setCopyAttrsModal] = useState(null)
   const [copyAttrsResult, setCopyAttrsResult] = useState(null)
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
@@ -183,7 +187,7 @@ function ControlLibrary() {
     (key) => (searchParams.get(key) ?? DEFAULTS[key]) !== DEFAULTS[key]
   )
 
-  const ADVANCED_FILTER_KEYS = ['notes', 'artifacts', 'inheritance', 'score', 'poam', 'inheritanceSource']
+  const ADVANCED_FILTER_KEYS = ['notes', 'artifacts', 'inheritance', 'score', 'poam', 'inheritanceSource', 'assignedTo']
   const activeAdvancedCount = ADVANCED_FILTER_KEYS.filter(
     (key) => (searchParams.get(key) ?? DEFAULTS[key]) !== DEFAULTS[key]
   ).length
@@ -250,12 +254,30 @@ function ControlLibrary() {
   const matchesInheritanceSource = (c) =>
     inheritanceSourceFilter === 'All' || readInheritanceSource(c.id).trim() === inheritanceSourceFilter
 
+  const usedAssignedTo = useMemo(() =>
+    [...new Set(controls.map((c) => readAssignedTo(c.id)).filter(Boolean))].sort()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  , [updateKey])
+
+  const matchesAssignedTo = (c) => {
+    if (assignedToFilter === 'All') return true
+    const val = readAssignedTo(c.id)
+    if (assignedToFilter === 'Unassigned') return !val
+    if (assignedToFilter === 'Assigned') return !!val
+    return val === assignedToFilter
+  }
+
+  const bulkSetAssignment = (name) => {
+    for (const id of selected) writeAssignedTo(id, name)
+    forceUpdate()
+  }
+
   // Preserve official index.js order — do NOT sort by compareIds
   const results = controls.filter((c) =>
     matchesSearch(c) && matchesFamily(c) && matchesStatus(c) &&
     matchesNotes(c) && matchesArtifacts(c) && matchesInheritance(c) &&
     matchesScore(c) && matchesPoam(c) && matchesTrending(c) && matchesHideMet(c) &&
-    matchesWarnings(c) && matchesInheritanceSource(c)
+    matchesWarnings(c) && matchesInheritanceSource(c) && matchesAssignedTo(c)
   )
 
   // Group by family in official CMMC order
@@ -413,6 +435,12 @@ function ControlLibrary() {
               <option value="All">All sources</option>
               {usedInheritanceSources.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
+            <select value={assignedToFilter} onChange={(e) => writeFilter('assignedTo', e.target.value)}>
+              <option value="All">All assignees</option>
+              <option value="Assigned">Assigned</option>
+              <option value="Unassigned">Unassigned</option>
+              {usedAssignedTo.map((n) => <option key={n} value={n}>{n}</option>)}
+            </select>
           </div>
         )}
       </div>
@@ -476,6 +504,9 @@ function ControlLibrary() {
             <option value="" disabled>Set inheritance…</option>
             {INHERITANCE_VALUES.map((v) => <option key={v} value={v}>{v}</option>)}
           </select>
+          <button onClick={() => setBulkAssignmentModal({ assignedTo: '' })}>
+            Set Assignment
+          </button>
           <button
             onClick={() => {
               setCopyAttrsResult(null)
@@ -568,11 +599,19 @@ function ControlLibrary() {
                       <span className="mono">{control.id}</span>
                       <span>— {control.title}</span>
                       <span className={`status-badge ${STATUS_BADGE_CLASS[status]}`}>{status}</span>
-                      {inheritance !== DEFAULT_INHERITANCE && (
-                        <span className={`inheritance-badge ${INHERITANCE_BADGE_CLASS[inheritance]}`}>
-                          {inheritance}
-                        </span>
-                      )}
+                      {inheritance !== DEFAULT_INHERITANCE && (() => {
+                        const inheritanceBadgeLabel = inheritanceSource.trim()
+                          ? `${inheritance} — ${inheritanceSource.trim()}`
+                          : inheritance
+                        return (
+                          <span
+                            className={`inheritance-badge ${INHERITANCE_BADGE_CLASS[inheritance]}`}
+                            title={`Inheritance: ${inheritanceBadgeLabel}`}
+                          >
+                            {inheritanceBadgeLabel}
+                          </span>
+                        )
+                      })()}
                       <span
                         className={`score-badge ${SCORE_BADGE_CLASS[String(score)]}`}
                         title={`${Math.abs(score)}-point deduction if not met`}
@@ -684,6 +723,14 @@ function ControlLibrary() {
                             </div>
                           </>
                         )}
+                        <div className="quick-look-stat">
+                          <span className="quick-look-stat-label">Assigned To</span>
+                          {readAssignedTo(control.id) ? (
+                            <span className="quick-look-stat-value">{readAssignedTo(control.id)}</span>
+                          ) : (
+                            <span className="quick-look-stat-value" style={{ color: 'var(--color-text-muted)' }}>Unassigned</span>
+                          )}
+                        </div>
                       </div>
                     )
                   })()
@@ -810,6 +857,76 @@ function ControlLibrary() {
                 }}
               >
                 Apply Inheritance
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {bulkAssignmentModal && (
+        <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="bulk-assignment-title">
+          <div className="confirm-dialog">
+            <h2 id="bulk-assignment-title">Set Assignment</h2>
+            <p>
+              Assigning {selectedCount} control{selectedCount === 1 ? '' : 's'}.
+            </p>
+            <div className="control-meta-field" style={{ marginTop: 'var(--space-3)' }}>
+              <label htmlFor="bulk-assignment-input" style={{ display: 'block', marginBottom: 'var(--space-1)', fontWeight: 600, fontSize: 'var(--text-sm)' }}>
+                Assigned To
+              </label>
+              <div className="provider-picker-wrapper">
+                <input
+                  id="bulk-assignment-input"
+                  type="text"
+                  value={bulkAssignmentModal.assignedTo}
+                  onChange={(e) => setBulkAssignmentModal((prev) => ({ ...prev, assignedTo: e.target.value }))}
+                  placeholder="Type a person's name..."
+                  style={{ width: '100%', boxSizing: 'border-box' }}
+                  autoComplete="off"
+                  autoFocus
+                  className={(() => {
+                    const v = bulkAssignmentModal.assignedTo
+                    if (!v.trim()) return ''
+                    return usedAssignedTo.includes(v) ? '' : 'provider-picker-input--open'
+                  })()}
+                />
+                {(() => {
+                  const v = bulkAssignmentModal.assignedTo
+                  if (!v.trim() || usedAssignedTo.includes(v)) return null
+                  const q = v.toLowerCase()
+                  const suggestions = usedAssignedTo.filter((n) => n.toLowerCase().includes(q)).slice(0, 8)
+                  if (suggestions.length === 0) return null
+                  return (
+                    <ul className="provider-picker-results">
+                      {suggestions.map((name) => (
+                        <li
+                          key={name}
+                          className="provider-picker-result"
+                          onMouseDown={(e) => {
+                            e.preventDefault()
+                            setBulkAssignmentModal((prev) => ({ ...prev, assignedTo: name }))
+                          }}
+                        >
+                          {name}
+                        </li>
+                      ))}
+                    </ul>
+                  )
+                })()}
+              </div>
+              <p style={{ marginTop: 'var(--space-1)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                Leave blank to clear assignment from selected controls.
+              </p>
+            </div>
+            <div className="confirm-dialog-buttons">
+              <button onClick={() => setBulkAssignmentModal(null)}>Cancel</button>
+              <button
+                onClick={() => {
+                  bulkSetAssignment(bulkAssignmentModal.assignedTo)
+                  setBulkAssignmentModal(null)
+                }}
+              >
+                Apply Assignment
               </button>
             </div>
           </div>
