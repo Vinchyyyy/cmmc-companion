@@ -1,0 +1,1478 @@
+{
+  "schemaVersion": 2,
+  "exportedAt": "2026-06-08T12:00:00.000Z",
+  "controls": [
+    {
+      "id": "AC.L1-3.1.1",
+      "status": "MET",
+      "note": "Identity managed via Microsoft Entra ID. Quarterly access reviews completed. WARNING: device authorization incomplete for manufacturing floor — see objective c.",
+      "objectiveNotes": {
+        "c": "Legacy endpoints on manufacturing floor not yet enrolled in Intune. Remediation ticket ITSM-4412 opened. Policy exception in place for subnet."
+      },
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "NOT MET", "d": "MET", "e": "MET", "f": "MET" },
+      "objectiveResults": {
+        "a": {
+          "interviews": "Interviewed IT administrator. User access reviews conducted quarterly via Entra ID Access Reviews. All accounts tied to active HR records.",
+          "examine": "Reviewed Entra ID user export dated 2026-05-15. 47 licensed users identified, each with documented business justification and role assignment.",
+          "test": "Verified provisioning workflow — new hire account creation requires manager approval in ServiceNow before Entra ID provisioning completes.",
+          "overallComments": "User identification controls are solid. Quarterly review cadence is documented and recurring."
+        },
+        "c": {
+          "interviews": "Interviewed network admin. BYOD and legacy endpoints on manufacturing floor not enrolled in Intune.",
+          "examine": "Reviewed Intune device compliance report. 12 legacy devices flagged as non-compliant.",
+          "test": "Confirmed policy exception allows manufacturing floor subnet to bypass device compliance check.",
+          "overallComments": "NOT MET — remediation in progress. Target close date 2026-07-01."
+        }
+      },
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Vince",
+      "evidencePool": [
+        "entra-id-user-export.xlsx",
+        "conditional-access-policy.pdf",
+        "onboarding-offboarding-procedure.pdf",
+        "user-termination-ticket-samples.pdf"
+      ],
+      "objectiveArtifacts": {
+        "a": ["entra-id-user-export.xlsx", "onboarding-offboarding-procedure.pdf"],
+        "b": ["entra-id-user-export.xlsx"],
+        "c": ["conditional-access-policy.pdf"],
+        "d": ["conditional-access-policy.pdf"],
+        "e": ["user-termination-ticket-samples.pdf"],
+        "f": ["conditional-access-policy.pdf"]
+      }
+    },
+    {
+      "id": "AC.L1-3.1.2",
+      "status": "MET",
+      "note": "Role-based access enforced via Entra ID groups and conditional access. Privilege separation documented.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {
+        "a": {
+          "interviews": "Confirmed role separation with IT admin — RBAC enforced through Entra ID security groups.",
+          "examine": "Reviewed group membership and access matrix. Roles align to job functions.",
+          "test": "",
+          "overallComments": ""
+        }
+      },
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Alex",
+      "evidencePool": ["conditional-access-policy.pdf", "entra-id-user-export.xlsx"],
+      "objectiveArtifacts": {
+        "a": ["conditional-access-policy.pdf"],
+        "b": ["entra-id-user-export.xlsx"]
+      }
+    },
+    {
+      "id": "AC.L2-3.1.3",
+      "status": "In Progress",
+      "note": "CUI flow controls partially implemented. Data classification labels in M365 deployed. DLP policies under review.",
+      "objectiveNotes": { "b": "DLP policy scope needs expansion to cover SharePoint external sharing." },
+      "objectiveStatuses": { "a": "MET", "b": "NOT MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft 365 GCC High",
+      "assignedTo": "Vince",
+      "evidencePool": ["conditional-access-policy.pdf", "boundary-diagram.pdf"],
+      "objectiveArtifacts": {
+        "a": ["boundary-diagram.pdf"],
+        "b": ["conditional-access-policy.pdf"]
+      }
+    },
+    {
+      "id": "AC.L2-3.1.4",
+      "status": "In Progress",
+      "note": "Separation of duties policy drafted. Implementation in progress for financial and admin roles.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft Entra ID",
+      "assignedTo": "Priya",
+      "evidencePool": ["entra-id-user-export.xlsx", "privileged-role-review.xlsx"],
+      "objectiveArtifacts": {
+        "a": ["privileged-role-review.xlsx"]
+      }
+    },
+    {
+      "id": "AC.L2-3.1.5",
+      "status": "MET",
+      "note": "Least privilege enforced via Entra ID PIM. Privileged roles require JIT activation with business justification.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET", "d": "MET" },
+      "objectiveResults": {
+        "a": {
+          "interviews": "Confirmed PIM activation workflow with security team. All privileged role activations require approval.",
+          "examine": "Reviewed PIM audit log — no standing privileged access found for non-emergency accounts.",
+          "test": "Tested JIT activation flow for Global Admin role — approval required and logged.",
+          "overallComments": "Least privilege posture is well-implemented through Entra PIM."
+        }
+      },
+      "inheritance": "Full",
+      "inheritanceSource": "Microsoft Entra ID",
+      "assignedTo": "Alex",
+      "evidencePool": ["conditional-access-policy.pdf", "privileged-role-review.xlsx"],
+      "objectiveArtifacts": {
+        "a": ["conditional-access-policy.pdf", "privileged-role-review.xlsx"],
+        "b": ["privileged-role-review.xlsx"],
+        "c": ["conditional-access-policy.pdf"],
+        "d": ["privileged-role-review.xlsx"]
+      }
+    },
+    {
+      "id": "AC.L2-3.1.6",
+      "status": "MET",
+      "note": "Non-privileged accounts used for day-to-day tasks. Admin accounts separate from standard accounts per policy.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "Microsoft Entra ID",
+      "assignedTo": "Vince",
+      "evidencePool": ["privileged-role-review.xlsx", "entra-id-user-export.xlsx"],
+      "objectiveArtifacts": {
+        "a": ["entra-id-user-export.xlsx"],
+        "b": ["privileged-role-review.xlsx"]
+      }
+    },
+    {
+      "id": "AC.L2-3.1.7",
+      "status": "In Progress",
+      "note": "Privileged function audit logging enabled in Sentinel. Review of privileged activity reports ongoing.",
+      "objectiveNotes": { "c": "Automated alerting on privileged role changes not yet configured." },
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft Entra ID",
+      "assignedTo": "Alex",
+      "evidencePool": ["privileged-role-review.xlsx", "sentinel-log-retention-policy.pdf"],
+      "objectiveArtifacts": {
+        "a": ["privileged-role-review.xlsx"],
+        "b": ["sentinel-log-retention-policy.pdf"]
+      }
+    },
+    {
+      "id": "AC.L2-3.1.8",
+      "status": "MET",
+      "note": "Account lockout policy configured in Entra ID. Smart lockout enabled with threshold of 10 failed attempts.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "Microsoft Entra ID",
+      "assignedTo": "Jordan",
+      "evidencePool": ["conditional-access-policy.pdf"],
+      "objectiveArtifacts": {
+        "a": ["conditional-access-policy.pdf"],
+        "b": ["conditional-access-policy.pdf"]
+      }
+    },
+    {
+      "id": "AC.L2-3.1.10",
+      "status": "In Progress",
+      "note": "Screen lock policy deployed via Intune for managed devices. Coverage gaps for legacy workstations.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft Intune",
+      "assignedTo": "Vince",
+      "evidencePool": ["conditional-access-policy.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "AC.L2-3.1.11",
+      "status": "In Progress",
+      "note": "Session timeout configured for web apps. Desktop session termination policy not yet enforced uniformly.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Vince",
+      "evidencePool": ["conditional-access-policy.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "AC.L2-3.1.12",
+      "status": "MET",
+      "note": "Remote access via GlobalProtect VPN with Entra ID SSO. Split tunneling disabled for CUI-scoped traffic.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET", "d": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft 365 GCC High",
+      "assignedTo": "Alex",
+      "evidencePool": ["vpn-configuration-screenshot.png", "palo-alto-firewall-ruleset.pdf", "conditional-access-policy.pdf"],
+      "objectiveArtifacts": {
+        "a": ["vpn-configuration-screenshot.png"],
+        "b": ["conditional-access-policy.pdf"],
+        "c": ["palo-alto-firewall-ruleset.pdf"],
+        "d": ["vpn-configuration-screenshot.png"]
+      }
+    },
+    {
+      "id": "AC.L2-3.1.13",
+      "status": "MET",
+      "note": "Remote access sessions encrypted via TLS 1.2+. GlobalProtect enforces encryption for all tunneled traffic.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "Microsoft 365 GCC High",
+      "assignedTo": "Morgan",
+      "evidencePool": ["tls-configuration-export.pdf", "vpn-configuration-screenshot.png"],
+      "objectiveArtifacts": {
+        "a": ["tls-configuration-export.pdf"],
+        "b": ["vpn-configuration-screenshot.png"]
+      }
+    },
+    {
+      "id": "AC.L2-3.1.14",
+      "status": "In Progress",
+      "note": "Remote access routing through managed gateways partially implemented. Non-managed device path still under review.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": ["boundary-diagram.pdf", "vpn-configuration-screenshot.png"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "AC.L2-3.1.15",
+      "status": "NOT MET",
+      "note": "Privileged remote access controls incomplete. Admin sessions not yet isolated to dedicated jump hosts.",
+      "objectiveNotes": {
+        "a": "Jump server procurement approved. Deployment scheduled Q3 2026.",
+        "b": "PAM solution evaluation underway."
+      },
+      "objectiveStatuses": { "a": "NOT MET", "b": "NOT MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Vince",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "AC.L2-3.1.17",
+      "status": "In Progress",
+      "note": "Wireless access points inventoried. WPA3-Enterprise configured on primary SSID. Guest network segmentation partially complete.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Alex",
+      "evidencePool": ["boundary-diagram.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "AC.L2-3.1.18",
+      "status": "MET",
+      "note": "Mobile device connections managed via Microsoft Intune MAM/MDM. Only compliant devices permitted to access CUI.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "Microsoft Intune",
+      "assignedTo": "Jordan",
+      "evidencePool": ["conditional-access-policy.pdf"],
+      "objectiveArtifacts": {
+        "a": ["conditional-access-policy.pdf"],
+        "b": ["conditional-access-policy.pdf"],
+        "c": ["conditional-access-policy.pdf"]
+      }
+    },
+    {
+      "id": "AC.L2-3.1.19",
+      "status": "MET",
+      "note": "CUI on mobile devices encrypted at rest via Intune app protection policies. BitLocker enforced on Windows endpoints.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "Microsoft Intune",
+      "assignedTo": "Jordan",
+      "evidencePool": ["conditional-access-policy.pdf"],
+      "objectiveArtifacts": {
+        "a": ["conditional-access-policy.pdf"],
+        "b": ["conditional-access-policy.pdf"]
+      }
+    },
+    {
+      "id": "AC.L1-3.1.20",
+      "status": "MET",
+      "note": "External connections limited via firewall policy. Deny-by-default posture enforced at perimeter.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET", "d": "MET", "e": "MET", "f": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Palo Alto Networks",
+      "assignedTo": "Priya",
+      "evidencePool": ["palo-alto-firewall-ruleset.pdf", "boundary-diagram.pdf"],
+      "objectiveArtifacts": {
+        "a": ["boundary-diagram.pdf"],
+        "b": ["palo-alto-firewall-ruleset.pdf"],
+        "c": ["palo-alto-firewall-ruleset.pdf"]
+      }
+    },
+    {
+      "id": "AC.L2-3.1.21",
+      "status": "NOT MET",
+      "note": "Portable storage use not yet restricted. USB policy drafted but enforcement via Intune DLP not deployed.",
+      "objectiveNotes": {
+        "a": "Intune USB restriction policy in test environment. Production deployment pending change approval."
+      },
+      "objectiveStatuses": { "a": "NOT MET", "b": "NOT MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Alex",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "AC.L1-3.1.22",
+      "status": "In Progress",
+      "note": "Public-facing website reviewed. CUI scrub in progress — two pages identified with potential CUI references under review.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Morgan",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "AT.L2-3.2.1",
+      "status": "In Progress",
+      "note": "Security awareness training deployed via M365 Defender. Completion rate at 78%. Role-based tracks for IT and finance in development.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft 365 GCC High",
+      "assignedTo": "Morgan",
+      "evidencePool": ["onboarding-offboarding-procedure.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "AT.L2-3.2.2",
+      "status": "In Progress",
+      "note": "Role-based training tracks drafted. IT admin track completed. Finance and operations tracks pending content review.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft 365 GCC High",
+      "assignedTo": "Morgan",
+      "evidencePool": ["onboarding-offboarding-procedure.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "AU.L2-3.3.1",
+      "status": "MET",
+      "note": "Audit logging enabled across all in-scope systems. Logs forwarded to Microsoft Sentinel. 12-month retention configured.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET", "d": "MET", "e": "MET", "f": "MET" },
+      "objectiveResults": {
+        "a": {
+          "interviews": "Confirmed with SOC lead that Sentinel ingests logs from all in-scope systems.",
+          "examine": "Reviewed Sentinel workspace data sources. 14 connectors active including Entra ID, Defender, and network appliances.",
+          "test": "Generated test event and confirmed log appeared in Sentinel within 2 minutes.",
+          "overallComments": "Logging coverage is comprehensive. Retention verified at 12 months."
+        }
+      },
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft 365 GCC High",
+      "assignedTo": "Jordan",
+      "evidencePool": ["sentinel-log-retention-policy.pdf", "audit-log-review-sample.pdf"],
+      "objectiveArtifacts": {
+        "a": ["sentinel-log-retention-policy.pdf"],
+        "b": ["audit-log-review-sample.pdf"],
+        "c": ["sentinel-log-retention-policy.pdf"],
+        "d": ["audit-log-review-sample.pdf"]
+      }
+    },
+    {
+      "id": "AU.L2-3.3.2",
+      "status": "MET",
+      "note": "User accountability enforced through individual accounts and Sentinel audit trails. No shared accounts in use.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft 365 GCC High",
+      "assignedTo": "Jordan",
+      "evidencePool": ["audit-log-review-sample.pdf", "entra-id-user-export.xlsx"],
+      "objectiveArtifacts": {
+        "a": ["entra-id-user-export.xlsx"],
+        "b": ["audit-log-review-sample.pdf"]
+      }
+    },
+    {
+      "id": "AU.L2-3.3.3",
+      "status": "In Progress",
+      "note": "Audit log review process documented. Weekly review scheduled but not yet consistently executed.",
+      "objectiveNotes": { "c": "Automated review workflow not yet implemented — manual process only." },
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": ["sentinel-log-retention-policy.pdf", "audit-log-review-sample.pdf"],
+      "objectiveArtifacts": {
+        "a": ["audit-log-review-sample.pdf"],
+        "b": ["sentinel-log-retention-policy.pdf"]
+      }
+    },
+    {
+      "id": "AU.L2-3.3.4",
+      "status": "MET",
+      "note": "Audit failure alerts configured in Sentinel. Alerts routed to SOC email and Teams channel.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft 365 GCC High",
+      "assignedTo": "Jordan",
+      "evidencePool": ["sentinel-log-retention-policy.pdf", "alerting-workflow-screenshot.png"],
+      "objectiveArtifacts": {
+        "a": ["alerting-workflow-screenshot.png"],
+        "b": ["sentinel-log-retention-policy.pdf"],
+        "c": ["alerting-workflow-screenshot.png"]
+      }
+    },
+    {
+      "id": "AU.L2-3.3.5",
+      "status": "In Progress",
+      "note": "Audit correlation rules active in Sentinel. Cross-source correlation for lateral movement and privilege escalation scenarios in development.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": ["sentinel-log-retention-policy.pdf", "alerting-workflow-screenshot.png"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "AU.L2-3.3.7",
+      "status": "MET",
+      "note": "Time synchronization enforced via NTP hierarchy. All domain members sync to authoritative internal time source.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft 365 GCC High",
+      "assignedTo": "Jordan",
+      "evidencePool": ["audit-log-review-sample.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "AU.L2-3.3.8",
+      "status": "In Progress",
+      "note": "Audit log protection configured in Sentinel — logs immutable once written. Log integrity alerting not yet implemented.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": ["sentinel-log-retention-policy.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "CM.L2-3.4.1",
+      "status": "NOT MET",
+      "note": "Baseline configurations documented for servers and workstations. Assessment Status set NOT MET pending formal baseline approval — all objectives are factually satisfied. See status consistency warning.",
+      "objectiveNotes": {
+        "a": "Baseline documentation complete. Awaiting CISO sign-off."
+      },
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET", "d": "MET", "e": "MET", "f": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Priya",
+      "evidencePool": ["patch-management-procedure.pdf"],
+      "objectiveArtifacts": {
+        "a": ["patch-management-procedure.pdf"],
+        "b": ["patch-management-procedure.pdf"]
+      }
+    },
+    {
+      "id": "CM.L2-3.4.2",
+      "status": "In Progress",
+      "note": "Security configuration baselines applied via Intune configuration profiles. Coverage incomplete for Linux servers.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft Intune",
+      "assignedTo": "Priya",
+      "evidencePool": ["patch-management-procedure.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "CM.L2-3.4.3",
+      "status": "In Progress",
+      "note": "Change management process documented in ITSM. Security impact analysis not consistently performed for low-priority changes.",
+      "objectiveNotes": { "b": "Change review board established but security review step is optional for minor changes." },
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Priya",
+      "evidencePool": ["patch-management-procedure.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "CM.L2-3.4.5",
+      "status": "NOT MET",
+      "note": "Access restrictions for configuration changes not yet enforced. Any domain admin can modify GPO without change record.",
+      "objectiveNotes": {
+        "a": "GPO modification rights need to be scoped to configuration management team only."
+      },
+      "objectiveStatuses": { "a": "NOT MET", "b": "NOT MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Priya",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "CM.L2-3.4.6",
+      "status": "In Progress",
+      "note": "Least functionality review in progress. Application whitelist being built via Intune app management.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft Intune",
+      "assignedTo": "Priya",
+      "evidencePool": ["patch-management-procedure.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "CM.L2-3.4.8",
+      "status": "NOT MET",
+      "note": "Application execution policy not yet implemented. AppLocker/WDAC evaluation underway.",
+      "objectiveNotes": {
+        "a": "WDAC pilot deployment on 5 workstations in progress.",
+        "b": "Policy exceptions documented but enforcement not yet active."
+      },
+      "objectiveStatuses": { "a": "NOT MET", "b": "NOT MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": ["patch-management-procedure.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "CM.L2-3.4.9",
+      "status": "NOT MET",
+      "note": "User-installed software policy exists but is not enforced. Users can install software without IT approval.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "NOT MET", "b": "NOT MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "IA.L1-3.5.1",
+      "status": "NOT MET",
+      "note": "User and device identification fully implemented via Entra ID. Assessment Status set NOT MET pending formal documentation approval — all objectives satisfied. See status consistency warning.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET" },
+      "objectiveResults": {
+        "a": {
+          "interviews": "Confirmed with IT admin that all system users are provisioned via Entra ID with unique identifiers.",
+          "examine": "Reviewed Entra ID user export. All accounts have unique UPN and are tied to HR records.",
+          "test": "Verified no shared or generic accounts in active directory.",
+          "overallComments": "User identification is fully implemented. Documentation approval pending."
+        }
+      },
+      "inheritance": "Full",
+      "inheritanceSource": "Microsoft Entra ID",
+      "assignedTo": "Vince",
+      "evidencePool": [
+        "entra-id-user-export.xlsx",
+        "onboarding-offboarding-procedure.pdf"
+      ],
+      "objectiveArtifacts": {
+        "a": ["entra-id-user-export.xlsx", "onboarding-offboarding-procedure.pdf"],
+        "b": ["entra-id-user-export.xlsx"],
+        "c": ["onboarding-offboarding-procedure.pdf"]
+      }
+    },
+    {
+      "id": "IA.L1-3.5.2",
+      "status": "MET",
+      "note": "Authentication enforced via Entra ID. Password policies and MFA requirements documented and active.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "Microsoft Entra ID",
+      "assignedTo": "Vince",
+      "evidencePool": ["conditional-access-policy.pdf", "entra-id-user-export.xlsx"],
+      "objectiveArtifacts": {
+        "a": ["conditional-access-policy.pdf"],
+        "b": ["conditional-access-policy.pdf"],
+        "c": ["entra-id-user-export.xlsx"]
+      }
+    },
+    {
+      "id": "IA.L2-3.5.3",
+      "status": "MET",
+      "note": "MFA enforced for all users accessing CUI systems via Entra ID conditional access. FIDO2 keys deployed for privileged accounts.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET", "d": "MET" },
+      "objectiveResults": {
+        "a": {
+          "interviews": "Confirmed with security engineer — all Entra ID accounts enrolled in MFA. No MFA bypass exceptions active.",
+          "examine": "Reviewed conditional access policy — MFA required for all cloud app sign-ins for all users.",
+          "test": "Tested MFA enforcement by signing in from new device — MFA prompt triggered successfully.",
+          "overallComments": "MFA implementation is strong. FIDO2 for privileged accounts adds additional assurance."
+        }
+      },
+      "inheritance": "Full",
+      "inheritanceSource": "Microsoft Entra ID",
+      "assignedTo": "Vince",
+      "evidencePool": ["conditional-access-policy.pdf"],
+      "objectiveArtifacts": {
+        "a": ["conditional-access-policy.pdf"],
+        "b": ["conditional-access-policy.pdf"],
+        "c": ["conditional-access-policy.pdf"],
+        "d": ["conditional-access-policy.pdf"]
+      }
+    },
+    {
+      "id": "IA.L2-3.5.4",
+      "status": "MET",
+      "note": "Replay-resistant authentication enforced via Entra ID — OAuth 2.0 tokens with short expiry and PKCE flow.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "Microsoft Entra ID",
+      "assignedTo": "Vince",
+      "evidencePool": ["conditional-access-policy.pdf"],
+      "objectiveArtifacts": {
+        "a": ["conditional-access-policy.pdf"]
+      }
+    },
+    {
+      "id": "IA.L2-3.5.5",
+      "status": "In Progress",
+      "note": "Identifier reuse controls documented. Retired account UPNs not reused — policy in place but automated enforcement pending.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Alex",
+      "evidencePool": ["entra-id-user-export.xlsx", "onboarding-offboarding-procedure.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "IA.L2-3.5.6",
+      "status": "In Progress",
+      "note": "Identifier lifecycle management process documented. Disabled accounts purged after 90 days per Entra ID retention policy.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft Entra ID",
+      "assignedTo": "Vince",
+      "evidencePool": ["entra-id-user-export.xlsx", "user-termination-ticket-samples.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "IA.L2-3.5.7",
+      "status": "MET",
+      "note": "Password complexity enforced via Entra ID password protection. Minimum 12 characters, complexity requirements active.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET", "d": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "Microsoft Entra ID",
+      "assignedTo": "Vince",
+      "evidencePool": ["conditional-access-policy.pdf"],
+      "objectiveArtifacts": {
+        "a": ["conditional-access-policy.pdf"]
+      }
+    },
+    {
+      "id": "IA.L2-3.5.8",
+      "status": "MET",
+      "note": "Password reuse restricted — Entra ID blocks last 24 passwords. Policy documented and enforced.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "Microsoft Entra ID",
+      "assignedTo": "Vince",
+      "evidencePool": ["conditional-access-policy.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "IA.L2-3.5.9",
+      "status": "In Progress",
+      "note": "Temporary password process documented. Forced change on first login enforced for new accounts. Admin reset flow under review.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Alex",
+      "evidencePool": ["onboarding-offboarding-procedure.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "IA.L2-3.5.10",
+      "status": "MET",
+      "note": "Passwords stored as hashed credentials in Entra ID. No plaintext password storage permitted.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft Entra ID",
+      "assignedTo": "Vince",
+      "evidencePool": ["conditional-access-policy.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "IA.L2-3.5.11",
+      "status": "MET",
+      "note": "Password feedback obscured during entry on all in-scope systems. Verified on web apps and Windows login screens.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "Microsoft Entra ID",
+      "assignedTo": "Vince",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "IR.L2-3.6.1",
+      "status": "In Progress",
+      "note": "Incident response plan drafted and approved. Tabletop exercise completed Q1 2026. Containment runbooks in development.",
+      "objectiveNotes": { "d": "Eradication runbooks for ransomware scenario not yet finalized." },
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Morgan",
+      "evidencePool": ["alerting-workflow-screenshot.png", "sentinel-log-retention-policy.pdf"],
+      "objectiveArtifacts": {
+        "a": ["alerting-workflow-screenshot.png"],
+        "b": ["sentinel-log-retention-policy.pdf"]
+      }
+    },
+    {
+      "id": "IR.L2-3.6.2",
+      "status": "In Progress",
+      "note": "Incident reporting procedures documented. DIBCAC reporting path identified. Internal escalation matrix finalized.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Morgan",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "MA.L2-3.7.1",
+      "status": "MET",
+      "note": "Maintenance activities logged in ITSM. Authorized maintenance personnel list maintained. Veeam used for backup-level recovery testing.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Alex",
+      "evidencePool": ["veeam-backup-job-report.pdf"],
+      "objectiveArtifacts": {
+        "a": ["veeam-backup-job-report.pdf"]
+      }
+    },
+    {
+      "id": "MA.L2-3.7.2",
+      "status": "In Progress",
+      "note": "Remote maintenance controls partially implemented. Out-of-band access via jump server in planning.",
+      "objectiveNotes": { "b": "Remote maintenance sessions not yet isolated to dedicated channel." },
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Alex",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "MA.L2-3.7.5",
+      "status": "NOT MET",
+      "note": "Nonlocal maintenance sessions not authenticated using MFA. Standard credentials used for remote admin sessions.",
+      "objectiveNotes": {
+        "a": "MFA for maintenance sessions requires PAM solution. Currently in procurement.",
+        "b": "Session recording not yet in place."
+      },
+      "objectiveStatuses": { "a": "NOT MET", "b": "NOT MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Alex",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "MA.L2-3.7.6",
+      "status": "In Progress",
+      "note": "Maintenance personnel vetting process in place for internal staff. Third-party vendor controls under review.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Alex",
+      "evidencePool": ["onboarding-offboarding-procedure.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "MP.L1-3.8.3",
+      "status": "MET",
+      "note": "Media disposal procedures documented and implemented. Hard drives degaussed or shredded. Certificate of destruction on file.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": ["veeam-backup-job-report.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "MP.L2-3.8.1",
+      "status": "In Progress",
+      "note": "Media protection policy drafted. Physical media inventory in progress. Digital media controls via Intune partially deployed.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "MP.L2-3.8.2",
+      "status": "In Progress",
+      "note": "Access to CUI media restricted to authorized personnel. Physical storage room access controlled by badge reader.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": ["badge-access-review.xlsx"],
+      "objectiveArtifacts": {
+        "a": ["badge-access-review.xlsx"]
+      }
+    },
+    {
+      "id": "MP.L2-3.8.5",
+      "status": "In Progress",
+      "note": "Removable media accountability log in place. Chain of custody process for external drives documented.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "MP.L2-3.8.6",
+      "status": "MET",
+      "note": "Portable storage containing CUI encrypted using BitLocker. Intune policy enforces encryption before data can be written.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "Microsoft Intune",
+      "assignedTo": "Jordan",
+      "evidencePool": ["conditional-access-policy.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "MP.L2-3.8.7",
+      "status": "NOT MET",
+      "note": "Removable media use not restricted. USB ports active on workstations. Intune restriction policy not yet deployed to production.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "NOT MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "MP.L2-3.8.8",
+      "status": "NOT MET",
+      "note": "Shared media sanitization procedures not documented. No formal process for sanitizing shared drives before reuse.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "NOT MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "MP.L2-3.8.9",
+      "status": "MET",
+      "note": "Backups protected via Veeam Backup & Replication with immutable backup repository. Restoration test performed Q1 2026.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {
+        "a": {
+          "interviews": "Confirmed with backup administrator — daily full backups to immutable Azure Blob storage. 30-day retention.",
+          "examine": "Reviewed Veeam backup job report — all jobs completing successfully. No failed jobs in past 90 days.",
+          "test": "Observed restoration test on 2026-03-14. Single VM restored successfully from 7-day-old backup.",
+          "overallComments": "Backup protection posture is strong. Immutability and tested recovery meet the requirement."
+        }
+      },
+      "inheritance": "Full",
+      "inheritanceSource": "Veeam Backup & Replication",
+      "assignedTo": "Jordan",
+      "evidencePool": ["veeam-backup-job-report.pdf", "backup-restoration-test-results.pdf"],
+      "objectiveArtifacts": {
+        "a": ["veeam-backup-job-report.pdf", "backup-restoration-test-results.pdf"]
+      }
+    },
+    {
+      "id": "PS.L2-3.9.1",
+      "status": "MET",
+      "note": "Background checks completed for all personnel with access to CUI. Screening conducted by HR prior to access provisioning.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Priya",
+      "evidencePool": ["onboarding-offboarding-procedure.pdf"],
+      "objectiveArtifacts": {
+        "a": ["onboarding-offboarding-procedure.pdf"]
+      }
+    },
+    {
+      "id": "PS.L2-3.9.2",
+      "status": "MET",
+      "note": "Personnel termination process documented. Access revocation occurs within 4 hours of HR notification. Formal offboarding checklist used.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET" },
+      "objectiveResults": {
+        "a": {
+          "interviews": "Confirmed with HR — termination tickets trigger automatic Entra ID account disable via automated workflow.",
+          "examine": "Reviewed 5 termination tickets. All accounts disabled within 2 hours of HR initiation.",
+          "test": "Verified disabled account cannot authenticate via Entra ID sign-in logs.",
+          "overallComments": "Termination process is well-controlled and automated. Offboarding checklist includes badge return and device recovery."
+        }
+      },
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Priya",
+      "evidencePool": ["onboarding-offboarding-procedure.pdf", "user-termination-ticket-samples.pdf"],
+      "objectiveArtifacts": {
+        "a": ["onboarding-offboarding-procedure.pdf", "user-termination-ticket-samples.pdf"],
+        "b": ["user-termination-ticket-samples.pdf"],
+        "c": ["onboarding-offboarding-procedure.pdf"]
+      }
+    },
+    {
+      "id": "PE.L1-3.10.1",
+      "status": "MET",
+      "note": "Physical access to facility limited to authorized personnel. Badge reader access logs maintained. Visitor escort policy in place.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET", "d": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Priya",
+      "evidencePool": ["visitor-log-sample.pdf", "badge-access-review.xlsx"],
+      "objectiveArtifacts": {
+        "a": ["badge-access-review.xlsx"],
+        "b": ["visitor-log-sample.pdf"],
+        "c": ["badge-access-review.xlsx"],
+        "d": ["visitor-log-sample.pdf"]
+      }
+    },
+    {
+      "id": "PE.L1-3.10.3",
+      "status": "MET",
+      "note": "Visitor escort policy enforced. Visitors signed in at reception and escorted at all times in restricted areas.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Priya",
+      "evidencePool": ["visitor-log-sample.pdf"],
+      "objectiveArtifacts": {
+        "a": ["visitor-log-sample.pdf"],
+        "b": ["visitor-log-sample.pdf"]
+      }
+    },
+    {
+      "id": "PE.L1-3.10.4",
+      "status": "MET",
+      "note": "Physical access logs maintained via badge reader system. Logs retained for 12 months and reviewed monthly.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Priya",
+      "evidencePool": ["visitor-log-sample.pdf", "badge-access-review.xlsx"],
+      "objectiveArtifacts": {
+        "a": ["badge-access-review.xlsx"]
+      }
+    },
+    {
+      "id": "PE.L1-3.10.5",
+      "status": "In Progress",
+      "note": "Physical access reviews conducted quarterly. Access rights for terminated employees revoked. Access for contractors under review.",
+      "objectiveNotes": { "b": "Contractor access review not yet completed for Q2 2026." },
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Priya",
+      "evidencePool": ["badge-access-review.xlsx"],
+      "objectiveArtifacts": {
+        "a": ["badge-access-review.xlsx"]
+      }
+    },
+    {
+      "id": "PE.L2-3.10.2",
+      "status": "In Progress",
+      "note": "CCTV coverage of facility entrance and server room deployed. Camera coverage gaps in loading dock area.",
+      "objectiveNotes": { "d": "Loading dock camera installation scheduled for July 2026." },
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Priya",
+      "evidencePool": ["visitor-log-sample.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "RA.L2-3.11.1",
+      "status": "In Progress",
+      "note": "Risk assessment completed in Q4 2025. Tenable.sc used for vulnerability discovery. Next scheduled assessment Q3 2026.",
+      "objectiveNotes": { "e": "Risk register not yet formally approved by senior leadership." },
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Tenable.sc",
+      "assignedTo": "Alex",
+      "evidencePool": ["tenable-scan-report.pdf", "vulnerability-remediation-tracker.xlsx"],
+      "objectiveArtifacts": {
+        "a": ["tenable-scan-report.pdf"],
+        "b": ["vulnerability-remediation-tracker.xlsx"],
+        "c": ["tenable-scan-report.pdf"]
+      }
+    },
+    {
+      "id": "RA.L2-3.11.2",
+      "status": "In Progress",
+      "note": "Vulnerability scanning running weekly via Tenable.sc. Credentialed scans cover servers. Workstation scanning coverage at 85%.",
+      "objectiveNotes": { "d": "Remediation SLAs defined but not yet consistently tracked in vulnerability tracker." },
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET" },
+      "objectiveResults": {
+        "a": {
+          "interviews": "Confirmed with security analyst — Tenable.sc scans run every Sunday at 2am against all in-scope subnets.",
+          "examine": "Reviewed Tenable scan report dated 2026-06-01. 3 critical vulnerabilities identified across 2 servers.",
+          "test": "Verified credentialed scan results show patch-level detail for Windows servers.",
+          "overallComments": "Scanning cadence is appropriate. Remediation tracking needs improvement."
+        }
+      },
+      "inheritance": "Partial",
+      "inheritanceSource": "Tenable.sc",
+      "assignedTo": "Alex",
+      "evidencePool": ["tenable-scan-report.pdf", "vulnerability-remediation-tracker.xlsx"],
+      "objectiveArtifacts": {
+        "a": ["tenable-scan-report.pdf"],
+        "b": ["tenable-scan-report.pdf"],
+        "c": ["vulnerability-remediation-tracker.xlsx"]
+      }
+    },
+    {
+      "id": "RA.L2-3.11.3",
+      "status": "In Progress",
+      "note": "Vulnerability remediation process documented. SLAs: Critical 30 days, High 60 days, Medium 90 days. Tracking via vulnerability-remediation-tracker.",
+      "objectiveNotes": { "a": "3 critical vulnerabilities from latest scan past 30-day SLA — escalation in progress." },
+      "objectiveStatuses": { "a": "NOT MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Alex",
+      "evidencePool": ["vulnerability-remediation-tracker.xlsx", "patch-management-procedure.pdf", "tenable-scan-report.pdf"],
+      "objectiveArtifacts": {
+        "a": ["vulnerability-remediation-tracker.xlsx", "patch-management-procedure.pdf"]
+      }
+    },
+    {
+      "id": "CA.L2-3.12.1",
+      "status": "In Progress",
+      "note": "Security control assessment scope defined. Assessment activities in progress — 60% of controls evaluated.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Vince",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "CA.L2-3.12.2",
+      "status": "In Progress",
+      "note": "POA&M established. 8 open items tracked. Items prioritized by risk score. Review cadence is monthly.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Vince",
+      "evidencePool": ["vulnerability-remediation-tracker.xlsx"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "CA.L2-3.12.4",
+      "status": "In Progress",
+      "note": "System Security Plan in development. Boundary and data flow diagrams complete. Control implementation descriptions 70% complete.",
+      "objectiveNotes": { "g": "Third-party service provider list needs to be finalized in SSP." },
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Vince",
+      "evidencePool": ["boundary-diagram.pdf"],
+      "objectiveArtifacts": {
+        "a": ["boundary-diagram.pdf"],
+        "b": ["boundary-diagram.pdf"]
+      }
+    },
+    {
+      "id": "SC.L1-3.13.1",
+      "status": "MET",
+      "note": "Network boundary protection implemented via Palo Alto Networks NGFW. Deny-by-default ruleset with explicit allow entries only.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET", "d": "MET", "e": "MET", "f": "MET", "g": "MET", "h": "MET" },
+      "objectiveResults": {
+        "a": {
+          "interviews": "Confirmed with network engineer — Palo Alto NGFW deployed at all network boundaries. IPS signatures updated weekly.",
+          "examine": "Reviewed firewall ruleset. Default-deny policy confirmed. All allow rules have documented business justification.",
+          "test": "Attempted connection to blocked port from DMZ — connection refused as expected.",
+          "overallComments": "Boundary protection is well-implemented. Palo Alto fully inherited for this control."
+        }
+      },
+      "inheritance": "Full",
+      "inheritanceSource": "Palo Alto Networks",
+      "assignedTo": "Jordan",
+      "evidencePool": ["palo-alto-firewall-ruleset.pdf", "boundary-diagram.pdf"],
+      "objectiveArtifacts": {
+        "a": ["palo-alto-firewall-ruleset.pdf", "boundary-diagram.pdf"],
+        "b": ["palo-alto-firewall-ruleset.pdf"],
+        "c": ["boundary-diagram.pdf"],
+        "d": ["palo-alto-firewall-ruleset.pdf"],
+        "e": ["palo-alto-firewall-ruleset.pdf"],
+        "f": ["boundary-diagram.pdf"]
+      }
+    },
+    {
+      "id": "SC.L1-3.13.5",
+      "status": "MET",
+      "note": "Public-access systems separated from internal CUI-handling systems via DMZ architecture. Palo Alto enforces separation.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "Palo Alto Networks",
+      "assignedTo": "Jordan",
+      "evidencePool": ["palo-alto-firewall-ruleset.pdf", "boundary-diagram.pdf"],
+      "objectiveArtifacts": {
+        "a": ["boundary-diagram.pdf"],
+        "b": ["palo-alto-firewall-ruleset.pdf"]
+      }
+    },
+    {
+      "id": "SC.L2-3.13.2",
+      "status": "In Progress",
+      "note": "Security engineering principles applied to new system designs. Legacy system review for security architecture alignment in progress.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Morgan",
+      "evidencePool": ["boundary-diagram.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "SC.L2-3.13.6",
+      "status": "MET",
+      "note": "Network communications deny-by-default. Only explicitly approved connections permitted through Palo Alto ruleset.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "Palo Alto Networks",
+      "assignedTo": "Jordan",
+      "evidencePool": ["palo-alto-firewall-ruleset.pdf"],
+      "objectiveArtifacts": {
+        "a": ["palo-alto-firewall-ruleset.pdf"],
+        "b": ["palo-alto-firewall-ruleset.pdf"]
+      }
+    },
+    {
+      "id": "SC.L2-3.13.7",
+      "status": "MET",
+      "note": "Split tunneling disabled on GlobalProtect VPN. All remote traffic routes through corporate gateway.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "Palo Alto Networks",
+      "assignedTo": "Jordan",
+      "evidencePool": ["palo-alto-firewall-ruleset.pdf", "vpn-configuration-screenshot.png"],
+      "objectiveArtifacts": {
+        "a": ["vpn-configuration-screenshot.png", "palo-alto-firewall-ruleset.pdf"]
+      }
+    },
+    {
+      "id": "SC.L2-3.13.8",
+      "status": "MET",
+      "note": "CUI in transit encrypted via TLS 1.2 minimum. Full inheritance from M365 GCC High. Inheritance source intentionally left blank — pending documentation update.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "",
+      "assignedTo": "Morgan",
+      "evidencePool": ["tls-configuration-export.pdf"],
+      "objectiveArtifacts": {
+        "a": ["tls-configuration-export.pdf"],
+        "b": ["tls-configuration-export.pdf"]
+      }
+    },
+    {
+      "id": "SC.L2-3.13.9",
+      "status": "In Progress",
+      "note": "Session termination after inactivity configured for web apps. Network session termination controls not yet uniformly applied.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": ["conditional-access-policy.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "SC.L2-3.13.10",
+      "status": "NOT MET",
+      "note": "Key management policy drafted but no formal key management system in place. Encryption keys managed ad hoc.",
+      "objectiveNotes": {
+        "a": "Key management solution (Azure Key Vault) approved for procurement.",
+        "b": "Key rotation schedule not yet established."
+      },
+      "objectiveStatuses": { "a": "NOT MET", "b": "NOT MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Morgan",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "SC.L2-3.13.11",
+      "status": "In Progress",
+      "note": "CUI encryption at rest partially implemented. M365 GCC High encrypts data at rest natively. On-premise storage encryption review pending.",
+      "objectiveNotes": { "a": "On-premise file server encryption using BitLocker not yet verified for all volumes." },
+      "objectiveStatuses": { "a": "NOT MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft 365 GCC High",
+      "assignedTo": "Morgan",
+      "evidencePool": ["tls-configuration-export.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "SC.L2-3.13.13",
+      "status": "NOT MET",
+      "note": "Mobile code controls not implemented. JavaScript and other mobile code not restricted or monitored in browser sessions.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "NOT MET", "b": "NOT MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "SC.L2-3.13.15",
+      "status": "NOT MET",
+      "note": "Communications authenticity controls not in place. Email signing (S/MIME or DKIM) not enforced for internal communications.",
+      "objectiveNotes": { "a": "DKIM configured for outbound email but not for internal. S/MIME deployment planned." },
+      "objectiveStatuses": { "a": "NOT MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "SC.L2-3.13.16",
+      "status": "MET",
+      "note": "CUI at rest encrypted in M365 GCC High using Microsoft-managed keys. SharePoint and Exchange Online both covered.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "Microsoft 365 GCC High",
+      "assignedTo": "Morgan",
+      "evidencePool": ["tls-configuration-export.pdf"],
+      "objectiveArtifacts": {
+        "a": ["tls-configuration-export.pdf"]
+      }
+    },
+    {
+      "id": "SI.L1-3.14.1",
+      "status": "MET",
+      "note": "Flaw remediation managed via Tenable.sc and patch management procedure. CrowdStrike provides real-time vulnerability telemetry. WARNING: objective d (patch application timeliness) NOT MET due to overdue critical patches.",
+      "objectiveNotes": {
+        "d": "3 critical patches for Windows Server overdue past 30-day SLA. Remediation ticket ITSM-5501 open."
+      },
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET", "d": "NOT MET", "e": "MET", "f": "MET" },
+      "objectiveResults": {
+        "d": {
+          "interviews": "Confirmed with patch admin — 3 Windows Server patches delayed due to change freeze for Q2 audit.",
+          "examine": "Reviewed Tenable remediation tracker. CVE-2025-21298, CVE-2025-24054, CVE-2025-26647 past SLA.",
+          "test": "",
+          "overallComments": "Patch application SLA breached for 3 critical CVEs. Change freeze lifted 2026-06-01 — patches being applied."
+        }
+      },
+      "inheritance": "Partial",
+      "inheritanceSource": "CrowdStrike Falcon",
+      "assignedTo": "Alex",
+      "evidencePool": ["tenable-scan-report.pdf", "patch-management-procedure.pdf", "vulnerability-remediation-tracker.xlsx"],
+      "objectiveArtifacts": {
+        "a": ["patch-management-procedure.pdf"],
+        "b": ["tenable-scan-report.pdf"],
+        "c": ["patch-management-procedure.pdf"],
+        "d": ["vulnerability-remediation-tracker.xlsx"],
+        "e": ["tenable-scan-report.pdf"],
+        "f": ["patch-management-procedure.pdf"]
+      }
+    },
+    {
+      "id": "SI.L1-3.14.2",
+      "status": "MET",
+      "note": "Malicious code protection via CrowdStrike Falcon deployed on all endpoints and servers.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "CrowdStrike Falcon",
+      "assignedTo": "Alex",
+      "evidencePool": ["tenable-scan-report.pdf"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "SI.L2-3.14.3",
+      "status": "MET",
+      "note": "Security alerts and advisories from CISA and vendor bulletins monitored. CrowdStrike threat intelligence integrated.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "CrowdStrike Falcon",
+      "assignedTo": "Alex",
+      "evidencePool": ["alerting-workflow-screenshot.png"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "SI.L1-3.14.4",
+      "status": "MET",
+      "note": "CrowdStrike Falcon definitions updated automatically. Definition age never exceeds 24 hours across the fleet.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "CrowdStrike Falcon",
+      "assignedTo": "Alex",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "SI.L1-3.14.5",
+      "status": "MET",
+      "note": "System and file scanning performed continuously via CrowdStrike Falcon real-time protection.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET", "b": "MET", "c": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Full",
+      "inheritanceSource": "CrowdStrike Falcon",
+      "assignedTo": "Alex",
+      "evidencePool": [],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "SI.L2-3.14.6",
+      "status": "In Progress",
+      "note": "Network communications monitoring via Sentinel and Palo Alto threat prevention. Coverage for east-west traffic incomplete.",
+      "objectiveNotes": { "b": "Internal network traffic monitoring (east-west) not yet enabled." },
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "Partial",
+      "inheritanceSource": "CrowdStrike Falcon",
+      "assignedTo": "Jordan",
+      "evidencePool": ["sentinel-log-retention-policy.pdf", "alerting-workflow-screenshot.png"],
+      "objectiveArtifacts": {}
+    },
+    {
+      "id": "SI.L2-3.14.7",
+      "status": "In Progress",
+      "note": "Unauthorized use detection via Sentinel UEBA. Baseline behavioral profiles under development. Alert tuning ongoing.",
+      "objectiveNotes": {},
+      "objectiveStatuses": { "a": "MET" },
+      "objectiveResults": {},
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "assignedTo": "Jordan",
+      "evidencePool": ["sentinel-log-retention-policy.pdf"],
+      "objectiveArtifacts": {}
+    }
+  ]
+}

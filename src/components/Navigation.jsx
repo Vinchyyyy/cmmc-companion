@@ -7,6 +7,7 @@ function Navigation() {
       <NavLink to="/controls">Control Library</NavLink>
       <NavLink to="/evidence">Evidence Lookup</NavLink>
       <NavLink to="/relationships">Relationship Explorer</NavLink>
+      <NavLink to="/artifact-map">Artifact Map</NavLink>
       <NavLink to="/about">About</NavLink>
       <NavLink to="/faq">FAQ</NavLink>
       <NavLink to="/changelog">Changelog</NavLink>

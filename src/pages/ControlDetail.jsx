@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import AutoResizeTextarea from '../components/AutoResizeTextarea'
-import { useParams, Link, useSearchParams } from 'react-router-dom'
+import { useParams, Link, useSearchParams, useLocation } from 'react-router-dom'
 import controls from '../data/controls/index.js'
 import { PROVIDERS } from '../data/providers'
 import evidenceTypes from '../data/evidence/index.js'
@@ -16,9 +16,11 @@ import {
   readInheritanceSource,
   writeInheritanceSource,
 } from '../utils/inheritance'
-import { readAssignedTo, writeAssignedTo } from '../utils/assignment'
+import { readAssignedTo, writeAssignedTo, normalizeAssignee } from '../utils/assignment'
 import { readPool, writePool } from '../utils/evidencePool'
 import { readObjectiveArtifacts, writeObjectiveArtifacts } from '../utils/objectiveArtifacts'
+import { buildArtifactIndex } from '../utils/artifactIndex.js'
+import { getObjectiveArtifactSuggestions } from '../utils/evidenceRecommendations.js'
 import { readObjectiveResult, writeObjectiveResult } from '../utils/objectiveResults'
 import {
   OBJECTIVE_STATUSES,
@@ -43,6 +45,7 @@ function resolveBackUrl(rawFrom) {
 function ControlDetail() {
   const { id } = useParams()
   const [searchParams] = useSearchParams()
+  const location = useLocation()
   const control = controls.find((c) => c.id === id)
 
   const backUrl = resolveBackUrl(searchParams.get('from'))
@@ -60,6 +63,11 @@ function ControlDetail() {
   const [objectiveResults, setObjectiveResults]     = useState(() => loadObjectiveResults(id, control))
   const [objArtifactInputs, setObjArtifactInputs]   = useState({})
   const [focusedObjId, setFocusedObjId]             = useState(null)
+  const [poolFocused, setPoolFocused]               = useState(false)
+  const [suggestionPages, setSuggestionPages]       = useState({})
+  const [expandedSuggestions, setExpandedSuggestions] = useState(() => new Set())
+
+  const globalArtifactNames = useMemo(() => buildArtifactIndex(controls).map((e) => e.artifact), [])
 
   useEffect(() => {
     setStatus(readStatus(id))
@@ -75,8 +83,24 @@ function ControlDetail() {
     setObjectiveResults(loadObjectiveResults(id, control))
     setObjArtifactInputs({})
     setFocusedObjId(null)
+    setPoolFocused(false)
+    setSuggestionPages({})
+    setExpandedSuggestions(new Set())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
+
+  // Scroll to the objective anchor when navigating here via a hash link
+  // (e.g. from Evidence Reuse Recommendation source links).
+  // The timeout lets React finish painting the new control's DOM first.
+  useEffect(() => {
+    if (!location.hash) return
+    const targetId = location.hash.replace('#', '')
+    const timer = setTimeout(() => {
+      const el = document.getElementById(targetId)
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [id, location.hash])
 
   const trendingStatus = useMemo(
     () => getTrendingStatus(control?.objectives ?? [], objectiveStatuses),
@@ -93,6 +117,7 @@ function ControlDetail() {
   const handleInheritanceChange = (e) => { const v = e.target.value; setInheritance(v); writeInheritance(id, v) }
   const handleInheritanceSourceChange = (e) => { const v = e.target.value; setInheritanceSource(v); writeInheritanceSource(id, v) }
   const handleAssignedToChange = (e) => { const v = e.target.value; setAssignedTo(v); writeAssignedTo(id, v) }
+  const handleAssignedToBlur = () => { const n = normalizeAssignee(assignedTo); setAssignedTo(n); writeAssignedTo(id, n) }
   const handleObjectiveStatusChange = (objId, value) => {
     setObjectiveStatuses((prev) => ({ ...prev, [objId]: value }))
     writeObjectiveStatus(id, objId, value)
@@ -153,7 +178,20 @@ function ControlDetail() {
     if (!input) return []
     const assigned = objectiveArtifacts[objId] ?? []
     const lower = input.toLowerCase()
-    return pool.filter((item) => item.toLowerCase().includes(lower) && !assigned.includes(item))
+    if (globalArtifactNames.some((n) => n.toLowerCase() === lower)) return []
+    return globalArtifactNames
+      .filter((n) => n.toLowerCase().includes(lower) && !assigned.includes(n))
+      .slice(0, 8)
+  }
+
+  const getPoolSuggestions = () => {
+    const input = poolInput.trim()
+    if (!input) return []
+    const lower = input.toLowerCase()
+    if (globalArtifactNames.some((n) => n.toLowerCase() === lower)) return []
+    return globalArtifactNames
+      .filter((n) => n.toLowerCase().includes(lower) && !pool.includes(n))
+      .slice(0, 8)
   }
 
   const commitObjArtifact = (objId, raw) => {
@@ -330,18 +368,19 @@ function ControlDetail() {
                 type="text"
                 value={assignedTo}
                 onChange={handleAssignedToChange}
+                onBlur={handleAssignedToBlur}
                 placeholder="Type a person's name..."
                 autoComplete="off"
                 className={(() => {
                   if (!assignedTo.trim()) return ''
-                  const used = [...new Set(controls.map((c) => readAssignedTo(c.id)).filter(Boolean))]
-                  return used.includes(assignedTo) ? '' : 'provider-picker-input--open'
+                  const used = [...new Set(controls.map((c) => normalizeAssignee(readAssignedTo(c.id))).filter(Boolean))]
+                  return used.includes(normalizeAssignee(assignedTo)) ? '' : 'provider-picker-input--open'
                 })()}
               />
               {(() => {
                 if (!assignedTo.trim()) return null
-                const used = [...new Set(controls.map((c) => readAssignedTo(c.id)).filter(Boolean))].sort()
-                if (used.includes(assignedTo)) return null
+                const used = [...new Set(controls.map((c) => normalizeAssignee(readAssignedTo(c.id))).filter(Boolean))].sort()
+                if (used.includes(normalizeAssignee(assignedTo))) return null
                 const q = assignedTo.toLowerCase()
                 const suggestions = used.filter((n) => n.toLowerCase().includes(q)).slice(0, 8)
                 if (suggestions.length === 0) return null
@@ -379,16 +418,33 @@ function ControlDetail() {
           <p className="muted" style={{ fontSize: 'var(--text-xs)', margin: 'var(--space-1) 0 var(--space-2)' }}>
             Artifact names only — no file contents, no sensitive data. Examples: SSP.pdf, RBAC Policy.docx
           </p>
-          <input
-            id="pool-input"
-            type="text"
-            className="evidence-pool-input"
-            value={poolInput}
-            onChange={handlePoolInputChange}
-            onKeyDown={handlePoolKeyDown}
-            placeholder="Type an artifact name, press Enter or comma to add"
-            autoComplete="off"
-          />
+          <div className="obj-artifact-input-wrap">
+            <input
+              id="pool-input"
+              type="text"
+              className="evidence-pool-input"
+              value={poolInput}
+              onChange={handlePoolInputChange}
+              onKeyDown={handlePoolKeyDown}
+              onFocus={() => setPoolFocused(true)}
+              onBlur={() => setPoolFocused(false)}
+              placeholder="Type an artifact name, press Enter or comma to add"
+              autoComplete="off"
+            />
+            {poolFocused && getPoolSuggestions().length > 0 && (
+              <ul className="artifact-suggestions">
+                {getPoolSuggestions().map((s) => (
+                  <li
+                    key={s}
+                    className="artifact-suggestion-item"
+                    onMouseDown={(e) => { e.preventDefault(); setPoolInput(s) }}
+                  >
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           {pool.length > 0 && (
             <div className="evidence-chips">
               {pool.map((item) => (
@@ -435,7 +491,7 @@ function ControlDetail() {
           const suggestions = focusedObjId === obj.id ? getObjSuggestions(obj.id) : []
           const assignedArtifacts = objectiveArtifacts[obj.id] ?? []
           return (
-            <div key={obj.id} style={{ marginBottom: 'var(--space-6)' }}>
+            <div key={obj.id} id={`objective-${obj.id}`} style={{ marginBottom: 'var(--space-6)' }}>
               <h3>
                 <span className="mono">[{obj.id}]</span> {obj.text}
               </h3>
@@ -483,7 +539,7 @@ function ControlDetail() {
                         <li
                           key={s}
                           className="artifact-suggestion-item"
-                          onMouseDown={(e) => { e.preventDefault(); commitObjArtifact(obj.id, s) }}
+                          onMouseDown={(e) => { e.preventDefault(); setObjArtifactInputs((prev) => ({ ...prev, [obj.id]: s })) }}
                         >
                           {s}
                         </li>
@@ -506,6 +562,105 @@ function ControlDetail() {
                     ))}
                   </div>
                 )}
+
+                {(() => {
+                  const PAGE_SIZE = 5
+                  const allSuggestions = getObjectiveArtifactSuggestions({
+                    control,
+                    objective: obj,
+                    allControls: controls,
+                    limit: 1000,
+                  })
+                  if (allSuggestions.length === 0) return null
+
+                  const total = allSuggestions.length
+                  const isOpen = expandedSuggestions.has(obj.id)
+
+                  const toggleOpen = () => {
+                    setExpandedSuggestions((prev) => {
+                      const next = new Set(prev)
+                      if (next.has(obj.id)) next.delete(obj.id)
+                      else next.add(obj.id)
+                      return next
+                    })
+                  }
+
+                  const totalPages = Math.ceil(total / PAGE_SIZE)
+                  const rawPage = suggestionPages[obj.id] ?? 0
+                  const page = Math.min(rawPage, totalPages - 1)
+                  const start = page * PAGE_SIZE
+                  const pageSuggestions = allSuggestions.slice(start, start + PAGE_SIZE)
+
+                  const setPage = (next) =>
+                    setSuggestionPages((prev) => ({ ...prev, [obj.id]: next }))
+
+                  return (
+                    <div className="evidence-reuse-suggestions">
+                      <button
+                        type="button"
+                        className="evidence-reuse-suggestions-toggle"
+                        onClick={toggleOpen}
+                        aria-expanded={isOpen}
+                      >
+                        <span className="evidence-reuse-suggestions-chevron" aria-hidden="true">
+                          {isOpen ? '▼' : '▶'}
+                        </span>
+                        <span className="evidence-reuse-suggestions-label">
+                          Suggested Existing Artifacts ({total})
+                        </span>
+                      </button>
+
+                      {isOpen && (
+                        <>
+                          {total > PAGE_SIZE && (
+                            <p className="evidence-reuse-suggestions-count">
+                              Showing {start + 1}–{Math.min(start + PAGE_SIZE, total)} of {total}
+                            </p>
+                          )}
+                          <ul>
+                            {pageSuggestions.map((s) => (
+                              <li key={s.artifact} className="evidence-reuse-suggestion">
+                                <button
+                                  type="button"
+                                  className="evidence-reuse-suggestion-add"
+                                  onClick={() => commitObjArtifact(obj.id, s.artifact)}
+                                  aria-label={`Add ${s.artifact} to objective ${obj.id}`}
+                                >+</button>
+                                <span className="evidence-reuse-suggestion-name">{s.artifact}</span>
+                                <span className="evidence-reuse-suggestion-source">
+                                  from{' '}
+                                  <Link
+                                    to={`/controls/${encodeURIComponent(s.sourceControlId)}#objective-${s.sourceObjectiveId}`}
+                                    title={`${s.sourceControlId} — ${s.sourceControlTitle}`}
+                                  >
+                                    {s.sourceControlId}
+                                  </Link>
+                                  {' '}[{s.sourceObjectiveId}]
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                          {total > PAGE_SIZE && (
+                            <div className="evidence-reuse-suggestions-pagination">
+                              <button
+                                type="button"
+                                onClick={() => setPage(page - 1)}
+                                disabled={page === 0}
+                                aria-label="Previous suggestions"
+                              >← Previous</button>
+                              <button
+                                type="button"
+                                onClick={() => setPage(page + 1)}
+                                disabled={page >= totalPages - 1}
+                                aria-label="Next suggestions"
+                              >Next →</button>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )
+                })()}
               </div>
 
               {[

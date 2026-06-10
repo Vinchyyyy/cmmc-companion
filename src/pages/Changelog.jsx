@@ -9,8 +9,104 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v1.4.0 — current release, open by default */}
+      {/* v1.5.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v1.5.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span>Assessment Intelligence &amp; Artifact Analysis</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 9, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Intelligence &amp; Artifact Analysis</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Introduced Artifact Map as a centralized evidence analysis workspace</li>
+              <li>Added global artifact indexing across controls and objectives</li>
+              <li>Added artifact search and usage tracking</li>
+              <li>Added Most Connections and Least Connections sorting</li>
+              <li>Added reused-artifact filtering</li>
+              <li>Added artifact usage statistics and summary metrics</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Kill Chain Categorization</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added ComplianceForge Kill Chain category framework</li>
+              <li>Mapped all 110 controls into operational assessment categories</li>
+              <li>Added control-to-kill-chain lookup dataset</li>
+              <li>Added kill chain utility helpers for future workflow expansion</li>
+              <li>Added category grouping within Artifact Map</li>
+              <li>Added category-level artifact and usage summaries</li>
+              <li>Added category filtering support</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Artifact Navigation &amp; Traceability</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added direct navigation from Artifact Map usages to source objectives</li>
+              <li>Added objective anchor navigation support</li>
+              <li>Added hover context showing source control titles</li>
+              <li>Improved cross-control evidence traceability</li>
+              <li>Added objective-level deep linking support</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Evidence Reuse Recommendations</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added relationship-driven evidence reuse recommendations</li>
+              <li>Suggestions generated from related controls and objectives</li>
+              <li>Existing artifacts can be reused with a single click</li>
+              <li>Suggestions automatically exclude already-assigned artifacts</li>
+              <li>Added source control and objective attribution</li>
+              <li>Added direct navigation to source objectives</li>
+              <li>Added collapsible recommendation sections per objective</li>
+              <li>Recommendations remain optional and non-destructive</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Artifact Map UX Improvements</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Removed Evidence Pool entries from Artifact Map display</li>
+              <li>Artifact counts now reflect objective usage only</li>
+              <li>Reduced duplicate artifact visibility</li>
+              <li>Improved signal-to-noise ratio for evidence analysis</li>
+              <li>Added category collapse and expand workflow</li>
+              <li>Improved artifact browsing experience</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Chain Foundation</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Established foundation for future kill-chain workflows</li>
+              <li>Created reusable operational-category data model</li>
+              <li>Prepared platform for future assessment acceleration features</li>
+              <li>Prepared platform for future evidence reuse intelligence</li>
+              <li>Prepared platform for future chain-based assessment workflows</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Existing project data remains compatible</li>
+              <li>Existing backups remain importable</li>
+              <li>No schema migration required</li>
+              <li>No storage format changes introduced</li>
+            </ul>
+          </section>
+
+        </div>
+      </details>
+
+      {/* v1.4.0 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v1.4.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>

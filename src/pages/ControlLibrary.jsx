@@ -33,7 +33,7 @@ import {
   isPoamAllowed,
 } from '../utils/scoring'
 import { IconNotes, IconPaperclip, IconTrendingUp, IconTrendingDown } from '../components/icons'
-import { readAssignedTo, writeAssignedTo } from '../utils/assignment'
+import { readAssignedTo, writeAssignedTo, normalizeAssignee } from '../utils/assignment'
 
 const TRENDING_INDICATOR = {
   'MET':         { color: 'var(--color-met)',         title: 'Trending: MET' },
@@ -255,16 +255,16 @@ function ControlLibrary() {
     inheritanceSourceFilter === 'All' || readInheritanceSource(c.id).trim() === inheritanceSourceFilter
 
   const usedAssignedTo = useMemo(() =>
-    [...new Set(controls.map((c) => readAssignedTo(c.id)).filter(Boolean))].sort()
+    [...new Set(controls.map((c) => normalizeAssignee(readAssignedTo(c.id))).filter(Boolean))].sort()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   , [updateKey])
 
   const matchesAssignedTo = (c) => {
     if (assignedToFilter === 'All') return true
-    const val = readAssignedTo(c.id)
+    const val = normalizeAssignee(readAssignedTo(c.id))
     if (assignedToFilter === 'Unassigned') return !val
     if (assignedToFilter === 'Assigned') return !!val
-    return val === assignedToFilter
+    return val === normalizeAssignee(assignedToFilter)
   }
 
   const bulkSetAssignment = (name) => {
@@ -880,6 +880,7 @@ function ControlLibrary() {
                   type="text"
                   value={bulkAssignmentModal.assignedTo}
                   onChange={(e) => setBulkAssignmentModal((prev) => ({ ...prev, assignedTo: e.target.value }))}
+                  onBlur={() => setBulkAssignmentModal((prev) => ({ ...prev, assignedTo: normalizeAssignee(prev.assignedTo) }))}
                   placeholder="Type a person's name..."
                   style={{ width: '100%', boxSizing: 'border-box' }}
                   autoComplete="off"
@@ -887,12 +888,12 @@ function ControlLibrary() {
                   className={(() => {
                     const v = bulkAssignmentModal.assignedTo
                     if (!v.trim()) return ''
-                    return usedAssignedTo.includes(v) ? '' : 'provider-picker-input--open'
+                    return usedAssignedTo.includes(normalizeAssignee(v)) ? '' : 'provider-picker-input--open'
                   })()}
                 />
                 {(() => {
                   const v = bulkAssignmentModal.assignedTo
-                  if (!v.trim() || usedAssignedTo.includes(v)) return null
+                  if (!v.trim() || usedAssignedTo.includes(normalizeAssignee(v))) return null
                   const q = v.toLowerCase()
                   const suggestions = usedAssignedTo.filter((n) => n.toLowerCase().includes(q)).slice(0, 8)
                   if (suggestions.length === 0) return null

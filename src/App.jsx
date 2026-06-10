@@ -9,6 +9,7 @@ import RelationshipExplorer from './pages/RelationshipExplorer.jsx'
 import About from './pages/About.jsx'
 import Faq from './pages/Faq.jsx'
 import Changelog from './pages/Changelog.jsx'
+import ArtifactMap from './pages/ArtifactMap.jsx'
 
 const NOTICE_VERSION = 1
 const NOTICE_KEY = 'cmmc-notice-version'
@@ -79,6 +80,7 @@ function App() {
           <Route path="/controls/:id" element={<ControlDetail />} />
           <Route path="/evidence" element={<EvidenceLookup />} />
           <Route path="/relationships" element={<RelationshipExplorer />} />
+          <Route path="/artifact-map" element={<ArtifactMap />} />
           <Route path="/about" element={<About />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/changelog" element={<Changelog />} />

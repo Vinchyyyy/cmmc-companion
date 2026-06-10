@@ -1911,3 +1911,295 @@ details[open] > .advanced-options-toggle::before {
   background: var(--color-accent-bg);
   color: var(--color-accent);
 }
+
+/* -------------------------------------------------------------------------
+   Objective anchor targets — give each objective block breathing room so
+   scrollIntoView doesn't hide the heading behind sticky navigation.
+   ------------------------------------------------------------------------- */
+
+[id^="objective-"] {
+  scroll-margin-top: 1rem;
+}
+
+/* -------------------------------------------------------------------------
+   Evidence Reuse Recommendations
+   ------------------------------------------------------------------------- */
+
+.evidence-reuse-suggestions {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-accent-bg);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+}
+
+.evidence-reuse-suggestions ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.evidence-reuse-suggestions-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  margin-bottom: var(--space-1);
+}
+
+.evidence-reuse-suggestions-chevron {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.evidence-reuse-suggestions-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.evidence-reuse-suggestions-toggle:hover .evidence-reuse-suggestions-label,
+.evidence-reuse-suggestions-toggle:hover .evidence-reuse-suggestions-chevron {
+  color: var(--color-accent);
+}
+
+.evidence-reuse-suggestions-count {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.evidence-reuse-suggestions-pagination {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.evidence-reuse-suggestions-pagination button {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm, 3px);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+}
+
+.evidence-reuse-suggestions-pagination button:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.evidence-reuse-suggestions-pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.evidence-reuse-suggestion {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+}
+
+.evidence-reuse-suggestion + .evidence-reuse-suggestion {
+  border-top: 1px solid var(--color-border);
+}
+
+.evidence-reuse-suggestion-add {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm, 3px);
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1;
+  padding: 1px 6px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.evidence-reuse-suggestion-add:hover {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.evidence-reuse-suggestion-name {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  word-break: break-all;
+}
+
+.evidence-reuse-suggestion-source {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* =========================================================
+   Artifact Map — statistics header
+   ========================================================= */
+
+.artifact-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+@media (max-width: 640px) {
+  .artifact-stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* =========================================================
+   Artifact Map — collapsible card accordion
+   ========================================================= */
+
+.artifact-card {
+  padding: 0;
+}
+
+.artifact-card-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-5) var(--space-6);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  text-align: left;
+  cursor: pointer;
+  color: var(--color-text);
+  transition: background var(--transition);
+}
+
+.artifact-card-header:hover {
+  background: var(--color-accent-bg);
+}
+
+.artifact-card-header--open {
+  border-bottom: 1px solid var(--color-border);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.artifact-card-chevron {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+  min-width: 0.75rem;
+  flex-shrink: 0;
+}
+
+.artifact-card-name {
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  word-break: break-all;
+}
+
+.artifact-card-count {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.artifact-card-body {
+  padding: var(--space-4) var(--space-6) var(--space-5);
+}
+
+.artifact-card-usages {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.artifact-card-usage {
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+}
+
+/* =========================================================
+   Artifact Map — kill chain category group headings
+   ========================================================= */
+
+.artifact-category-group {
+  margin-bottom: var(--space-6);
+}
+
+.artifact-category-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-3) var(--space-1);
+  background: none;
+  border: none;
+  border-bottom: 2px solid var(--color-border);
+  text-align: left;
+  cursor: pointer;
+  color: var(--color-text);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: background var(--transition);
+}
+
+.artifact-category-header:hover {
+  background: var(--color-accent-bg);
+}
+
+.artifact-category-chevron {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+  min-width: 0.75rem;
+  flex-shrink: 0;
+}
+
+.artifact-category-name {
+  font-weight: 800;
+  font-size: var(--text-lg);
+  color: var(--color-text);
+}
+
+.artifact-category-meta {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.artifact-category-body {
+  padding-top: var(--space-3);
+}
+
+.kill-chain-badge {
+  display: inline-block;
+  padding: 1px var(--space-2);
+  font-size: var(--text-xs);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-bg);
+  color: var(--color-accent);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
+}
