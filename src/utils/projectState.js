@@ -22,9 +22,11 @@ import {
   writeInheritanceSource,
 } from './inheritance'
 import { readAssignedTo, writeAssignedTo } from './assignment'
-import { readPool, writePool } from './evidencePool'
-import { readObjectiveArtifacts, writeObjectiveArtifacts } from './objectiveArtifacts'
+import { readPoolIds, writePoolIds } from './evidencePool'
+import { readObjectiveArtifactIds, writeObjectiveArtifactIds } from './objectiveArtifacts'
+import { listArtifacts, findOrCreate, isArtifactId } from './artifactRegistry'
 import { readObjectiveResult, writeObjectiveResult } from './objectiveResults'
+import { readEnvironmentProfile, writeEnvironmentProfile } from './environmentProfile'
 import {
   OBJECTIVE_STATUSES,
   OBJECTIVE_STATUS_UNREVIEWED,
@@ -32,7 +34,7 @@ import {
   writeObjectiveStatus,
 } from './objectiveStatus'
 
-export const SCHEMA_VERSION = 2
+export const SCHEMA_VERSION = 3
 
 export const DEFAULT_IMPORT_OPTIONS = {
   mode: 'replace',
@@ -52,7 +54,7 @@ export const DEFAULT_IMPORT_OPTIONS = {
 
 // All schema versions this app can import. Add new versions here as the
 // schema evolves — never remove old ones while users may have older backups.
-export const ACCEPTED_SCHEMA_VERSIONS = [1, 2]
+export const ACCEPTED_SCHEMA_VERSIONS = [1, 2, 3]
 
 // =========================================================================
 // Export
@@ -66,11 +68,11 @@ export function exportProjectState(controls) {
       if (note.trim() !== '') objectiveNotes[obj.id] = note
     }
 
-    const pool = readPool(control.id)
+    const pool = readPoolIds(control.id)
 
     const objectiveArtifacts = {}
     for (const obj of control.objectives ?? []) {
-      const artifacts = readObjectiveArtifacts(control.id, obj.id)
+      const artifacts = readObjectiveArtifactIds(control.id, obj.id)
       if (artifacts.length > 0) objectiveArtifacts[obj.id] = artifacts
     }
 
@@ -110,6 +112,8 @@ export function exportProjectState(controls) {
   return {
     schemaVersion: SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
+    artifacts: listArtifacts(),
+    environmentProfile: readEnvironmentProfile(),
     controls: exported,
   }
 }
@@ -149,7 +153,7 @@ export function importProjectState(projectJson, controls, options = {}) {
     return {
       ok: false,
       error: `Unsupported schema version ${projectJson.schemaVersion}. ` +
-             `Expected version 1 or 2.`,
+             `Expected version 1, 2, or 3.`,
     }
   }
   if (!Array.isArray(projectJson.controls)) {
@@ -165,6 +169,16 @@ export function importProjectState(projectJson, controls, options = {}) {
     acc[s.toLowerCase()] = s
     return acc
   }, {})
+
+  // Restore environment profile if present. Optional field — missing means no-op
+  // (backward-compatible with v1/v2 backups that predate this field).
+  if (
+    projectJson.environmentProfile !== undefined &&
+    projectJson.environmentProfile !== null &&
+    typeof projectJson.environmentProfile === 'object'
+  ) {
+    writeEnvironmentProfile(projectJson.environmentProfile)
+  }
 
   const summary = {
     ok: true,
@@ -183,6 +197,38 @@ export function importProjectState(projectJson, controls, options = {}) {
     skippedInvalidStatus: 0,
     skippedUnknownObjective: 0,
     skippedBecauseExisting: 0,
+    droppedArtifactRefs: 0,
+  }
+
+  // Artifact registry: v3 files carry a top-level `artifacts` array of records.
+  // Build a foreign-id -> name lookup so referenced ids can be remapped to local
+  // ids by normalized name. v1/v2 files have no array — entries are names.
+  const hasArtifactsArray = Array.isArray(projectJson.artifacts)
+  const foreignIdToName = new Map()
+  if (hasArtifactsArray) {
+    for (const rec of projectJson.artifacts) {
+      if (rec && typeof rec === 'object' && typeof rec.id === 'string' && typeof rec.name === 'string') {
+        foreignIdToName.set(rec.id, rec.name)
+      }
+    }
+  }
+
+  // Resolves a single imported artifact entry (a foreign id for v3, or a name for
+  // v1/v2) to a local artifact id, creating/deduping by normalized name. Returns
+  // undefined (and counts a drop) for an id-shaped entry with no matching record.
+  // Only invoked inside enabled category blocks, so disabled categories create
+  // no orphaned registry records.
+  const resolveImportedEntry = (entry) => {
+    if (typeof entry !== 'string' || entry.trim() === '') return undefined
+    const foreignName = foreignIdToName.get(entry)
+    if (foreignName !== undefined) {
+      return findOrCreate(foreignName)?.id
+    }
+    if (isArtifactId(entry)) {
+      summary.droppedArtifactRefs++
+      return undefined
+    }
+    return findOrCreate(entry)?.id
   }
 
   for (const entry of projectJson.controls) {
@@ -296,10 +342,10 @@ export function importProjectState(projectJson, controls, options = {}) {
     if (opts.categories.evidencePool) {
       if ('evidencePool' in entry) {
         if (Array.isArray(entry.evidencePool)) {
-          const filtered = entry.evidencePool.filter((v) => typeof v === 'string')
-          if (canWrite(readPool(control.id).length === 0, opts, summary)) {
-            writePool(control.id, filtered)
-            if (filtered.length > 0) summary.evidencePoolsWritten++
+          const ids = [...new Set(entry.evidencePool.map(resolveImportedEntry).filter(Boolean))]
+          if (canWrite(readPoolIds(control.id).length === 0, opts, summary)) {
+            writePoolIds(control.id, ids)
+            if (ids.length > 0) summary.evidencePoolsWritten++
           }
         }
       }
@@ -317,10 +363,10 @@ export function importProjectState(projectJson, controls, options = {}) {
           for (const [objId, artifacts] of Object.entries(entry.objectiveArtifacts)) {
             if (!knownObjectiveIds.has(objId)) { summary.skippedUnknownObjective++; continue }
             if (Array.isArray(artifacts)) {
-              const filtered = artifacts.filter((v) => typeof v === 'string')
-              if (canWrite(readObjectiveArtifacts(control.id, objId).length === 0, opts, summary)) {
-                writeObjectiveArtifacts(control.id, objId, filtered)
-                if (filtered.length > 0) summary.objectiveArtifactsWritten++
+              const ids = [...new Set(artifacts.map(resolveImportedEntry).filter(Boolean))]
+              if (canWrite(readObjectiveArtifactIds(control.id, objId).length === 0, opts, summary)) {
+                writeObjectiveArtifactIds(control.id, objId, ids)
+                if (ids.length > 0) summary.objectiveArtifactsWritten++
               }
             }
           }
