@@ -6,6 +6,7 @@
 
 const fs    = require('node:fs')
 const path  = require('node:path')
+const { pathToFileURL } = require('node:url')
 const verbose = process.argv.includes('--verbose')
 
 const ROOT              = path.resolve(__dirname, '..')
@@ -14,6 +15,7 @@ const CONTROLS_DIR      = path.join(DATA_DIR, 'controls')
 const RELATIONSHIPS_DIR = path.join(DATA_DIR, 'relationships')
 const EVIDENCE_DIR      = path.join(DATA_DIR, 'evidence')
 const SCORING_FILE      = path.join(DATA_DIR, 'scoring.json')
+const EVIDENCE_TAGS_FILE = path.join(DATA_DIR, 'evidenceTags.js')
 
 const FAMILY_FILES = {
   'Access Control':                          'access-control.json',
@@ -174,6 +176,78 @@ for (const c of allControls) {
 }
 for (const ev of allEvidence)      { bumpCheck('Schema'); requireFields(ev, EV_REQ, `evidence "${ev?.name}" (${ev.__sourceFile})`, 'Schema') }
 for (const r  of allRelationships) { bumpCheck('Schema'); requireFields(r, REL_REQ, `rel ${r?.sourceControl}->${r?.targetControl} (${r.__sourceFile})`, 'Schema') }
+
+// =========================================================================
+// 1b – Objective Metadata
+// =========================================================================
+const ALLOWED_EVIDENCE_CLASSES      = new Set(['artifact','documentation','mixed','interview','demonstration'])
+const ALLOWED_EVIDENCE_CONFIDENCES  = new Set(['high','medium','low'])
+const EXPECTED_OBJECTIVE_COUNT      = 320
+
+let totalObjectiveCount = 0
+for (const c of allControls) {
+  if (!Array.isArray(c?.objectives)) continue
+  for (const o of c.objectives) {
+    totalObjectiveCount++
+    bumpCheck('Objective Metadata')
+
+    if (!o.evidenceClass) {
+      recordFailure('Objective Metadata', `control "${c.id}" obj "${o?.id}" missing evidenceClass`)
+    } else if (!ALLOWED_EVIDENCE_CLASSES.has(o.evidenceClass)) {
+      recordFailure('Objective Metadata', `control "${c.id}" obj "${o?.id}" invalid evidenceClass "${o.evidenceClass}"`)
+    }
+
+    if (!o.evidenceConfidence) {
+      recordFailure('Objective Metadata', `control "${c.id}" obj "${o?.id}" missing evidenceConfidence`)
+    } else if (!ALLOWED_EVIDENCE_CONFIDENCES.has(o.evidenceConfidence)) {
+      recordFailure('Objective Metadata', `control "${c.id}" obj "${o?.id}" invalid evidenceConfidence "${o.evidenceConfidence}"`)
+    }
+  }
+}
+
+bumpCheck('Objective Metadata')
+if (totalObjectiveCount !== EXPECTED_OBJECTIVE_COUNT) {
+  recordFailure('Objective Metadata',
+    `objective count is ${totalObjectiveCount}, expected ${EXPECTED_OBJECTIVE_COUNT}`)
+}
+
+// ── Official objective structure enforcement ──────────────────────────────
+const REQUIRED_OBJECTIVES = {
+  'RA.L2-3.11.1': ['a', 'b'],
+  'RA.L2-3.11.2': ['a', 'b', 'c', 'd', 'e'],
+  'RA.L2-3.11.3': ['a', 'b'],
+  'SI.L1-3.14.5': ['a', 'b', 'c'],
+}
+for (const [ctrlId, requiredLetters] of Object.entries(REQUIRED_OBJECTIVES)) {
+  bumpCheck('Objective Metadata')
+  const ctrl = allControls.find((c) => c?.id === ctrlId)
+  if (!ctrl) { recordFailure('Objective Metadata', `control "${ctrlId}" not found`); continue }
+  const actualLetters = (ctrl.objectives || []).map((o) => o?.id)
+  const expected = requiredLetters.join(',')
+  const actual   = actualLetters.join(',')
+  if (actual !== expected)
+    recordFailure('Objective Metadata',
+      `${ctrlId} objectives must be [${expected}], found [${actual}]`)
+}
+
+// ── Penultimate "; and" / final "." formatting ────────────────────────────
+for (const c of allControls) {
+  const objs = c?.objectives
+  if (!Array.isArray(objs) || objs.length < 2) continue
+
+  const penultimate = objs[objs.length - 2]
+  const last        = objs[objs.length - 1]
+
+  bumpCheck('Objective Metadata')
+  if (typeof penultimate?.text === 'string' && !penultimate.text.trimEnd().endsWith('; and'))
+    recordFailure('Objective Metadata',
+      `control "${c.id}" obj "${penultimate.id}" (penultimate) must end with "; and"`)
+
+  bumpCheck('Objective Metadata')
+  if (typeof last?.text === 'string' && !last.text.trimEnd().endsWith('.'))
+    recordFailure('Objective Metadata',
+      `control "${c.id}" obj "${last.id}" (final) must end with "."`)
+}
 
 // =========================================================================
 // 2 – ID format
@@ -352,44 +426,157 @@ if (scoringData && typeof scoringData === 'object') {
 }
 
 // =========================================================================
-// Report
+// 8 – Evidence Tag Registry  (dynamic import: ESM data module from CJS)
 // =========================================================================
-const CATEGORIES = ['Load','Schema','ID Format','Uniqueness','Referential','Family','Relationships','Scoring']
-console.log('='.repeat(60))
-console.log('Validation Results')
-console.log('='.repeat(60))
+let evidenceTagSummary = null
 
-const failByCat = {}, warnByCat = {}
-for (const f of failures) (failByCat[f.category]  ||= []).push(f.message)
-for (const w of warnings) (warnByCat[w.category]  ||= []).push(w.message)
-
-for (const cat of CATEGORIES) {
-  const count = checkCounts[cat] || 0
-  const fails = failByCat[cat] || []
-  console.log(`\n[${fails.length === 0 ? 'PASS' : 'FAIL'}] ${cat}  (${count} checks, ${fails.length} failures)`)
-  for (const msg of fails) console.log(`  - ${msg}`)
-}
-
-if (warnings.length) {
-  console.log('\n' + '-'.repeat(60))
-  console.log(`Warnings (${warnings.length})`)
-  console.log('-'.repeat(60))
-  for (const cat of CATEGORIES) {
-    const warns = warnByCat[cat] || []
-    if (!warns.length) continue
-    console.log(`\n[WARN] ${cat}`)
-    for (const msg of warns) console.log(`  - ${msg}`)
+async function validateEvidenceTags() {
+  bumpCheck('EvidenceTags')
+  if (!fs.existsSync(EVIDENCE_TAGS_FILE)) {
+    recordFailure('EvidenceTags', 'Missing src/data/evidenceTags.js')
+    return
   }
+
+  let mod
+  try {
+    mod = await import(pathToFileURL(EVIDENCE_TAGS_FILE).href)
+  } catch (err) {
+    recordFailure('EvidenceTags', `cannot import evidenceTags.js: ${err.message}`)
+    return
+  }
+
+  const tags = mod.evidenceTags
+  if (!Array.isArray(tags)) {
+    recordFailure('EvidenceTags', 'evidenceTags must be exported as an array')
+    return
+  }
+
+  const approvedCategories = Array.isArray(mod.EVIDENCE_TAG_CATEGORIES) ? new Set(mod.EVIDENCE_TAG_CATEGORIES) : null
+  const approvedForms      = Array.isArray(mod.EVIDENCE_TAG_FORMS)      ? new Set(mod.EVIDENCE_TAG_FORMS)      : null
+  if (!approvedCategories) recordFailure('EvidenceTags', 'EVIDENCE_TAG_CATEGORIES must be exported as an array')
+  if (!approvedForms)      recordFailure('EvidenceTags', 'EVIDENCE_TAG_FORMS must be exported as an array')
+
+  const FORBIDDEN_IDS = new Set(['screenshot', 'spreadsheet', 'document', 'export', 'pdf', 'file', 'evidence', 'artifact'])
+  const SNAKE_RE = /^[a-z0-9]+(_[a-z0-9]+)*$/
+  const REQUIRED_STRING_FIELDS = ['label', 'category', 'form', 'definition', 'useWhen', 'doNotUseWhen']
+  const REQUIRED_ARRAY_FIELDS  = ['examples', 'aliases', 'antiExamples']
+
+  const ids = new Set()
+  const catDist = {}
+
+  for (const t of tags) {
+    bumpCheck('EvidenceTags')
+    const id = t?.id
+    const label = `tag "${id ?? '(no id)'}"`
+
+    if (typeof id !== 'string' || !id) {
+      recordFailure('EvidenceTags', `${label}: missing id`)
+    } else {
+      if (!SNAKE_RE.test(id))    recordFailure('EvidenceTags', `${label}: id is not snake_case`)
+      if (FORBIDDEN_IDS.has(id)) recordFailure('EvidenceTags', `${label}: forbidden generic id`)
+      if (ids.has(id))           recordFailure('EvidenceTags', `duplicate tag id "${id}"`)
+      ids.add(id)
+    }
+
+    for (const f of REQUIRED_STRING_FIELDS) {
+      if (typeof t?.[f] !== 'string' || t[f].trim() === '')
+        recordFailure('EvidenceTags', `${label}: field "${f}" must be a non-empty string`)
+    }
+    for (const f of REQUIRED_ARRAY_FIELDS) {
+      if (!Array.isArray(t?.[f])) recordFailure('EvidenceTags', `${label}: field "${f}" must be an array`)
+    }
+    if (Array.isArray(t?.examples)     && t.examples.length     < 2) recordFailure('EvidenceTags', `${label}: examples needs at least 2 entries`)
+    if (Array.isArray(t?.aliases)      && t.aliases.length      < 2) recordFailure('EvidenceTags', `${label}: aliases needs at least 2 entries`)
+    if (Array.isArray(t?.antiExamples) && t.antiExamples.length < 1) recordFailure('EvidenceTags', `${label}: antiExamples needs at least 1 entry`)
+
+    if (approvedCategories && t?.category != null && !approvedCategories.has(t.category))
+      recordFailure('EvidenceTags', `${label}: category "${t.category}" not in approved list`)
+    if (approvedForms && t?.form != null && !approvedForms.has(t.form))
+      recordFailure('EvidenceTags', `${label}: form "${t.form}" not in approved list`)
+
+    if (Array.isArray(t?.aliases)) {
+      const seen = new Set()
+      for (const a of t.aliases) {
+        const k = String(a).trim().toLowerCase()
+        if (seen.has(k)) recordFailure('EvidenceTags', `${label}: duplicate alias "${a}"`)
+        seen.add(k)
+      }
+    }
+
+    if (t && 'producedBy' in t && !Array.isArray(t.producedBy))
+      recordFailure('EvidenceTags', `${label}: producedBy must be an array when present`)
+
+    if (typeof t?.category === 'string') catDist[t.category] = (catDist[t.category] || 0) + 1
+  }
+
+  // relatedTags referential integrity (after all ids collected)
+  for (const t of tags) {
+    if (!t || !('relatedTags' in t)) continue
+    bumpCheck('EvidenceTags')
+    if (!Array.isArray(t.relatedTags)) {
+      recordFailure('EvidenceTags', `tag "${t?.id}": relatedTags must be an array when present`)
+      continue
+    }
+    for (const ref of t.relatedTags) {
+      if (!ids.has(ref)) recordFailure('EvidenceTags', `tag "${t?.id}": relatedTags references unknown tag "${ref}"`)
+    }
+  }
+
+  evidenceTagSummary = { total: tags.length, catDist }
 }
 
-console.log('\n' + '='.repeat(60))
-if (failures.length === 0) {
-  let s = `All checks passed — ${allControls.length} controls, ${allEvidence.length} evidence types, ${allRelationships.length} relationships`
-  if (warnings.length) s += ` (${warnings.length} warning${warnings.length === 1 ? '' : 's'})`
-  console.log(s)
-} else {
-  console.log(`${failures.length} failure${failures.length === 1 ? '' : 's'} across ${Object.keys(failByCat).length} categor${Object.keys(failByCat).length === 1 ? 'y' : 'ies'}` +
-    (warnings.length ? ` (+${warnings.length} warnings)` : ''))
-}
-console.log('='.repeat(60))
-process.exit(failures.length === 0 ? 0 : 1)
+// =========================================================================
+// Report  (async wrapper so the dynamic-imported tag registry is validated
+// before results are printed)
+// =========================================================================
+;(async () => {
+  await validateEvidenceTags()
+
+  const CATEGORIES = ['Load','Schema','Objective Metadata','ID Format','Uniqueness','Referential','Family','Relationships','Scoring','EvidenceTags']
+  console.log('='.repeat(60))
+  console.log('Validation Results')
+  console.log('='.repeat(60))
+
+  const failByCat = {}, warnByCat = {}
+  for (const f of failures) (failByCat[f.category]  ||= []).push(f.message)
+  for (const w of warnings) (warnByCat[w.category]  ||= []).push(w.message)
+
+  for (const cat of CATEGORIES) {
+    const count = checkCounts[cat] || 0
+    const fails = failByCat[cat] || []
+    console.log(`\n[${fails.length === 0 ? 'PASS' : 'FAIL'}] ${cat}  (${count} checks, ${fails.length} failures)`)
+    for (const msg of fails) console.log(`  - ${msg}`)
+  }
+
+  if (evidenceTagSummary) {
+    console.log(`\nEvidence Tags: ${evidenceTagSummary.total} tags across ${Object.keys(evidenceTagSummary.catDist).length} categories`)
+    for (const cat of Object.keys(evidenceTagSummary.catDist).sort()) {
+      console.log(`  ${String(evidenceTagSummary.catDist[cat]).padStart(3)}  ${cat}`)
+    }
+  }
+
+  if (warnings.length) {
+    console.log('\n' + '-'.repeat(60))
+    console.log(`Warnings (${warnings.length})`)
+    console.log('-'.repeat(60))
+    for (const cat of CATEGORIES) {
+      const warns = warnByCat[cat] || []
+      if (!warns.length) continue
+      console.log(`\n[WARN] ${cat}`)
+      for (const msg of warns) console.log(`  - ${msg}`)
+    }
+  }
+
+  console.log('\n' + '='.repeat(60))
+  if (failures.length === 0) {
+    let s = `All checks passed — ${allControls.length} controls, ${totalObjectiveCount} objectives, ${allEvidence.length} evidence types, ${allRelationships.length} relationships`
+    if (evidenceTagSummary) s += `, ${evidenceTagSummary.total} evidence tags`
+    if (warnings.length) s += ` (${warnings.length} warning${warnings.length === 1 ? '' : 's'})`
+    console.log(s)
+  } else {
+    console.log(`${failures.length} failure${failures.length === 1 ? '' : 's'} across ${Object.keys(failByCat).length} categor${Object.keys(failByCat).length === 1 ? 'y' : 'ies'}` +
+      (warnings.length ? ` (+${warnings.length} warnings)` : ''))
+  }
+  console.log('='.repeat(60))
+  process.exit(failures.length === 0 ? 0 : 1)
+})()
