@@ -4,32 +4,50 @@
     "family": "Identification and Authentication",
     "title": "Identification",
     "controlText": "Identify information system users, processes acting on behalf of users, or devices.",
-    "plainEnglish": "Every user, automated process, and device on your systems must have a unique identifier — no shared logins, no anonymous accounts, no unidentified devices on the network. Identification is the prerequisite that makes accountability possible. You cannot enforce access control or produce useful audit logs without it.",
+    "plainEnglish": "Every user, automated process, and device on your systems must have a unique identifier \u2014 no shared logins, no anonymous accounts, no unidentified devices on the network. Identification is the prerequisite that makes accountability possible. You cannot enforce access control or produce useful audit logs without it.",
     "objectives": [
       {
         "id": "a",
-        "text": "system users are identified",
+        "text": "system users are identified;",
         "whatToLookFor": "Each human user has a unique account. No shared logins for active work. A documented naming convention is applied consistently. Generic accounts (admin, guest, test) are disabled or have a documented exception with compensating controls.",
         "commonEvidence": [
           "User account roster",
           "Naming convention documentation",
           "Identity provider user export",
           "Evidence that shared and default accounts are disabled or accounted for"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "identity_roster"
+          ],
+          "acceptable": [
+            "account_lifecycle_record"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "processes acting on behalf of users are identified",
+        "text": "processes acting on behalf of users are identified; and",
         "whatToLookFor": "Service accounts have unique names, a documented owner, and a documented purpose. Scripts and automation run under named service identities, not under a real human user's account.",
         "commonEvidence": [
           "Service account inventory with owner and purpose",
           "Automation and scheduled task list",
           "Service principal documentation for cloud workloads"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "service_account_inventory"
+          ],
+          "acceptable": []
+        }
       },
       {
         "id": "c",
-        "text": "devices accessing the system are identified",
+        "text": "devices accessing the system are identified.",
         "whatToLookFor": "Devices have unique identifiers (hostname, MAC address, certificate, asset tag) recorded in an inventory. Unknown devices on the network are detected and investigated.",
         "commonEvidence": [
           "Asset inventory",
@@ -37,7 +55,19 @@
           "NAC device list",
           "Certificate inventory for device authentication",
           "DHCP logs cross-referenced with inventory"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "asset_inventory"
+          ],
+          "acceptable": [
+            "device_access_list",
+            "mdm_enrollment_list",
+            "certificate_inventory"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -52,9 +82,9 @@
     "commonGaps": [
       "Shared admin or service accounts with no individual ownership",
       "Default accounts (admin, root, guest) still enabled",
-      "Service accounts with no documented owner — nobody knows what would break if disabled",
+      "Service accounts with no documented owner \u2014 nobody knows what would break if disabled",
       "Personal/BYOD devices on the corporate network without identification",
-      "No naming convention — accounts created ad hoc",
+      "No naming convention \u2014 accounts created ad hoc",
       "Multiple users sharing one mailbox or license to save money",
       "Devices identified by IP only, with no inventory mapping IP to owner",
       "Inventory exists in a spreadsheet that is updated manually and is months out of date"
@@ -65,40 +95,74 @@
     "family": "Identification and Authentication",
     "title": "Authentication",
     "controlText": "Authenticate (or verify) the identities of those users, processes, or devices, as a prerequisite to allowing access to organizational information systems.",
-    "plainEnglish": "Identifying who someone (or something) claims to be is only step one. Authentication is proving it — usually via password, certificate, key, or token. Default credentials must be changed before a system goes into use, and the strength of authentication should match the sensitivity of what is being protected. Note: this control covers basic authentication; MFA is addressed separately under IA.L2-3.5.3.",
+    "plainEnglish": "Identifying who someone (or something) claims to be is only step one. Authentication is proving it \u2014 usually via password, certificate, key, or token. Default credentials must be changed before a system goes into use, and the strength of authentication should match the sensitivity of what is being protected. Note: this control covers basic authentication; MFA is addressed separately under IA.L2-3.5.3.",
     "objectives": [
       {
         "id": "a",
-        "text": "the identity of each user is authenticated or verified as a prerequisite to system access",
+        "text": "the identity of each user is authenticated or verified as a prerequisite to system access;",
         "whatToLookFor": "All in-scope systems require login before access. A password policy meeting NIST 800-63B guidance is enforced. Default passwords have been changed on every device, appliance, and application. No anonymous access to in-scope systems.",
         "commonEvidence": [
           "Password policy configuration screenshots",
           "Identity provider authentication logs",
           "Login enforcement evidence per system",
           "Records of default credential changes (change tickets, configuration screenshots)"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "authentication_configuration"
+          ],
+          "acceptable": [
+            "password_policy_configuration",
+            "audit_log_sample"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "the identity of each process acting on behalf of a user is authenticated or verified as a prerequisite to system access",
+        "text": "the identity of each process acting on behalf of a user is authenticated or verified as a prerequisite to system access; and",
         "whatToLookFor": "Service accounts use strong, rotated credentials or certificate/key-based authentication. API calls require keys or tokens. No hardcoded plaintext credentials in scripts, config files, or repositories.",
         "commonEvidence": [
           "Service account credential rotation records",
           "API authentication configuration",
           "Secrets management tool inventory (HashiCorp Vault, AWS Secrets Manager, Azure Key Vault)",
           "Code review evidence or secrets-scanning results showing no hardcoded credentials"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "authentication_configuration"
+          ],
+          "acceptable": [
+            "credential_protection_evidence",
+            "service_account_inventory"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "the identity of each device accessing or connecting to the system is authenticated or verified as a prerequisite to system access",
-        "whatToLookFor": "Device authentication via certificates, 802.1X, or compliant-device conditional access. Wireless requires WPA2/WPA3 Enterprise or equivalent — no open SSIDs and no PSK-only networks for corporate access to in-scope systems.",
+        "text": "the identity of each device accessing or connecting to the system is authenticated or verified as a prerequisite to system access.",
+        "whatToLookFor": "Device authentication via certificates, 802.1X, or compliant-device conditional access. Wireless requires WPA2/WPA3 Enterprise or equivalent \u2014 no open SSIDs and no PSK-only networks for corporate access to in-scope systems.",
         "commonEvidence": [
           "802.1X configuration",
           "Device certificate inventory",
           "Conditional access policies requiring compliant or hybrid-joined device",
           "Wireless authentication configuration"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "certificate_inventory"
+          ],
+          "acceptable": [
+            "wireless_configuration",
+            "device_access_list",
+            "authentication_configuration"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -116,7 +180,7 @@
       "Weak password policy not meeting current NIST 800-63B guidance",
       "Hardcoded credentials in scripts, config files, or source repositories",
       "Service account passwords never rotated, even after admins leave",
-      "No device authentication on internal networks — anything plugged in works",
+      "No device authentication on internal networks \u2014 anything plugged in works",
       "Open or PSK-only Wi-Fi used for corporate access to in-scope systems",
       "Shared service account credentials known to multiple admins with no rotation when staff change",
       "Authentication enforced at the front door but bypassable through internal east-west traffic"
@@ -131,42 +195,80 @@
     "objectives": [
       {
         "id": "a",
-        "text": "privileged accounts are identified",
-        "whatToLookFor": "Same inventory used for AC.L2-3.1.5 — every privileged account documented and known.",
+        "text": "privileged accounts are identified;",
+        "whatToLookFor": "Same inventory used for AC.L2-3.1.5 \u2014 every privileged account documented and known.",
         "commonEvidence": [
           "Privileged account inventory",
           "PAM tool roster"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "privileged_account_inventory"
+          ],
+          "acceptable": []
+        }
       },
       {
         "id": "b",
-        "text": "multifactor authentication is implemented for local access to privileged accounts",
-        "whatToLookFor": "MFA enforced even when an admin is at the console — typically smart card, hardware token, or biometric. This is the often-missed objective; many organizations enforce MFA for remote access only.",
+        "text": "multifactor authentication is implemented for local access to privileged accounts;",
+        "whatToLookFor": "MFA enforced even when an admin is at the console \u2014 typically smart card, hardware token, or biometric. This is the often-missed objective; many organizations enforce MFA for remote access only.",
         "commonEvidence": [
           "Smart card or token configuration for local privileged login",
           "Biometric configuration for admin workstations",
           "Audit logs showing local privileged logins required MFA"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "mfa_configuration"
+          ],
+          "acceptable": [
+            "audit_log_sample"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "multifactor authentication is implemented for network access to privileged accounts",
-        "whatToLookFor": "MFA enforced for every network-based privileged login — VPN, RDP, SSH bastion, cloud admin console. No exceptions for 'internal' access to admin tools.",
+        "text": "multifactor authentication is implemented for network access to privileged accounts; and",
+        "whatToLookFor": "MFA enforced for every network-based privileged login \u2014 VPN, RDP, SSH bastion, cloud admin console. No exceptions for 'internal' access to admin tools.",
         "commonEvidence": [
           "VPN MFA configuration",
           "Cloud console MFA enforcement",
           "Conditional access policies requiring MFA for admin roles"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "mfa_configuration"
+          ],
+          "acceptable": [
+            "remote_access_configuration"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "multifactor authentication is implemented for network access to non-privileged accounts",
-        "whatToLookFor": "MFA enforced for all users accessing systems over the network — VPN, web applications, cloud SaaS containing CUI. Conditional access policies make this enforceable across cloud services.",
+        "text": "multifactor authentication is implemented for network access to non-privileged accounts.",
+        "whatToLookFor": "MFA enforced for all users accessing systems over the network \u2014 VPN, web applications, cloud SaaS containing CUI. Conditional access policies make this enforceable across cloud services.",
         "commonEvidence": [
           "Conditional access policies for all users",
           "MFA registration completion reports",
           "VPN and SaaS MFA enforcement"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "mfa_configuration"
+          ],
+          "acceptable": [
+            "remote_access_configuration"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -188,18 +290,28 @@
     "family": "Identification and Authentication",
     "title": "Replay-Resistant Authentication",
     "controlText": "Employ replay-resistant authentication mechanisms for network access to privileged and non-privileged accounts.",
-    "plainEnglish": "Authentication mechanisms must resist replay attacks — where an attacker captures network traffic containing authentication data and replays it later to gain access. Modern protocols (Kerberos, TLS, SAML with timestamped assertions, OIDC, FIDO2) build in replay resistance. Older or insecure protocols (basic HTTP auth without TLS, plain LDAP, NTLM in some configurations) do not.",
+    "plainEnglish": "Authentication mechanisms must resist replay attacks \u2014 where an attacker captures network traffic containing authentication data and replays it later to gain access. Modern protocols (Kerberos, TLS, SAML with timestamped assertions, OIDC, FIDO2) build in replay resistance. Older or insecure protocols (basic HTTP auth without TLS, plain LDAP, NTLM in some configurations) do not.",
     "objectives": [
       {
         "id": "a",
-        "text": "replay-resistant authentication mechanisms are implemented for network account access to privileged and non-privileged accounts",
-        "whatToLookFor": "Authentication uses protocols with built-in replay resistance — Kerberos, TLS-protected authentication, SAML/OIDC with nonces and short-lived tokens, FIDO2/WebAuthn. Legacy protocols disabled (LM/NTLMv1, basic auth without TLS).",
+        "text": "replay-resistant authentication mechanisms are implemented for network account access to privileged and non-privileged accounts.",
+        "whatToLookFor": "Authentication uses protocols with built-in replay resistance \u2014 Kerberos, TLS-protected authentication, SAML/OIDC with nonces and short-lived tokens, FIDO2/WebAuthn. Legacy protocols disabled (LM/NTLMv1, basic auth without TLS).",
         "commonEvidence": [
           "Authentication protocol inventory",
           "Group Policy disabling LM/NTLMv1",
           "TLS configuration on authentication endpoints",
           "Modern authentication enforcement in cloud services"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "authentication_configuration"
+          ],
+          "acceptable": [
+            "encryption_configuration"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -220,26 +332,47 @@
     "family": "Identification and Authentication",
     "title": "Identifier Reuse",
     "controlText": "Prevent reuse of identifiers for a defined period.",
-    "plainEnglish": "When a user leaves the organization or an account is deleted, that identifier (username, account ID) cannot be reassigned to a new person for a defined period — typically a year or longer. The risk being addressed: a new hire inheriting access through residual permissions tied to the old identifier, or audit logs becoming ambiguous about which person performed an action.",
+    "plainEnglish": "When a user leaves the organization or an account is deleted, that identifier (username, account ID) cannot be reassigned to a new person for a defined period \u2014 typically a year or longer. The risk being addressed: a new hire inheriting access through residual permissions tied to the old identifier, or audit logs becoming ambiguous about which person performed an action.",
     "objectives": [
       {
         "id": "a",
-        "text": "a period within which identifiers cannot be reused is defined",
-        "whatToLookFor": "Documented identifier reuse period — commonly 12-24 months. Defined in policy.",
+        "text": "a period within which identifiers cannot be reused is defined; and",
+        "whatToLookFor": "Documented identifier reuse period \u2014 commonly 12-24 months. Defined in policy.",
         "commonEvidence": [
           "Identifier management policy with defined reuse period",
           "Account lifecycle procedure"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document",
+            "system_security_plan"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "reuse of identifiers is prevented within the defined period",
+        "text": "reuse of identifiers is prevented within the defined period.",
         "whatToLookFor": "Procedural and/or technical enforcement. New accounts for new hires use distinct identifiers (e.g., riley vs riley02) when names overlap. Disabled accounts retained, not deleted, during the reuse period to prevent reuse.",
         "commonEvidence": [
           "Account creation procedure addressing name collisions",
           "Identity provider configuration retaining disabled accounts",
           "Sample of disabled account history"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "account_lifecycle_record"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -248,8 +381,8 @@
       "Disabled account retention configuration"
     ],
     "commonGaps": [
-      "Disabled accounts deleted entirely after a short period — no protection against identifier reuse",
-      "No collision handling procedure — first-come-first-served on common names",
+      "Disabled accounts deleted entirely after a short period \u2014 no protection against identifier reuse",
+      "No collision handling procedure \u2014 first-come-first-served on common names",
       "Reuse period defined but not actually enforced when collisions arise",
       "Cloud identity provider auto-purges deleted accounts before the defined period"
     ]
@@ -263,22 +396,43 @@
     "objectives": [
       {
         "id": "a",
-        "text": "a period of inactivity after which an identifier is disabled is defined",
-        "whatToLookFor": "Documented inactivity threshold — commonly 30, 45, 60, or 90 days. Defined per account type if needed (e.g., shorter for privileged, longer for service accounts with infrequent use).",
+        "text": "a period of inactivity after which an identifier is disabled is defined; and",
+        "whatToLookFor": "Documented inactivity threshold \u2014 commonly 30, 45, 60, or 90 days. Defined per account type if needed (e.g., shorter for privileged, longer for service accounts with infrequent use).",
         "commonEvidence": [
           "Inactive account policy with defined threshold",
           "Per-account-type thresholds if applicable"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document",
+            "system_security_plan"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "identifiers are disabled after the defined period of inactivity",
-        "whatToLookFor": "Automated enforcement — IDP feature, scheduled script, or governance tool that disables accounts based on last login. Sample evidence showing accounts have actually been disabled per the threshold.",
+        "text": "identifiers are disabled after the defined period of inactivity.",
+        "whatToLookFor": "Automated enforcement \u2014 IDP feature, scheduled script, or governance tool that disables accounts based on last login. Sample evidence showing accounts have actually been disabled per the threshold.",
         "commonEvidence": [
           "Automated inactive-account disablement configuration",
           "Inactive account reports",
           "Sample of recently-disabled accounts with timestamps"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "account_lifecycle_record"
+          ],
+          "acceptable": [
+            "audit_log_sample"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -288,10 +442,10 @@
       "Audit log of disablement actions"
     ],
     "commonGaps": [
-      "Threshold defined but no automated enforcement — relies on manual review that doesn't happen",
+      "Threshold defined but no automated enforcement \u2014 relies on manual review that doesn't happen",
       "Service accounts excluded with no compensating control",
       "Privileged accounts have looser inactivity thresholds than non-privileged",
-      "Inactive accounts identified but not actually disabled — only reported"
+      "Inactive accounts identified but not actually disabled \u2014 only reported"
     ]
   },
   {
@@ -299,44 +453,80 @@
     "family": "Identification and Authentication",
     "title": "Password Complexity",
     "controlText": "Enforce a minimum password complexity and change of characters when new passwords are created.",
-    "plainEnglish": "Passwords must meet a minimum complexity standard (length, character types) and a defined number of characters must change between old and new passwords. Note tension with current NIST 800-63B guidance, which deprecates traditional complexity rules in favor of length and breach-list checking — but CMMC v2 is based on NIST 800-171 R2, which still expects defined complexity. Set a defensible standard and document it.",
+    "plainEnglish": "Passwords must meet a minimum complexity standard (length, character types) and a defined number of characters must change between old and new passwords. Note tension with current NIST 800-63B guidance, which deprecates traditional complexity rules in favor of length and breach-list checking \u2014 but CMMC v2 is based on NIST 800-171 R2, which still expects defined complexity. Set a defensible standard and document it.",
     "objectives": [
       {
         "id": "a",
-        "text": "password complexity requirements are defined",
-        "whatToLookFor": "Documented password complexity requirements — minimum length (commonly 12-15 characters), required character classes (upper, lower, digit, symbol), or alternative measures aligned with current NIST guidance.",
+        "text": "password complexity requirements are defined;",
+        "whatToLookFor": "Documented password complexity requirements \u2014 minimum length (commonly 12-15 characters), required character classes (upper, lower, digit, symbol), or alternative measures aligned with current NIST guidance.",
         "commonEvidence": [
           "Password Policy with defined complexity requirements",
           "IDP password policy configuration"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "password_policy_configuration"
+          ],
+          "acceptable": [
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "password change of character requirements are defined",
-        "whatToLookFor": "Defined minimum number of characters that must differ between old and new passwords — prevents users from changing 'Password1' to 'Password2'.",
+        "text": "password change of character requirements are defined;",
+        "whatToLookFor": "Defined minimum number of characters that must differ between old and new passwords \u2014 prevents users from changing 'Password1' to 'Password2'.",
         "commonEvidence": [
           "Password Policy specifying minimum changed characters",
           "IDP configuration enforcing character change requirements"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "password_policy_configuration"
+          ],
+          "acceptable": [
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "minimum password complexity requirements as defined are enforced when new passwords are created",
-        "whatToLookFor": "Technical enforcement at password creation time — passwords failing complexity are rejected. Verified through testing or IDP configuration review.",
+        "text": "minimum password complexity requirements as defined are enforced when new passwords are created; and",
+        "whatToLookFor": "Technical enforcement at password creation time \u2014 passwords failing complexity are rejected. Verified through testing or IDP configuration review.",
         "commonEvidence": [
           "Password policy enforcement screenshots",
           "Group Policy or IDP configuration",
           "Sample rejection evidence"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "password_policy_configuration"
+          ],
+          "acceptable": []
+        }
       },
       {
         "id": "d",
-        "text": "minimum password change of character requirements as defined are enforced when new passwords are created",
+        "text": "minimum password change of character requirements as defined are enforced when new passwords are created.",
         "whatToLookFor": "Technical enforcement of character-change requirement. May require fine-grained password policy or third-party tool depending on IDP.",
         "commonEvidence": [
           "Password change enforcement configuration",
           "Sample evidence of insufficient-change rejection"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "password_policy_configuration"
+          ],
+          "acceptable": []
+        }
       }
     ],
     "commonArtifacts": [
@@ -347,7 +537,7 @@
     "commonGaps": [
       "Complexity policy defined but not technically enforced in all systems (e.g., Linux PAM not aligned with AD policy)",
       "Cloud SaaS applications use independent password policies that don't match the documented standard",
-      "Character-change requirement not enforced — only complexity",
+      "Character-change requirement not enforced \u2014 only complexity",
       "Policy contradicts current NIST 800-63B without acknowledging the trade-off"
     ]
   },
@@ -356,26 +546,44 @@
     "family": "Identification and Authentication",
     "title": "Password Reuse",
     "controlText": "Prohibit password reuse for a specified number of generations.",
-    "plainEnglish": "Users cannot reuse a recent password — typical implementations remember the last 5-24 passwords. This prevents users from cycling through 'Password1, Password2, Password1' to satisfy rotation requirements without actually changing anything meaningful. Note that this restriction does not apply to temporary passwords (covered by IA.L2-3.5.9).",
+    "plainEnglish": "Users cannot reuse a recent password \u2014 typical implementations remember the last 5-24 passwords. This prevents users from cycling through 'Password1, Password2, Password1' to satisfy rotation requirements without actually changing anything meaningful. Note that this restriction does not apply to temporary passwords (covered by IA.L2-3.5.9).",
     "objectives": [
       {
         "id": "a",
-        "text": "the number of generations during which a password cannot be reused is specified",
-        "whatToLookFor": "Defined number of password generations — commonly 5, 12, or 24. Specified in policy.",
+        "text": "the number of generations during which a password cannot be reused is specified; and",
+        "whatToLookFor": "Defined number of password generations \u2014 commonly 5, 12, or 24. Specified in policy.",
         "commonEvidence": [
           "Password Policy specifying password history depth",
           "IDP password history configuration"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "password_policy_configuration"
+          ],
+          "acceptable": [
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "reuse of passwords is prohibited during the specified number of generations",
+        "text": "reuse of passwords is prohibited during the specified number of generations.",
         "whatToLookFor": "Technical enforcement of password history. Verified through configuration screenshots and ideally through testing.",
         "commonEvidence": [
           "Group Policy or IDP password history setting",
           "Sample rejection evidence",
           "Audit logs of password change events"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "password_policy_configuration"
+          ],
+          "acceptable": []
+        }
       }
     ],
     "commonArtifacts": [
@@ -395,17 +603,27 @@
     "family": "Identification and Authentication",
     "title": "Temporary Passwords",
     "controlText": "Allow temporary password use for system logons with an immediate change to a permanent password.",
-    "plainEnglish": "When a temporary password is issued (new account, password reset), the user must change it to a permanent password on first logon. Temporary passwords often follow patterns (Welcome2024!, ChangeMe!) that are easily guessed, and an attacker who captures one cannot use it for long. The 'immediate change' requirement is the key — first login must force the change.",
+    "plainEnglish": "When a temporary password is issued (new account, password reset), the user must change it to a permanent password on first logon. Temporary passwords often follow patterns (Welcome2024!, ChangeMe!) that are easily guessed, and an attacker who captures one cannot use it for long. The 'immediate change' requirement is the key \u2014 first login must force the change.",
     "objectives": [
       {
         "id": "a",
-        "text": "an immediate change to a permanent password is required when a temporary password is used for system logon",
+        "text": "an immediate change to a permanent password is required when a temporary password is used for system logon.",
         "whatToLookFor": "Account creation and password reset workflows force a password change on first login. The user cannot proceed without setting a new password. Verified by walking through a recent account creation.",
         "commonEvidence": [
           "Account creation procedure with 'change at next logon' enforcement",
           "Group Policy or IDP setting forcing first-login change",
           "Sample evidence of temporary password being changed at first use"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "password_policy_configuration"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -416,7 +634,7 @@
     "commonGaps": [
       "Temporary passwords issued via insecure channels (email, chat) where they can be captured",
       "Common temporary password used across all new accounts ('Welcome2024')",
-      "First-login change not enforced — temporary password works indefinitely",
+      "First-login change not enforced \u2014 temporary password works indefinitely",
       "Self-service password reset bypasses the temporary password mechanism but uses similar weak patterns"
     ]
   },
@@ -425,27 +643,47 @@
     "family": "Identification and Authentication",
     "title": "Cryptographically-Protected Passwords",
     "controlText": "Store and transmit only cryptographically-protected passwords.",
-    "plainEnglish": "Passwords must be stored as salted one-way cryptographic hashes — never in plaintext or reversible encryption — and must be transmitted only over encrypted channels. This applies everywhere passwords live: identity providers, applications, configuration files, backup data. Common gap: legacy applications that store passwords in reversible encryption or transmit them via unencrypted protocols.",
+    "plainEnglish": "Passwords must be stored as salted one-way cryptographic hashes \u2014 never in plaintext or reversible encryption \u2014 and must be transmitted only over encrypted channels. This applies everywhere passwords live: identity providers, applications, configuration files, backup data. Common gap: legacy applications that store passwords in reversible encryption or transmit them via unencrypted protocols.",
     "objectives": [
       {
         "id": "a",
-        "text": "passwords are cryptographically protected in storage",
+        "text": "passwords are cryptographically protected in storage; and",
         "whatToLookFor": "All password stores use salted one-way hashing (bcrypt, Argon2, PBKDF2, scrypt). No plaintext storage. No reversible encryption. Includes IDP, application databases, and backup data.",
         "commonEvidence": [
           "Application security documentation specifying hashing algorithm",
           "IDP password storage configuration",
           "Code review or static analysis results showing no plaintext password storage"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "credential_protection_evidence"
+          ],
+          "acceptable": [
+            "encryption_configuration"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "passwords are cryptographically protected in transit",
-        "whatToLookFor": "Authentication transactions occur over encrypted channels — TLS for HTTP, encrypted LDAP (LDAPS), Kerberos. No plain LDAP, no HTTP basic auth without TLS, no telnet.",
+        "text": "passwords are cryptographically protected in transit.",
+        "whatToLookFor": "Authentication transactions occur over encrypted channels \u2014 TLS for HTTP, encrypted LDAP (LDAPS), Kerberos. No plain LDAP, no HTTP basic auth without TLS, no telnet.",
         "commonEvidence": [
           "TLS configuration on authentication endpoints",
           "LDAPS enforcement evidence",
           "Disabled plaintext authentication protocols"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "credential_protection_evidence"
+          ],
+          "acceptable": [
+            "encryption_configuration"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -466,17 +704,24 @@
     "family": "Identification and Authentication",
     "title": "Obscure Feedback",
     "controlText": "Obscure feedback of authentication information.",
-    "plainEnglish": "When users type passwords, the screen shows asterisks or dots — not the actual characters. This is shoulder-surfing protection. The control accommodates the reality that mobile devices may briefly display each character before obscuring it, due to small keyboards and high typo rates. Most modern systems handle this by default; the assessment objective is essentially confirming nothing has been changed to disable the obscuring.",
+    "plainEnglish": "When users type passwords, the screen shows asterisks or dots \u2014 not the actual characters. This is shoulder-surfing protection. The control accommodates the reality that mobile devices may briefly display each character before obscuring it, due to small keyboards and high typo rates. Most modern systems handle this by default; the assessment objective is essentially confirming nothing has been changed to disable the obscuring.",
     "objectives": [
       {
         "id": "a",
-        "text": "authentication information is obscured during the authentication process",
+        "text": "authentication information is obscured during the authentication process.",
         "whatToLookFor": "Password fields display obscured characters (asterisks, dots, or filled circles). Mobile platforms may briefly show characters before obscuring. Verify by visual inspection on representative systems.",
         "commonEvidence": [
           "Screenshots of login screens showing obscured input",
           "Application security review confirming password masking",
           "MDM policy configuration for mobile devices"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [],
+          "acceptable": []
+        },
+        "expectedTagsNote": "Intentionally unmapped. Obscured authenticator feedback is too specific for reusable tag-based recommendations and should be handled by direct artifact assignment."
       }
     ],
     "commonArtifacts": [

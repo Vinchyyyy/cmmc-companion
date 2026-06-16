@@ -429,6 +429,8 @@ if (scoringData && typeof scoringData === 'object') {
 // 8 – Evidence Tag Registry  (dynamic import: ESM data module from CJS)
 // =========================================================================
 let evidenceTagSummary = null
+let evidenceTagIdSet = null
+let expectedTagsSummary = null
 
 async function validateEvidenceTags() {
   bumpCheck('EvidenceTags')
@@ -522,7 +524,84 @@ async function validateEvidenceTags() {
     }
   }
 
+  evidenceTagIdSet = ids
   evidenceTagSummary = { total: tags.length, catDist }
+}
+
+// =========================================================================
+// 9 – Objective expectedTags  (validates against evidence tag IDs; IA enforced)
+// =========================================================================
+function validateExpectedTags(validTagIds) {
+  let withTags = 0
+  let missingCount = 0
+  let nonIaArtifactishMissing = 0
+  const waived = []
+  const iaTagUsage = {}
+
+  for (const c of allControls) {
+    if (!Array.isArray(c?.objectives)) continue
+    const isIA = String(c.id || '').slice(0, 2) === 'IA'
+
+    for (const o of c.objectives) {
+      bumpCheck('ExpectedTags')
+      const lbl = `control "${c.id}" obj "${o?.id}"`
+      const ec = o?.evidenceClass
+      const isArtifactish = ec === 'artifact' || ec === 'mixed'
+      const note = o?.expectedTagsNote
+      const hasNote = typeof note === 'string' && note.trim() !== ''
+      if (note !== undefined && !hasNote)
+        recordFailure('ExpectedTags', `${lbl}: expectedTagsNote must be a non-empty string when present`)
+
+      const et = o?.expectedTags
+      if (et === undefined || et === null) {
+        if (hasNote) {
+          waived.push(`${c.id}[${o?.id}]`)
+        } else {
+          missingCount++
+          if (isArtifactish) {
+            if (isIA) recordFailure('ExpectedTags', `${lbl}: IA ${ec} objective is missing expectedTags`)
+            else nonIaArtifactishMissing++
+          }
+        }
+        continue
+      }
+
+      if (typeof et !== 'object' || Array.isArray(et)) {
+        recordFailure('ExpectedTags', `${lbl}: expectedTags must be an object`)
+        continue
+      }
+      withTags++
+
+      const P = et.primary
+      const A = et.acceptable
+      if (!Array.isArray(P)) recordFailure('ExpectedTags', `${lbl}: expectedTags.primary must be an array`)
+      if (!Array.isArray(A)) recordFailure('ExpectedTags', `${lbl}: expectedTags.acceptable must be an array`)
+      const primary = Array.isArray(P) ? P : []
+      const acceptable = Array.isArray(A) ? A : []
+
+      if (validTagIds) {
+        for (const t of [...primary, ...acceptable])
+          if (!validTagIds.has(t)) recordFailure('ExpectedTags', `${lbl}: unknown evidence tag "${t}"`)
+      }
+      if (new Set(primary).size !== primary.length) recordFailure('ExpectedTags', `${lbl}: duplicate tag in primary`)
+      if (new Set(acceptable).size !== acceptable.length) recordFailure('ExpectedTags', `${lbl}: duplicate tag in acceptable`)
+      const overlap = primary.filter((t) => acceptable.includes(t))
+      if (overlap.length) recordFailure('ExpectedTags', `${lbl}: tag(s) in both primary and acceptable: ${overlap.join(', ')}`)
+
+      if (isArtifactish && primary.length === 0) {
+        if (hasNote) waived.push(`${c.id}[${o?.id}]`)
+        else if (isIA) recordFailure('ExpectedTags', `${lbl}: IA ${ec} objective has empty primary and no expectedTagsNote waiver`)
+        else recordWarning('ExpectedTags', `${lbl}: ${ec} objective has empty primary`)
+      }
+
+      if (isIA) for (const t of [...primary, ...acceptable]) iaTagUsage[t] = (iaTagUsage[t] || 0) + 1
+    }
+  }
+
+  if (nonIaArtifactishMissing > 0)
+    recordWarning('ExpectedTags', `${nonIaArtifactishMissing} non-IA artifact/mixed objectives have no expectedTags yet (expected during phased rollout; only IA is mapped this phase)`)
+
+  expectedTagsSummary = { withTags, missingCount, waived, iaTagUsage }
 }
 
 // =========================================================================
@@ -531,8 +610,9 @@ async function validateEvidenceTags() {
 // =========================================================================
 ;(async () => {
   await validateEvidenceTags()
+  validateExpectedTags(evidenceTagIdSet)
 
-  const CATEGORIES = ['Load','Schema','Objective Metadata','ID Format','Uniqueness','Referential','Family','Relationships','Scoring','EvidenceTags']
+  const CATEGORIES = ['Load','Schema','Objective Metadata','ID Format','Uniqueness','Referential','Family','Relationships','Scoring','EvidenceTags','ExpectedTags']
   console.log('='.repeat(60))
   console.log('Validation Results')
   console.log('='.repeat(60))
@@ -552,6 +632,18 @@ async function validateEvidenceTags() {
     console.log(`\nEvidence Tags: ${evidenceTagSummary.total} tags across ${Object.keys(evidenceTagSummary.catDist).length} categories`)
     for (const cat of Object.keys(evidenceTagSummary.catDist).sort()) {
       console.log(`  ${String(evidenceTagSummary.catDist[cat]).padStart(3)}  ${cat}`)
+    }
+  }
+
+  if (expectedTagsSummary) {
+    const e = expectedTagsSummary
+    console.log(`\nObjective expectedTags: ${e.withTags} mapped, ${e.missingCount} unmapped (non-IA, expected this phase), ${e.waived.length} intentionally waived`)
+    if (e.waived.length) console.log(`  waived: ${e.waived.join(', ')}`)
+    const iaTags = Object.keys(e.iaTagUsage)
+    if (iaTags.length) {
+      console.log(`  IA tag usage (${iaTags.length} distinct tags):`)
+      for (const t of iaTags.sort((a, b) => e.iaTagUsage[b] - e.iaTagUsage[a] || a.localeCompare(b)))
+        console.log(`    ${String(e.iaTagUsage[t]).padStart(2)}  ${t}`)
     }
   }
 
