@@ -4,85 +4,158 @@
     "family": "Incident Response",
     "title": "Incident Handling",
     "controlText": "Establish an operational incident-handling capability for organizational systems that includes preparation, detection, analysis, containment, recovery, and user response activities.",
-    "plainEnglish": "Have a working incident response capability — not just a plan document, but the people, tools, contacts, processes, and trained-up roles to actually execute when something goes wrong. The six named components (preparation, detection, analysis, containment, recovery, user response) are each assessed independently. A mature IR capability feeds directly into AU log requirements, SI monitoring, and CM change tracking. An organization with no functioning IR capability is exposed on every other control that depends on detection and response to work.",
+    "plainEnglish": "Have a working incident response capability \u2014 not just a plan document, but the people, tools, contacts, processes, and trained-up roles to actually execute when something goes wrong. The six named components (preparation, detection, analysis, containment, recovery, user response) are each assessed independently. A mature IR capability feeds directly into AU log requirements, SI monitoring, and CM change tracking. An organization with no functioning IR capability is exposed on every other control that depends on detection and response to work.",
     "objectives": [
       {
         "id": "a",
-        "text": "an operational incident-handling capability is established",
-        "whatToLookFor": "An incident response capability that is actually operational — not just documented. Evidence includes an Incident Response Plan, named IR team roles or responsibilities, a ticketing or tracking mechanism for incidents, and contact lists for internal and external notification. 'Operational' means the people know their roles and have the tools to execute them, not just that a plan document exists.",
+        "text": "an operational incident-handling capability is established;",
+        "whatToLookFor": "An incident response capability that is actually operational \u2014 not just documented. Evidence includes an Incident Response Plan, named IR team roles or responsibilities, a ticketing or tracking mechanism for incidents, and contact lists for internal and external notification. 'Operational' means the people know their roles and have the tools to execute them, not just that a plan document exists.",
         "commonEvidence": [
           "Incident Response Policy and Plan",
           "IR team roster with roles and responsibilities",
           "Incident tracking system configuration (ticketing tool, SIEM case management)",
           "IR contact list including internal stakeholders and external reporting authorities",
           "System Security Plan section on IR capability"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "incident_response_plan"
+          ],
+          "acceptable": [
+            "incident_record",
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "the operational incident-handling capability includes preparation",
-        "whatToLookFor": "Preparation activities — IR training records, pre-positioned tools (forensic kits, offline backups, clean images), documented playbooks, and evidence that personnel have completed IR training. Preparation is the phase that happens before an incident occurs.",
+        "text": "the operational incident-handling capability includes preparation;",
+        "whatToLookFor": "Preparation activities \u2014 IR training records, pre-positioned tools (forensic kits, offline backups, clean images), documented playbooks, and evidence that personnel have completed IR training. Preparation is the phase that happens before an incident occurs.",
         "commonEvidence": [
           "IR training records for personnel with response responsibilities",
           "Pre-defined IR playbooks or runbooks",
           "Forensic and investigation tool inventory",
           "Communication templates and escalation procedures"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "incident_response_plan"
+          ],
+          "acceptable": [
+            "training_completion_record"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "the operational incident-handling capability includes detection",
-        "whatToLookFor": "Detection mechanisms that alert on potential incidents — SIEM alerts, AV/EDR detections, IDS/IPS events, anomalous behavior alerts. The capability should identify how potential incidents reach the IR team: who receives alerts, what thresholds trigger escalation.",
+        "text": "the operational incident-handling capability includes detection;",
+        "whatToLookFor": "Detection mechanisms that alert on potential incidents \u2014 SIEM alerts, AV/EDR detections, IDS/IPS events, anomalous behavior alerts. The capability should identify how potential incidents reach the IR team: who receives alerts, what thresholds trigger escalation.",
         "commonEvidence": [
           "SIEM alert rules and detection coverage documentation",
           "EDR/AV alert configuration and escalation thresholds",
           "IDS/IPS event routing to IR team",
           "Documented incident indicator categories"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "monitoring_tool_configuration"
+          ],
+          "acceptable": [
+            "alert_record",
+            "incident_response_plan"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "the operational incident-handling capability includes analysis",
-        "whatToLookFor": "A defined analysis process — how potential incidents are triaged, what information is collected, who performs analysis, and how severity is determined. Evidence includes incident ticket records showing analysis documented, analyst notes, or SIEM investigation workflows.",
+        "text": "the operational incident-handling capability includes analysis;",
+        "whatToLookFor": "A defined analysis process \u2014 how potential incidents are triaged, what information is collected, who performs analysis, and how severity is determined. Evidence includes incident ticket records showing analysis documented, analyst notes, or SIEM investigation workflows.",
         "commonEvidence": [
           "Incident triage procedures",
           "Sample incident tickets showing analysis documentation",
           "Severity classification criteria",
           "SIEM investigation workflow or SOC runbook"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "incident_response_plan"
+          ],
+          "acceptable": [
+            "incident_record"
+          ]
+        }
       },
       {
         "id": "e",
-        "text": "the operational incident-handling capability includes containment",
-        "whatToLookFor": "Defined containment actions and evidence they are used — network isolation procedures, account suspension procedures, block/quarantine capability in EDR, documented containment decision authority. Sample incident records showing containment actions taken.",
+        "text": "the operational incident-handling capability includes containment;",
+        "whatToLookFor": "Defined containment actions and evidence they are used \u2014 network isolation procedures, account suspension procedures, block/quarantine capability in EDR, documented containment decision authority. Sample incident records showing containment actions taken.",
         "commonEvidence": [
           "Containment procedures in the IR plan",
           "Sample incident records documenting containment actions",
           "Network isolation runbook (VLAN segregation, firewall rule emergency procedures)",
           "EDR isolation/quarantine capability"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "incident_response_plan"
+          ],
+          "acceptable": [
+            "incident_record"
+          ]
+        }
       },
       {
         "id": "f",
-        "text": "the operational incident-handling capability includes recovery",
-        "whatToLookFor": "Recovery procedures — system restoration steps, backup restoration procedures, evidence of eradication before recovery, post-incident validation. Sample incident records showing recovery activities documented.",
+        "text": "the operational incident-handling capability includes recovery; and",
+        "whatToLookFor": "Recovery procedures \u2014 system restoration steps, backup restoration procedures, evidence of eradication before recovery, post-incident validation. Sample incident records showing recovery activities documented.",
         "commonEvidence": [
           "Recovery procedures in the IR plan",
           "Backup and restore procedures",
           "Sample incident records showing recovery phase",
           "Post-recovery validation checklists"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "incident_response_plan"
+          ],
+          "acceptable": [
+            "incident_record"
+          ]
+        }
       },
       {
         "id": "g",
-        "text": "the operational incident-handling capability includes user response activities",
-        "whatToLookFor": "User-facing components of IR — training for non-security users on how to recognize and report incidents, help desk procedures for receiving incident reports, awareness program elements on suspicious activity. Users are often the first detection layer.",
+        "text": "the operational incident-handling capability includes user response activities.",
+        "whatToLookFor": "User-facing components of IR \u2014 training for non-security users on how to recognize and report incidents, help desk procedures for receiving incident reports, awareness program elements on suspicious activity. Users are often the first detection layer.",
         "commonEvidence": [
           "Security awareness training content covering incident reporting",
           "Incident reporting mechanism communicated to all users (email alias, help desk number)",
           "Help desk procedure for receiving and routing potential incident reports",
           "User incident reporting records or tickets"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "incident_response_plan"
+          ],
+          "acceptable": [
+            "training_content",
+            "procedure_document"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -97,9 +170,9 @@
     ],
     "commonGaps": [
       "IR plan exists as a document but no one has read it or been trained on it in the past year",
-      "No incident tracking system — incidents managed via email threads with no central record",
+      "No incident tracking system \u2014 incidents managed via email threads with no central record",
       "Detection capability limited to AV alerts; no SIEM or correlation across log sources",
-      "Containment procedures not defined — responders improvise under pressure",
+      "Containment procedures not defined \u2014 responders improvise under pressure",
       "Recovery procedures not documented or tested; reliance on institutional knowledge",
       "Users have no way to report suspicious activity; incidents only discovered by IT",
       "IR plan does not name specific internal officials or external authorities for notification",
@@ -111,67 +184,125 @@
     "family": "Incident Response",
     "title": "Incident Reporting",
     "controlText": "Track, document, and report incidents to designated officials and/or authorities both internal and external to the organization.",
-    "plainEnglish": "When incidents happen, they need to be tracked in a system (not just in someone's memory), documented with enough detail to support investigation and post-incident review, and reported — both to internal leadership and to external authorities where required. For defense contractors, this typically means reporting to DCSA and/or US-CERT within the timeframe required by the DFARS 252.204-7012 clause (72 hours for cyber incidents involving CUI). The Assessment Guide notes six distinct objectives that assessors verify independently: tracking, documentation, identifying internal officials, identifying external authorities, notifying authorities, notifying internal officials.",
+    "plainEnglish": "When incidents happen, they need to be tracked in a system (not just in someone's memory), documented with enough detail to support investigation and post-incident review, and reported \u2014 both to internal leadership and to external authorities where required. For defense contractors, this typically means reporting to DCSA and/or US-CERT within the timeframe required by the DFARS 252.204-7012 clause (72 hours for cyber incidents involving CUI). The Assessment Guide notes six distinct objectives that assessors verify independently: tracking, documentation, identifying internal officials, identifying external authorities, notifying authorities, notifying internal officials.",
     "objectives": [
       {
         "id": "a",
-        "text": "incidents are tracked",
-        "whatToLookFor": "A system for tracking incidents from initial report through closure — a ticketing tool, SIEM case management, or equivalent. Assessors look for evidence that open incidents have a status and owner, and closed incidents have documented closure reasons.",
+        "text": "incidents are tracked;",
+        "whatToLookFor": "A system for tracking incidents from initial report through closure \u2014 a ticketing tool, SIEM case management, or equivalent. Assessors look for evidence that open incidents have a status and owner, and closed incidents have documented closure reasons.",
         "commonEvidence": [
           "Incident tracking system with open and closed incident records",
           "Incident ticket lifecycle workflow",
           "SIEM case management configuration"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "incident_record"
+          ],
+          "acceptable": [
+            "incident_response_plan"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "incidents are documented",
-        "whatToLookFor": "Incident records contain enough detail to reconstruct what happened — timeline, affected systems, indicators of compromise, actions taken, and resolution. Documentation quality should be consistent, not dependent on individual analyst thoroughness.",
+        "text": "incidents are documented;",
+        "whatToLookFor": "Incident records contain enough detail to reconstruct what happened \u2014 timeline, affected systems, indicators of compromise, actions taken, and resolution. Documentation quality should be consistent, not dependent on individual analyst thoroughness.",
         "commonEvidence": [
           "Sample incident tickets showing complete documentation",
           "Incident documentation template or required fields",
           "After-action reports for significant incidents"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "incident_record"
+          ],
+          "acceptable": [
+            "incident_response_plan"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "authorities to whom incidents are to be reported are identified",
-        "whatToLookFor": "External reporting authorities explicitly named in IR policy or plan — for CMMC contractors this typically means US-CERT (CISA), DCSA, and potentially DoD Cyber Crime Center (DC3). Timeframes for reporting should be specified (DFARS 252.204-7012 requires 72 hours).",
+        "text": "authorities to whom incidents are to be reported are identified;",
+        "whatToLookFor": "External reporting authorities explicitly named in IR policy or plan \u2014 for CMMC contractors this typically means US-CERT (CISA), DCSA, and potentially DoD Cyber Crime Center (DC3). Timeframes for reporting should be specified (DFARS 252.204-7012 requires 72 hours).",
         "commonEvidence": [
           "IR plan section naming external reporting authorities",
           "DFARS 252.204-7012 clause in contracts",
           "Documented reporting timeframes and thresholds"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "incident_response_plan"
+          ],
+          "acceptable": [
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "organizational officials to whom incidents are to be reported are identified",
-        "whatToLookFor": "Named internal stakeholders who must be notified — typically CISO, CIO, legal counsel, executive leadership, and affected business unit owners. Contact information current and role-based rather than individual-only.",
+        "text": "organizational officials to whom incidents are to be reported are identified;",
+        "whatToLookFor": "Named internal stakeholders who must be notified \u2014 typically CISO, CIO, legal counsel, executive leadership, and affected business unit owners. Contact information current and role-based rather than individual-only.",
         "commonEvidence": [
           "IR plan section naming internal reporting officials by role",
           "Escalation matrix with contact information",
           "Incident notification procedure"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "incident_response_plan"
+          ],
+          "acceptable": [
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "e",
-        "text": "identified authorities are notified of incidents",
-        "whatToLookFor": "Evidence that external authorities actually receive notification when required — submitted DFARS cyber incident reports, US-CERT report confirmation records, or documented decisions that a specific incident did not meet the reporting threshold with the reasoning.",
+        "text": "identified authorities are notified of incidents; and",
+        "whatToLookFor": "Evidence that external authorities actually receive notification when required \u2014 submitted DFARS cyber incident reports, US-CERT report confirmation records, or documented decisions that a specific incident did not meet the reporting threshold with the reasoning.",
         "commonEvidence": [
           "DFARS 252.204-7012 incident report submissions",
           "US-CERT report confirmation receipts",
           "Incident records documenting external notification actions or threshold-not-met determination"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "incident_record"
+          ],
+          "acceptable": []
+        }
       },
       {
         "id": "f",
-        "text": "identified organizational officials are notified of incidents",
-        "whatToLookFor": "Evidence that internal stakeholders were actually notified — email threads, meeting notes, executive status reports tied to specific incidents. Pattern of internal notification visible across multiple incidents.",
+        "text": "identified organizational officials are notified of incidents.",
+        "whatToLookFor": "Evidence that internal stakeholders were actually notified \u2014 email threads, meeting notes, executive status reports tied to specific incidents. Pattern of internal notification visible across multiple incidents.",
         "commonEvidence": [
           "Sample incident records showing internal notification actions",
           "Executive status reports tied to incidents",
           "Escalation notification records in ticketing system"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "incident_record"
+          ],
+          "acceptable": [
+            "management_review_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -185,13 +316,13 @@
       "After-action reports"
     ],
     "commonGaps": [
-      "DFARS 252.204-7012 reporting requirement not known by IR team — external reporting obligation unmet",
+      "DFARS 252.204-7012 reporting requirement not known by IR team \u2014 external reporting obligation unmet",
       "Incidents tracked in email or spreadsheets with no consistent fields or lifecycle workflow",
-      "Internal reporting officials not named by role — named by individual, causing gaps when personnel change",
-      "No documentation of threshold-not-met decisions — absence of external reports creates ambiguity",
+      "Internal reporting officials not named by role \u2014 named by individual, causing gaps when personnel change",
+      "No documentation of threshold-not-met decisions \u2014 absence of external reports creates ambiguity",
       "Incident records contain only technical details; business impact and management notification not documented",
       "Reporting chain only goes to IT management; executive leadership and legal not included",
-      "Incident tickets closed without documenting resolution — cannot reconstruct what happened post-closure"
+      "Incident tickets closed without documenting resolution \u2014 cannot reconstruct what happened post-closure"
     ]
   },
   {
@@ -199,19 +330,30 @@
     "family": "Incident Response",
     "title": "Incident Response Testing",
     "controlText": "Test the organizational incident response capability.",
-    "plainEnglish": "The IR plan and capability must be tested, not just documented. Testing validates that processes actually work, that people know their roles, and that gaps are identified before a real incident exposes them. The Assessment Guide explicitly notes that testing methods include tabletop exercises, walkthroughs, simulations, and comprehensive exercises. After-action reports documenting what was found and what was improved are the primary evidence. The frequency is not prescribed by the control itself — the Assessment Guide points to organizational risk tolerance — but annual testing is the most common baseline, with more frequent testing for organizations in high-threat sectors.",
+    "plainEnglish": "The IR plan and capability must be tested, not just documented. Testing validates that processes actually work, that people know their roles, and that gaps are identified before a real incident exposes them. The Assessment Guide explicitly notes that testing methods include tabletop exercises, walkthroughs, simulations, and comprehensive exercises. After-action reports documenting what was found and what was improved are the primary evidence. The frequency is not prescribed by the control itself \u2014 the Assessment Guide points to organizational risk tolerance \u2014 but annual testing is the most common baseline, with more frequent testing for organizations in high-threat sectors.",
     "objectives": [
       {
         "id": "a",
-        "text": "the incident response capability is tested",
-        "whatToLookFor": "Evidence that IR testing actually occurred within a recent period — tabletop exercise records, simulation results, or full-interrupt exercise documentation. The test should be planned, executed with relevant personnel, and documented with findings and improvements. A test that produces no findings is suspicious; the exercise should surface something.",
+        "text": "the incident response capability is tested.",
+        "whatToLookFor": "Evidence that IR testing actually occurred within a recent period \u2014 tabletop exercise records, simulation results, or full-interrupt exercise documentation. The test should be planned, executed with relevant personnel, and documented with findings and improvements. A test that produces no findings is suspicious; the exercise should surface something.",
         "commonEvidence": [
           "IR tabletop exercise plans and execution records",
           "After-action report from the most recent IR test",
           "Lessons learned / improvement items with owners and status",
           "Participant list confirming relevant roles were included",
           "Updated IR plan showing revisions triggered by test findings"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "incident_response_test_record"
+          ],
+          "acceptable": [
+            "incident_response_plan",
+            "remediation_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -223,11 +365,11 @@
     ],
     "commonGaps": [
       "IR plan has never been tested since it was written",
-      "Testing only done when prompted by an audit — not on a regular organizational schedule",
+      "Testing only done when prompted by an audit \u2014 not on a regular organizational schedule",
       "Tabletop exercise completed but no after-action report produced and no improvements tracked",
       "Exercise participants are only IT security staff; legal, HR, communications, and executive roles not included",
-      "Test findings identified but IR plan not updated — lessons learned document created but disconnected from the plan",
-      "Organization treats a real incident as the 'test' — no proactive exercise conducted"
+      "Test findings identified but IR plan not updated \u2014 lessons learned document created but disconnected from the plan",
+      "Organization treats a real incident as the 'test' \u2014 no proactive exercise conducted"
     ]
   }
 ]

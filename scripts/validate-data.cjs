@@ -541,7 +541,7 @@ function validateExpectedTags(validTagIds) {
   for (const c of allControls) {
     if (!Array.isArray(c?.objectives)) continue
     const fam = String(c.id || '').slice(0, 2)
-    const enforced = fam === 'IA' || fam === 'AC' || fam === 'SC' || fam === 'AU' || fam === 'CM' || fam === 'SI' || fam === 'RA' || fam === 'CA'
+    const enforced = fam === 'IA' || fam === 'AC' || fam === 'SC' || fam === 'AU' || fam === 'CM' || fam === 'SI' || fam === 'RA' || fam === 'CA' || fam === 'IR'
 
     for (const o of c.objectives) {
       bumpCheck('ExpectedTags')
@@ -600,7 +600,7 @@ function validateExpectedTags(validTagIds) {
   }
 
   if (nonEnforcedArtifactishMissing > 0)
-    recordWarning('ExpectedTags', `${nonEnforcedArtifactishMissing} non-IA/AC/SC/AU/CM/SI/RA/CA artifact/mixed objectives have no expectedTags yet (expected during phased rollout; IA, AC, SC, AU, CM, SI, RA, and CA are enforced)`)
+    recordWarning('ExpectedTags', `${nonEnforcedArtifactishMissing} non-IA/AC/SC/AU/CM/SI/RA/CA/IR artifact/mixed objectives have no expectedTags yet (expected during phased rollout; IA, AC, SC, AU, CM, SI, RA, CA, and IR are enforced)`)
 
   expectedTagsSummary = { withTags, missingCount, waived, enforcedTagUsage }
 }
@@ -638,12 +638,12 @@ function validateExpectedTags(validTagIds) {
 
   if (expectedTagsSummary) {
     const e = expectedTagsSummary
-    console.log(`\nObjective expectedTags: ${e.withTags} mapped, ${e.missingCount} unmapped (non-IA/AC/SC/AU/CM/SI/RA/CA, expected during phased rollout), ${e.waived.length} intentionally waived`)
-    console.log(`  enforced families: IA, AC, SC, AU, CM, SI, RA, CA`)
+    console.log(`\nObjective expectedTags: ${e.withTags} mapped, ${e.missingCount} unmapped (non-IA/AC/SC/AU/CM/SI/RA/CA/IR, expected during phased rollout), ${e.waived.length} intentionally waived`)
+    console.log(`  enforced families: IA, AC, SC, AU, CM, SI, RA, CA, IR`)
     if (e.waived.length) console.log(`  waived: ${e.waived.join(', ')}`)
     const tags = Object.keys(e.enforcedTagUsage)
     if (tags.length) {
-      console.log(`  IA+AC+SC+AU+CM+SI+RA+CA tag usage (${tags.length} distinct tags):`)
+      console.log(`  IA+AC+SC+AU+CM+SI+RA+CA+IR tag usage (${tags.length} distinct tags):`)
       for (const t of tags.sort((a, b) => e.enforcedTagUsage[b] - e.enforcedTagUsage[a] || a.localeCompare(b)))
         console.log(`    ${String(e.enforcedTagUsage[t]).padStart(2)}  ${t}`)
     }
