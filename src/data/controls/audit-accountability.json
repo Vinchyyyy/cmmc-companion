@@ -4,68 +4,127 @@
     "family": "Audit and Accountability",
     "title": "System Auditing",
     "controlText": "Create and retain system audit logs and records to the extent needed to enable the monitoring, analysis, investigation, and reporting of unlawful or unauthorized system activity.",
-    "plainEnglish": "Decide what events on your systems are worth logging, log them with enough detail to actually investigate later, and keep those logs long enough for an investigation to work. The retention period needs to account for the reality that compromises are often discovered weeks or months after they happen. This is the foundational AU practice that every other AU control builds on — get this wrong and the rest of the family falls apart.",
+    "plainEnglish": "Decide what events on your systems are worth logging, log them with enough detail to actually investigate later, and keep those logs long enough for an investigation to work. The retention period needs to account for the reality that compromises are often discovered weeks or months after they happen. This is the foundational AU practice that every other AU control builds on \u2014 get this wrong and the rest of the family falls apart.",
     "objectives": [
       {
         "id": "a",
-        "text": "audit logs needed (i.e., event types to be logged) to enable the monitoring, analysis, investigation, and reporting of unlawful or unauthorized system activity are specified",
-        "whatToLookFor": "A documented list of event types that must be logged across in-scope systems — typically including authentication events (success and failure), privileged action execution, account management changes, security configuration changes, file access on CUI repositories, remote access connections, and firewall denies. The list reflects actual risk, not just whatever the default audit policy generates.",
+        "text": "audit logs needed (i.e., event types to be logged) to enable the monitoring, analysis, investigation, and reporting of unlawful or unauthorized system activity are specified;",
+        "whatToLookFor": "A documented list of event types that must be logged across in-scope systems \u2014 typically including authentication events (success and failure), privileged action execution, account management changes, security configuration changes, file access on CUI repositories, remote access connections, and firewall denies. The list reflects actual risk, not just whatever the default audit policy generates.",
         "commonEvidence": [
           "Audit and Accountability Policy listing required event types",
           "Auditable events matrix per system class",
           "SIEM ingestion source list",
           "Operating-system audit policy baselines (advanced audit policy on Windows, auditd rules on Linux)"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "audit_log_configuration"
+          ],
+          "acceptable": [
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "the content of audit records needed to support monitoring, analysis, investigation, and reporting of unlawful or unauthorized system activity is defined",
-        "whatToLookFor": "Documented standard for what each audit record must contain — typically timestamp, source and destination addresses, user or process identifier, event description, success or failure indicator, and filename where applicable. The standard exists so analysts can correlate events across systems.",
+        "text": "the content of audit records needed to support monitoring, analysis, investigation, and reporting of unlawful or unauthorized system activity is defined;",
+        "whatToLookFor": "Documented standard for what each audit record must contain \u2014 typically timestamp, source and destination addresses, user or process identifier, event description, success or failure indicator, and filename where applicable. The standard exists so analysts can correlate events across systems.",
         "commonEvidence": [
           "Audit record content standard or template",
           "Documented required fields per event type",
           "System security plan section addressing audit record content"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "audit_log_configuration",
+            "system_security_plan"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "audit records are created (generated)",
+        "text": "audit records are created (generated);",
         "whatToLookFor": "Audit logging is actually enabled across in-scope systems and producing records. Spot-check by inducing a test event (failed login, sudo command) and confirming the record appears.",
         "commonEvidence": [
           "Sample audit records from each major system class (Windows, Linux, network, cloud, applications)",
           "SIEM ingestion dashboards showing live event flow",
           "Endpoint audit policy verification (gpresult, auditctl -l)"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "audit_log_sample"
+          ],
+          "acceptable": [
+            "audit_log_configuration"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "audit records, once created, contain the defined content",
+        "text": "audit records, once created, contain the defined content;",
         "whatToLookFor": "Sampled records actually contain the fields specified by the content standard from objective [b]. Records missing critical fields (user ID, source address) cannot support investigation.",
         "commonEvidence": [
           "Sample audit records showing all required fields populated",
           "SIEM field-completeness reports",
           "Comparison of sampled records against the content standard"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "audit_log_sample"
+          ],
+          "acceptable": []
+        }
       },
       {
         "id": "e",
-        "text": "retention requirements for audit records are defined",
+        "text": "retention requirements for audit records are defined; and",
         "whatToLookFor": "Documented retention period in policy. Common defenses: 90 days online, 1 year nearline, longer offline. The chosen period accounts for the time gap between initial compromise and discovery.",
         "commonEvidence": [
           "Audit log retention policy with defined timeframe",
           "Data Retention Policy referencing audit logs",
           "SIEM and log archive retention configuration"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "audit_log_configuration"
+          ]
+        }
       },
       {
         "id": "f",
-        "text": "audit records are retained as defined",
-        "whatToLookFor": "Technical enforcement of retention — SIEM and log archive settings actually keep records for the policy-defined period. Spot-check by retrieving an old log entry from near the retention boundary.",
+        "text": "audit records are retained as defined.",
+        "whatToLookFor": "Technical enforcement of retention \u2014 SIEM and log archive settings actually keep records for the policy-defined period. Spot-check by retrieving an old log entry from near the retention boundary.",
         "commonEvidence": [
           "SIEM retention configuration screenshots",
           "Sample retrieval of audit records from near the retention boundary",
           "Backup and archive evidence for cold-storage audit logs"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "audit_log_configuration"
+          ],
+          "acceptable": [
+            "audit_log_sample"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -78,11 +137,11 @@
       "Sample audit records from each system class"
     ],
     "commonGaps": [
-      "Default OS audit policy left in place — events like privilege escalation or account management changes not captured",
+      "Default OS audit policy left in place \u2014 events like privilege escalation or account management changes not captured",
       "Linux systems use generic syslog without auditd; Windows uses basic audit policy instead of advanced",
       "Cloud control plane actions (AWS CloudTrail, Azure Activity Log, GCP Cloud Audit Logs) not forwarded to centralized logging",
       "SaaS applications containing CUI generate logs that are never collected",
-      "Retention period set to 30 days or less — too short to investigate delayed-discovery incidents",
+      "Retention period set to 30 days or less \u2014 too short to investigate delayed-discovery incidents",
       "Audit records exist but lack the user identifier needed to make them useful",
       "Audit logging dropped silently when disk space fills up; nobody notices"
     ]
@@ -92,28 +151,46 @@
     "family": "Audit and Accountability",
     "title": "User Accountability",
     "controlText": "Ensure that the actions of individual system users can be uniquely traced to those users so they can be held accountable for their actions.",
-    "plainEnglish": "Every logged action must trace back to a specific named user — not a shared account, not 'admin', not a service principal acting on someone's behalf without that someone being recorded. Combined with unique identifiers from IA.L1-3.5.1, this is what makes audit logs useful for accountability rather than just noise. The Assessment Guide explicitly notes this practice supports AC.L2-3.1.7 (non-privileged users cannot execute privileged functions).",
+    "plainEnglish": "Every logged action must trace back to a specific named user \u2014 not a shared account, not 'admin', not a service principal acting on someone's behalf without that someone being recorded. Combined with unique identifiers from IA.L1-3.5.1, this is what makes audit logs useful for accountability rather than just noise. The Assessment Guide explicitly notes this practice supports AC.L2-3.1.7 (non-privileged users cannot execute privileged functions).",
     "objectives": [
       {
         "id": "a",
-        "text": "the content of the audit records needed to support the ability to uniquely trace users to their actions is defined",
+        "text": "the content of the audit records needed to support the ability to uniquely trace users to their actions is defined; and",
         "whatToLookFor": "Documented standard requiring user identifier in every audit record where a user action is involved. Standard addresses how to handle service account actions performed at a user's request (typically: log both the service account and the originating user).",
         "commonEvidence": [
           "Audit record content standard specifying user-identifier requirements",
           "Documented handling of service-account actions on behalf of users",
           "Privileged session recording configuration capturing initiating user"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "audit_log_configuration"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "audit records, once created, contain the defined content",
-        "whatToLookFor": "Sampled records contain a meaningful user identifier — not 'SYSTEM', not 'admin' (when admin is shared), not a generic service account divorced from the originating user. Spot-check by tracing a sampled privileged action all the way back to a named person.",
+        "text": "audit records, once created, contain the defined content.",
+        "whatToLookFor": "Sampled records contain a meaningful user identifier \u2014 not 'SYSTEM', not 'admin' (when admin is shared), not a generic service account divorced from the originating user. Spot-check by tracing a sampled privileged action all the way back to a named person.",
         "commonEvidence": [
           "Sample audit records showing user identifier populated",
           "PAM session recordings linking privileged actions to named users",
           "VPN and remote access logs capturing user identity",
           "Application audit logs preserving originating-user context"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "audit_log_sample"
+          ],
+          "acceptable": []
+        }
       }
     ],
     "commonArtifacts": [
@@ -125,7 +202,7 @@
     ],
     "commonGaps": [
       "Shared admin accounts make it impossible to attribute privileged actions to a specific person",
-      "Service account actions logged without the originating user — analysts can see 'svc_backup did X' but not which human triggered it",
+      "Service account actions logged without the originating user \u2014 analysts can see 'svc_backup did X' but not which human triggered it",
       "Application logs show 'SYSTEM' or 'root' for actions actually performed by named admins",
       "Custom applications use generic database connection pools with no per-user context propagation",
       "Sudo logs capture the command but not the originating SSH session user when shared bastion logins are used"
@@ -140,32 +217,62 @@
     "objectives": [
       {
         "id": "a",
-        "text": "a process for determining when to review logged events is defined",
-        "whatToLookFor": "Documented review trigger conditions — periodic (typically quarterly or annual), post-incident, after major system changes, or after threat intelligence updates. Process names a responsible role.",
+        "text": "a process for determining when to review logged events is defined;",
+        "whatToLookFor": "Documented review trigger conditions \u2014 periodic (typically quarterly or annual), post-incident, after major system changes, or after threat intelligence updates. Process names a responsible role.",
         "commonEvidence": [
           "Documented event-review procedure with defined cadence and triggers",
           "Audit and Accountability Policy section on event review"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "procedure_document"
+          ],
+          "acceptable": [
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "event types being logged are reviewed in accordance with the defined review process",
-        "whatToLookFor": "Records of actual reviews — meeting minutes, ticket records, change-management entries — showing the review occurred per the documented cadence.",
+        "text": "event types being logged are reviewed in accordance with the defined review process; and",
+        "whatToLookFor": "Records of actual reviews \u2014 meeting minutes, ticket records, change-management entries \u2014 showing the review occurred per the documented cadence.",
         "commonEvidence": [
           "Periodic event-review meeting minutes or records",
           "Change tickets referencing event-review outcomes",
           "Post-incident review records identifying logging gaps"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "log_review_record"
+          ],
+          "acceptable": [
+            "change_management_record"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "event types being logged are updated based on the review",
-        "whatToLookFor": "Evidence that recent reviews actually produced changes — new event types added, deprecated ones removed. A review that never produces changes is suspicious; it suggests the review is a checkbox exercise.",
+        "text": "event types being logged are updated based on the review.",
+        "whatToLookFor": "Evidence that recent reviews actually produced changes \u2014 new event types added, deprecated ones removed. A review that never produces changes is suspicious; it suggests the review is a checkbox exercise.",
         "commonEvidence": [
           "Change tickets implementing event-logging additions or removals",
           "Version history of the auditable events matrix",
           "SIEM rule additions tied to review outcomes"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "change_management_record"
+          ],
+          "acceptable": [
+            "audit_log_configuration"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -186,37 +293,67 @@
     "family": "Audit and Accountability",
     "title": "Audit Failure Alerting",
     "controlText": "Alert in the event of an audit logging process failure.",
-    "plainEnglish": "When audit logging stops working — a SIEM agent dies, disk fills up, network drops to the central collector, an admin disables auditing — somebody needs to know within hours, not weeks. This practice requires identifying which roles get alerted, defining what counts as a failure, and verifying the alerting actually fires when failures occur. An audit gap during which an attacker operates undetected is exactly the failure mode this control protects against.",
+    "plainEnglish": "When audit logging stops working \u2014 a SIEM agent dies, disk fills up, network drops to the central collector, an admin disables auditing \u2014 somebody needs to know within hours, not weeks. This practice requires identifying which roles get alerted, defining what counts as a failure, and verifying the alerting actually fires when failures occur. An audit gap during which an attacker operates undetected is exactly the failure mode this control protects against.",
     "objectives": [
       {
         "id": "a",
-        "text": "personnel or roles to be alerted in the event of an audit logging process failure are identified",
-        "whatToLookFor": "Documented role assignments for audit failure alerts — typically security operations, system administration, or both. Named individuals or an alerting distribution list, not just 'IT'.",
+        "text": "personnel or roles to be alerted in the event of an audit logging process failure are identified;",
+        "whatToLookFor": "Documented role assignments for audit failure alerts \u2014 typically security operations, system administration, or both. Named individuals or an alerting distribution list, not just 'IT'.",
         "commonEvidence": [
           "Audit failure alert distribution list",
           "On-call rotation for audit/SIEM alerts",
           "Audit and Accountability Policy section on failure response"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "types of audit logging process failures for which alert will be generated are defined",
-        "whatToLookFor": "Documented failure conditions that trigger alerts — SIEM agent offline, ingestion stopped, log forwarder unreachable, audit subsystem disabled, storage capacity reached.",
+        "text": "types of audit logging process failures for which alert will be generated are defined; and",
+        "whatToLookFor": "Documented failure conditions that trigger alerts \u2014 SIEM agent offline, ingestion stopped, log forwarder unreachable, audit subsystem disabled, storage capacity reached.",
         "commonEvidence": [
           "List of audit-failure conditions in the SIEM rule configuration",
           "Health monitoring rules for log forwarders",
           "Documented failure-type taxonomy"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "monitoring_tool_configuration"
+          ],
+          "acceptable": [
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "identified personnel or roles are alerted in the event of an audit logging process failure",
+        "text": "identified personnel or roles are alerted in the event of an audit logging process failure.",
         "whatToLookFor": "Active alerting configured and tested. Sample alerts from past failures with response timestamps. A test alert run within the past year shows the path actually works.",
         "commonEvidence": [
           "SIEM or monitoring tool alert rule screenshots",
           "Sample audit-failure alert tickets with response records",
           "Recent test-alert evidence"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "alert_record"
+          ],
+          "acceptable": [
+            "monitoring_tool_configuration"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -238,28 +375,48 @@
     "family": "Audit and Accountability",
     "title": "Audit Correlation",
     "controlText": "Correlate audit record review, analysis, and reporting processes for investigation and response to indications of unlawful, unauthorized, suspicious, or unusual activity.",
-    "plainEnglish": "Individual log sources tell partial stories. The real value comes from correlating across them — connecting a VPN login from a new geography with a privilege escalation on a CUI server, or tying an email click to a process spawn to a network beacon. This practice requires defined correlation processes and evidence that they are actually used to investigate suspicious activity. Modern SIEMs and SOAR platforms handle the mechanics; the assessment focuses on whether your processes use them meaningfully.",
+    "plainEnglish": "Individual log sources tell partial stories. The real value comes from correlating across them \u2014 connecting a VPN login from a new geography with a privilege escalation on a CUI server, or tying an email click to a process spawn to a network beacon. This practice requires defined correlation processes and evidence that they are actually used to investigate suspicious activity. Modern SIEMs and SOAR platforms handle the mechanics; the assessment focuses on whether your processes use them meaningfully.",
     "objectives": [
       {
         "id": "a",
-        "text": "audit record review, analysis, and reporting processes for investigation and response to indications of unlawful, unauthorized, suspicious, or unusual activity are defined",
-        "whatToLookFor": "Documented correlation and investigation processes — what triggers a deeper look, which data sources get correlated, how findings escalate. Typically lives in an SOC runbook or IR plan.",
+        "text": "audit record review, analysis, and reporting processes for investigation and response to indications of unlawful, unauthorized, suspicious, or unusual activity are defined; and",
+        "whatToLookFor": "Documented correlation and investigation processes \u2014 what triggers a deeper look, which data sources get correlated, how findings escalate. Typically lives in an SOC runbook or IR plan.",
         "commonEvidence": [
           "Correlation/investigation runbook",
           "SOC playbooks tied to specific alert categories",
           "Documented escalation criteria"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "procedure_document"
+          ],
+          "acceptable": [
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "defined audit record review, analysis, and reporting processes are correlated",
-        "whatToLookFor": "Active SIEM correlation rules tying events across sources. Sample investigations showing cross-source correlation in practice — not just 'we have a SIEM' but evidence the SIEM is producing correlated findings analysts act on.",
+        "text": "defined audit record review, analysis, and reporting processes are correlated.",
+        "whatToLookFor": "Active SIEM correlation rules tying events across sources. Sample investigations showing cross-source correlation in practice \u2014 not just 'we have a SIEM' but evidence the SIEM is producing correlated findings analysts act on.",
         "commonEvidence": [
           "SIEM correlation rule inventory",
           "Sample investigations showing cross-source analysis",
           "SOAR playbook execution records",
           "Threat hunting reports drawing from multiple log sources"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "monitoring_tool_configuration"
+          ],
+          "acceptable": [
+            "log_review_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -269,10 +426,10 @@
       "SOAR platform configuration if deployed"
     ],
     "commonGaps": [
-      "SIEM collects from many sources but has no correlation rules — analysts manually pivot between dashboards",
+      "SIEM collects from many sources but has no correlation rules \u2014 analysts manually pivot between dashboards",
       "Correlation rules exist but produce too many false positives, so analysts ignore them",
       "Logs from CUI systems are siloed from corporate logs, preventing meaningful correlation",
-      "No documented investigation process — analysts work from instinct, results are inconsistent"
+      "No documented investigation process \u2014 analysts work from instinct, results are inconsistent"
     ]
   },
   {
@@ -280,27 +437,47 @@
     "family": "Audit and Accountability",
     "title": "Reduction & Reporting",
     "controlText": "Provide audit record reduction and report generation to support on-demand analysis and reporting.",
-    "plainEnglish": "Raw logs are unworkable at scale — millions of events per day, mostly noise. Reduction takes the raw stream and produces analyst-friendly views (filtered, aggregated, anomaly-flagged). Reporting produces on-demand summaries when needed for investigations, audits, or executive briefings. Modern SIEMs provide both; the question is whether they're actually used. The original audit logs must remain untouched — reduction is a derivative view, not destructive editing.",
+    "plainEnglish": "Raw logs are unworkable at scale \u2014 millions of events per day, mostly noise. Reduction takes the raw stream and produces analyst-friendly views (filtered, aggregated, anomaly-flagged). Reporting produces on-demand summaries when needed for investigations, audits, or executive briefings. Modern SIEMs provide both; the question is whether they're actually used. The original audit logs must remain untouched \u2014 reduction is a derivative view, not destructive editing.",
     "objectives": [
       {
         "id": "a",
-        "text": "an audit record reduction capability that supports on-demand analysis is provided",
+        "text": "an audit record reduction capability that supports on-demand analysis is provided; and",
         "whatToLookFor": "A SIEM or log analysis platform with filtering, aggregation, dashboarding, and search capabilities. Analysts can answer questions like 'show me all failed admin logins by source IP in the last 7 days' without writing custom code.",
         "commonEvidence": [
           "SIEM dashboards and saved searches",
           "Log analysis platform inventory",
           "Documentation of reduction workflows"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "monitoring_tool_configuration"
+          ],
+          "acceptable": [
+            "audit_log_configuration"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "a report generation capability that supports on-demand reporting is provided",
-        "whatToLookFor": "Pre-built reports or report templates that can be generated on demand — privileged access reports, failed authentication trends, system change summaries. Reports can be produced for a specific timeframe without re-doing query work each time.",
+        "text": "a report generation capability that supports on-demand reporting is provided.",
+        "whatToLookFor": "Pre-built reports or report templates that can be generated on demand \u2014 privileged access reports, failed authentication trends, system change summaries. Reports can be produced for a specific timeframe without re-doing query work each time.",
         "commonEvidence": [
           "Saved SIEM reports or templates",
           "Sample generated reports for recent periods",
           "Scheduled report subscriptions for stakeholders"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "monitoring_tool_configuration"
+          ],
+          "acceptable": [
+            "log_review_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -310,9 +487,9 @@
       "Reduction/reporting workflow documentation"
     ],
     "commonGaps": [
-      "Raw logs collected but no SIEM or analysis tool — analysts grep through flat files",
+      "Raw logs collected but no SIEM or analysis tool \u2014 analysts grep through flat files",
       "SIEM exists but no reports defined; every analysis request starts from scratch",
-      "Reduction filters too aggressive — useful security events get dropped along with the noise",
+      "Reduction filters too aggressive \u2014 useful security events get dropped along with the noise",
       "Reports take days to generate because the platform can't scale to the data volume"
     ]
   },
@@ -321,37 +498,67 @@
     "family": "Audit and Accountability",
     "title": "Authoritative Time Source",
     "controlText": "Provide a system capability that compares and synchronizes internal system clocks with an authoritative source to generate time stamps for audit records.",
-    "plainEnglish": "Every system that produces audit logs must have its clock synchronized to a common authoritative time source — typically via NTP to either an internal stratum-1 source or trusted external pool (time.nist.gov, time.windows.com). Without time synchronization, correlating events across systems becomes guesswork, and a forensic timeline may be off by minutes or hours. This is one of the cheapest controls to implement and one of the most damaging when missed.",
+    "plainEnglish": "Every system that produces audit logs must have its clock synchronized to a common authoritative time source \u2014 typically via NTP to either an internal stratum-1 source or trusted external pool (time.nist.gov, time.windows.com). Without time synchronization, correlating events across systems becomes guesswork, and a forensic timeline may be off by minutes or hours. This is one of the cheapest controls to implement and one of the most damaging when missed.",
     "objectives": [
       {
         "id": "a",
-        "text": "internal system clocks are used to generate time stamps for audit records",
-        "whatToLookFor": "Audit records actually contain timestamps from the system clock. Verified by inspecting sample records — every record should have a parseable timestamp with sufficient precision (seconds at minimum, milliseconds preferred for high-volume systems).",
+        "text": "internal system clocks are used to generate time stamps for audit records;",
+        "whatToLookFor": "Audit records actually contain timestamps from the system clock. Verified by inspecting sample records \u2014 every record should have a parseable timestamp with sufficient precision (seconds at minimum, milliseconds preferred for high-volume systems).",
         "commonEvidence": [
           "Sample audit records showing timestamps",
           "Audit record content standard specifying timestamp format",
           "System clock configuration on representative systems"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "audit_log_sample"
+          ],
+          "acceptable": [
+            "audit_log_configuration"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "an authoritative source with which to compare and synchronize internal system clocks is specified",
-        "whatToLookFor": "Documented authoritative time source(s) — internal NTP server, external NTP pool, or both. For environments handling classified or highly sensitive data, an internal stratum-1 source backed by GPS or atomic reference is common.",
+        "text": "an authoritative source with which to compare and synchronize internal system clocks is specified; and",
+        "whatToLookFor": "Documented authoritative time source(s) \u2014 internal NTP server, external NTP pool, or both. For environments handling classified or highly sensitive data, an internal stratum-1 source backed by GPS or atomic reference is common.",
         "commonEvidence": [
           "Documented authoritative time source(s)",
           "NTP server inventory and architecture",
           "Time synchronization policy"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "configuration_baseline_record"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "internal system clocks used to generate time stamps for audit records are compared to and synchronized with the specified authoritative time source",
-        "whatToLookFor": "Active NTP synchronization across all in-scope systems — Windows domain time hierarchy, Linux chronyd/ntpd configuration, network device NTP, cloud platform time services. Verified by checking offset from authoritative source on representative systems (offset should be sub-second).",
+        "text": "internal system clocks used to generate time stamps for audit records are compared to and synchronized with the specified authoritative time source.",
+        "whatToLookFor": "Active NTP synchronization across all in-scope systems \u2014 Windows domain time hierarchy, Linux chronyd/ntpd configuration, network device NTP, cloud platform time services. Verified by checking offset from authoritative source on representative systems (offset should be sub-second).",
         "commonEvidence": [
           "NTP configuration on representative systems (w32tm /query /status, chronyc tracking)",
           "Time offset monitoring data",
           "Group Policy or configuration management settings deploying NTP config"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "configuration_baseline_record"
+          ],
+          "acceptable": [
+            "audit_log_sample"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -364,7 +571,7 @@
       "Servers and endpoints sync to different time sources, producing inconsistent timestamps",
       "Network devices left at their default time configuration, often hours off from production servers",
       "Cloud workloads use cloud-provider NTP that doesn't match the on-prem authoritative source",
-      "No monitoring of clock drift — systems quietly drift seconds or minutes off and nobody notices",
+      "No monitoring of clock drift \u2014 systems quietly drift seconds or minutes off and nobody notices",
       "Time synchronization policy exists but the actual NTP servers in use are undocumented and unverified"
     ]
   },
@@ -373,66 +580,127 @@
     "family": "Audit and Accountability",
     "title": "Audit Protection",
     "controlText": "Protect audit information and audit logging tools from unauthorized access, modification, and deletion.",
-    "plainEnglish": "Audit logs are valuable to attackers — they're the trail of what happened. An attacker who can edit or delete logs covers their tracks. This practice requires technical protection of both the audit records and the tools that manage them: restricted access, forwarding to a write-once or append-only repository where local tampering can't undo it, and audit-tool admin rights limited to a small named group. The Assessment Guide notes that physical protection is covered by MP and PE families; this control is about technical protection specifically.",
+    "plainEnglish": "Audit logs are valuable to attackers \u2014 they're the trail of what happened. An attacker who can edit or delete logs covers their tracks. This practice requires technical protection of both the audit records and the tools that manage them: restricted access, forwarding to a write-once or append-only repository where local tampering can't undo it, and audit-tool admin rights limited to a small named group. The Assessment Guide notes that physical protection is covered by MP and PE families; this control is about technical protection specifically.",
     "objectives": [
       {
         "id": "a",
-        "text": "audit information is protected from unauthorized access",
+        "text": "audit information is protected from unauthorized access;",
         "whatToLookFor": "Access to audit logs restricted via ACLs to a named subset of personnel. Centralized SIEM enforces RBAC. Local log files not readable by unprivileged users.",
         "commonEvidence": [
           "SIEM access control matrix",
           "File system permissions on log directories",
           "Cloud logging service IAM policies"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "access_enforcement_configuration"
+          ],
+          "acceptable": [
+            "role_permission_matrix"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "audit information is protected from unauthorized modification",
+        "text": "audit information is protected from unauthorized modification;",
         "whatToLookFor": "Logs forwarded off-system as soon as written. Centralized log repository configured as append-only or with tamper-evident hashing. Local logs less interesting to an attacker because the central copy already exists.",
         "commonEvidence": [
           "Log-forwarder configuration",
           "Centralized log repository write-once or append-only configuration",
           "Log integrity hashing or signing evidence"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "audit_log_configuration"
+          ],
+          "acceptable": [
+            "access_enforcement_configuration"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "audit information is protected from unauthorized deletion",
-        "whatToLookFor": "Centralized logs cannot be deleted by the producing system's admins — separation of duties between system admin and log custodian. Cloud equivalents: log retention locks, immutable storage tiers.",
+        "text": "audit information is protected from unauthorized deletion;",
+        "whatToLookFor": "Centralized logs cannot be deleted by the producing system's admins \u2014 separation of duties between system admin and log custodian. Cloud equivalents: log retention locks, immutable storage tiers.",
         "commonEvidence": [
           "Separation of duties between system admin and audit log admin",
           "Immutable storage configuration (S3 Object Lock, Azure immutable blob, GCS bucket lock)",
           "Backup of audit logs to independent storage"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "audit_log_configuration"
+          ],
+          "acceptable": [
+            "access_enforcement_configuration"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "audit logging tools are protected from unauthorized access",
+        "text": "audit logging tools are protected from unauthorized access;",
         "whatToLookFor": "SIEM, log forwarder, and audit subsystem management interfaces protected by MFA and restricted to authorized personnel. Console access to logging infrastructure separately controlled from general system admin.",
         "commonEvidence": [
           "SIEM platform admin user list",
           "MFA enforcement on audit-tool admin accounts",
           "Network controls restricting access to audit infrastructure"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "access_enforcement_configuration"
+          ],
+          "acceptable": [
+            "mfa_configuration",
+            "role_permission_matrix"
+          ]
+        }
       },
       {
         "id": "e",
-        "text": "audit logging tools are protected from unauthorized modification",
+        "text": "audit logging tools are protected from unauthorized modification; and",
         "whatToLookFor": "Configuration changes to audit tools go through change management. Audit tool binaries protected by file integrity monitoring. Production SIEM rules don't get modified without review.",
         "commonEvidence": [
           "Change management records for SIEM configuration",
           "File integrity monitoring on audit-tool binaries",
           "Version control for SIEM rule sets"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "change_management_record"
+          ],
+          "acceptable": [
+            "access_enforcement_configuration"
+          ]
+        }
       },
       {
         "id": "f",
-        "text": "audit logging tools are protected from unauthorized deletion",
+        "text": "audit logging tools are protected from unauthorized deletion.",
         "whatToLookFor": "Audit infrastructure (SIEM, log forwarders) cannot be uninstalled or disabled by general system admins. Change management required for any teardown.",
         "commonEvidence": [
           "Endpoint configuration preventing log-agent uninstall by local admins",
           "Change management evidence for any audit-tool decommissioning"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "access_enforcement_configuration"
+          ],
+          "acceptable": [
+            "change_management_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -446,7 +714,7 @@
       "Local admins can clear Windows event logs (clear-eventlog or equivalent) and the central copy doesn't catch it",
       "SIEM admin role is held by the same person who admins the systems being audited",
       "Log files writable by anyone on the system",
-      "Cloud logs stored in the same account as the workloads they audit — a compromised account can delete its own logs",
+      "Cloud logs stored in the same account as the workloads they audit \u2014 a compromised account can delete its own logs",
       "Log forwarder running as a service that any local admin can stop",
       "Backups of audit data stored on the same infrastructure as the primary copy"
     ]
@@ -456,27 +724,48 @@
     "family": "Audit and Accountability",
     "title": "Audit Management",
     "controlText": "Limit management of audit logging functionality to a subset of privileged users.",
-    "plainEnglish": "Not every privileged user should be able to manage audit logging. The administrator group with rights to configure auditing, modify retention, manage the SIEM, or alter what gets logged should be a defined subset of all privileged users — narrower than 'all domain admins.' This is a specific application of least privilege focused on the audit subsystem. The combination of this practice with AU.L2-3.3.8 prevents the most common attacker move: disable logging, then operate freely.",
+    "plainEnglish": "Not every privileged user should be able to manage audit logging. The administrator group with rights to configure auditing, modify retention, manage the SIEM, or alter what gets logged should be a defined subset of all privileged users \u2014 narrower than 'all domain admins.' This is a specific application of least privilege focused on the audit subsystem. The combination of this practice with AU.L2-3.3.8 prevents the most common attacker move: disable logging, then operate freely.",
     "objectives": [
       {
         "id": "a",
-        "text": "a subset of privileged users granted access to manage audit logging functionality is defined",
-        "whatToLookFor": "A documented list of personnel or roles with audit management rights — narrower than the full privileged-user population. Typically the SOC manager, lead security engineer, and a small named team. Not the same as general domain admins or sysadmins.",
+        "text": "a subset of privileged users granted access to manage audit logging functionality is defined; and",
+        "whatToLookFor": "A documented list of personnel or roles with audit management rights \u2014 narrower than the full privileged-user population. Typically the SOC manager, lead security engineer, and a small named team. Not the same as general domain admins or sysadmins.",
         "commonEvidence": [
           "Audit management role definition",
           "Named audit administrator list",
           "Access Control Policy section on audit administration"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "privileged_account_inventory",
+            "role_permission_matrix"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "management of audit logging functionality is limited to the defined subset of privileged users",
-        "whatToLookFor": "Technical enforcement of the subset — SIEM platform role assignments match the documented list. The general 'Domain Admins' group does not have audit management rights by default. Spot-check by attempting an audit configuration change as a non-audit-admin and confirming it fails.",
+        "text": "management of audit logging functionality is limited to the defined subset of privileged users.",
+        "whatToLookFor": "Technical enforcement of the subset \u2014 SIEM platform role assignments match the documented list. The general 'Domain Admins' group does not have audit management rights by default. Spot-check by attempting an audit configuration change as a non-audit-admin and confirming it fails.",
         "commonEvidence": [
           "SIEM RBAC role assignments",
           "Group memberships for audit administration",
           "Audit log of administrative-access attempts on SIEM"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "access_enforcement_configuration"
+          ],
+          "acceptable": [
+            "role_permission_matrix"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -485,11 +774,11 @@
       "Access matrix showing audit-admin vs general-admin separation"
     ],
     "commonGaps": [
-      "Domain Admins group inherits audit management rights automatically — no separation",
+      "Domain Admins group inherits audit management rights automatically \u2014 no separation",
       "Cloud root accounts can disable logging without any check",
       "SIEM platform admin role given to too many people for convenience",
       "No periodic review of who holds audit management rights",
-      "On smaller teams, audit admin and system admin are the same individuals — needs documented compensating controls (manager review, peer review of audit changes)"
+      "On smaller teams, audit admin and system admin are the same individuals \u2014 needs documented compensating controls (manager review, peer review of audit changes)"
     ]
   }
 ]
