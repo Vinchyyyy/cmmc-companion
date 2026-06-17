@@ -8,54 +8,46 @@
     "objectives": [
       {
         "id": "a",
-        "text": "the risk to organizational operations, assets, and individuals is assessed periodically",
-        "whatToLookFor": "Evidence that a formal risk assessment was performed within a defined period — typically annually or after significant system changes. The assessment should be documented as a report, not just informal notes. Evidence includes the risk assessment report itself, the date it was conducted, and who performed it.",
+        "text": "the frequency to assess risk to organizational operations, organizational assets, and individuals is defined; and",
+        "whatToLookFor": "A documented policy or procedure that defines how often risk assessments must be conducted — typically annually or after significant system changes. The frequency must be written down, not assumed. Look for the risk assessment policy, system security plan, or procedure that states the assessment cadence explicitly.",
         "commonEvidence": [
-          "Risk Assessment Report (current and previous cycle)",
-          "Risk Assessment Policy defining assessment frequency and scope",
-          "System Security Plan section on risk assessment results",
-          "Risk register or risk tracking documentation tied to the assessment"
-        ]
+          "Risk Assessment Policy defining assessment frequency",
+          "System Security Plan section specifying risk assessment schedule",
+          "Organizational procedures addressing risk assessment frequency"
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document",
+            "system_security_plan"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "risk assessment results are documented",
-        "whatToLookFor": "A formal written risk assessment report — not just a spreadsheet of vulnerabilities. The report should identify threat sources, threat events, vulnerabilities, likelihood ratings, impact ratings, and risk levels. Documented results allow the organization to track risk posture over time and demonstrate to assessors that analysis occurred.",
+        "text": "risk to organizational operations, organizational assets, and individuals resulting from the operation of an organizational system that processes, stores, or transmits CUI is assessed with the defined frequency.",
+        "whatToLookFor": "Evidence that a formal risk assessment was actually performed on the defined schedule. The assessment must address risk to operations, assets, and individuals — not just technical vulnerabilities. Look for a risk assessment report dated within the required period, covering the in-scope system that processes, stores, or transmits CUI.",
         "commonEvidence": [
-          "Written risk assessment report with threat/vulnerability/likelihood/impact analysis",
-          "Risk register showing identified risks with ratings",
-          "Board or leadership briefing on risk posture based on the assessment"
-        ]
-      },
-      {
-        "id": "c",
-        "text": "risk assessment results are reviewed",
-        "whatToLookFor": "Evidence that results were presented to and reviewed by appropriate stakeholders — management sign-off, leadership briefing records, or risk committee meeting minutes referencing the assessment findings. An assessment that is produced but never reviewed by decision-makers has not completed the cycle.",
-        "commonEvidence": [
-          "Risk committee or leadership meeting minutes referencing the assessment",
-          "Management sign-off or approval on the risk assessment report",
-          "Action items or decisions traceable to the risk assessment findings"
-        ]
-      },
-      {
-        "id": "d",
-        "text": "risk assessment results are disseminated to appropriate personnel",
-        "whatToLookFor": "Evidence that assessment findings reached the people who needed to act on them — system owners, security operations, leadership. Distribution records, email notifications, or inclusion in security briefings.",
-        "commonEvidence": [
-          "Distribution list or circulation records for the risk assessment report",
-          "Security team briefing records referencing assessment results",
-          "System owner acknowledgment of risk findings"
-        ]
-      },
-      {
-        "id": "e",
-        "text": "risk assessment results are updated",
-        "whatToLookFor": "Evidence that risk assessments are refreshed — new assessments conducted on the defined schedule, or updates to reflect significant changes in the environment, threat landscape, or organizational mission. A single risk assessment completed at system authorization and never updated is a finding.",
-        "commonEvidence": [
-          "Multiple versions or cycles of risk assessment reports",
-          "Risk assessment conducted after major system changes",
-          "Dated risk register entries showing when risks were identified and last updated"
-        ]
+          "Risk Assessment Report (current and previous cycle) with dates",
+          "Risk register or risk tracking documentation tied to the assessment",
+          "Management review and sign-off records for the risk assessment",
+          "System Security Plan section documenting risk assessment results"
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "risk_assessment_report"
+          ],
+          "acceptable": [
+            "management_review_record",
+            "system_security_plan"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -85,47 +77,112 @@
     "objectives": [
       {
         "id": "a",
-        "text": "vulnerabilities in organizational systems and applications are scanned for periodically",
-        "whatToLookFor": "Scheduled vulnerability scans running against all in-scope assets on a defined cadence — typically monthly or quarterly at minimum. Scan tool configured to authenticate to target systems (credentialed scan). Scan coverage documented and verified to include servers, workstations, network devices, cloud infrastructure, and web applications.",
+        "text": "the frequency to scan for vulnerabilities in organizational systems and applications is defined;",
+        "whatToLookFor": "A documented policy or procedure that specifies how often vulnerability scans must be performed on organizational systems and applications. The frequency must be written, not assumed. Look for the vulnerability management policy, patch management procedure, or system security plan section that states the scan cadence explicitly.",
         "commonEvidence": [
-          "Vulnerability scan reports from the most recent scan cycle",
-          "Scan schedule or scan job configuration showing frequency",
-          "Authenticated scan credential configuration",
-          "Asset list used as scan target inventory"
-        ]
+          "Vulnerability management policy with defined scan frequency",
+          "Patch management procedure specifying scan schedule",
+          "System Security Plan section on vulnerability scanning frequency"
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document",
+            "vulnerability_scan_configuration"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "vulnerabilities in organizational systems and applications are scanned for when new vulnerabilities affecting those systems are identified",
-        "whatToLookFor": "Evidence that out-of-cycle scans are triggered when significant vulnerabilities are disclosed — patch Tuesday scans, emergency scans after major CVEs (Log4Shell, ProxyLogon, etc.), or a defined process for evaluating and responding to new disclosures. Documented procedure for handling newly-discovered vulnerabilities.",
+        "text": "vulnerability scans are performed on organizational systems with the defined frequency;",
+        "whatToLookFor": "Scheduled vulnerability scans running against all in-scope organizational systems on the cadence defined in policy — typically monthly or quarterly at minimum. Scan tool configured with authenticated (credentialed) access. Scan reports dated within the required period. Coverage must include servers, workstations, network devices, and cloud infrastructure.",
+        "commonEvidence": [
+          "Vulnerability scan reports from the most recent scan cycle(s) with dates",
+          "Scan schedule or scan job configuration showing frequency",
+          "Authenticated scan credential configuration",
+          "Asset list used as scan target inventory"
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "vulnerability_scan_report"
+          ],
+          "acceptable": [
+            "vulnerability_scan_configuration",
+            "asset_inventory"
+          ]
+        }
+      },
+      {
+        "id": "c",
+        "text": "vulnerability scans are performed on applications with the defined frequency;",
+        "whatToLookFor": "Vulnerability scans covering applications — web applications, custom-developed software, and commercial applications — on the defined schedule. Application scans may use different tooling than infrastructure scans (e.g., DAST, web application scanners). Evidence that applications are included in scope, not just infrastructure.",
+        "commonEvidence": [
+          "Application vulnerability scan reports with dates",
+          "Web application scanner configuration and scan results",
+          "DAST or application security scan records",
+          "Asset inventory showing applications in scan scope"
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "vulnerability_scan_report"
+          ],
+          "acceptable": [
+            "vulnerability_scan_configuration",
+            "software_inventory"
+          ]
+        }
+      },
+      {
+        "id": "d",
+        "text": "vulnerability scans are performed on organizational systems when new vulnerabilities are identified; and",
+        "whatToLookFor": "Evidence that out-of-cycle scans are triggered on organizational systems when significant new vulnerabilities are disclosed — patch Tuesday scans, emergency scans after major CVEs (Log4Shell, ProxyLogon, etc.), or a defined process for evaluating and responding to new disclosures. Documented procedure describing triggers for unscheduled scans.",
         "commonEvidence": [
           "Vulnerability scan reports showing out-of-cycle or ad-hoc scans",
           "Documented vulnerability management procedure describing triggers for unscheduled scans",
           "Records of targeted scans after major CVE disclosures",
           "Vulnerability notification subscription records (NVD, CISA KEV, vendor alerts)"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "vulnerability_scan_report"
+          ],
+          "acceptable": [
+            "security_advisory_record",
+            "procedure_document"
+          ]
+        }
       },
       {
-        "id": "c",
-        "text": "vulnerability scan findings are analyzed",
-        "whatToLookFor": "Evidence that scan results are reviewed and triaged — not just that scans are run and reports stored. Analysis should include severity rating, applicability determination, and false-positive identification. Vulnerability management staff should be able to discuss findings from recent scans.",
+        "id": "e",
+        "text": "vulnerability scans are performed on applications when new vulnerabilities are identified.",
+        "whatToLookFor": "Evidence that applications are re-scanned when new vulnerabilities affecting those applications are identified — not just organizational systems. Look for application-specific scan records triggered by CVE advisories, vendor security bulletins, or threat intelligence notifications relevant to the application stack.",
         "commonEvidence": [
-          "Vulnerability management team review records or meeting notes",
-          "Remediation prioritization records based on scan findings",
-          "Documented false-positive determinations",
-          "Risk acceptance records for findings not immediately remediable"
-        ]
-      },
-      {
-        "id": "d",
-        "text": "identified vulnerabilities are remediated in accordance with risk assessments",
-        "whatToLookFor": "Remediation tracking that ties scan findings to patch deployment, configuration changes, or compensating controls. Remediation timelines based on severity (e.g., critical within 30 days, high within 60 days). Evidence that the remediation actually happened — rescan results showing the finding closed.",
-        "commonEvidence": [
-          "Vulnerability remediation tracking records (ticketing system tied to scan findings)",
-          "Patch deployment records corresponding to scan findings",
-          "Rescan reports confirming remediation of closed findings",
-          "Documented SLA for remediation based on severity rating"
-        ]
+          "Application vulnerability scan reports triggered by new CVE disclosures",
+          "Documented procedure for application-specific scanning when new vulnerabilities are identified",
+          "Vendor security bulletin review records with linked application scan results",
+          "Change management tickets referencing application scans triggered by new vulnerabilities"
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "vulnerability_scan_report"
+          ],
+          "acceptable": [
+            "security_advisory_record",
+            "procedure_document"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -157,15 +214,48 @@
     "objectives": [
       {
         "id": "a",
-        "text": "vulnerabilities are remediated in accordance with risk assessments",
-        "whatToLookFor": "A documented remediation process that maps vulnerability severity to remediation priority and timeframe — informed by the organization's risk posture. Evidence that critical and high vulnerabilities are being addressed faster than medium/low. Remediation decisions (patch, mitigate, accept) are traceable to documented risk rationale.",
+        "text": "vulnerabilities are identified; and",
+        "whatToLookFor": "Evidence that vulnerabilities have been identified in organizational systems and applications — typically through the scanning process in RA.L2-3.11.2. A current list of known vulnerabilities, vulnerability scan reports showing identified findings, or a vulnerability register. This objective confirms identification occurred, not just that scanning is scheduled.",
+        "commonEvidence": [
+          "Vulnerability scan reports listing identified vulnerabilities",
+          "Vulnerability register or tracking list showing current open findings",
+          "Penetration test findings identifying vulnerabilities",
+          "Security assessment report with vulnerability findings"
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "vulnerability_scan_report"
+          ],
+          "acceptable": [
+            "security_assessment_report"
+          ]
+        }
+      },
+      {
+        "id": "b",
+        "text": "vulnerabilities are remediated in accordance with risk assessments.",
+        "whatToLookFor": "A documented, risk-informed remediation process: prioritization based on severity and organizational risk context, remediation within defined timeframes, and verification that remediation was effective. Evidence that critical and high vulnerabilities are addressed faster than lower-severity findings. Remediation decisions (patch, mitigate, accept) traceable to documented risk rationale.",
         "commonEvidence": [
           "Vulnerability remediation SLA or priority matrix tied to severity ratings",
           "Remediation tracking records showing vulnerability status and completion dates",
           "Patch deployment records showing remediation of identified vulnerabilities",
           "Risk acceptance records for vulnerabilities accepted rather than remediated",
           "Rescan results confirming successful remediation"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "remediation_record"
+          ],
+          "acceptable": [
+            "plan_of_action",
+            "patch_management_record",
+            "risk_assessment_report"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
