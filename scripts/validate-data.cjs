@@ -541,7 +541,7 @@ function validateExpectedTags(validTagIds) {
   for (const c of allControls) {
     if (!Array.isArray(c?.objectives)) continue
     const fam = String(c.id || '').slice(0, 2)
-    const enforced = fam === 'IA' || fam === 'AC'
+    const enforced = fam === 'IA' || fam === 'AC' || fam === 'SC'
 
     for (const o of c.objectives) {
       bumpCheck('ExpectedTags')
@@ -600,7 +600,7 @@ function validateExpectedTags(validTagIds) {
   }
 
   if (nonEnforcedArtifactishMissing > 0)
-    recordWarning('ExpectedTags', `${nonEnforcedArtifactishMissing} non-IA/AC artifact/mixed objectives have no expectedTags yet (expected during phased rollout; IA and AC are enforced)`)
+    recordWarning('ExpectedTags', `${nonEnforcedArtifactishMissing} non-IA/AC/SC artifact/mixed objectives have no expectedTags yet (expected during phased rollout; IA, AC, and SC are enforced)`)
 
   expectedTagsSummary = { withTags, missingCount, waived, enforcedTagUsage }
 }
@@ -638,12 +638,12 @@ function validateExpectedTags(validTagIds) {
 
   if (expectedTagsSummary) {
     const e = expectedTagsSummary
-    console.log(`\nObjective expectedTags: ${e.withTags} mapped, ${e.missingCount} unmapped (non-IA/AC, expected during phased rollout), ${e.waived.length} intentionally waived`)
-    console.log(`  enforced families: IA, AC`)
+    console.log(`\nObjective expectedTags: ${e.withTags} mapped, ${e.missingCount} unmapped (non-IA/AC/SC, expected during phased rollout), ${e.waived.length} intentionally waived`)
+    console.log(`  enforced families: IA, AC, SC`)
     if (e.waived.length) console.log(`  waived: ${e.waived.join(', ')}`)
     const tags = Object.keys(e.enforcedTagUsage)
     if (tags.length) {
-      console.log(`  IA+AC tag usage (${tags.length} distinct tags):`)
+      console.log(`  IA+AC+SC tag usage (${tags.length} distinct tags):`)
       for (const t of tags.sort((a, b) => e.enforcedTagUsage[b] - e.enforcedTagUsage[a] || a.localeCompare(b)))
         console.log(`    ${String(e.enforcedTagUsage[t]).padStart(2)}  ${t}`)
     }
