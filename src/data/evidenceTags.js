@@ -679,6 +679,20 @@ export const evidenceTags = [
     relatedTags: ['firewall_ruleset', 'access_enforcement_configuration', 'monitoring_tool_configuration', 'alert_record', 'media_inventory'],
     antiExamples: ['A firewall rule allowing HTTPS traffic', 'A DLP alert generated after a violation', 'A removable media inventory spreadsheet'],
   },
+  {
+    id: 'security_advisory_record',
+    label: 'Security Advisory / Threat Intelligence Record',
+    category: 'Monitoring & Detection',
+    form: 'record',
+    definition: 'Evidence of subscription to and review of external security advisories and threat-intelligence sources, such as CISA alerts, CISA KEV, NVD/CVE feeds, vendor security bulletins, or ISAC feeds.',
+    useWhen: 'Use when the artifact shows the organization receiving, monitoring, reviewing, distributing, or assessing external security advisories or threat intelligence for applicability.',
+    doNotUseWhen: 'Do not use for system-generated SIEM, EDR, IDS, scanner, or monitoring alerts; use alert_record instead. Do not use for detection rule or sensor configuration; use monitoring_tool_configuration. Do not use for documented response procedures; use procedure_document. Do not use for changes, patches, or remediation performed in response; use change_management_record, patch_management_record, or remediation_record.',
+    examples: ['CISA KEV subscription or review log', 'Vendor security bulletin distribution list', 'Security advisory applicability review record'],
+    aliases: ['security advisory', 'security bulletin', 'vendor bulletin', 'threat intelligence feed', 'CISA alert', 'CISA KEV', 'CVE advisory', 'NVD feed', 'ISAC advisory'],
+    producedBy: ['CISA', 'NVD', 'Vendor security bulletin service', 'ISAC', 'Threat intelligence feed', 'Security advisory mailing list'],
+    relatedTags: ['alert_record', 'monitoring_tool_configuration', 'change_management_record', 'patch_management_record', 'remediation_record', 'vulnerability_scan_report'],
+    antiExamples: ['A SIEM-generated alert', 'An EDR malware detection alert', 'A detection rule configuration', 'A change ticket opened in response to an advisory', 'A patch deployment record'],
+  },
 
   // -----------------------------------------------------------------------
   // Vulnerability & Patch

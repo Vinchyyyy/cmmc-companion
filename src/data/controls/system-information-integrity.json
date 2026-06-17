@@ -4,67 +4,130 @@
     "family": "System and Information Integrity",
     "title": "Flaw Remediation",
     "controlText": "Identify, report, and correct information and information system flaws in a timely manner.",
-    "plainEnglish": "Establish and follow a defined process for finding system flaws (vulnerabilities, misconfigurations, bugs), reporting them, and fixing them within specified timeframes. Timeframes must be documented — not just 'as soon as possible' but specific windows based on severity. This is the operational practice that makes vulnerability scanning (RA.L2-3.11.2) and remediation (RA.L2-3.11.3) actionable at the system level. The Assessment Guide's objectives cover all six steps: time to identify, actual identification, time to report, actual reporting, time to correct, and actual correction.",
+    "plainEnglish": "Establish and follow a defined process for finding system flaws (vulnerabilities, misconfigurations, bugs), reporting them, and fixing them within specified timeframes. Timeframes must be documented \u2014 not just 'as soon as possible' but specific windows based on severity. This is the operational practice that makes vulnerability scanning (RA.L2-3.11.2) and remediation (RA.L2-3.11.3) actionable at the system level. The Assessment Guide's objectives cover all six steps: time to identify, actual identification, time to report, actual reporting, time to correct, and actual correction.",
     "objectives": [
       {
         "id": "a",
-        "text": "the time within which to identify system flaws is specified",
-        "whatToLookFor": "Documented policy or procedure specifying how frequently systems must be checked for flaws — typically via vulnerability scans on a defined schedule (monthly, quarterly). The timeframe must be written, not assumed.",
+        "text": "the time within which to identify system flaws is specified;",
+        "whatToLookFor": "Documented policy or procedure specifying how frequently systems must be checked for flaws \u2014 typically via vulnerability scans on a defined schedule (monthly, quarterly). The timeframe must be written, not assumed.",
         "commonEvidence": [
           "System and Information Integrity Policy with flaw identification timeframes",
           "Vulnerability management procedure defining scan frequency",
           "Patch management policy defining identification cadence"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document",
+            "vulnerability_scan_configuration"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "system flaws are identified within the specified time frame",
-        "whatToLookFor": "Evidence that identification actually occurs on schedule — vulnerability scan reports dated within the policy-defined period, configuration scan results, patch Tuesday review records.",
+        "text": "system flaws are identified within the specified time frame;",
+        "whatToLookFor": "Evidence that identification actually occurs on schedule \u2014 vulnerability scan reports dated within the policy-defined period, configuration scan results, patch Tuesday review records.",
         "commonEvidence": [
           "Vulnerability scan reports showing scan dates within defined period",
           "Configuration compliance scan reports",
           "Automated patch detection reports"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "vulnerability_scan_report"
+          ],
+          "acceptable": [
+            "configuration_compliance_report"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "the time within which to report system flaws is specified",
-        "whatToLookFor": "Documented timeframes for reporting identified flaws to the appropriate parties — security team, system owners, management. May be embedded in the vulnerability management procedure or incident response policy.",
+        "text": "the time within which to report system flaws is specified;",
+        "whatToLookFor": "Documented timeframes for reporting identified flaws to the appropriate parties \u2014 security team, system owners, management. May be embedded in the vulnerability management procedure or incident response policy.",
         "commonEvidence": [
           "Vulnerability management procedure with reporting timeframes",
           "Escalation procedure for critical vulnerabilities"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "procedure_document"
+          ],
+          "acceptable": [
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "system flaws are reported within the specified time frame",
-        "whatToLookFor": "Evidence that reporting occurs — vulnerability scan reports distributed to security and system owners, tickets opened in the tracking system within the required timeframe, SIEM alerts for new critical CVEs.",
+        "text": "system flaws are reported within the specified time frame;",
+        "whatToLookFor": "Evidence that reporting occurs \u2014 vulnerability scan reports distributed to security and system owners, tickets opened in the tracking system within the required timeframe, SIEM alerts for new critical CVEs.",
         "commonEvidence": [
           "Vulnerability report distribution records",
           "Ticketing system records showing flaw-to-ticket time",
           "Escalation records for critical findings"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "remediation_record"
+          ],
+          "acceptable": [
+            "vulnerability_scan_report"
+          ]
+        }
       },
       {
         "id": "e",
-        "text": "the time within which to correct system flaws is specified",
-        "whatToLookFor": "Documented remediation SLAs by severity — e.g., Critical within 15 days, High within 30 days, Medium within 90 days. Must be written and specific.",
+        "text": "the time within which to correct system flaws is specified; and",
+        "whatToLookFor": "Documented remediation SLAs by severity \u2014 e.g., Critical within 15 days, High within 30 days, Medium within 90 days. Must be written and specific.",
         "commonEvidence": [
           "Patch management policy with severity-based SLAs",
           "Vulnerability remediation SLA table",
           "POA&M with remediation target dates"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document",
+            "plan_of_action"
+          ]
+        }
       },
       {
         "id": "f",
-        "text": "system flaws are corrected within the specified time frame",
-        "whatToLookFor": "Evidence that corrections happen on schedule — patch deployment records, rescan results showing vulnerabilities closed, ticket closure records with dates. Aging reports showing how long vulnerabilities have been open.",
+        "text": "system flaws are corrected within the specified time frame.",
+        "whatToLookFor": "Evidence that corrections happen on schedule \u2014 patch deployment records, rescan results showing vulnerabilities closed, ticket closure records with dates. Aging reports showing how long vulnerabilities have been open.",
         "commonEvidence": [
           "Patch deployment records with deployment dates",
           "Rescan reports confirming vulnerability closure",
           "Vulnerability aging report showing open items vs SLA",
           "Configuration change records addressing misconfiguration findings"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "remediation_record"
+          ],
+          "acceptable": [
+            "patch_management_record",
+            "configuration_compliance_report"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -76,11 +139,11 @@
       "Vulnerability aging/SLA compliance reports"
     ],
     "commonGaps": [
-      "Remediation timeframes exist in policy but are not enforced — critical vulnerabilities open for months",
+      "Remediation timeframes exist in policy but are not enforced \u2014 critical vulnerabilities open for months",
       "Flaw identification depends on manual review rather than automated scanning on a defined schedule",
       "Patches tested and approved but never deployed to production",
-      "No rescan process — vulnerabilities marked closed without verification",
-      "Reporting step skipped — vulnerability scan runs but results are not distributed to system owners",
+      "No rescan process \u2014 vulnerabilities marked closed without verification",
+      "Reporting step skipped \u2014 vulnerability scan runs but results are not distributed to system owners",
       "SLAs defined for servers but not for workstations, network devices, or cloud resources"
     ]
   },
@@ -89,28 +152,48 @@
     "family": "System and Information Integrity",
     "title": "Malicious Code Protection",
     "controlText": "Provide protection from malicious code at appropriate locations within organizational information systems.",
-    "plainEnglish": "Deploy anti-malware or endpoint protection at every location where malicious code could execute or enter: endpoints, servers, email gateways, web proxies, and removable media entry points. 'Appropriate locations' is a judgment call informed by the attack paths malicious code uses — the Assessment Guide notes that email, removable media, and websites are primary delivery vectors. The control doesn't mandate a specific product, but it does require coverage across all vectors and that the protection is actually working.",
+    "plainEnglish": "Deploy anti-malware or endpoint protection at every location where malicious code could execute or enter: endpoints, servers, email gateways, web proxies, and removable media entry points. 'Appropriate locations' is a judgment call informed by the attack paths malicious code uses \u2014 the Assessment Guide notes that email, removable media, and websites are primary delivery vectors. The control doesn't mandate a specific product, but it does require coverage across all vectors and that the protection is actually working.",
     "objectives": [
       {
         "id": "a",
-        "text": "designated locations for malicious code protection are identified",
-        "whatToLookFor": "Documented identification of which system components require malicious code protection — workstations, servers, email gateway, web proxy, removable media entry points. Should be comprehensive enough to cover the attack surface.",
+        "text": "designated locations for malicious code protection are identified; and",
+        "whatToLookFor": "Documented identification of which system components require malicious code protection \u2014 workstations, servers, email gateway, web proxy, removable media entry points. Should be comprehensive enough to cover the attack surface.",
         "commonEvidence": [
           "System and Information Integrity Policy listing protected locations",
           "Endpoint protection deployment scope documentation",
           "Email security gateway scope documentation"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "malware_protection_configuration"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "protection from malicious code at designated locations is provided",
-        "whatToLookFor": "Technical evidence that protection is deployed and active at all identified locations — EDR/AV console showing coverage across endpoints, email gateway anti-malware configuration, SIEM showing active detections. Assessors look for both coverage (all endpoints enrolled) and activity (recent detection events showing the tool is functioning).",
+        "text": "protection from malicious code at designated locations is provided.",
+        "whatToLookFor": "Technical evidence that protection is deployed and active at all identified locations \u2014 EDR/AV console showing coverage across endpoints, email gateway anti-malware configuration, SIEM showing active detections. Assessors look for both coverage (all endpoints enrolled) and activity (recent detection events showing the tool is functioning).",
         "commonEvidence": [
           "Endpoint protection management console showing deployment coverage",
           "Email security gateway anti-malware configuration",
           "Malware detection event logs showing active monitoring",
           "Missing coverage report showing any gaps"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "malware_protection_configuration"
+          ],
+          "acceptable": [
+            "alert_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -122,10 +205,10 @@
     ],
     "commonGaps": [
       "Servers excluded from AV deployment due to performance concerns",
-      "Email gateway not scanning attachments — only endpoint AV deployed",
+      "Email gateway not scanning attachments \u2014 only endpoint AV deployed",
       "MDM-managed mobile devices excluded from endpoint protection",
       "Linux or macOS endpoints not covered by the Windows-centric AV deployment",
-      "AV deployed but showing stale signatures — not updating",
+      "AV deployed but showing stale signatures \u2014 not updating",
       "Cloud workloads not included in endpoint protection scope"
     ]
   },
@@ -134,39 +217,68 @@
     "family": "System and Information Integrity",
     "title": "Security Alerts and Advisories",
     "controlText": "Monitor system security alerts and advisories and take action in response.",
-    "plainEnglish": "Subscribe to security alerts and advisories from relevant sources — US-CERT/CISA, vendor security bulletins, NVD/CVE feeds, ISAC threat feeds — and act on them. The Assessment Guide requires three things: defined response actions, active monitoring, and actual response. It's not enough to be subscribed to email alerts if nobody reads them. The action response should be documented — when a critical advisory arrives, who reviews it, how applicability is assessed, and what gets done as a result (scan, patch, architecture change). The Assessment Guide example explicitly shows routing advisories through the change management process.",
+    "plainEnglish": "Subscribe to security alerts and advisories from relevant sources \u2014 US-CERT/CISA, vendor security bulletins, NVD/CVE feeds, ISAC threat feeds \u2014 and act on them. The Assessment Guide requires three things: defined response actions, active monitoring, and actual response. It's not enough to be subscribed to email alerts if nobody reads them. The action response should be documented \u2014 when a critical advisory arrives, who reviews it, how applicability is assessed, and what gets done as a result (scan, patch, architecture change). The Assessment Guide example explicitly shows routing advisories through the change management process.",
     "objectives": [
       {
         "id": "a",
-        "text": "response actions to system security alerts and advisories are identified",
-        "whatToLookFor": "Documented response process for security alerts — who receives them, how applicability is assessed, what response options exist (scan, patch, architecture change, accept), and who approves the response decision. Should align with the vulnerability management procedure.",
+        "text": "response actions to system security alerts and advisories are identified;",
+        "whatToLookFor": "Documented response process for security alerts \u2014 who receives them, how applicability is assessed, what response options exist (scan, patch, architecture change, accept), and who approves the response decision. Should align with the vulnerability management procedure.",
         "commonEvidence": [
           "Security alert response procedure",
           "Roles and responsibilities for alert review and response",
           "Documented escalation criteria for critical advisories"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "procedure_document"
+          ],
+          "acceptable": [
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "system security alerts and advisories are monitored",
-        "whatToLookFor": "Active subscription to relevant alert sources — CISA KEV, NVD notifications, vendor security bulletins, threat intelligence feeds. Evidence that monitoring is ongoing — subscription confirmation, email distribution lists, recent alerts received and reviewed.",
+        "text": "system security alerts and advisories are monitored; and",
+        "whatToLookFor": "Active subscription to relevant alert sources \u2014 CISA KEV, NVD notifications, vendor security bulletins, threat intelligence feeds. Evidence that monitoring is ongoing \u2014 subscription confirmation, email distribution lists, recent alerts received and reviewed.",
         "commonEvidence": [
           "CISA, NVD, or vendor security bulletin subscription records",
           "Threat intelligence feed configuration",
           "Distribution list for security advisories",
           "Records of recent advisories received and reviewed"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "security_advisory_record"
+          ],
+          "acceptable": []
+        }
       },
       {
         "id": "c",
-        "text": "actions in response to system security alerts and advisories are taken",
-        "whatToLookFor": "Evidence that advisories result in action — change management tickets generated from advisory review, vulnerability scans triggered by new CVE disclosures, configuration changes made in response to advisories. Even a documented 'not applicable' determination with reasoning satisfies this objective.",
+        "text": "actions in response to system security alerts and advisories are taken.",
+        "whatToLookFor": "Evidence that advisories result in action \u2014 change management tickets generated from advisory review, vulnerability scans triggered by new CVE disclosures, configuration changes made in response to advisories. Even a documented 'not applicable' determination with reasoning satisfies this objective.",
         "commonEvidence": [
           "Change management tickets referencing security advisories",
           "Vulnerability scan records triggered by advisory review",
           "Advisory applicability assessment records",
           "Patching records tied to specific CVE advisories"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "change_management_record"
+          ],
+          "acceptable": [
+            "remediation_record",
+            "patch_management_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -177,12 +289,12 @@
       "Advisory response tracking log"
     ],
     "commonGaps": [
-      "Subscribed to alert emails that nobody reads — alerts arrive but no review process",
+      "Subscribed to alert emails that nobody reads \u2014 alerts arrive but no review process",
       "No documented process for assessing advisory applicability",
-      "Advisory review happens informally with no records — nothing to show assessors",
-      "Response limited to patching — architecture or configuration responses not considered",
-      "CISA KEV not monitored — organization unaware of actively exploited vulnerabilities",
-      "Alert review done only by one person — single point of failure with no backup coverage"
+      "Advisory review happens informally with no records \u2014 nothing to show assessors",
+      "Response limited to patching \u2014 architecture or configuration responses not considered",
+      "CISA KEV not monitored \u2014 organization unaware of actively exploited vulnerabilities",
+      "Alert review done only by one person \u2014 single point of failure with no backup coverage"
     ]
   },
   {
@@ -190,18 +302,29 @@
     "family": "System and Information Integrity",
     "title": "Update Malicious Code Protection",
     "controlText": "Update malicious code protection mechanisms when new releases are available.",
-    "plainEnglish": "Anti-malware signatures, definitions, and engine versions must be kept current — ideally through automatic updates on a frequency commensurate with how fast malware evolves (daily). The Assessment Guide is explicit: 'Malware changes on an hourly or daily basis, and it is important to update detection and protection mechanisms frequently.' An AV product with signatures that are two weeks old is substantially less effective than one updated daily. This applies to both the signature/definition files and the protection engine itself.",
+    "plainEnglish": "Anti-malware signatures, definitions, and engine versions must be kept current \u2014 ideally through automatic updates on a frequency commensurate with how fast malware evolves (daily). The Assessment Guide is explicit: 'Malware changes on an hourly or daily basis, and it is important to update detection and protection mechanisms frequently.' An AV product with signatures that are two weeks old is substantially less effective than one updated daily. This applies to both the signature/definition files and the protection engine itself.",
     "objectives": [
       {
         "id": "a",
-        "text": "malicious code protection mechanisms are updated when new releases are available",
-        "whatToLookFor": "Evidence that updates are automatic and current — EDR/AV management console showing last signature update time within 24-48 hours for all enrolled endpoints. Update configuration showing automatic update enabled. Any endpoints with stale signatures should have documented justification and compensating control.",
+        "text": "malicious code protection mechanisms are updated when new releases are available.",
+        "whatToLookFor": "Evidence that updates are automatic and current \u2014 EDR/AV management console showing last signature update time within 24-48 hours for all enrolled endpoints. Update configuration showing automatic update enabled. Any endpoints with stale signatures should have documented justification and compensating control.",
         "commonEvidence": [
           "EDR/AV management console showing signature update timestamps",
           "Automatic update configuration settings",
           "Update frequency policy specifying required update cadence",
           "Report of endpoints with stale definitions"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "malware_protection_configuration"
+          ],
+          "acceptable": [
+            "patch_management_record",
+            "configuration_compliance_report"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -211,9 +334,9 @@
       "Stale definition report with any exceptions documented"
     ],
     "commonGaps": [
-      "Automatic updates disabled on servers due to change management concerns — manual update process falls behind",
+      "Automatic updates disabled on servers due to change management concerns \u2014 manual update process falls behind",
       "Endpoints in air-gapped or isolated segments not receiving definition updates",
-      "Update verification not monitored — signatures drift out of date without anyone noticing",
+      "Update verification not monitored \u2014 signatures drift out of date without anyone noticing",
       "Mobile devices excluded from centrally-managed signature updates",
       "Engine updates (not just definition updates) deferred indefinitely due to compatibility concerns"
     ]
@@ -223,38 +346,69 @@
     "family": "System and Information Integrity",
     "title": "System and File Scanning",
     "controlText": "Perform periodic scans of the information system and real-time scans of files from external sources as files are downloaded, opened, or executed.",
-    "plainEnglish": "Two types of scanning are required: periodic scans (scheduled full-system or disk scans against current signatures, typically daily or weekly) and real-time scanning of files arriving from external sources — downloads, email attachments, removable media, and any file opened from an external location. Real-time scanning is the primary protection against drive-by downloads and weaponized attachments. The Assessment Guide example explicitly mentions email gateway scanning and removable media scanning as required coverage areas.",
+    "plainEnglish": "Two types of scanning are required: periodic scans (scheduled full-system or disk scans against current signatures, typically daily or weekly) and real-time scanning of files arriving from external sources \u2014 downloads, email attachments, removable media, and any file opened from an external location. Real-time scanning is the primary protection against drive-by downloads and weaponized attachments. The Assessment Guide example explicitly mentions email gateway scanning and removable media scanning as required coverage areas.",
     "objectives": [
       {
         "id": "a",
-        "text": "the system is periodically scanned for malicious code",
-        "whatToLookFor": "Scheduled scan configuration showing periodic full scans enabled on endpoints and servers. Scan logs showing scans are executing on schedule. Management console showing last scan completion date within the required period.",
+        "text": "the frequency for malicious code scans is defined;",
+        "whatToLookFor": "A documented policy or procedure specifying how often malicious code (periodic) scans must be performed \u2014 typically daily or weekly. The frequency must be written, not assumed. Look for the System and Information Integrity Policy, malicious code protection procedure, or endpoint protection configuration baseline that states the scan schedule.",
         "commonEvidence": [
-          "Endpoint protection scheduled scan configuration",
-          "Scan completion logs from the management console",
-          "Scan schedule policy specifying frequency"
-        ]
+          "System and Information Integrity Policy with malicious code scan frequency",
+          "Endpoint protection configuration baseline specifying scan schedule",
+          "Malicious code protection procedure defining scan cadence"
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document",
+            "malware_protection_configuration"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "malicious code is identified as a result of periodic scans",
-        "whatToLookFor": "Evidence that periodic scans are actively detecting — detection event logs, quarantine records, or documented clean-scan results. A management console showing no detections ever is suspicious; some level of detection activity demonstrates the tool is functioning.",
+        "text": "malicious code scans are performed with the defined frequency; and",
+        "whatToLookFor": "Evidence that periodic malicious code scans are actually running on the defined schedule. Scheduled scan configuration enabled on endpoints and servers. Scan completion logs showing scans are executing on time. Management console showing last scan completion date within the required period.",
         "commonEvidence": [
-          "Malware detection and quarantine event logs",
-          "Periodic scan result summaries",
-          "Clean scan attestation records for critical systems"
-        ]
+          "Endpoint protection scheduled scan configuration",
+          "Scan completion logs from the management console",
+          "Periodic scan result summaries with dates"
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "malware_protection_configuration"
+          ],
+          "acceptable": [
+            "audit_log_sample"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "real-time scans of files from external sources are performed as files are downloaded, opened, or executed",
-        "whatToLookFor": "Real-time protection configuration enabled on all endpoints — on-access scanning active, email attachment scanning at the gateway or endpoint, removable media scanning triggered on connection. Configuration evidence plus detection event records showing real-time scanning is functioning.",
+        "text": "real-time malicious code scans of files from external sources as files are downloaded, opened, or executed are performed.",
+        "whatToLookFor": "Real-time protection configuration enabled on all endpoints \u2014 on-access scanning active, email attachment scanning at the gateway or endpoint, removable media scanning triggered on connection. Configuration evidence plus detection event records showing real-time scanning is functioning.",
         "commonEvidence": [
           "Real-time/on-access scanning configuration",
           "Email gateway attachment scanning configuration",
           "Removable media scan policy and configuration",
           "Real-time detection event logs"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "malware_protection_configuration"
+          ],
+          "acceptable": [
+            "alert_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -266,11 +420,11 @@
       "Removable media scan policy"
     ],
     "commonGaps": [
-      "Periodic scans scheduled but excluded large directories or drives — significant coverage gaps",
+      "Periodic scans scheduled but excluded large directories or drives \u2014 significant coverage gaps",
       "Real-time scanning disabled on high-performance servers due to resource impact",
-      "Email attachment scanning at gateway only — no endpoint real-time scanning for files downloaded via browser",
+      "Email attachment scanning at gateway only \u2014 no endpoint real-time scanning for files downloaded via browser",
       "Removable media not included in real-time scan scope",
-      "Scan logs not retained — no evidence of scan activity available for review",
+      "Scan logs not retained \u2014 no evidence of scan activity available for review",
       "On-access scanning bypassed by users with local admin rights"
     ]
   },
@@ -279,42 +433,75 @@
     "family": "System and Information Integrity",
     "title": "Monitor Communications for Attacks",
     "controlText": "Monitor organizational systems, including inbound and outbound communications traffic, to detect attacks and indicators of potential attacks.",
-    "plainEnglish": "Deploy monitoring at the network boundary and within the environment to detect attacks and indicators of attack in both inbound and outbound traffic. The Assessment Guide explicitly requires monitoring of both directions — inbound for external attacks, outbound for signs of compromise (malware beaconing, unauthorized exfiltration, lateral movement signaling). Tools include IDS/IPS, network traffic analysis, SIEM with network event sources, DNS monitoring, and proxy logs. The Assessment Guide notes that output from system monitoring 'serves as input to continuous monitoring and incident response programs,' directly linking this practice to CA.L2-3.12.3 and IR.L2-3.6.1.",
+    "plainEnglish": "Deploy monitoring at the network boundary and within the environment to detect attacks and indicators of attack in both inbound and outbound traffic. The Assessment Guide explicitly requires monitoring of both directions \u2014 inbound for external attacks, outbound for signs of compromise (malware beaconing, unauthorized exfiltration, lateral movement signaling). Tools include IDS/IPS, network traffic analysis, SIEM with network event sources, DNS monitoring, and proxy logs. The Assessment Guide notes that output from system monitoring 'serves as input to continuous monitoring and incident response programs,' directly linking this practice to CA.L2-3.12.3 and IR.L2-3.6.1.",
     "objectives": [
       {
         "id": "a",
-        "text": "the system is monitored to detect attacks and indicators of potential attacks",
-        "whatToLookFor": "System-level monitoring deployed — EDR behavioral detection on endpoints, host-based IDS/IPS, SIEM with system event correlation. Evidence that system monitoring is producing output that analysts review: SIEM alerts, EDR alerts, detection event logs.",
+        "text": "the system is monitored to detect attacks and indicators of potential attacks;",
+        "whatToLookFor": "System-level monitoring deployed \u2014 EDR behavioral detection on endpoints, host-based IDS/IPS, SIEM with system event correlation. Evidence that system monitoring is producing output that analysts review: SIEM alerts, EDR alerts, detection event logs.",
         "commonEvidence": [
           "EDR behavioral detection configuration",
           "SIEM event correlation rules for attack indicators",
           "Host-based IDS/IPS configuration",
           "System monitoring event logs and alert records"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "monitoring_tool_configuration"
+          ],
+          "acceptable": [
+            "alert_record",
+            "audit_log_sample"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "inbound communications traffic is monitored to detect attacks and indicators of potential attacks",
-        "whatToLookFor": "Network monitoring covering inbound traffic — IDS/IPS at the perimeter, firewall log analysis, web application firewall if applicable, DNS sinkhole or monitoring. Detection rules covering known attack signatures and anomalous inbound patterns. SIEM ingesting network boundary logs.",
+        "text": "inbound communications traffic is monitored to detect attacks and indicators of potential attacks; and",
+        "whatToLookFor": "Network monitoring covering inbound traffic \u2014 IDS/IPS at the perimeter, firewall log analysis, web application firewall if applicable, DNS sinkhole or monitoring. Detection rules covering known attack signatures and anomalous inbound patterns. SIEM ingesting network boundary logs.",
         "commonEvidence": [
           "Network IDS/IPS configuration showing inbound coverage",
           "Perimeter firewall log analysis configuration",
           "Web application firewall configuration if applicable",
           "DNS monitoring configuration",
           "SIEM ingestion from perimeter devices"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "monitoring_tool_configuration"
+          ],
+          "acceptable": [
+            "audit_log_sample",
+            "alert_record"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "outbound communications traffic is monitored to detect attacks and indicators of potential attacks",
-        "whatToLookFor": "Outbound monitoring capability — web proxy logs, DNS query monitoring, DLP or CASB for data exfiltration detection, firewall outbound log analysis, SIEM rules for unusual outbound patterns (beaconing, large transfers, connections to known-malicious IPs/domains).",
+        "text": "outbound communications traffic is monitored to detect attacks and indicators of potential attacks.",
+        "whatToLookFor": "Outbound monitoring capability \u2014 web proxy logs, DNS query monitoring, DLP or CASB for data exfiltration detection, firewall outbound log analysis, SIEM rules for unusual outbound patterns (beaconing, large transfers, connections to known-malicious IPs/domains).",
         "commonEvidence": [
           "Web proxy or secure web gateway configuration",
           "Outbound firewall log analysis rules in SIEM",
           "DNS monitoring for C2 indicators",
           "DLP or CASB outbound monitoring configuration",
           "Threat intelligence feed integration for outbound IOC matching"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "monitoring_tool_configuration"
+          ],
+          "acceptable": [
+            "dlp_configuration",
+            "audit_log_sample"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -326,12 +513,12 @@
       "Monitoring coverage documentation (what is monitored, where sensors are placed)"
     ],
     "commonGaps": [
-      "Inbound monitoring only — no outbound traffic analysis, missing exfiltration and C2 activity",
+      "Inbound monitoring only \u2014 no outbound traffic analysis, missing exfiltration and C2 activity",
       "IDS/IPS deployed at perimeter but not for internal east-west traffic",
       "SIEM collects logs but no detection rules configured for network attack patterns",
-      "DNS not monitored — major gap for detecting malware C2 and DNS tunneling",
-      "EDR deployed but behavioral detection disabled — only signature detection active",
-      "No DLP or outbound content inspection — unauthorized data exfiltration not detectable"
+      "DNS not monitored \u2014 major gap for detecting malware C2 and DNS tunneling",
+      "EDR deployed but behavioral detection disabled \u2014 only signature detection active",
+      "No DLP or outbound content inspection \u2014 unauthorized data exfiltration not detectable"
     ]
   },
   {
@@ -339,23 +526,33 @@
     "family": "System and Information Integrity",
     "title": "Identify Unauthorized Use",
     "controlText": "Identify unauthorized use of organizational systems.",
-    "plainEnglish": "Define what authorized use looks like — documented in an acceptable use policy, by role, by system — and then actively monitor for deviations. The Assessment Guide explicitly requires both definition (what is authorized) and detection (identifying what is not authorized). The practice is explicitly linked to AC.L1-3.1.1 (authorized users), AU.L2-3.3.1 (audit logs), and IA.L1-3.5.1/3.5.2 (identification) — those controls establish who can access what; this control detects when someone does something they shouldn't. Tools include SIEM user behavior analytics, EDR, DLP, UEBA, privileged access monitoring, and log review processes.",
+    "plainEnglish": "Define what authorized use looks like \u2014 documented in an acceptable use policy, by role, by system \u2014 and then actively monitor for deviations. The Assessment Guide explicitly requires both definition (what is authorized) and detection (identifying what is not authorized). The practice is explicitly linked to AC.L1-3.1.1 (authorized users), AU.L2-3.3.1 (audit logs), and IA.L1-3.5.1/3.5.2 (identification) \u2014 those controls establish who can access what; this control detects when someone does something they shouldn't. Tools include SIEM user behavior analytics, EDR, DLP, UEBA, privileged access monitoring, and log review processes.",
     "objectives": [
       {
         "id": "a",
-        "text": "authorized use of the system is defined",
-        "whatToLookFor": "Documented definition of what constitutes authorized use — acceptable use policy covering data types permitted for storage/processing, authorized personnel, permitted time windows, authorized software, and authorized external connections. Should be specific enough to make unauthorized use detectable.",
+        "text": "authorized use of the system is defined; and",
+        "whatToLookFor": "Documented definition of what constitutes authorized use \u2014 acceptable use policy covering data types permitted for storage/processing, authorized personnel, permitted time windows, authorized software, and authorized external connections. Should be specific enough to make unauthorized use detectable.",
         "commonEvidence": [
           "Acceptable Use Policy",
           "System-specific authorized use documentation",
           "User account provisioning policy defining permitted access scope",
           "Authorized software list"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "unauthorized use of the system is identified",
-        "whatToLookFor": "Active monitoring capability that can detect when authorized use boundaries are violated — SIEM user behavior rules, EDR process monitoring, DLP detection of data handling violations, privileged access monitoring, UEBA if deployed. Evidence that unauthorized use detections actually occur and are investigated.",
+        "text": "unauthorized use of the system is identified.",
+        "whatToLookFor": "Active monitoring capability that can detect when authorized use boundaries are violated \u2014 SIEM user behavior rules, EDR process monitoring, DLP detection of data handling violations, privileged access monitoring, UEBA if deployed. Evidence that unauthorized use detections actually occur and are investigated.",
         "commonEvidence": [
           "SIEM user behavior analysis rules",
           "EDR process and file access monitoring configuration",
@@ -363,7 +560,18 @@
           "Privileged access monitoring records",
           "Records of investigated unauthorized use incidents",
           "UEBA platform configuration if deployed"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "monitoring_tool_configuration"
+          ],
+          "acceptable": [
+            "dlp_configuration",
+            "alert_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -376,11 +584,11 @@
     ],
     "commonGaps": [
       "Acceptable use policy exists but no technical monitoring enforces or detects violations",
-      "Authorized use defined at a high level — insufficient specificity to make unauthorized use detectable",
+      "Authorized use defined at a high level \u2014 insufficient specificity to make unauthorized use detectable",
       "SIEM deployed but no user behavior detection rules configured",
-      "Privileged user actions not monitored — admins can do anything without detection",
-      "No investigation process for potential unauthorized use alerts — alerts fire but nobody reviews them",
-      "Assessment Guide explicitly links this to AC.L1-3.1.1 and AU.L2-3.3.1 — if those controls are weak, this one fails too"
+      "Privileged user actions not monitored \u2014 admins can do anything without detection",
+      "No investigation process for potential unauthorized use alerts \u2014 alerts fire but nobody reviews them",
+      "Assessment Guide explicitly links this to AC.L1-3.1.1 and AU.L2-3.3.1 \u2014 if those controls are weak, this one fails too"
     ]
   }
 ]
