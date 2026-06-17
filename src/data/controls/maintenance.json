@@ -4,12 +4,12 @@
     "family": "Maintenance",
     "title": "Perform Maintenance",
     "controlText": "Perform maintenance on organizational systems.",
-    "plainEnglish": "The organization must actually perform maintenance on its systems — not just have a policy that says it will. Maintenance is broadly defined and includes corrective maintenance (repairing problems), preventative maintenance (updates to prevent potential problems), adaptive maintenance (changes to the operative environment), and perfective maintenance (improving operations). This covers all system components: hardware, firmware, applications, and even ancillary devices like printers, scanners, and copiers. The Assessment Guide notes that regular patching is one common form but is not the only form. The single objective is that maintenance is performed — assessors look for records showing that maintenance actually happens on a regular, documented basis.",
+    "plainEnglish": "The organization must actually perform maintenance on its systems \u2014 not just have a policy that says it will. Maintenance is broadly defined and includes corrective maintenance (repairing problems), preventative maintenance (updates to prevent potential problems), adaptive maintenance (changes to the operative environment), and perfective maintenance (improving operations). This covers all system components: hardware, firmware, applications, and even ancillary devices like printers, scanners, and copiers. The Assessment Guide notes that regular patching is one common form but is not the only form. The single objective is that maintenance is performed \u2014 assessors look for records showing that maintenance actually happens on a regular, documented basis.",
     "objectives": [
       {
         "id": "a",
-        "text": "system maintenance is performed",
-        "whatToLookFor": "Evidence that maintenance is actually performed — maintenance records, patch logs, work orders, vendor service records, or change management tickets showing maintenance activities completed on organizational systems. Assessors look for a pattern of regular, documented activity rather than one-off records. The records should cover the four types of maintenance: corrective, preventative, adaptive, and perfective. A maintenance policy alone does not satisfy this objective — it must be backed by execution records.",
+        "text": "system maintenance is performed.",
+        "whatToLookFor": "Evidence that maintenance is actually performed \u2014 maintenance records, patch logs, work orders, vendor service records, or change management tickets showing maintenance activities completed on organizational systems. Assessors look for a pattern of regular, documented activity rather than one-off records. The records should cover the four types of maintenance: corrective, preventative, adaptive, and perfective. A maintenance policy alone does not satisfy this objective \u2014 it must be backed by execution records.",
         "commonEvidence": [
           "Maintenance records and work orders showing completed maintenance activities",
           "Patch management logs showing patch deployment history",
@@ -17,7 +17,18 @@
           "Change management tickets categorized as maintenance activities",
           "System maintenance schedule with completed-activity tracking",
           "Equipment service logs for ancillary devices (printers, scanners, copiers)"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "maintenance_record"
+          ],
+          "acceptable": [
+            "patch_management_record",
+            "change_management_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -30,9 +41,9 @@
       "System Security Plan section on maintenance procedures"
     ],
     "commonGaps": [
-      "Maintenance is performed but not documented — no records exist to demonstrate compliance",
+      "Maintenance is performed but not documented \u2014 no records exist to demonstrate compliance",
       "Patch management exists for servers but not for workstations, printers, or network equipment",
-      "No defined maintenance schedule — maintenance only happens reactively when something breaks",
+      "No defined maintenance schedule \u2014 maintenance only happens reactively when something breaks",
       "Vendor maintenance contracts exist but no internal records confirm the work was actually performed",
       "Maintenance records cover IT assets but not ancillary devices that process or store CUI (multifunction printers, scanners)",
       "Patching is performed ad hoc with no tracking of outstanding patches or patch age"
@@ -43,51 +54,92 @@
     "family": "Maintenance",
     "title": "System Maintenance Control",
     "controlText": "Provide controls on the tools, techniques, mechanisms, and personnel used to conduct system maintenance.",
-    "plainEnglish": "Everything used to perform system maintenance — the tools, the techniques, the mechanisms, and the people — must be controlled. Maintenance tools are potential vectors for introducing malicious code into systems, either intentionally or unintentionally. The Assessment Guide calls out four distinct categories that assessors evaluate independently: tools (hardware/software diagnostic equipment, packet sniffers), techniques (procedures and methods), mechanisms (automated scripts, scheduled jobs, administrative portals), and personnel (who is authorized to perform maintenance and how they are supervised). Controls may include approving and inventorying tools, access-restricting maintenance entry points, and ensuring only authorized individuals perform maintenance activities.",
+    "plainEnglish": "Everything used to perform system maintenance \u2014 the tools, the techniques, the mechanisms, and the people \u2014 must be controlled. Maintenance tools are potential vectors for introducing malicious code into systems, either intentionally or unintentionally. The Assessment Guide calls out four distinct categories that assessors evaluate independently: tools (hardware/software diagnostic equipment, packet sniffers), techniques (procedures and methods), mechanisms (automated scripts, scheduled jobs, administrative portals), and personnel (who is authorized to perform maintenance and how they are supervised). Controls may include approving and inventorying tools, access-restricting maintenance entry points, and ensuring only authorized individuals perform maintenance activities.",
     "objectives": [
       {
         "id": "a",
-        "text": "tools used to conduct system maintenance are controlled",
-        "whatToLookFor": "An approved inventory of maintenance tools with access restrictions ensuring only authorized personnel can use them. Assessors look for evidence that tools are vetted before use (scanned for malware, version-controlled), that unauthorized tools cannot be introduced, and that the tool inventory is current. Diagnostic hardware and software — including packet sniffers, diagnostic USB drives, and vendor-provided utilities — should all be accounted for.",
+        "text": "tools used to conduct system maintenance are controlled;",
+        "whatToLookFor": "An approved inventory of maintenance tools with access restrictions ensuring only authorized personnel can use them. Assessors look for evidence that tools are vetted before use (scanned for malware, version-controlled), that unauthorized tools cannot be introduced, and that the tool inventory is current. Diagnostic hardware and software \u2014 including packet sniffers, diagnostic USB drives, and vendor-provided utilities \u2014 should all be accounted for.",
         "commonEvidence": [
           "Approved maintenance tool inventory with version and access controls",
           "Tool check-out/check-in procedures",
           "Scan or verification records confirming maintenance tools are malware-free before use",
           "Access controls limiting maintenance tool storage locations to authorized personnel"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "maintenance_tool_control_record"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "techniques used to conduct system maintenance are controlled",
-        "whatToLookFor": "Documented, approved maintenance procedures and techniques — not ad hoc methods chosen by whoever is performing the work. Assessors look for standardized runbooks or procedures, access controls on maintenance documentation, and evidence that personnel follow approved techniques rather than improvising.",
+        "text": "techniques used to conduct system maintenance are controlled;",
+        "whatToLookFor": "Documented, approved maintenance procedures and techniques \u2014 not ad hoc methods chosen by whoever is performing the work. Assessors look for standardized runbooks or procedures, access controls on maintenance documentation, and evidence that personnel follow approved techniques rather than improvising.",
         "commonEvidence": [
           "Documented maintenance procedures and runbooks",
           "Access-controlled maintenance documentation repository",
           "Change management or work order templates specifying approved techniques",
           "Audit records showing adherence to defined maintenance procedures"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "procedure_document"
+          ],
+          "acceptable": [
+            "maintenance_record"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "mechanisms used to conduct system maintenance are controlled",
-        "whatToLookFor": "Access controls on automated maintenance mechanisms — scripts, scheduled jobs, administrative portals, console access points, and physical equipment panels. Assessors verify that these entry points require authentication, that access is restricted to authorized maintenance personnel, and that there is visibility into when and how these mechanisms are used.",
+        "text": "mechanisms used to conduct system maintenance are controlled; and",
+        "whatToLookFor": "Access controls on automated maintenance mechanisms \u2014 scripts, scheduled jobs, administrative portals, console access points, and physical equipment panels. Assessors verify that these entry points require authentication, that access is restricted to authorized maintenance personnel, and that there is visibility into when and how these mechanisms are used.",
         "commonEvidence": [
           "Access control configuration for administrative portals used during maintenance",
           "Authentication requirements for local and remote console access",
           "Scheduled task / cron job inventory with ownership and authorization records",
           "Audit logs showing access to maintenance mechanisms with attribution"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "access_enforcement_configuration"
+          ],
+          "acceptable": [
+            "audit_log_sample",
+            "service_account_inventory"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "personnel used to conduct system maintenance are controlled",
+        "text": "personnel used to conduct system maintenance are controlled.",
         "whatToLookFor": "A defined list or process for authorizing maintenance personnel, with evidence that unauthorized individuals are supervised or escorted. Assessors look for access authorization records, vendor and contractor management procedures, and controls ensuring that only vetted individuals perform unsupervised maintenance on CUI systems.",
         "commonEvidence": [
           "Authorized maintenance personnel list with approval records",
           "Vendor and contractor access authorization procedures",
           "Supervision or escort records for maintenance personnel without standing authorization",
           "Temporary credential issuance records with expiration controls for short-term maintenance personnel"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "access_authorization_record"
+          ],
+          "acceptable": [
+            "account_lifecycle_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -100,12 +152,12 @@
       "Temporary credential records for short-term maintenance visitors"
     ],
     "commonGaps": [
-      "No approved tool inventory — maintenance technicians bring in personal laptops or USB drives with no vetting",
-      "Maintenance techniques undocumented — each administrator uses their own approach with no standardization",
+      "No approved tool inventory \u2014 maintenance technicians bring in personal laptops or USB drives with no vetting",
+      "Maintenance techniques undocumented \u2014 each administrator uses their own approach with no standardization",
       "Administrative portals and console access have no authentication beyond network-level access (no separate maintenance access controls)",
-      "Any IT staff member can perform maintenance on CUI systems — no formal authorization process for maintenance personnel",
+      "Any IT staff member can perform maintenance on CUI systems \u2014 no formal authorization process for maintenance personnel",
       "Vendor technicians given full administrative accounts rather than time-limited, scope-restricted temporary credentials",
-      "Maintenance tools not scanned for malware before connecting to systems — malware introduction risk unmitigated"
+      "Maintenance tools not scanned for malware before connecting to systems \u2014 malware introduction risk unmitigated"
     ]
   },
   {
@@ -113,11 +165,11 @@
     "family": "Maintenance",
     "title": "Equipment Sanitization",
     "controlText": "Ensure equipment removed for off-site maintenance is sanitized of any CUI.",
-    "plainEnglish": "Before any equipment leaves organizational facilities for off-site maintenance — whether for hardware repair, vendor service, or warranty replacement — it must be sanitized to ensure no CUI remains on it. Sanitization means making data access infeasible on the media: overwriting with fixed patterns, purging via degaussing or secure erase, or destroying the media entirely if sanitization is not possible. The Assessment Guide references NIST SP 800-88 as the authoritative guidance for selecting the appropriate sanitization method for a given media type. This is a single-objective control but has significant documentation requirements: assessors expect to see both a sanitization process and sanitization records showing it was actually followed for equipment that left the facility.",
+    "plainEnglish": "Before any equipment leaves organizational facilities for off-site maintenance \u2014 whether for hardware repair, vendor service, or warranty replacement \u2014 it must be sanitized to ensure no CUI remains on it. Sanitization means making data access infeasible on the media: overwriting with fixed patterns, purging via degaussing or secure erase, or destroying the media entirely if sanitization is not possible. The Assessment Guide references NIST SP 800-88 as the authoritative guidance for selecting the appropriate sanitization method for a given media type. This is a single-objective control but has significant documentation requirements: assessors expect to see both a sanitization process and sanitization records showing it was actually followed for equipment that left the facility.",
     "objectives": [
       {
         "id": "a",
-        "text": "equipment to be removed from organizational spaces for off-site maintenance is sanitized of any CUI",
+        "text": "equipment to be removed from organizational spaces for off-site maintenance is sanitized of any CUI.",
         "whatToLookFor": "A defined sanitization process for equipment leaving the facility for off-site maintenance, and records showing that process was followed for specific equipment. Records should identify the equipment, the sanitization method applied (referencing NIST 800-88 categories: clear, purge, destroy), the date, and the person who performed the sanitization. For storage arrays, hard drives, and laptops this is straightforward; for equipment where data removal is not technically feasible, the records should document the destruction action taken.",
         "commonEvidence": [
           "Equipment sanitization procedure referencing NIST SP 800-88",
@@ -125,7 +177,17 @@
           "Degaussing logs or secure-erase tool output records",
           "Chain-of-custody documentation for equipment sent to vendor",
           "Destruction certificates for equipment where sanitization was not feasible"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "media_sanitization_record"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -137,12 +199,12 @@
       "Destruction certificates for media that could not be sanitized"
     ],
     "commonGaps": [
-      "No sanitization process defined — equipment is shipped to vendors with whatever data remains on it",
-      "Sanitization is performed but not documented — cannot demonstrate compliance to an assessor",
+      "No sanitization process defined \u2014 equipment is shipped to vendors with whatever data remains on it",
+      "Sanitization is performed but not documented \u2014 cannot demonstrate compliance to an assessor",
       "Only hard drives sanitized; firmware, NVRAM, and solid-state storage in other components overlooked",
-      "Sanitization policy exists but applies only to disposal, not to maintenance handoffs — the off-site maintenance scenario is not covered",
+      "Sanitization policy exists but applies only to disposal, not to maintenance handoffs \u2014 the off-site maintenance scenario is not covered",
       "Technicians use 'delete files' or format commands rather than NIST 800-88 compliant sanitization methods",
-      "No chain-of-custody record between sanitization and handoff to vendor — gap in audit trail"
+      "No chain-of-custody record between sanitization and handoff to vendor \u2014 gap in audit trail"
     ]
   },
   {
@@ -150,11 +212,11 @@
     "family": "Maintenance",
     "title": "Media Inspection",
     "controlText": "Check media containing diagnostic and test programs for malicious code before the media are used in organizational systems.",
-    "plainEnglish": "Any media — USB drives, diagnostic software downloads, vendor-provided utilities, or test tools — that contain diagnostic or test programs must be scanned for malicious code before being connected to or installed on organizational systems. The Assessment Guide explicitly notes this extends SI.L1-3.14.2 (malicious code protection) and SI.L1-3.14.4 (update malicious code protection) specifically to the maintenance context, where vendor-supplied diagnostic tools are a common and often under-scrutinized attack vector. If malicious code is found during inspection, the incident must be handled per the IR program. The single objective is that the check happens — assessors want to see both a defined process and evidence of execution.",
+    "plainEnglish": "Any media \u2014 USB drives, diagnostic software downloads, vendor-provided utilities, or test tools \u2014 that contain diagnostic or test programs must be scanned for malicious code before being connected to or installed on organizational systems. The Assessment Guide explicitly notes this extends SI.L1-3.14.2 (malicious code protection) and SI.L1-3.14.4 (update malicious code protection) specifically to the maintenance context, where vendor-supplied diagnostic tools are a common and often under-scrutinized attack vector. If malicious code is found during inspection, the incident must be handled per the IR program. The single objective is that the check happens \u2014 assessors want to see both a defined process and evidence of execution.",
     "objectives": [
       {
         "id": "a",
-        "text": "media containing diagnostic and test programs are checked for malicious code before being used in organizational systems that process, store, or transmit CUI",
+        "text": "media containing diagnostic and test programs are checked for malicious code before being used in organizational systems that process, store, or transmit CUI.",
         "whatToLookFor": "A defined procedure for scanning maintenance media before use, and records showing the scans were performed. Assessors look for evidence that the check is systematic (not optional), that it covers all categories of maintenance media (not just USB drives but also downloaded utilities, vendor FTP deliveries, and diagnostic software), and that hash verification is used where possible to confirm file integrity. For downloaded files, records of the antivirus scan output and hash verification against vendor-published values are the expected evidence.",
         "commonEvidence": [
           "Media inspection procedure requiring malware scan before maintenance media use",
@@ -162,7 +224,18 @@
           "Hash verification records confirming file integrity against vendor-published checksums",
           "Incident records for any positive malware detections during media inspection",
           "Maintenance records noting media inspection completion before tool use"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "maintenance_tool_control_record"
+          ],
+          "acceptable": [
+            "procedure_document",
+            "malware_protection_configuration"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -174,11 +247,11 @@
     ],
     "commonGaps": [
       "Vendor-provided diagnostic utilities installed directly from vendor FTP with no malware scan",
-      "Media inspection only covers USB drives — downloaded software utilities not scanned",
-      "Antivirus scans performed but not documented — no records to demonstrate the check occurred",
-      "No hash verification performed — file integrity confirmation absent even when vendors publish checksums",
+      "Media inspection only covers USB drives \u2014 downloaded software utilities not scanned",
+      "Antivirus scans performed but not documented \u2014 no records to demonstrate the check occurred",
+      "No hash verification performed \u2014 file integrity confirmation absent even when vendors publish checksums",
       "Inspection policy exists for end-user file downloads but maintenance technicians are treated as an exception",
-      "Positive malware detection during media inspection not treated as an incident — handled informally without IR procedures"
+      "Positive malware detection during media inspection not treated as an incident \u2014 handled informally without IR procedures"
     ]
   },
   {
@@ -186,29 +259,50 @@
     "family": "Maintenance",
     "title": "Nonlocal Maintenance",
     "controlText": "Require multifactor authentication to establish nonlocal maintenance sessions via external network connections and terminate such connections when nonlocal maintenance is complete.",
-    "plainEnglish": "When maintenance is performed remotely — via an external network connection rather than from within the facility — multifactor authentication must be required to establish the session, and the connection must be terminated when the maintenance is complete. The Assessment Guide explicitly ties this to IA.L2-3.5.3 (MFA for network access) and five remote access controls (AC.L2-3.1.12 through AC.L2-3.1.15). This is not a new concept for most organizations, but the maintenance context matters: vendor remote support sessions, firewall management interfaces accessed from home, and remote desktop connections used by sysadmins conducting maintenance all fall under this control. Two objectives are assessed independently: MFA is used to establish the session, and the session is terminated when maintenance is complete.",
+    "plainEnglish": "When maintenance is performed remotely \u2014 via an external network connection rather than from within the facility \u2014 multifactor authentication must be required to establish the session, and the connection must be terminated when the maintenance is complete. The Assessment Guide explicitly ties this to IA.L2-3.5.3 (MFA for network access) and five remote access controls (AC.L2-3.1.12 through AC.L2-3.1.15). This is not a new concept for most organizations, but the maintenance context matters: vendor remote support sessions, firewall management interfaces accessed from home, and remote desktop connections used by sysadmins conducting maintenance all fall under this control. Two objectives are assessed independently: MFA is used to establish the session, and the session is terminated when maintenance is complete.",
     "objectives": [
       {
         "id": "a",
-        "text": "multifactor authentication is used to establish nonlocal maintenance sessions via external network connections",
-        "whatToLookFor": "Evidence that MFA is required before any remote maintenance session can be established — not just for general remote access but specifically for maintenance interfaces (firewall management consoles, jump servers, out-of-band management, remote desktop). Assessors look at authentication logs and configuration evidence showing that MFA cannot be bypassed for maintenance sessions, including by privileged users and vendor technicians.",
+        "text": "multifactor authentication is used to establish nonlocal maintenance sessions via external network connections; and",
+        "whatToLookFor": "Evidence that MFA is required before any remote maintenance session can be established \u2014 not just for general remote access but specifically for maintenance interfaces (firewall management consoles, jump servers, out-of-band management, remote desktop). Assessors look at authentication logs and configuration evidence showing that MFA cannot be bypassed for maintenance sessions, including by privileged users and vendor technicians.",
         "commonEvidence": [
           "MFA configuration records for remote maintenance interfaces (firewall management, jump servers, IPMI/BMC)",
           "Authentication logs showing MFA challenges for remote maintenance sessions",
           "Vendor remote access procedures requiring MFA before support session establishment",
           "VPN configuration enforcing MFA for connections used for remote maintenance"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "mfa_configuration"
+          ],
+          "acceptable": [
+            "remote_access_configuration",
+            "audit_log_sample"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "nonlocal maintenance sessions established via external network connections are terminated when nonlocal maintenance is complete",
-        "whatToLookFor": "Evidence that remote maintenance sessions are not left open indefinitely after maintenance is complete — either through manual termination procedures documented in work orders, or through automated session timeout policies. Assessors look for session duration records showing connections are closed after maintenance, configuration evidence of session timeouts, and maintenance work order completion steps requiring session termination.",
+        "text": "nonlocal maintenance sessions established via external network connections are terminated when nonlocal maintenance is complete.",
+        "whatToLookFor": "Evidence that remote maintenance sessions are not left open indefinitely after maintenance is complete \u2014 either through manual termination procedures documented in work orders, or through automated session timeout policies. Assessors look for session duration records showing connections are closed after maintenance, configuration evidence of session timeouts, and maintenance work order completion steps requiring session termination.",
         "commonEvidence": [
           "Session termination records in maintenance work orders (logged-out, connection closed)",
           "Session timeout configuration for remote maintenance interfaces",
           "VPN or remote access logs showing session duration aligned with maintenance windows",
           "Vendor remote access session logs with clear start and end times"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "remote_access_configuration"
+          ],
+          "acceptable": [
+            "maintenance_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -221,11 +315,11 @@
     ],
     "commonGaps": [
       "MFA enforced for general VPN access but remote maintenance interfaces (IPMI, out-of-band management) are accessible without MFA",
-      "Vendor remote support sessions do not require MFA — vendors connect via shared credentials or single-factor access",
-      "Remote maintenance sessions left open after work is complete — no termination requirement enforced",
-      "Session timeouts configured but set at 8–24 hours, effectively allowing sessions to persist indefinitely",
+      "Vendor remote support sessions do not require MFA \u2014 vendors connect via shared credentials or single-factor access",
+      "Remote maintenance sessions left open after work is complete \u2014 no termination requirement enforced",
+      "Session timeouts configured but set at 8\u201324 hours, effectively allowing sessions to persist indefinitely",
       "MFA used for initial VPN connection but the maintenance interface itself accepts single-factor authentication once on the network",
-      "No maintenance session records — cannot demonstrate whether sessions were terminated upon completion"
+      "No maintenance session records \u2014 cannot demonstrate whether sessions were terminated upon completion"
     ]
   },
   {
@@ -233,11 +327,11 @@
     "family": "Maintenance",
     "title": "Maintenance Personnel",
     "controlText": "Supervise the maintenance activities of maintenance personnel without required access authorization.",
-    "plainEnglish": "When maintenance must be performed by individuals who do not hold the required access authorization for the systems they are working on — vendors, contractors, IT manufacturers, consultants, or systems integrators without prior vetting — their activities must be supervised. The Assessment Guide explicitly notes this applies to hardware and software maintenance on organizational systems (distinct from PE.L1-3.10.1 which covers physical plant maintenance). Organizations may issue temporary credentials with short-term expiration for these individuals rather than standing accounts, and should apply the principle of least privilege: access limited to only the systems necessary to complete the work. The single objective is that supervision occurs for unauthorized-access personnel — assessors look for both a defined supervision process and evidence it was followed.",
+    "plainEnglish": "When maintenance must be performed by individuals who do not hold the required access authorization for the systems they are working on \u2014 vendors, contractors, IT manufacturers, consultants, or systems integrators without prior vetting \u2014 their activities must be supervised. The Assessment Guide explicitly notes this applies to hardware and software maintenance on organizational systems (distinct from PE.L1-3.10.1 which covers physical plant maintenance). Organizations may issue temporary credentials with short-term expiration for these individuals rather than standing accounts, and should apply the principle of least privilege: access limited to only the systems necessary to complete the work. The single objective is that supervision occurs for unauthorized-access personnel \u2014 assessors look for both a defined supervision process and evidence it was followed.",
     "objectives": [
       {
         "id": "a",
-        "text": "maintenance personnel without required access authorization are supervised during maintenance activities",
+        "text": "maintenance personnel without required access authorization are supervised during maintenance activities.",
         "whatToLookFor": "Evidence that a supervision process exists for maintenance personnel without prior access authorization, and records showing the process was followed for specific maintenance events. Supervision may be physical (escorting vendor technicians through the data center) or logical (monitoring network activity, using screen-sharing observation). Assessors expect to see temporary credential records with expiration dates and scope limitations, and supervision logs or notes documenting the oversight that occurred.",
         "commonEvidence": [
           "Supervision procedures for maintenance personnel without standing access authorization",
@@ -246,7 +340,18 @@
           "Network monitoring records during vendor maintenance sessions",
           "Maintenance completion sign-off confirming access was revoked post-maintenance",
           "Service vendor access authorization forms with scope and duration limits"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "physical_access_record"
+          ],
+          "acceptable": [
+            "account_lifecycle_record",
+            "monitoring_tool_configuration"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -258,11 +363,11 @@
       "Network or session monitoring logs for vendor maintenance activities"
     ],
     "commonGaps": [
-      "Vendor technicians given the same full-access service account used by internal IT — no scope restriction or expiration",
+      "Vendor technicians given the same full-access service account used by internal IT \u2014 no scope restriction or expiration",
       "Supervision process defined in policy but no records showing supervision actually occurred during specific maintenance events",
       "Temporary accounts created for vendors but never disabled after maintenance is complete",
-      "No visitor or escort log for on-site vendor maintenance — physical supervision undocumented",
-      "Vendor remote maintenance sessions not monitored — technician activity during remote session is unobserved",
+      "No visitor or escort log for on-site vendor maintenance \u2014 physical supervision undocumented",
+      "Vendor remote maintenance sessions not monitored \u2014 technician activity during remote session is unobserved",
       "Access authorization process only applies to new employees; external maintenance contractors bypass it entirely"
     ]
   }

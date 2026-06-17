@@ -529,19 +529,18 @@ async function validateEvidenceTags() {
 }
 
 // =========================================================================
-// 9 – Objective expectedTags  (validates against evidence tag IDs; IA enforced)
+// 9 – Objective expectedTags  (validates against evidence tag IDs; all 14 families enforced)
 // =========================================================================
 function validateExpectedTags(validTagIds) {
   let withTags = 0
   let missingCount = 0
-  let nonEnforcedArtifactishMissing = 0
   const waived = []
   const enforcedTagUsage = {}
 
   for (const c of allControls) {
     if (!Array.isArray(c?.objectives)) continue
     const fam = String(c.id || '').slice(0, 2)
-    const enforced = fam === 'IA' || fam === 'AC' || fam === 'SC' || fam === 'AU' || fam === 'CM' || fam === 'SI' || fam === 'RA' || fam === 'CA' || fam === 'IR' || fam === 'MP' || fam === 'PE' || fam === 'PS' || fam === 'AT'
+    const enforced = fam === 'IA' || fam === 'AC' || fam === 'SC' || fam === 'AU' || fam === 'CM' || fam === 'SI' || fam === 'RA' || fam === 'CA' || fam === 'IR' || fam === 'MP' || fam === 'PE' || fam === 'PS' || fam === 'AT' || fam === 'MA'
 
     for (const o of c.objectives) {
       bumpCheck('ExpectedTags')
@@ -559,10 +558,8 @@ function validateExpectedTags(validTagIds) {
           waived.push(`${c.id}[${o?.id}]`)
         } else {
           missingCount++
-          if (isArtifactish) {
-            if (enforced) recordFailure('ExpectedTags', `${lbl}: ${fam} ${ec} objective is missing expectedTags`)
-            else nonEnforcedArtifactishMissing++
-          }
+          if (isArtifactish && enforced)
+            recordFailure('ExpectedTags', `${lbl}: ${fam} ${ec} objective is missing expectedTags`)
         }
         continue
       }
@@ -598,9 +595,6 @@ function validateExpectedTags(validTagIds) {
       if (enforced) for (const t of [...primary, ...acceptable]) enforcedTagUsage[t] = (enforcedTagUsage[t] || 0) + 1
     }
   }
-
-  if (nonEnforcedArtifactishMissing > 0)
-    recordWarning('ExpectedTags', `${nonEnforcedArtifactishMissing} non-IA/AC/SC/AU/CM/SI/RA/CA/IR/MP/PE/PS/AT artifact/mixed objectives have no expectedTags yet (expected during phased rollout; IA, AC, SC, AU, CM, SI, RA, CA, IR, MP, PE, PS, and AT are enforced)`)
 
   expectedTagsSummary = { withTags, missingCount, waived, enforcedTagUsage }
 }
@@ -638,12 +632,12 @@ function validateExpectedTags(validTagIds) {
 
   if (expectedTagsSummary) {
     const e = expectedTagsSummary
-    console.log(`\nObjective expectedTags: ${e.withTags} mapped, ${e.missingCount} unmapped (non-IA/AC/SC/AU/CM/SI/RA/CA/IR/MP/PE/PS/AT, expected during phased rollout), ${e.waived.length} intentionally waived`)
-    console.log(`  enforced families: IA, AC, SC, AU, CM, SI, RA, CA, IR, MP, PE, PS, AT`)
+    console.log(`\nObjective expectedTags: ${e.withTags} mapped, ${e.missingCount} unmapped, ${e.waived.length} intentionally waived`)
+    console.log(`  enforced families: all 14 (IA, AC, SC, AU, CM, SI, RA, CA, IR, MP, PE, PS, AT, MA)`)
     if (e.waived.length) console.log(`  waived: ${e.waived.join(', ')}`)
     const tags = Object.keys(e.enforcedTagUsage)
     if (tags.length) {
-      console.log(`  IA+AC+SC+AU+CM+SI+RA+CA+IR+MP+PE+PS+AT tag usage (${tags.length} distinct tags):`)
+      console.log(`  enforced-family tag usage across all 14 families (${tags.length} distinct tags):`)
       for (const t of tags.sort((a, b) => e.enforcedTagUsage[b] - e.enforcedTagUsage[a] || a.localeCompare(b)))
         console.log(`    ${String(e.enforcedTagUsage[t]).padStart(2)}  ${t}`)
     }
