@@ -4,12 +4,12 @@
     "family": "Media Protection",
     "title": "Media Disposal",
     "controlText": "Sanitize or destroy information system media containing Federal Contract Information before disposal or release for reuse.",
-    "plainEnglish": "Before any media is thrown away or repurposed, all Federal Contract Information (FCI) on it must be removed in a way that makes recovery infeasible. This is a Level 1 FAR-referenced practice (FAR Clause 52.204-21) applying to both digital and non-digital media — hard drives, USB drives, CDs, DVDs, magnetic tapes, paper documents, and microfilm all fall in scope. NIST SP 800-88 provides the authoritative framework for selecting the appropriate method: Clear (overwrite), Purge (degauss, secure erase, disassemble), or Destroy (incinerate, shred, pulverize). Two objectives are assessed independently: sanitization/destruction before disposal, and sanitization before reuse. Organizations releasing equipment for reuse — not just disposal — must sanitize it first.",
+    "plainEnglish": "Before any media is thrown away or repurposed, all Federal Contract Information (FCI) on it must be removed in a way that makes recovery infeasible. This is a Level 1 FAR-referenced practice (FAR Clause 52.204-21) applying to both digital and non-digital media \u2014 hard drives, USB drives, CDs, DVDs, magnetic tapes, paper documents, and microfilm all fall in scope. NIST SP 800-88 provides the authoritative framework for selecting the appropriate method: Clear (overwrite), Purge (degauss, secure erase, disassemble), or Destroy (incinerate, shred, pulverize). Two objectives are assessed independently: sanitization/destruction before disposal, and sanitization before reuse. Organizations releasing equipment for reuse \u2014 not just disposal \u2014 must sanitize it first.",
     "objectives": [
       {
         "id": "a",
-        "text": "system media containing FCI is sanitized or destroyed before disposal",
-        "whatToLookFor": "A defined sanitization or destruction process for media being disposed of, and records showing the process was followed. Assessors look for NIST 800-88 method selection appropriate to the media type (overwrite alone is not sufficient for all media types), records identifying the specific media disposed of, and destruction certificates where physical destruction was used. Paper containing FCI must also be addressed — shredding to a cross-cut standard appropriate for sensitive information.",
+        "text": "system media containing FCI is sanitized or destroyed before disposal; and",
+        "whatToLookFor": "A defined sanitization or destruction process for media being disposed of, and records showing the process was followed. Assessors look for NIST 800-88 method selection appropriate to the media type (overwrite alone is not sufficient for all media types), records identifying the specific media disposed of, and destruction certificates where physical destruction was used. Paper containing FCI must also be addressed \u2014 shredding to a cross-cut standard appropriate for sensitive information.",
         "commonEvidence": [
           "Media sanitization records with asset ID, method, date, and responsible party",
           "Destruction certificates from on-site or third-party shredding/degaussing service",
@@ -17,18 +17,38 @@
           "Degaussing logs for magnetic media",
           "Cross-cut shredding service records for paper FCI",
           "Media sanitization and disposal policy referencing NIST SP 800-88"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "media_sanitization_record"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "system media containing FCI is sanitized before it is released for reuse",
-        "whatToLookFor": "Evidence that media released for reuse — reassigned laptops, repurposed USB drives, reallocated servers — is sanitized before the new user gains access to it. This includes internal reuse (giving a departing employee's laptop to a new hire) as well as external reuse (returning leased equipment to a vendor). Assessors look for a formal sanitization step in the asset reuse workflow, not just in the disposal workflow.",
+        "text": "system media containing FCI is sanitized before it is released for reuse.",
+        "whatToLookFor": "Evidence that media released for reuse \u2014 reassigned laptops, repurposed USB drives, reallocated servers \u2014 is sanitized before the new user gains access to it. This includes internal reuse (giving a departing employee's laptop to a new hire) as well as external reuse (returning leased equipment to a vendor). Assessors look for a formal sanitization step in the asset reuse workflow, not just in the disposal workflow.",
         "commonEvidence": [
           "IT asset reuse or redeployment procedure including mandatory sanitization step",
           "Sanitization records tied to specific assets prior to reassignment",
           "Lease return or vendor equipment return records showing sanitization completed",
           "Help desk or ITSM tickets showing sanitize-before-reissue workflow"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "media_sanitization_record"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -40,12 +60,12 @@
       "System Security Plan section on media protection and disposal"
     ],
     "commonGaps": [
-      "No sanitization records — media is disposed of or reassigned without any documentation",
-      "Overwrite-only method applied to SSDs and flash media — NIST 800-88 requires purge or destroy for these media types",
-      "Disposal process covered in policy but reuse process is not — reassigned laptops handed to new users without sanitization",
+      "No sanitization records \u2014 media is disposed of or reassigned without any documentation",
+      "Overwrite-only method applied to SSDs and flash media \u2014 NIST 800-88 requires purge or destroy for these media types",
+      "Disposal process covered in policy but reuse process is not \u2014 reassigned laptops handed to new users without sanitization",
       "Paper FCI documents thrown in regular trash or recycling rather than shredded",
       "Printers and multifunction devices with internal storage disposed of without clearing the storage",
-      "Third-party destruction used but certificates not retained — cannot demonstrate compliance after the fact"
+      "Third-party destruction used but certificates not retained \u2014 cannot demonstrate compliance after the fact"
     ]
   },
   {
@@ -53,51 +73,91 @@
     "family": "Media Protection",
     "title": "Media Protection",
     "controlText": "Protect (i.e., physically control and securely store) system media containing CUI, both paper and digital.",
-    "plainEnglish": "All media containing CUI — both paper documents and digital media (USB drives, CDs, DVDs, external drives, magnetic tapes, flash drives) — must be physically controlled and securely stored. Physical control means knowing where the media is and who has it: conducting inventories, maintaining accountability, and having check-out/check-in procedures. Secure storage means putting it somewhere protected: locked drawers, cabinets, or controlled media libraries. The Assessment Guide identifies four objectives: paper physically controlled, digital physically controlled, paper securely stored, digital securely stored. All four are assessed independently — an organization that secures digital media but leaves paper CUI in open file trays has gaps on objectives [a] and [c].",
+    "plainEnglish": "All media containing CUI \u2014 both paper documents and digital media (USB drives, CDs, DVDs, external drives, magnetic tapes, flash drives) \u2014 must be physically controlled and securely stored. Physical control means knowing where the media is and who has it: conducting inventories, maintaining accountability, and having check-out/check-in procedures. Secure storage means putting it somewhere protected: locked drawers, cabinets, or controlled media libraries. The Assessment Guide identifies four objectives: paper physically controlled, digital physically controlled, paper securely stored, digital securely stored. All four are assessed independently \u2014 an organization that secures digital media but leaves paper CUI in open file trays has gaps on objectives [a] and [c].",
     "objectives": [
       {
         "id": "a",
-        "text": "paper media containing CUI is physically controlled",
-        "whatToLookFor": "Evidence that paper CUI is tracked and accounted for — not just stored somewhere, but actively managed. Assessors look for procedures governing how paper CUI is handled (who can access it, how it is checked out and returned), inventories or logs of paper CUI holdings, and controls preventing unauthorized access to paper CUI in working areas (clean-desk policy, cover sheets, restricted printing areas).",
+        "text": "paper media containing CUI is physically controlled;",
+        "whatToLookFor": "Evidence that paper CUI is tracked and accounted for \u2014 not just stored somewhere, but actively managed. Assessors look for procedures governing how paper CUI is handled (who can access it, how it is checked out and returned), inventories or logs of paper CUI holdings, and controls preventing unauthorized access to paper CUI in working areas (clean-desk policy, cover sheets, restricted printing areas).",
         "commonEvidence": [
           "Media handling procedures covering paper CUI (check-out/return process)",
           "Clean-desk policy and compliance records",
           "CUI cover sheet usage for paper documents in shared spaces",
           "Restricted printing area or follow-me printing configuration for CUI documents"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "procedure_document"
+          ],
+          "acceptable": [
+            "media_inventory"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "digital media containing CUI is physically controlled",
+        "text": "digital media containing CUI is physically controlled;",
         "whatToLookFor": "An inventory of digital media containing CUI, with accountability records showing where each piece of media is and who has it. Assessors look for media inventories (USB drives, external drives, tapes), check-out logs, and evidence that unauthorized media cannot be introduced or removed without detection.",
         "commonEvidence": [
           "Digital media inventory (USB drives, external hard drives, backup tapes) with asset tags",
           "Media check-out and check-in log",
           "Access control records for media storage location",
           "Media management policy covering digital media handling and accountability"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "media_inventory"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "paper media containing CUI is securely stored",
-        "whatToLookFor": "Physical secure storage for paper CUI — locked drawers, locking cabinets, or restricted access filing rooms. Assessors verify that paper CUI is not left on desks in open areas, that storage locations are locked when unattended, and that access is limited to personnel authorized to access CUI.",
+        "text": "paper media containing CUI is securely stored; and",
+        "whatToLookFor": "Physical secure storage for paper CUI \u2014 locked drawers, locking cabinets, or restricted access filing rooms. Assessors verify that paper CUI is not left on desks in open areas, that storage locations are locked when unattended, and that access is limited to personnel authorized to access CUI.",
         "commonEvidence": [
           "Locked file cabinets or drawers for paper CUI storage",
           "Physical access controls on rooms where paper CUI is stored (badge access, keyed entry)",
           "Clean-desk policy enforcement records",
           "Inspection or audit records confirming secure storage compliance"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "physical_security_configuration"
+          ],
+          "acceptable": [
+            "physical_access_authorization"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "digital media containing CUI is securely stored",
-        "whatToLookFor": "Secure storage for digital media — locked drawers, cabinets, or a controlled media library with access restricted to authorized personnel. Assessors look for storage locations that are locked when unattended, access logs showing only authorized personnel retrieve digital media, and evidence that digital media is returned to secure storage after use rather than left in workstations.",
+        "text": "digital media containing CUI is securely stored.",
+        "whatToLookFor": "Secure storage for digital media \u2014 locked drawers, cabinets, or a controlled media library with access restricted to authorized personnel. Assessors look for storage locations that are locked when unattended, access logs showing only authorized personnel retrieve digital media, and evidence that digital media is returned to secure storage after use rather than left in workstations.",
         "commonEvidence": [
           "Locked storage for USB drives, external drives, and backup tapes containing CUI",
           "Controlled media library with access log",
           "Access-controlled storage room or cabinet for digital media",
           "Media return procedure ensuring media is secured after use"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "physical_security_configuration"
+          ],
+          "acceptable": [
+            "physical_access_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -110,10 +170,10 @@
       "System Security Plan section on media protection"
     ],
     "commonGaps": [
-      "No media inventory — organization does not know what digital media containing CUI exists",
+      "No media inventory \u2014 organization does not know what digital media containing CUI exists",
       "USB drives containing CUI left in workstations or laptop bags rather than returned to secure storage",
-      "Paper CUI left on desks in open office areas — no clean-desk policy or enforcement",
-      "Media check-out process defined in policy but no log maintained — accountability absent",
+      "Paper CUI left on desks in open office areas \u2014 no clean-desk policy or enforcement",
+      "Media check-out process defined in policy but no log maintained \u2014 accountability absent",
       "Secure storage exists for servers and fixed assets but portable media containing CUI is uncontrolled",
       "Digital media secured but paper CUI treated as non-sensitive and stored in open filing cabinets"
     ]
@@ -123,18 +183,29 @@
     "family": "Media Protection",
     "title": "Media Access",
     "controlText": "Limit access to CUI on system media to authorized users.",
-    "plainEnglish": "Only personnel who are authorized to access CUI should be able to access the media on which that CUI is stored. While MP.L2-3.8.1 focuses on physically controlling and storing media, this control focuses on who can access it — ensuring the access list is defined, maintained, and enforced through physical controls on the media storage location. The Assessment Guide notes that physical control of system media and secure storage areas are the primary mechanisms: locked storage that only authorized personnel can open, combined with a maintained list of who is authorized. One objective: access is limited to authorized users.",
+    "plainEnglish": "Only personnel who are authorized to access CUI should be able to access the media on which that CUI is stored. While MP.L2-3.8.1 focuses on physically controlling and storing media, this control focuses on who can access it \u2014 ensuring the access list is defined, maintained, and enforced through physical controls on the media storage location. The Assessment Guide notes that physical control of system media and secure storage areas are the primary mechanisms: locked storage that only authorized personnel can open, combined with a maintained list of who is authorized. One objective: access is limited to authorized users.",
     "objectives": [
       {
         "id": "a",
-        "text": "access to CUI on system media is limited to authorized users",
+        "text": "access to CUI on system media is limited to authorized users.",
         "whatToLookFor": "A maintained list of personnel authorized to access CUI on system media, physical controls implementing that access restriction (locks, badge readers, or equivalent), and an audit log or check-out record showing who actually accessed the media. Assessors verify that access controls prevent unauthorized individuals from reaching the media and that the authorization list is current.",
         "commonEvidence": [
           "Authorized user list for CUI media access (named individuals or roles)",
           "Physical access controls on media storage (locked cabinet, badge-controlled room)",
           "Media check-out log showing access attributed to specific authorized personnel",
           "Access control policy restricting media access to approved personnel"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "physical_access_authorization"
+          ],
+          "acceptable": [
+            "physical_security_configuration",
+            "physical_access_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -145,10 +216,10 @@
       "System Security Plan section on media access controls"
     ],
     "commonGaps": [
-      "No defined list of who is authorized to access media containing CUI — access is open to all IT staff",
+      "No defined list of who is authorized to access media containing CUI \u2014 access is open to all IT staff",
       "Media storage is locked but multiple people share the key or combination with no access accountability",
-      "Authorized user list exists but is not kept current — departed personnel still listed, new personnel not added",
-      "No access log for media retrieval — cannot demonstrate that only authorized users accessed the media",
+      "Authorized user list exists but is not kept current \u2014 departed personnel still listed, new personnel not added",
+      "No access log for media retrieval \u2014 cannot demonstrate that only authorized users accessed the media",
       "Access controls on storage room protect the room generally but individual media items within are uncontrolled"
     ]
   },
@@ -157,30 +228,50 @@
     "family": "Media Protection",
     "title": "Media Markings",
     "controlText": "Mark media with necessary CUI markings and distribution limitations.",
-    "plainEnglish": "Any media containing CUI — USB drives, CDs, DVDs, external drives, printed documents, backup tapes — must be externally marked to alert individuals to the presence of CUI and to indicate distribution limitations. The National Archives and Records Administration (NARA) has published guidelines for CUI marking that define what labels are required and how they should be applied to different media sizes. The Assessment Guide notes that MP.L2-3.8.8 (Shared Media) requires identifiable ownership, so organizations often include ownership information on the label as well. Two objectives are assessed: CUI markings applied, and distribution limitations marked.",
+    "plainEnglish": "Any media containing CUI \u2014 USB drives, CDs, DVDs, external drives, printed documents, backup tapes \u2014 must be externally marked to alert individuals to the presence of CUI and to indicate distribution limitations. The National Archives and Records Administration (NARA) has published guidelines for CUI marking that define what labels are required and how they should be applied to different media sizes. The Assessment Guide notes that MP.L2-3.8.8 (Shared Media) requires identifiable ownership, so organizations often include ownership information on the label as well. Two objectives are assessed: CUI markings applied, and distribution limitations marked.",
     "objectives": [
       {
         "id": "a",
-        "text": "media containing CUI is marked with applicable CUI markings",
-        "whatToLookFor": "Physical labels or markings on media that identify the presence of CUI, following NARA CUI Notice 2019-01 guidance. For digital media, the external housing (USB drive body, disc jewel case, tape cartridge) must be marked — not just the digital files stored on it. For paper, the document header/footer and cover page must carry CUI markings. Assessors check sample media to verify markings are present, legible, and compliant with NARA guidance.",
+        "text": "media containing CUI is marked with applicable CUI markings; and",
+        "whatToLookFor": "Physical labels or markings on media that identify the presence of CUI, following NARA CUI Notice 2019-01 guidance. For digital media, the external housing (USB drive body, disc jewel case, tape cartridge) must be marked \u2014 not just the digital files stored on it. For paper, the document header/footer and cover page must carry CUI markings. Assessors check sample media to verify markings are present, legible, and compliant with NARA guidance.",
         "commonEvidence": [
           "Physical CUI labels on USB drives, external drives, backup tapes, CDs/DVDs",
           "CUI header and footer markings on paper documents",
           "NARA CUI Notice 2019-01 compliance documentation",
           "Media labeling procedure referencing NARA requirements",
           "Sample photographs or inspection records confirming labels are applied"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "media_marking_evidence"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "media containing CUI is marked with distribution limitations",
-        "whatToLookFor": "Labels or markings that specify distribution limitations — who the media may be shared with or distributed to. This is the second required element beyond the CUI designation itself. For contractor environments, this typically includes program-specific distribution statements or contract number references.",
+        "text": "media containing CUI is marked with distribution limitations.",
+        "whatToLookFor": "Labels or markings that specify distribution limitations \u2014 who the media may be shared with or distributed to. This is the second required element beyond the CUI designation itself. For contractor environments, this typically includes program-specific distribution statements or contract number references.",
         "commonEvidence": [
           "Distribution limitation statements on CUI media labels",
           "Document footer language specifying distribution restrictions",
           "Media labeling template showing both CUI designation and distribution limitation fields",
           "Spot-check records confirming distribution markings present on sample media"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "media_marking_evidence"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -191,12 +282,12 @@
       "Media marking compliance spot-check records"
     ],
     "commonGaps": [
-      "USB drives and portable media stored unlabeled — CUI presence not indicated on the physical housing",
+      "USB drives and portable media stored unlabeled \u2014 CUI presence not indicated on the physical housing",
       "CUI marked on digital files but external media housing has no label",
-      "CUI designation applied but distribution limitation statement missing — only half of the marking requirement met",
-      "Labels applied inconsistently — some media marked, others not, depending on who created them",
+      "CUI designation applied but distribution limitation statement missing \u2014 only half of the marking requirement met",
+      "Labels applied inconsistently \u2014 some media marked, others not, depending on who created them",
       "Paper documents marked on first page but not on subsequent pages in multi-page documents",
-      "Labeling policy exists but no compliance checking — actual media observed to lack markings during assessment"
+      "Labeling policy exists but no compliance checking \u2014 actual media observed to lack markings during assessment"
     ]
   },
   {
@@ -204,30 +295,51 @@
     "family": "Media Protection",
     "title": "Media Accountability",
     "controlText": "Control access to media containing CUI and maintain accountability for media during transport outside of controlled areas.",
-    "plainEnglish": "When CUI media leaves the organization's controlled areas — being shipped to a customer, transported to an off-site backup location, hand-carried to a meeting — access must remain controlled and accountability must be maintained throughout. Controls for transport include locked containers, tamper-evident packaging, and cryptographic protection. Accountability includes tracking who has the media, chain-of-custody records, and shipping tracking numbers. Two objectives are assessed: access controlled [a], and accountability maintained during transport [b]. Note that MP.L2-3.8.6 adds an encryption requirement on top of this control for the transport scenario — the two controls work together.",
+    "plainEnglish": "When CUI media leaves the organization's controlled areas \u2014 being shipped to a customer, transported to an off-site backup location, hand-carried to a meeting \u2014 access must remain controlled and accountability must be maintained throughout. Controls for transport include locked containers, tamper-evident packaging, and cryptographic protection. Accountability includes tracking who has the media, chain-of-custody records, and shipping tracking numbers. Two objectives are assessed: access controlled [a], and accountability maintained during transport [b]. Note that MP.L2-3.8.6 adds an encryption requirement on top of this control for the transport scenario \u2014 the two controls work together.",
     "objectives": [
       {
         "id": "a",
-        "text": "access to media containing CUI is controlled",
-        "whatToLookFor": "Evidence that access to CUI media is restricted to approved individuals — an authorized access list, physical controls on media storage, and access logs. This objective overlaps with MP.L2-3.8.2 but emphasizes the accountability dimension: not just who is authorized but whether that authorization is actively enforced and recorded.",
+        "text": "access to media containing CUI is controlled; and",
+        "whatToLookFor": "Evidence that access to CUI media is restricted to approved individuals \u2014 an authorized access list, physical controls on media storage, and access logs. This objective overlaps with MP.L2-3.8.2 but emphasizes the accountability dimension: not just who is authorized but whether that authorization is actively enforced and recorded.",
         "commonEvidence": [
           "Authorized access list for CUI media",
           "Access log or check-out records for CUI media",
           "Physical access controls on media storage location",
           "Media handling procedures defining access control requirements"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "physical_access_authorization"
+          ],
+          "acceptable": [
+            "physical_access_record",
+            "physical_security_configuration"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "accountability for media containing CUI is maintained during transport outside of controlled areas",
-        "whatToLookFor": "Chain-of-custody records for media transported outside the facility — shipping receipts with tracking numbers, signed transfer records, tamper-evident packaging documentation, and records confirming receipt at the destination. Assessors look for evidence that the organization can account for where the media is at all times during transport and that loss or tampering can be detected.",
+        "text": "accountability for media containing CUI is maintained during transport outside of controlled areas.",
+        "whatToLookFor": "Chain-of-custody records for media transported outside the facility \u2014 shipping receipts with tracking numbers, signed transfer records, tamper-evident packaging documentation, and records confirming receipt at the destination. Assessors look for evidence that the organization can account for where the media is at all times during transport and that loss or tampering can be detected.",
         "commonEvidence": [
           "Shipping records with tracking numbers for CUI media transport",
           "Chain-of-custody forms for media transferred between locations",
           "Tamper-evident packaging records",
           "Courier and shipping service agreements specifying handling requirements for sensitive shipments",
           "Receipt confirmation records at destination"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "media_inventory"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -240,7 +352,7 @@
     ],
     "commonGaps": [
       "CUI media shipped via regular mail or standard courier with no tracking or accountability records",
-      "No chain-of-custody process — media handed off informally with no documentation",
+      "No chain-of-custody process \u2014 media handed off informally with no documentation",
       "Transport accountability required in policy but no forms or records exist showing the process was followed",
       "Backup tapes transported to off-site storage vendor without tracking records or receipt confirmation",
       "Media transported by employees in personal vehicles or carry-on luggage with no logging or tracking"
@@ -251,19 +363,30 @@
     "family": "Media Protection",
     "title": "Portable Storage Encryption",
     "controlText": "Implement cryptographic mechanisms to protect the confidentiality of CUI stored on digital media during transport unless otherwise protected by alternative physical safeguards.",
-    "plainEnglish": "When CUI on portable digital media is transported outside controlled areas, it must be encrypted — unless equivalent physical safeguards substitute for encryption (e.g., a locked, tamper-evident, courier-transported container that provides comparable protection). This control applies to portable storage: USB drives, external hard drives, DVDs, CDs, and backup tapes. The Assessment Guide notes this is an extension of MP.L2-3.8.5, specifically protecting against scenarios where access control fails — if the media is lost or stolen in transit, encryption ensures the CUI on it cannot be read. Cryptographic mechanisms should comply with FIPS 140-2. One objective: confidentiality is protected during transport via cryptographic or alternative physical safeguards.",
+    "plainEnglish": "When CUI on portable digital media is transported outside controlled areas, it must be encrypted \u2014 unless equivalent physical safeguards substitute for encryption (e.g., a locked, tamper-evident, courier-transported container that provides comparable protection). This control applies to portable storage: USB drives, external hard drives, DVDs, CDs, and backup tapes. The Assessment Guide notes this is an extension of MP.L2-3.8.5, specifically protecting against scenarios where access control fails \u2014 if the media is lost or stolen in transit, encryption ensures the CUI on it cannot be read. Cryptographic mechanisms should comply with FIPS 140-2. One objective: confidentiality is protected during transport via cryptographic or alternative physical safeguards.",
     "objectives": [
       {
         "id": "a",
-        "text": "the confidentiality of CUI stored on digital media is protected during transport using cryptographic mechanisms or alternative physical safeguards",
-        "whatToLookFor": "Evidence that encryption is implemented for CUI on portable media transported outside controlled areas — BitLocker, VeraCrypt, hardware-encrypted USB drives, or backup software encryption. Where alternative physical safeguards are claimed, those safeguards must provide equivalent protection and be documented. Assessors look for encryption configuration records, hardware-encrypted media inventory, and evidence that the encryption uses FIPS 140-2 validated cryptographic modules.",
+        "text": "the confidentiality of CUI stored on digital media is protected during transport using cryptographic mechanisms or alternative physical safeguards.",
+        "whatToLookFor": "Evidence that encryption is implemented for CUI on portable media transported outside controlled areas \u2014 BitLocker, VeraCrypt, hardware-encrypted USB drives, or backup software encryption. Where alternative physical safeguards are claimed, those safeguards must provide equivalent protection and be documented. Assessors look for encryption configuration records, hardware-encrypted media inventory, and evidence that the encryption uses FIPS 140-2 validated cryptographic modules.",
         "commonEvidence": [
           "Hardware-encrypted USB drive or portable media inventory (FIPS 140-2 validated devices)",
           "Backup software encryption configuration showing tape/media encryption enabled",
           "BitLocker or equivalent full-disk encryption configuration for portable drives",
           "Alternative physical safeguard documentation (if encryption not used)",
           "FIPS 140-2 compliance evidence for cryptographic mechanisms used"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "encryption_configuration"
+          ],
+          "acceptable": [
+            "fips_validation_evidence",
+            "physical_security_configuration"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -274,10 +397,10 @@
       "Alternative physical safeguard documentation where encryption is not used"
     ],
     "commonGaps": [
-      "Standard unencrypted USB drives used for CUI transport — no encryption policy or enforcement",
+      "Standard unencrypted USB drives used for CUI transport \u2014 no encryption policy or enforcement",
       "Backup tapes transported off-site without encryption enabled in backup software",
-      "Encryption used but not FIPS 140-2 validated — does not meet the cryptographic standard",
-      "Policy requires encryption but no technical enforcement — users self-certify compliance with no verification",
+      "Encryption used but not FIPS 140-2 validated \u2014 does not meet the cryptographic standard",
+      "Policy requires encryption but no technical enforcement \u2014 users self-certify compliance with no verification",
       "Alternative physical safeguards claimed but not documented to demonstrate equivalence to encryption"
     ]
   },
@@ -286,11 +409,11 @@
     "family": "Media Protection",
     "title": "Removable Media",
     "controlText": "Control the use of removable media on system components.",
-    "plainEnglish": "The organization must control what removable media — USB drives, CDs, DVDs, external hard drives, flash cards — can be used on organizational systems, and how. The Assessment Guide distinguishes this from MP.L2-3.8.1 (which restricts user access to media) by noting this control restricts the use of certain types of media on systems. Organizations have flexibility: they can prohibit all removable media, restrict it to organization-issued devices only, disable write capability while allowing read, or implement technical port blocking. Policies, procedures, and rules of behavior are acceptable controls, but technical enforcement is stronger evidence. The Assessment Guide specifically calls out scanning removable media for malware before use. One objective: removable media use is controlled.",
+    "plainEnglish": "The organization must control what removable media \u2014 USB drives, CDs, DVDs, external hard drives, flash cards \u2014 can be used on organizational systems, and how. The Assessment Guide distinguishes this from MP.L2-3.8.1 (which restricts user access to media) by noting this control restricts the use of certain types of media on systems. Organizations have flexibility: they can prohibit all removable media, restrict it to organization-issued devices only, disable write capability while allowing read, or implement technical port blocking. Policies, procedures, and rules of behavior are acceptable controls, but technical enforcement is stronger evidence. The Assessment Guide specifically calls out scanning removable media for malware before use. One objective: removable media use is controlled.",
     "objectives": [
       {
         "id": "a",
-        "text": "the use of removable media on system components is controlled",
+        "text": "the use of removable media on system components is controlled.",
         "whatToLookFor": "Technical or procedural controls restricting what removable media can be used on organizational systems. Assessors look for: endpoint DLP or USB blocking configuration (technical controls), organization-issued-only media policies with enforcement, mandatory malware scanning before use, and rules of behavior that address removable media. The strongest evidence is technical enforcement (USB blocking via group policy or endpoint management) combined with policy. Assessors also look for whether the controls address all removable media types, not just USB drives.",
         "commonEvidence": [
           "Endpoint management or group policy configuration blocking or restricting USB/removable media",
@@ -299,7 +422,18 @@
           "DLP solution configuration showing removable media controls",
           "Malware scan procedure for removable media before use on organizational systems",
           "Audit logs showing removable media insertion events monitored"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "access_enforcement_configuration"
+          ],
+          "acceptable": [
+            "device_access_list",
+            "dlp_configuration"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -311,7 +445,7 @@
       "Audit log configuration for removable media insertion events"
     ],
     "commonGaps": [
-      "No policy or technical controls — any USB drive can be inserted into any organizational workstation",
+      "No policy or technical controls \u2014 any USB drive can be inserted into any organizational workstation",
       "Removable media policy exists but is purely procedural with no technical enforcement",
       "USB blocking implemented for workstations but not for servers or specialized equipment",
       "Organization-issued media only policy but personal devices observed in use during assessment",
@@ -324,19 +458,30 @@
     "family": "Media Protection",
     "title": "Shared Media",
     "controlText": "Prohibit the use of portable storage devices when such devices have no identifiable owner.",
-    "plainEnglish": "If a portable storage device cannot be traced to an identifiable owner — an individual, an organization, or a project — its use is prohibited. The purpose is accountability: an unowned device cannot be associated with a responsible party who can be held accountable for its security or for any vulnerabilities it introduces. The classic scenario is a USB drive found in a parking lot — employees must be trained and technically prevented from plugging in unknown devices. The Assessment Guide notes this extends the protections of MP.L2-3.8.7 by prohibiting unidentified media even if the media type itself is otherwise permitted. One objective: use of portable storage is prohibited when no identifiable owner exists.",
+    "plainEnglish": "If a portable storage device cannot be traced to an identifiable owner \u2014 an individual, an organization, or a project \u2014 its use is prohibited. The purpose is accountability: an unowned device cannot be associated with a responsible party who can be held accountable for its security or for any vulnerabilities it introduces. The classic scenario is a USB drive found in a parking lot \u2014 employees must be trained and technically prevented from plugging in unknown devices. The Assessment Guide notes this extends the protections of MP.L2-3.8.7 by prohibiting unidentified media even if the media type itself is otherwise permitted. One objective: use of portable storage is prohibited when no identifiable owner exists.",
     "objectives": [
       {
         "id": "a",
-        "text": "the use of portable storage devices is prohibited when such devices have no identifiable owner",
-        "whatToLookFor": "A clear policy prohibiting unowned or unidentified portable storage, combined with enforcement mechanisms and user awareness training. Technical controls (endpoint USB management requiring device registration or device ID allowlisting) provide the strongest evidence. Assessors look for evidence that the organization would actually detect and prevent an unowned USB drive from being used — policy alone, without training or technical enforcement, is typically insufficient.",
+        "text": "the use of portable storage devices is prohibited when such devices have no identifiable owner.",
+        "whatToLookFor": "A clear policy prohibiting unowned or unidentified portable storage, combined with enforcement mechanisms and user awareness training. Technical controls (endpoint USB management requiring device registration or device ID allowlisting) provide the strongest evidence. Assessors look for evidence that the organization would actually detect and prevent an unowned USB drive from being used \u2014 policy alone, without training or technical enforcement, is typically insufficient.",
         "commonEvidence": [
           "Policy explicitly prohibiting use of portable storage without an identifiable owner",
           "Endpoint management configuration requiring device registration or allowlisting before USB use",
           "User training records covering prohibition on unidentified portable storage",
           "Incident records for policy violations (reinforces awareness and enforcement)",
           "Rules of behavior signed by personnel acknowledging the prohibition"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "device_access_list"
+          ],
+          "acceptable": [
+            "access_enforcement_configuration",
+            "policy_document"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -347,9 +492,9 @@
       "System Security Plan referencing MP.L2-3.8.8 implementation"
     ],
     "commonGaps": [
-      "Policy prohibits unowned media but no technical enforcement — any USB drive can be inserted",
-      "Users not trained on the prohibition — unaware that found USB drives must not be plugged in",
-      "No incident reporting mechanism for found or unidentified media — employees have no guidance on what to do",
+      "Policy prohibits unowned media but no technical enforcement \u2014 any USB drive can be inserted",
+      "Users not trained on the prohibition \u2014 unaware that found USB drives must not be plugged in",
+      "No incident reporting mechanism for found or unidentified media \u2014 employees have no guidance on what to do",
       "Policy covers personal USB drives but does not explicitly address found or unidentified media",
       "Device allowlisting implemented for standard workstations but not for lab, development, or shared equipment"
     ]
@@ -359,19 +504,31 @@
     "family": "Media Protection",
     "title": "Protect Backups",
     "controlText": "Protect the confidentiality of backup CUI at storage locations.",
-    "plainEnglish": "Backup data containing CUI must have its confidentiality protected wherever it is stored — on-site backup servers, off-site backup vendors, cloud backup services, tape libraries, or external hard drives. Methods include encryption (encrypting the backup data before it is written to media or cloud), physical security for on-site storage (access-controlled server rooms, locked tape libraries), and contractual and access controls for off-site or cloud storage providers. The Assessment Guide explicitly references FIPS-validated cryptographic mechanisms for encryption. One objective: confidentiality is protected at backup storage locations.",
+    "plainEnglish": "Backup data containing CUI must have its confidentiality protected wherever it is stored \u2014 on-site backup servers, off-site backup vendors, cloud backup services, tape libraries, or external hard drives. Methods include encryption (encrypting the backup data before it is written to media or cloud), physical security for on-site storage (access-controlled server rooms, locked tape libraries), and contractual and access controls for off-site or cloud storage providers. The Assessment Guide explicitly references FIPS-validated cryptographic mechanisms for encryption. One objective: confidentiality is protected at backup storage locations.",
     "objectives": [
       {
         "id": "a",
-        "text": "the confidentiality of backup CUI is protected at storage locations",
-        "whatToLookFor": "Evidence that backup CUI is protected wherever it is stored — encryption configuration for backup software, physical security for on-site tape or disk libraries, access controls for off-site backup storage, and contractual protections in cloud backup service agreements. Assessors look for FIPS-validated encryption where cryptographic mechanisms are used, and for coverage of all backup storage locations (not just the primary but also secondary or cloud replicas).",
+        "text": "the confidentiality of backup CUI is protected at storage locations.",
+        "whatToLookFor": "Evidence that backup CUI is protected wherever it is stored \u2014 encryption configuration for backup software, physical security for on-site tape or disk libraries, access controls for off-site backup storage, and contractual protections in cloud backup service agreements. Assessors look for FIPS-validated encryption where cryptographic mechanisms are used, and for coverage of all backup storage locations (not just the primary but also secondary or cloud replicas).",
         "commonEvidence": [
           "Backup software encryption configuration with FIPS-validated algorithm",
           "Physical access controls for on-site backup storage (locked tape library, server room badge access)",
           "Cloud backup service agreement or BAA addressing CUI protection requirements",
           "Off-site backup storage vendor agreement with security requirements",
           "Access control records for backup storage locations"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "encryption_configuration"
+          ],
+          "acceptable": [
+            "fips_validation_evidence",
+            "physical_security_configuration",
+            "signed_agreement"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -386,7 +543,7 @@
       "Backup encryption enabled in software but not FIPS-validated algorithms used",
       "On-site backup protected but off-site or cloud replicas lack equivalent controls",
       "Cloud backup service used but no BAA or data protection agreement exists confirming CUI handling requirements",
-      "Backup tapes shipped to off-site vendor without encryption — confidentiality relies entirely on vendor physical security with no contractual CUI requirements"
+      "Backup tapes shipped to off-site vendor without encryption \u2014 confidentiality relies entirely on vendor physical security with no contractual CUI requirements"
     ]
   }
 ]
