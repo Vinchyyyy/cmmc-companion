@@ -534,13 +534,14 @@ async function validateEvidenceTags() {
 function validateExpectedTags(validTagIds) {
   let withTags = 0
   let missingCount = 0
-  let nonIaArtifactishMissing = 0
+  let nonEnforcedArtifactishMissing = 0
   const waived = []
-  const iaTagUsage = {}
+  const enforcedTagUsage = {}
 
   for (const c of allControls) {
     if (!Array.isArray(c?.objectives)) continue
-    const isIA = String(c.id || '').slice(0, 2) === 'IA'
+    const fam = String(c.id || '').slice(0, 2)
+    const enforced = fam === 'IA' || fam === 'AC'
 
     for (const o of c.objectives) {
       bumpCheck('ExpectedTags')
@@ -559,8 +560,8 @@ function validateExpectedTags(validTagIds) {
         } else {
           missingCount++
           if (isArtifactish) {
-            if (isIA) recordFailure('ExpectedTags', `${lbl}: IA ${ec} objective is missing expectedTags`)
-            else nonIaArtifactishMissing++
+            if (enforced) recordFailure('ExpectedTags', `${lbl}: ${fam} ${ec} objective is missing expectedTags`)
+            else nonEnforcedArtifactishMissing++
           }
         }
         continue
@@ -590,18 +591,18 @@ function validateExpectedTags(validTagIds) {
 
       if (isArtifactish && primary.length === 0) {
         if (hasNote) waived.push(`${c.id}[${o?.id}]`)
-        else if (isIA) recordFailure('ExpectedTags', `${lbl}: IA ${ec} objective has empty primary and no expectedTagsNote waiver`)
+        else if (enforced) recordFailure('ExpectedTags', `${lbl}: ${fam} ${ec} objective has empty primary and no expectedTagsNote waiver`)
         else recordWarning('ExpectedTags', `${lbl}: ${ec} objective has empty primary`)
       }
 
-      if (isIA) for (const t of [...primary, ...acceptable]) iaTagUsage[t] = (iaTagUsage[t] || 0) + 1
+      if (enforced) for (const t of [...primary, ...acceptable]) enforcedTagUsage[t] = (enforcedTagUsage[t] || 0) + 1
     }
   }
 
-  if (nonIaArtifactishMissing > 0)
-    recordWarning('ExpectedTags', `${nonIaArtifactishMissing} non-IA artifact/mixed objectives have no expectedTags yet (expected during phased rollout; only IA is mapped this phase)`)
+  if (nonEnforcedArtifactishMissing > 0)
+    recordWarning('ExpectedTags', `${nonEnforcedArtifactishMissing} non-IA/AC artifact/mixed objectives have no expectedTags yet (expected during phased rollout; IA and AC are enforced)`)
 
-  expectedTagsSummary = { withTags, missingCount, waived, iaTagUsage }
+  expectedTagsSummary = { withTags, missingCount, waived, enforcedTagUsage }
 }
 
 // =========================================================================
@@ -637,13 +638,14 @@ function validateExpectedTags(validTagIds) {
 
   if (expectedTagsSummary) {
     const e = expectedTagsSummary
-    console.log(`\nObjective expectedTags: ${e.withTags} mapped, ${e.missingCount} unmapped (non-IA, expected this phase), ${e.waived.length} intentionally waived`)
+    console.log(`\nObjective expectedTags: ${e.withTags} mapped, ${e.missingCount} unmapped (non-IA/AC, expected during phased rollout), ${e.waived.length} intentionally waived`)
+    console.log(`  enforced families: IA, AC`)
     if (e.waived.length) console.log(`  waived: ${e.waived.join(', ')}`)
-    const iaTags = Object.keys(e.iaTagUsage)
-    if (iaTags.length) {
-      console.log(`  IA tag usage (${iaTags.length} distinct tags):`)
-      for (const t of iaTags.sort((a, b) => e.iaTagUsage[b] - e.iaTagUsage[a] || a.localeCompare(b)))
-        console.log(`    ${String(e.iaTagUsage[t]).padStart(2)}  ${t}`)
+    const tags = Object.keys(e.enforcedTagUsage)
+    if (tags.length) {
+      console.log(`  IA+AC tag usage (${tags.length} distinct tags):`)
+      for (const t of tags.sort((a, b) => e.enforcedTagUsage[b] - e.enforcedTagUsage[a] || a.localeCompare(b)))
+        console.log(`    ${String(e.enforcedTagUsage[t]).padStart(2)}  ${t}`)
     }
   }
 

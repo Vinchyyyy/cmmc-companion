@@ -8,69 +8,135 @@
     "objectives": [
       {
         "id": "a",
-        "text": "authorized users are identified",
+        "text": "authorized users are identified;",
         "whatToLookFor": "A current, maintained list of named users with access to in-scope systems, with roles documented. New hires get added through a defined onboarding process; departures get removed promptly. The list should match what is actually in the identity provider.",
         "commonEvidence": [
           "User access roster or matrix",
           "HR-to-IT onboarding handoff procedure",
           "Account request and approval tickets",
           "Identity provider user export (Entra ID, Okta, Active Directory)"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "identity_roster"
+          ],
+          "acceptable": [
+            "access_authorization_record",
+            "account_lifecycle_record"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "processes acting on behalf of authorized users are identified",
+        "text": "processes acting on behalf of authorized users are identified;",
         "whatToLookFor": "An inventory of service accounts, scheduled tasks, scripts, RPA bots, and CI/CD pipelines, each tied to a named human owner and a documented business purpose. If nobody can say what a service account does, that is a finding.",
         "commonEvidence": [
           "Service account inventory with owner and purpose",
           "Scheduled task and cron job list",
           "CI/CD service principal documentation",
           "Automation/bot ownership matrix"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "service_account_inventory"
+          ],
+          "acceptable": []
+        }
       },
       {
         "id": "c",
-        "text": "devices (and other systems) authorized to connect to the system are identified",
+        "text": "devices (and other systems) authorized to connect to the system are identified;",
         "whatToLookFor": "An asset inventory covering endpoints, servers, network gear, printers, IoT/OT, and any external systems with connectivity. Should include hostname, MAC, owner, location, and classification. External system connections should have written agreements.",
         "commonEvidence": [
           "Asset inventory or CMDB export",
           "MDM enrollment list (Intune, Jamf, Kandji)",
           "Network access control device list",
           "Interconnection Security Agreements (ISAs) for external systems"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "asset_inventory"
+          ],
+          "acceptable": [
+            "device_access_list",
+            "mdm_enrollment_list",
+            "signed_agreement"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "system access is limited to authorized users",
+        "text": "system access is limited to authorized users;",
         "whatToLookFor": "Technical enforcement preventing unlisted users from logging in. Default-deny posture on join. Periodic access reviews that actually catch and remove stale accounts. Evidence that disabled accounts cannot authenticate.",
         "commonEvidence": [
           "Identity provider login logs showing denied attempts",
           "Quarterly user access review records with sign-off",
           "Conditional access or login policy screenshots",
           "Termination ticket showing disable timestamp"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "access_enforcement_configuration"
+          ],
+          "acceptable": [
+            "access_review_record",
+            "account_lifecycle_record",
+            "audit_log_sample"
+          ]
+        }
       },
       {
         "id": "e",
-        "text": "system access is limited to processes acting on behalf of authorized users",
+        "text": "system access is limited to processes acting on behalf of authorized users; and",
         "whatToLookFor": "Service accounts cannot be used outside their intended purpose. API keys are scoped. Automation runs with least privilege. No 'god mode' service accounts shared across unrelated systems.",
         "commonEvidence": [
           "Service account permission scope documentation",
           "API key inventory with scopes and expiration",
           "RBAC export for non-human identities",
           "Secrets management tool inventory"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "access_enforcement_configuration"
+          ],
+          "acceptable": [
+            "role_permission_matrix",
+            "service_account_inventory"
+          ]
+        }
       },
       {
         "id": "f",
-        "text": "system access is limited to authorized devices (including other systems)",
+        "text": "system access is limited to authorized devices (including other systems).",
         "whatToLookFor": "Network access control (NAC), 802.1X, or device compliance policies block unknown devices. Conditional access requires enrolled and compliant devices. System-to-system traffic restricted at the firewall to known endpoints.",
         "commonEvidence": [
           "NAC or 802.1X configuration",
           "MDM compliance reports",
           "Conditional access device policies",
           "Firewall ACLs for system-to-system traffic"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "device_access_list"
+          ],
+          "acceptable": [
+            "access_enforcement_configuration",
+            "mdm_enrollment_list",
+            "firewall_ruleset"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -100,29 +166,50 @@
     "family": "Access Control",
     "title": "Transaction & Function Control",
     "controlText": "Limit information system access to the types of transactions and functions that authorized users are permitted to execute.",
-    "plainEnglish": "It is not enough to say 'user X can log in.' You need to control what they can do once they are in. Define each role's permitted actions (read, write, update, delete, configure) and enforce that with technical controls — usually role-based access control. Privileged functions should be separated from everyday user functions.",
+    "plainEnglish": "It is not enough to say 'user X can log in.' You need to control what they can do once they are in. Define each role's permitted actions (read, write, update, delete, configure) and enforce that with technical controls \u2014 usually role-based access control. Privileged functions should be separated from everyday user functions.",
     "objectives": [
       {
         "id": "a",
-        "text": "the types of transactions and functions that authorized users are permitted to execute are defined",
-        "whatToLookFor": "Documented role definitions tied to business functions. Each role lists the applications, modules, and CRUD-style operations it can perform. Privileged versus non-privileged roles are distinguished. The matrix is current — not a stale spreadsheet from two years ago.",
+        "text": "the types of transactions and functions that authorized users are permitted to execute are defined; and",
+        "whatToLookFor": "Documented role definitions tied to business functions. Each role lists the applications, modules, and CRUD-style operations it can perform. Privileged versus non-privileged roles are distinguished. The matrix is current \u2014 not a stale spreadsheet from two years ago.",
         "commonEvidence": [
           "Role and permission matrix",
           "RBAC role definitions in identity provider",
           "Application-specific permission documentation",
           "Access Control Policy section addressing role-based access"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "role_permission_matrix"
+          ],
+          "acceptable": [
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "system access is limited to the defined types of transactions and functions for authorized users",
+        "text": "system access is limited to the defined types of transactions and functions for authorized users.",
         "whatToLookFor": "Technical enforcement actually matches the documented matrix. Group memberships line up with assigned roles. No users with permissions exceeding their documented role. Spot-check a few users and confirm their actual access matches what the matrix says it should be.",
         "commonEvidence": [
           "Group membership exports compared against role matrix",
           "Application role assignment screenshots",
           "Access review evidence reconciling actual versus intended permissions",
           "Privileged role assignment records"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "access_enforcement_configuration"
+          ],
+          "acceptable": [
+            "role_permission_matrix",
+            "access_review_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -135,7 +222,7 @@
     ],
     "commonGaps": [
       "Excessive group memberships granting more access than the role requires",
-      "No documented role-permission matrix — assignments made ad hoc",
+      "No documented role-permission matrix \u2014 assignments made ad hoc",
       "Domain admin or application admin sprawl",
       "'Temporary' elevated access never revoked",
       "Job changes not triggering permission updates (permission accumulation)",
@@ -149,62 +236,118 @@
     "family": "Access Control",
     "title": "Control CUI Flow",
     "controlText": "Control the flow of CUI in accordance with approved authorizations.",
-    "plainEnglish": "This is about where CUI is allowed to travel — between networks, segments, systems, and external parties — independent of who can read it. You need policies that define which sources may send CUI to which destinations, and technical controls (firewalls, proxies, DLP, encryption, secure file transfer) that actually enforce those flows. This is one of the controls assessors dig into hardest because it ties directly to your data flow diagram.",
+    "plainEnglish": "This is about where CUI is allowed to travel \u2014 between networks, segments, systems, and external parties \u2014 independent of who can read it. You need policies that define which sources may send CUI to which destinations, and technical controls (firewalls, proxies, DLP, encryption, secure file transfer) that actually enforce those flows. This is one of the controls assessors dig into hardest because it ties directly to your data flow diagram.",
     "objectives": [
       {
         "id": "a",
-        "text": "information flow control policies are defined",
-        "whatToLookFor": "A written information flow policy that addresses CUI specifically — not generic 'data protection' language. Should cover email, file transfer, internet egress, internal segmentation, and partner/subcontractor transfers. Must be approved and current.",
+        "text": "information flow control policies are defined;",
+        "whatToLookFor": "A written information flow policy that addresses CUI specifically \u2014 not generic 'data protection' language. Should cover email, file transfer, internet egress, internal segmentation, and partner/subcontractor transfers. Must be approved and current.",
         "commonEvidence": [
           "Information Flow Control Policy",
           "CUI Handling Procedure",
           "Policy approval and review records"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "methods and enforcement mechanisms for controlling the flow of CUI are defined",
-        "whatToLookFor": "Documented technical mechanisms — firewall rule sets, proxy configs, DLP rules, encryption requirements, approved secure file transfer tools — each tied to a specific flow scenario in the policy.",
+        "text": "methods and enforcement mechanisms for controlling the flow of CUI are defined;",
+        "whatToLookFor": "Documented technical mechanisms \u2014 firewall rule sets, proxy configs, DLP rules, encryption requirements, approved secure file transfer tools \u2014 each tied to a specific flow scenario in the policy.",
         "commonEvidence": [
           "Firewall rule documentation with stated purpose per rule",
           "DLP policy configuration",
           "Web proxy or secure web gateway configuration",
           "Approved secure file transfer tool documentation (DoD SAFE, Kiteworks, encrypted email gateway)"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "dlp_configuration",
+            "firewall_ruleset"
+          ],
+          "acceptable": [
+            "encryption_configuration",
+            "procedure_document"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "designated sources and destinations (e.g., networks, individuals, and devices) for CUI within the system and between interconnected systems are identified",
-        "whatToLookFor": "A current data flow diagram showing where CUI originates, where it is stored, and every authorized destination — including prime contractor portals, government customer systems, and internal enclaves. Interconnection agreements exist for external destinations.",
+        "text": "designated sources and destinations (e.g., networks, individuals, and devices) for CUI within the system and between interconnected systems are identified;",
+        "whatToLookFor": "A current data flow diagram showing where CUI originates, where it is stored, and every authorized destination \u2014 including prime contractor portals, government customer systems, and internal enclaves. Interconnection agreements exist for external destinations.",
         "commonEvidence": [
           "Data Flow Diagram (DFD) for CUI",
           "CUI inventory with system locations",
           "Interconnection Security Agreements",
           "Enclave or boundary architecture diagram"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "data_flow_diagram"
+          ],
+          "acceptable": [
+            "network_diagram",
+            "signed_agreement"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "authorizations for controlling the flow of CUI are defined",
+        "text": "authorizations for controlling the flow of CUI are defined; and",
         "whatToLookFor": "Explicit allow/deny authorizations: who can send CUI to whom, under what conditions (encrypted, approved channel, manager approval). Tied back to roles and contractual requirements.",
         "commonEvidence": [
           "CUI transmission approval workflow",
           "Allow/deny rule sets with documented authorization",
           "Role-based transmission permissions",
           "Approval records for partner or subcontractor flows"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document",
+            "role_permission_matrix"
+          ]
+        }
       },
       {
         "id": "e",
-        "text": "approved authorizations for controlling the flow of CUI are enforced",
-        "whatToLookFor": "Live technical enforcement — DLP blocks unauthorized sends, firewall denies are logged, encrypted channels are mandatory not optional. There is evidence that violations are detected, investigated, and resolved.",
+        "text": "approved authorizations for controlling the flow of CUI are enforced.",
+        "whatToLookFor": "Live technical enforcement \u2014 DLP blocks unauthorized sends, firewall denies are logged, encrypted channels are mandatory not optional. There is evidence that violations are detected, investigated, and resolved.",
         "commonEvidence": [
           "DLP alert and block logs",
           "Firewall deny logs for CUI-relevant rules",
           "Blocked email or attachment reports",
           "Exception or violation tickets with resolution",
           "Periodic flow review records"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "dlp_configuration",
+            "firewall_ruleset"
+          ],
+          "acceptable": [
+            "audit_log_sample",
+            "alert_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -222,11 +365,11 @@
       "No data flow diagram showing where CUI actually travels",
       "Flat network with no segmentation between CUI and non-CUI environments",
       "CUI sent over standard email without encryption",
-      "No DLP — flows controlled only by user judgment and training",
+      "No DLP \u2014 flows controlled only by user judgment and training",
       "Allow-all firewall egress rules",
       "Subcontractor/partner transfers happen ad hoc through personal email or file shares",
       "Cloud-to-cloud CUI flows undocumented (e.g., M365 to a partner tenant)",
-      "No mechanism to detect when policy is violated — assumed compliance",
+      "No mechanism to detect when policy is violated \u2014 assumed compliance",
       "Policy says 'use encrypted channels' but no list of approved channels"
     ]
   },
@@ -235,37 +378,68 @@
     "family": "Access Control",
     "title": "Separation of Duties",
     "controlText": "Separate the duties of individuals to reduce the risk of malevolent activity without collusion.",
-    "plainEnglish": "No single person should be able to complete a sensitive end-to-end process alone. Identify the duty pairs that create conflict-of-interest or 'too much power' risks (typically: requesting vs approving access, developing vs deploying code, administering systems vs reviewing audit logs) and assign them to different people. Technical enforcement matters — splitting duties on paper while one admin still holds every credential is not separation.",
+    "plainEnglish": "No single person should be able to complete a sensitive end-to-end process alone. Identify the duty pairs that create conflict-of-interest or 'too much power' risks (typically: requesting vs approving access, developing vs deploying code, administering systems vs reviewing audit logs) and assign them to different people. Technical enforcement matters \u2014 splitting duties on paper while one admin still holds every credential is not separation.",
     "objectives": [
       {
         "id": "a",
-        "text": "the duties of individuals requiring separation are defined",
+        "text": "the duties of individuals requiring separation are defined;",
         "whatToLookFor": "A documented list of duty pairs that must be separated, with rationale. Common pairings: account provisioning vs approval, code commit vs production deploy, payment initiation vs approval, system admin vs audit log review.",
         "commonEvidence": [
           "Separation of duties matrix",
           "Access Control Policy section addressing SoD",
           "Documented justification for each defined separation"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "responsibilities for duties that require separation are assigned to separate individuals",
+        "text": "responsibilities for duties that require separation are assigned to separate individuals; and",
         "whatToLookFor": "Role assignments actually split the duties across different named people. Job descriptions or role documentation reflects the split. No 'backup' arrangements that quietly defeat the separation.",
         "commonEvidence": [
           "Role assignment records",
           "Org chart with security roles mapped",
           "Job descriptions referencing separated duties"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "role_permission_matrix"
+          ],
+          "acceptable": [
+            "access_review_record"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "access privileges that enable individuals to exercise the duties that require separation are granted to separate individuals",
+        "text": "access privileges that enable individuals to exercise the duties that require separation are granted to separate individuals.",
         "whatToLookFor": "Technical permissions enforce the split. The person who can request an account cannot also approve it. The developer who commits code cannot also deploy to production. Group membership audits confirm no individual holds both halves of a separated pair.",
         "commonEvidence": [
           "Group membership audit comparing assignments to SoD matrix",
           "Workflow tool configuration showing separation enforcement (e.g., approval workflows)",
           "CI/CD pipeline permissions showing developer vs deployer split"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "access_enforcement_configuration"
+          ],
+          "acceptable": [
+            "role_permission_matrix",
+            "access_review_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -276,7 +450,7 @@
       "Audit log access restriction documentation"
     ],
     "commonGaps": [
-      "Single IT admin holds every privileged credential — no separation possible",
+      "Single IT admin holds every privileged credential \u2014 no separation possible",
       "SoD documented but bypassed via 'emergency access' shared accounts",
       "Audit log reviewers are the same admins generating the logs",
       "Small organizations claim SoD is impractical without compensating controls (manager review, periodic third-party audit)",
@@ -288,46 +462,86 @@
     "family": "Access Control",
     "title": "Least Privilege",
     "controlText": "Employ the principle of least privilege, including for specific security functions and privileged accounts.",
-    "plainEnglish": "Every user, process, and account should have only the permissions needed to do its job — no more. This applies especially to privileged accounts (domain admin, root, application admin) and security functions (changing access controls, modifying audit settings, managing keys). Permission accumulation over time as people change roles is the most common way least privilege quietly degrades.",
+    "plainEnglish": "Every user, process, and account should have only the permissions needed to do its job \u2014 no more. This applies especially to privileged accounts (domain admin, root, application admin) and security functions (changing access controls, modifying audit settings, managing keys). Permission accumulation over time as people change roles is the most common way least privilege quietly degrades.",
     "objectives": [
       {
         "id": "a",
-        "text": "privileged accounts are identified",
-        "whatToLookFor": "An inventory of every privileged account — domain admin, local admin, application admin, root, database sa, cloud root accounts, break-glass accounts. Each entry has a documented owner and purpose.",
+        "text": "privileged accounts are identified;",
+        "whatToLookFor": "An inventory of every privileged account \u2014 domain admin, local admin, application admin, root, database sa, cloud root accounts, break-glass accounts. Each entry has a documented owner and purpose.",
         "commonEvidence": [
           "Privileged account inventory",
           "Privileged Access Management (PAM) tool roster (CyberArk, BeyondTrust, Delinea)",
           "Domain admin and equivalent group membership exports"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "privileged_account_inventory"
+          ],
+          "acceptable": []
+        }
       },
       {
         "id": "b",
-        "text": "access to privileged accounts is authorized in accordance with the principle of least privilege",
+        "text": "access to privileged accounts is authorized in accordance with the principle of least privilege;",
         "whatToLookFor": "Privileged access is granted only when business need exists, time-limited where possible, and reviewed periodically. Just-in-time elevation rather than standing privilege where the toolset allows.",
         "commonEvidence": [
           "Privileged access request and approval records",
           "Privileged access review logs (quarterly minimum)",
           "JIT elevation logs from PAM solution"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "access_authorization_record"
+          ],
+          "acceptable": [
+            "access_review_record",
+            "privileged_account_inventory"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "security functions are identified",
-        "whatToLookFor": "Documented list of what counts as a 'security function' in the environment — managing access controls, modifying audit settings, managing cryptographic keys, configuring firewall/IDS, etc.",
+        "text": "security functions are identified; and",
+        "whatToLookFor": "Documented list of what counts as a 'security function' in the environment \u2014 managing access controls, modifying audit settings, managing cryptographic keys, configuring firewall/IDS, etc.",
         "commonEvidence": [
           "Security function inventory",
           "Documentation of security-relevant administrative tasks"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "access to security functions is authorized in accordance with the principle of least privilege",
+        "text": "access to security functions is authorized in accordance with the principle of least privilege.",
         "whatToLookFor": "Only specifically authorized personnel can perform security functions. Access grants tie back to documented role need. Spot-check: who can modify firewall rules, who can change audit settings, who can manage cryptographic keys?",
         "commonEvidence": [
           "Role assignments for security tool admins",
           "Firewall and security appliance admin user lists",
           "Key management system access logs"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "access_enforcement_configuration"
+          ],
+          "acceptable": [
+            "role_permission_matrix",
+            "access_review_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -339,7 +553,7 @@
     ],
     "commonGaps": [
       "Standing domain admin rights instead of just-in-time elevation",
-      "No periodic privileged access review — once granted, access persists indefinitely",
+      "No periodic privileged access review \u2014 once granted, access persists indefinitely",
       "Cloud root/owner accounts used for daily operations",
       "Permission accumulation from internal job transfers never cleaned up",
       "Privileged accounts not protected by PAM or vaulting",
@@ -351,27 +565,48 @@
     "family": "Access Control",
     "title": "Non-Privileged Account Use",
     "controlText": "Use non-privileged accounts or roles when accessing nonsecurity functions.",
-    "plainEnglish": "Administrators should have two accounts: a regular user account for everyday work (email, web browsing, document editing) and a separate privileged account used only when administrative work is needed. The principle is to limit blast radius — if an admin's daily-use account is compromised by a phishing email, the attacker should not inherit domain admin rights along with it.",
+    "plainEnglish": "Administrators should have two accounts: a regular user account for everyday work (email, web browsing, document editing) and a separate privileged account used only when administrative work is needed. The principle is to limit blast radius \u2014 if an admin's daily-use account is compromised by a phishing email, the attacker should not inherit domain admin rights along with it.",
     "objectives": [
       {
         "id": "a",
-        "text": "nonsecurity functions are identified",
+        "text": "nonsecurity functions are identified; and",
         "whatToLookFor": "Documented distinction between security/administrative tasks and routine business tasks. The list does not need to be exhaustive but should make clear what falls in each category.",
         "commonEvidence": [
           "Documented privileged vs non-privileged function definitions",
           "Administrator handbook or runbook addressing account usage"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "users are required to use non-privileged accounts or roles when accessing nonsecurity functions",
-        "whatToLookFor": "Policy requires admins to use their regular account for non-administrative work. Technical enforcement where possible — admin accounts blocked from email and internet, separate workstations for admin tasks, or PAW (Privileged Access Workstation) deployment.",
+        "text": "users are required to use non-privileged accounts or roles when accessing nonsecurity functions.",
+        "whatToLookFor": "Policy requires admins to use their regular account for non-administrative work. Technical enforcement where possible \u2014 admin accounts blocked from email and internet, separate workstations for admin tasks, or PAW (Privileged Access Workstation) deployment.",
         "commonEvidence": [
           "Policy requiring separate admin and user accounts",
           "Configuration blocking admin accounts from email/web",
           "PAW deployment documentation",
           "Audit logs showing privileged account usage patterns"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "access_enforcement_configuration"
+          ],
+          "acceptable": [
+            "policy_document",
+            "audit_log_sample"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -383,8 +618,8 @@
     "commonGaps": [
       "Admins use a single account for both daily work and privileged actions",
       "Domain admin account checks email and browses the web",
-      "No PAW or equivalent — admin work happens from the same workstation as everything else",
-      "Policy exists but is not enforced — assumed compliance"
+      "No PAW or equivalent \u2014 admin work happens from the same workstation as everything else",
+      "Policy exists but is not enforced \u2014 assumed compliance"
     ]
   },
   {
@@ -392,45 +627,87 @@
     "family": "Access Control",
     "title": "Privileged Functions",
     "controlText": "Prevent non-privileged users from executing privileged functions and capture the execution of such functions in audit logs.",
-    "plainEnglish": "Two requirements bundled together: (1) regular users physically cannot execute privileged functions like creating accounts, modifying audit settings, or installing system software; and (2) every time a privileged function does run, it gets logged. The logging side is critical — it's what lets you detect privilege misuse, whether intentional or compromised credentials.",
+    "plainEnglish": "Two requirements bundled together: (1) regular users physically cannot execute privileged functions like creating accounts, modifying audit settings, or installing system software; and (2) every time a privileged function does run, it gets logged. The logging side is critical \u2014 it's what lets you detect privilege misuse, whether intentional or compromised credentials.",
     "objectives": [
       {
         "id": "a",
-        "text": "privileged functions are defined",
+        "text": "privileged functions are defined;",
         "whatToLookFor": "A documented list of what counts as a privileged function in the environment. Typical entries: account management, system patching, security configuration changes, cryptographic key management, audit log management, IDS/AV bypass.",
         "commonEvidence": [
           "Privileged function inventory",
           "System administration runbook listing privileged operations"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "non-privileged users are defined",
+        "text": "non-privileged users are defined;",
         "whatToLookFor": "Clear delineation of who is privileged versus non-privileged. Usually expressed via group membership or role assignments in the IDP.",
         "commonEvidence": [
           "Role/group definitions in identity provider",
           "Privileged user roster (and by exclusion, non-privileged user definition)"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "role_permission_matrix"
+          ],
+          "acceptable": [
+            "privileged_account_inventory",
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "non-privileged users are prevented from executing privileged functions",
+        "text": "non-privileged users are prevented from executing privileged functions; and",
         "whatToLookFor": "Technical controls actually block non-privileged users from privileged operations. UAC enforced on workstations, sudo restricted on Linux, RBAC enforced in cloud platforms. Spot-check by attempting a privileged operation as a regular user.",
         "commonEvidence": [
           "UAC and sudo configuration",
           "Application RBAC settings",
           "Failed privileged action attempts in audit logs"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "access_enforcement_configuration"
+          ],
+          "acceptable": [
+            "audit_log_sample"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "the execution of privileged functions is captured in audit logs",
+        "text": "the execution of privileged functions is captured in audit logs.",
         "whatToLookFor": "Privileged actions generate audit records that include who, what, when, and outcome. Logs are protected from tampering. Endpoint detection or PAM solution captures privileged session activity.",
         "commonEvidence": [
           "Audit log samples showing privileged function execution",
           "EDR/SIEM configuration capturing privilege events",
           "PAM session recordings or command logs"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "audit_log_sample"
+          ],
+          "acceptable": [
+            "audit_log_configuration",
+            "monitoring_tool_configuration"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -453,28 +730,49 @@
     "family": "Access Control",
     "title": "Unsuccessful Logon Attempts",
     "controlText": "Limit unsuccessful logon attempts.",
-    "plainEnglish": "After a defined number of failed login attempts, the account locks. This protects against brute-force password guessing and indicates suspicious activity. The threshold and lockout duration are organization-defined — fewer attempts is more secure but creates more support tickets, so set it deliberately based on risk.",
+    "plainEnglish": "After a defined number of failed login attempts, the account locks. This protects against brute-force password guessing and indicates suspicious activity. The threshold and lockout duration are organization-defined \u2014 fewer attempts is more secure but creates more support tickets, so set it deliberately based on risk.",
     "objectives": [
       {
         "id": "a",
-        "text": "the means of limiting unsuccessful logon attempts is defined",
-        "whatToLookFor": "Documented threshold (typical: 3–10 attempts) and lockout duration (typical: 15–30 minutes auto-unlock, or admin unlock required). Applied consistently across in-scope systems including OS, applications, and remote access.",
+        "text": "the means of limiting unsuccessful logon attempts is defined; and",
+        "whatToLookFor": "Documented threshold (typical: 3\u201310 attempts) and lockout duration (typical: 15\u201330 minutes auto-unlock, or admin unlock required). Applied consistently across in-scope systems including OS, applications, and remote access.",
         "commonEvidence": [
           "Account lockout policy in IDP",
           "Documented threshold and lockout duration",
           "System security plan section addressing logon attempts"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "account_lockout_configuration"
+          ],
+          "acceptable": [
+            "policy_document",
+            "system_security_plan"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "the defined means of limiting unsuccessful logon attempts is implemented",
+        "text": "the defined means of limiting unsuccessful logon attempts is implemented.",
         "whatToLookFor": "Technical enforcement of the policy. Verified across the IDP, in-scope applications, and remote access endpoints (VPN, RDP gateway). Test by attempting failed logins and confirming lockout actually occurs.",
         "commonEvidence": [
           "Group Policy Object screenshots showing lockout settings",
           "IDP configuration screenshots",
           "Account lockout events in audit logs",
           "Help desk tickets showing lockouts being processed"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "account_lockout_configuration"
+          ],
+          "acceptable": [
+            "audit_log_sample"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -499,23 +797,39 @@
     "objectives": [
       {
         "id": "a",
-        "text": "privacy and security notices required by CUI-specified rules are identified, consistent, and associated with the specific CUI category",
+        "text": "privacy and security notices required by CUI-specified rules are identified, consistent, and associated with the specific CUI category; and",
         "whatToLookFor": "Banner text drafted (typically with Legal review) that addresses monitoring, prohibition of unauthorized use, criminal/civil penalty notice, consent to monitoring, and CUI-specific requirements such as Export Control. Banner content reflects the actual CUI categories present.",
         "commonEvidence": [
           "Banner text document with Legal/General Counsel approval",
           "Mapping of banner language to CUI category requirements",
           "DoD-aligned banner content (referencing dodcui.mil guidance)"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": []
+        }
       },
       {
         "id": "b",
-        "text": "privacy and security notices are displayed",
-        "whatToLookFor": "Banner appears before login on every in-scope system — Windows logon, Linux SSH, web applications, VPN clients. Where users access via API or other non-interactive paths, an equivalent notification mechanism is in place. Posted notices for paper-based CUI handling areas.",
+        "text": "privacy and security notices are displayed.",
+        "whatToLookFor": "Banner appears before login on every in-scope system \u2014 Windows logon, Linux SSH, web applications, VPN clients. Where users access via API or other non-interactive paths, an equivalent notification mechanism is in place. Posted notices for paper-based CUI handling areas.",
         "commonEvidence": [
           "Screenshots of login banners across system types",
           "Group Policy or MDM configuration deploying the banner",
           "Photos of physical posted notices in CUI handling areas"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "configuration_baseline_record"
+          ],
+          "acceptable": []
+        }
       }
     ],
     "commonArtifacts": [
@@ -537,34 +851,62 @@
     "family": "Access Control",
     "title": "Session Lock",
     "controlText": "Use session lock with pattern-hiding displays to prevent access and viewing of data after a period of inactivity.",
-    "plainEnglish": "After a defined period of inactivity, the system locks and hides whatever was on the screen behind a screensaver or lock screen. This protects against shoulder-surfing and unauthorized use of unattended workstations. Session lock is a temporary measure — it is not a substitute for fully logging out.",
+    "plainEnglish": "After a defined period of inactivity, the system locks and hides whatever was on the screen behind a screensaver or lock screen. This protects against shoulder-surfing and unauthorized use of unattended workstations. Session lock is a temporary measure \u2014 it is not a substitute for fully logging out.",
     "objectives": [
       {
         "id": "a",
-        "text": "the period of inactivity after which the system initiates a session lock is defined",
-        "whatToLookFor": "Documented inactivity timeout (commonly 10–15 minutes) applied across endpoints. Defined in policy and reflected in technical configuration.",
+        "text": "the period of inactivity after which the system initiates a session lock is defined;",
+        "whatToLookFor": "Documented inactivity timeout (commonly 10\u201315 minutes) applied across endpoints. Defined in policy and reflected in technical configuration.",
         "commonEvidence": [
           "Session lock policy with defined timeout",
           "GPO or MDM screen lock configuration"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "session_control_configuration"
+          ],
+          "acceptable": [
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "access to the system and viewing of data is prevented by initiating a session lock after the defined period of inactivity",
+        "text": "access to the system and viewing of data is prevented by initiating a session lock after the defined period of inactivity; and",
         "whatToLookFor": "Lock actually triggers at the defined timeout across all in-scope endpoints. User must re-authenticate to unlock. Test by leaving a workstation idle and observing.",
         "commonEvidence": [
           "Configuration screenshots from endpoint baseline",
           "MDM compliance reports showing lock policy applied"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "session_control_configuration"
+          ],
+          "acceptable": [
+            "configuration_baseline_record"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "previously visible information is concealed via a pattern-hiding display after the defined period of inactivity",
-        "whatToLookFor": "Lock screen hides the previous content — no peeking around the lock dialog. Screensaver does not display CUI (e.g., no document preview screensavers in CUI environments).",
+        "text": "previously visible information is concealed via a pattern-hiding display after the defined period of inactivity.",
+        "whatToLookFor": "Lock screen hides the previous content \u2014 no peeking around the lock dialog. Screensaver does not display CUI (e.g., no document preview screensavers in CUI environments).",
         "commonEvidence": [
           "Screenshot of locked screen showing concealed content",
           "Screensaver configuration documentation"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "session_control_configuration"
+          ],
+          "acceptable": []
+        }
       }
     ],
     "commonArtifacts": [
@@ -584,27 +926,49 @@
     "family": "Access Control",
     "title": "Session Termination",
     "controlText": "Terminate (automatically) a user session after a defined condition.",
-    "plainEnglish": "Different from session lock: this is full session termination — the user is logged out and must reauthenticate completely. Conditions that trigger termination include extended inactivity (longer than the lock threshold), end of business day, detected policy violations, or scheduled maintenance windows. The point is to ensure no session lingers indefinitely on an unattended system.",
+    "plainEnglish": "Different from session lock: this is full session termination \u2014 the user is logged out and must reauthenticate completely. Conditions that trigger termination include extended inactivity (longer than the lock threshold), end of business day, detected policy violations, or scheduled maintenance windows. The point is to ensure no session lingers indefinitely on an unattended system.",
     "objectives": [
       {
         "id": "a",
-        "text": "conditions requiring a user session to terminate are defined",
-        "whatToLookFor": "Documented termination conditions — typically extended inactivity (e.g., 60+ minutes), end of workday, or specific anomalies. The conditions are organization-defined and should reflect operational reality.",
+        "text": "conditions requiring a user session to terminate are defined; and",
+        "whatToLookFor": "Documented termination conditions \u2014 typically extended inactivity (e.g., 60+ minutes), end of workday, or specific anomalies. The conditions are organization-defined and should reflect operational reality.",
         "commonEvidence": [
           "Session termination policy",
           "Documented list of termination conditions",
           "System security plan section on session management"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "session_control_configuration"
+          ],
+          "acceptable": [
+            "policy_document",
+            "system_security_plan"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "a user session is automatically terminated after any of the defined conditions occur",
-        "whatToLookFor": "Termination actually fires when conditions are met. Verified through testing or audit logs. Note that termination ends user processes (with exceptions for those explicitly created to persist) — not just disconnects from the network.",
+        "text": "a user session is automatically terminated after any of the defined conditions occur.",
+        "whatToLookFor": "Termination actually fires when conditions are met. Verified through testing or audit logs. Note that termination ends user processes (with exceptions for those explicitly created to persist) \u2014 not just disconnects from the network.",
         "commonEvidence": [
           "Application or VPN session timeout configuration",
           "Audit logs showing automatic terminations",
           "Citrix/RDP/cloud workspace session policy configuration"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "session_control_configuration"
+          ],
+          "acceptable": [
+            "audit_log_sample",
+            "remote_access_configuration"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -614,7 +978,7 @@
       "Audit log evidence of automatic terminations"
     ],
     "commonGaps": [
-      "Session termination conflated with session lock — only lock is configured",
+      "Session termination conflated with session lock \u2014 only lock is configured",
       "Web applications and cloud SaaS missing session timeouts",
       "VPN sessions persist for days because of long timeout settings",
       "No termination on workday end for systems with predictable usage windows"
@@ -625,47 +989,90 @@
     "family": "Access Control",
     "title": "Control Remote Access",
     "controlText": "Monitor and control remote access sessions.",
-    "plainEnglish": "Any access from outside the trusted network — VPN, jump servers, cloud admin portals, even authorized cloud SaaS — counts as remote access and must be monitored and controlled. This means defined types of allowed remote access, technical enforcement (typically VPN with device posture checks), and active monitoring of sessions. Cloud-based email and file storage are remote access if they contain CUI.",
+    "plainEnglish": "Any access from outside the trusted network \u2014 VPN, jump servers, cloud admin portals, even authorized cloud SaaS \u2014 counts as remote access and must be monitored and controlled. This means defined types of allowed remote access, technical enforcement (typically VPN with device posture checks), and active monitoring of sessions. Cloud-based email and file storage are remote access if they contain CUI.",
     "objectives": [
       {
         "id": "a",
-        "text": "remote access sessions are permitted",
-        "whatToLookFor": "Policy explicitly addresses remote access — what is allowed, who is allowed, from what devices, and under what conditions. Default-deny posture rather than default-allow.",
+        "text": "remote access sessions are permitted;",
+        "whatToLookFor": "Policy explicitly addresses remote access \u2014 what is allowed, who is allowed, from what devices, and under what conditions. Default-deny posture rather than default-allow.",
         "commonEvidence": [
           "Remote Access Policy",
           "Acceptable use language addressing remote work",
           "Approved remote access methods documentation"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "remote_access_configuration"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "the types of permitted remote access are identified",
-        "whatToLookFor": "Documented inventory of allowed remote access methods — VPN, RDP gateway, SSH bastion, cloud admin portal, browser-based applications. Each method has a stated business purpose and access scope.",
+        "text": "the types of permitted remote access are identified;",
+        "whatToLookFor": "Documented inventory of allowed remote access methods \u2014 VPN, RDP gateway, SSH bastion, cloud admin portal, browser-based applications. Each method has a stated business purpose and access scope.",
         "commonEvidence": [
           "Remote access method inventory",
           "Architecture diagram showing remote access paths"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "remote_access_configuration"
+          ],
+          "acceptable": [
+            "network_diagram",
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "remote access sessions are controlled",
+        "text": "remote access sessions are controlled; and",
         "whatToLookFor": "Technical controls limit remote access to documented methods. Conditional access policies, device compliance, MFA requirements, geo-restrictions where applicable. Unauthorized methods (e.g., personal RDP, third-party remote tools) are blocked.",
         "commonEvidence": [
           "VPN client configuration and device requirements",
           "Conditional access policies for cloud applications",
           "Firewall rules blocking unauthorized remote access tools"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "remote_access_configuration"
+          ],
+          "acceptable": [
+            "mfa_configuration",
+            "firewall_ruleset"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "remote access sessions are monitored",
-        "whatToLookFor": "Active monitoring of remote sessions — connection logs reviewed, alerts on anomalies (impossible travel, unusual times, unusual data volumes). Logging captures who connected, when, from where, for how long.",
+        "text": "remote access sessions are monitored.",
+        "whatToLookFor": "Active monitoring of remote sessions \u2014 connection logs reviewed, alerts on anomalies (impossible travel, unusual times, unusual data volumes). Logging captures who connected, when, from where, for how long.",
         "commonEvidence": [
           "VPN connection logs in SIEM",
           "Conditional access sign-in logs",
           "Alerting rules for anomalous remote access patterns",
           "Periodic review of remote access activity"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "audit_log_sample"
+          ],
+          "acceptable": [
+            "monitoring_tool_configuration",
+            "log_review_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -676,10 +1083,10 @@
       "Periodic remote access review records"
     ],
     "commonGaps": [
-      "Cloud applications containing CUI not treated as remote access — no monitoring or control",
+      "Cloud applications containing CUI not treated as remote access \u2014 no monitoring or control",
       "VPN logs collected but never reviewed",
       "Personal remote access tools (TeamViewer, AnyDesk) used without authorization",
-      "No device posture check before granting remote access — any device with credentials gets in",
+      "No device posture check before granting remote access \u2014 any device with credentials gets in",
       "Subcontractor or vendor remote access provisioned ad hoc with no documentation"
     ]
   },
@@ -688,28 +1095,49 @@
     "family": "Access Control",
     "title": "Remote Access Confidentiality",
     "controlText": "Employ cryptographic mechanisms to protect the confidentiality of remote access sessions.",
-    "plainEnglish": "Remote access sessions must be encrypted using FIPS-validated cryptography — not just any encryption, but cryptographic modules that have been formally tested under FIPS 140-2 (or 140-3). This is a frequent finding because using an approved algorithm is not enough; the implementation itself must be validated. VPN products, TLS implementations, and remote access tools all need to be checked against the NIST CMVP list.",
+    "plainEnglish": "Remote access sessions must be encrypted using FIPS-validated cryptography \u2014 not just any encryption, but cryptographic modules that have been formally tested under FIPS 140-2 (or 140-3). This is a frequent finding because using an approved algorithm is not enough; the implementation itself must be validated. VPN products, TLS implementations, and remote access tools all need to be checked against the NIST CMVP list.",
     "objectives": [
       {
         "id": "a",
-        "text": "cryptographic mechanisms to protect the confidentiality of remote access sessions are identified",
-        "whatToLookFor": "Documented identification of cryptographic mechanisms in use — VPN protocols and FIPS validation status, TLS configurations, SSH cipher suites. Each ties to a specific FIPS-validated module on the CMVP list.",
+        "text": "cryptographic mechanisms to protect the confidentiality of remote access sessions are identified; and",
+        "whatToLookFor": "Documented identification of cryptographic mechanisms in use \u2014 VPN protocols and FIPS validation status, TLS configurations, SSH cipher suites. Each ties to a specific FIPS-validated module on the CMVP list.",
         "commonEvidence": [
           "List of remote access cryptographic mechanisms",
           "FIPS 140-2/140-3 certificate references for each",
           "VPN and TLS configuration documentation"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "encryption_configuration"
+          ],
+          "acceptable": [
+            "fips_validation_evidence",
+            "remote_access_configuration"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "cryptographic mechanisms to protect the confidentiality of remote access sessions are implemented",
-        "whatToLookFor": "FIPS-validated mechanisms actually in use — FIPS mode enabled where applicable on operating systems, cipher suites restricted to FIPS-approved algorithms, deprecated protocols disabled. Independently verified through configuration review, not assumed.",
+        "text": "cryptographic mechanisms to protect the confidentiality of remote access sessions are implemented.",
+        "whatToLookFor": "FIPS-validated mechanisms actually in use \u2014 FIPS mode enabled where applicable on operating systems, cipher suites restricted to FIPS-approved algorithms, deprecated protocols disabled. Independently verified through configuration review, not assumed.",
         "commonEvidence": [
           "FIPS mode configuration screenshots",
           "TLS scan results showing FIPS-only cipher suites",
           "VPN client and server configuration",
           "Disabled protocols documentation (SSL 3, TLS 1.0/1.1, weak ciphers)"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "encryption_configuration"
+          ],
+          "acceptable": [
+            "fips_validation_evidence"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -722,7 +1150,7 @@
       "Using strong algorithms (AES-256) but the cryptographic module is not FIPS-validated",
       "Self-signed certificates or cryptographic libraries that have not been through CMVP",
       "FIPS mode not enabled on Windows or RHEL where it would be required",
-      "Cipher suite includes both FIPS-approved and non-approved options — clients negotiate downward",
+      "Cipher suite includes both FIPS-approved and non-approved options \u2014 clients negotiate downward",
       "Open-source VPN implementation without an associated FIPS validation"
     ]
   },
@@ -731,26 +1159,47 @@
     "family": "Access Control",
     "title": "Remote Access Routing",
     "controlText": "Route remote access via managed access control points.",
-    "plainEnglish": "All remote access funnels through a small number of designated entry points — typically a VPN concentrator or remote access gateway — rather than letting users connect to individual systems directly across the internet. Concentrating remote access reduces the attack surface and simplifies monitoring. The design point is 'one chokepoint to watch' rather than 'a hundred internet-facing systems to defend.'",
+    "plainEnglish": "All remote access funnels through a small number of designated entry points \u2014 typically a VPN concentrator or remote access gateway \u2014 rather than letting users connect to individual systems directly across the internet. Concentrating remote access reduces the attack surface and simplifies monitoring. The design point is 'one chokepoint to watch' rather than 'a hundred internet-facing systems to defend.'",
     "objectives": [
       {
         "id": "a",
-        "text": "managed access control points are identified and implemented",
-        "whatToLookFor": "Documented list of managed access control points — typically VPN concentrators, RDP gateways, SSH bastions, cloud identity-aware proxies. Each is purpose-built for remote access and actively monitored.",
+        "text": "managed access control points are identified and implemented; and",
+        "whatToLookFor": "Documented list of managed access control points \u2014 typically VPN concentrators, RDP gateways, SSH bastions, cloud identity-aware proxies. Each is purpose-built for remote access and actively monitored.",
         "commonEvidence": [
           "Network architecture diagram showing access control points",
           "VPN/gateway inventory with management responsibility documented"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "network_diagram"
+          ],
+          "acceptable": [
+            "remote_access_configuration"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "remote access is routed through managed network access control points",
+        "text": "remote access is routed through managed network access control points.",
         "whatToLookFor": "Firewall rules and network architecture force all remote access through the designated points. No direct RDP, SSH, or admin portal exposure to the internet for in-scope systems. Verified through external network scanning.",
         "commonEvidence": [
           "Firewall rules denying direct external access to in-scope systems",
           "External attack surface scan results",
           "Network architecture documentation"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "firewall_ruleset"
+          ],
+          "acceptable": [
+            "network_diagram",
+            "vulnerability_scan_report"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -775,40 +1224,81 @@
     "objectives": [
       {
         "id": "a",
-        "text": "privileged commands authorized for remote execution are identified",
-        "whatToLookFor": "Documented list of privileged commands or operations that may be executed remotely. Commands not on the list are not allowed remotely — administrators must be on-premises or use a different mechanism.",
+        "text": "privileged commands authorized for remote execution are identified;",
+        "whatToLookFor": "Documented list of privileged commands or operations that may be executed remotely. Commands not on the list are not allowed remotely \u2014 administrators must be on-premises or use a different mechanism.",
         "commonEvidence": [
           "List of remotely-executable privileged commands",
           "PAM configuration restricting remote command execution"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "access_enforcement_configuration"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "security-relevant information authorized to be accessed remotely is identified",
-        "whatToLookFor": "Documented list of security-relevant data types accessible remotely — typically audit logs, IDS configurations, key management interfaces. Not all security-relevant info should be remotely accessible.",
+        "text": "security-relevant information authorized to be accessed remotely is identified;",
+        "whatToLookFor": "Documented list of security-relevant data types accessible remotely \u2014 typically audit logs, IDS configurations, key management interfaces. Not all security-relevant info should be remotely accessible.",
         "commonEvidence": [
           "List of remotely-accessible security-relevant information",
           "Access control matrix for security tools"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "role_permission_matrix"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "the execution of the identified privileged commands via remote access is authorized",
+        "text": "the execution of the identified privileged commands via remote access is authorized; and",
         "whatToLookFor": "Specific role assignments or authorization records for each user permitted to execute privileged commands remotely. Not implicit from being a privileged user.",
         "commonEvidence": [
           "Authorization records by user/role",
           "PAM access policies",
           "Audit logs of privileged remote command execution"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "access_authorization_record"
+          ],
+          "acceptable": [
+            "access_enforcement_configuration",
+            "audit_log_sample"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "access to the identified security-relevant information via remote access is authorized",
+        "text": "access to the identified security-relevant information via remote access is authorized.",
         "whatToLookFor": "Specific role assignments granting remote access to security-relevant information. Reviewed periodically. Logged when accessed.",
         "commonEvidence": [
           "Authorization records for remote access to security tools",
           "SIEM and security tool access logs"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "access_authorization_record"
+          ],
+          "acceptable": [
+            "audit_log_sample"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -818,7 +1308,7 @@
       "Security tool access lists"
     ],
     "commonGaps": [
-      "Any privileged user can do anything remotely — no specific authorization for remote privileged work",
+      "Any privileged user can do anything remotely \u2014 no specific authorization for remote privileged work",
       "PAM deployed but bypassed for 'emergency' remote work",
       "Remote access to SIEM, audit logs, or KMS not differentiated from any other admin task",
       "No session recording or command logging for remote privileged work"
@@ -829,27 +1319,48 @@
     "family": "Access Control",
     "title": "Wireless Access Authorization",
     "controlText": "Authorize wireless access prior to allowing such connections.",
-    "plainEnglish": "Wireless access requires explicit authorization before a device can connect — it is not 'public, just use the password.' This means policy defining who can connect (corporate-owned vs personal devices), required configuration on devices, and an authorization workflow before access is granted. Combined with AC.L2-3.1.17 (protection) and AC.L2-3.1.18 (mobile devices), this controls how wireless and mobile connectivity is managed.",
+    "plainEnglish": "Wireless access requires explicit authorization before a device can connect \u2014 it is not 'public, just use the password.' This means policy defining who can connect (corporate-owned vs personal devices), required configuration on devices, and an authorization workflow before access is granted. Combined with AC.L2-3.1.17 (protection) and AC.L2-3.1.18 (mobile devices), this controls how wireless and mobile connectivity is managed.",
     "objectives": [
       {
         "id": "a",
-        "text": "wireless access points are identified",
+        "text": "wireless access points are identified; and",
         "whatToLookFor": "Inventory of authorized wireless access points (corporate APs, mesh nodes, guest access points). Rogue AP detection mechanisms in place to identify unauthorized APs.",
         "commonEvidence": [
           "Wireless access point inventory",
           "WIDS/WIPS configuration",
           "Periodic wireless site survey records"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "asset_inventory"
+          ],
+          "acceptable": [
+            "monitoring_tool_configuration"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "wireless access is authorized prior to allowing such connections",
-        "whatToLookFor": "Authorization workflow before a device gets wireless access — registration in MDM, certificate issuance, or RADIUS-based authentication. Devices not authorized cannot connect to the corporate SSID. Guest network is segregated.",
+        "text": "wireless access is authorized prior to allowing such connections.",
+        "whatToLookFor": "Authorization workflow before a device gets wireless access \u2014 registration in MDM, certificate issuance, or RADIUS-based authentication. Devices not authorized cannot connect to the corporate SSID. Guest network is segregated.",
         "commonEvidence": [
           "Wireless authentication configuration (RADIUS, certificates)",
           "Device registration workflow",
           "Network segmentation between corporate and guest SSIDs"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "wireless_configuration"
+          ],
+          "acceptable": [
+            "device_access_list",
+            "access_authorization_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -860,7 +1371,7 @@
     ],
     "commonGaps": [
       "Pre-shared key (PSK) shared widely with no per-device authorization",
-      "No rogue AP detection — any device plugging in an AP succeeds",
+      "No rogue AP detection \u2014 any device plugging in an AP succeeds",
       "Personal devices on corporate SSID without authorization",
       "Guest network not segmented from corporate"
     ]
@@ -874,23 +1385,42 @@
     "objectives": [
       {
         "id": "a",
-        "text": "wireless access to the system is protected using authentication",
-        "whatToLookFor": "Wireless authentication enforced — WPA2/WPA3 with PSK, or Enterprise mode with RADIUS-backed individual authentication. No open SSIDs for in-scope access.",
+        "text": "wireless access to the system is protected using authentication; and",
+        "whatToLookFor": "Wireless authentication enforced \u2014 WPA2/WPA3 with PSK, or Enterprise mode with RADIUS-backed individual authentication. No open SSIDs for in-scope access.",
         "commonEvidence": [
           "Wireless controller configuration",
           "RADIUS server configuration and logs",
           "Certificate-based authentication setup for WPA2/WPA3 Enterprise"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "wireless_configuration"
+          ],
+          "acceptable": []
+        }
       },
       {
         "id": "b",
-        "text": "wireless access to the system is protected using encryption",
+        "text": "wireless access to the system is protected using encryption.",
         "whatToLookFor": "WPA2 or WPA3 with FIPS-validated AES encryption. The cryptographic module must be FIPS-validated, not just the algorithm. Verified by checking the wireless equipment's CMVP listing.",
         "commonEvidence": [
           "Wireless encryption configuration",
           "FIPS validation reference for wireless equipment",
           "Wireless protocol scan results showing only approved configurations"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "wireless_configuration"
+          ],
+          "acceptable": [
+            "encryption_configuration",
+            "fips_validation_evidence"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -911,37 +1441,70 @@
     "family": "Access Control",
     "title": "Mobile Device Connection",
     "controlText": "Control connection of mobile devices.",
-    "plainEnglish": "Mobile devices that handle CUI — smartphones, tablets, e-readers — must be identified, authorized to connect, and monitored. This typically means MDM enrollment with device-specific identifiers, configuration enforcement, and connection logging. Personal devices accessing CUI without enrollment are a frequent gap. BYOD without MDM does not satisfy this control.",
+    "plainEnglish": "Mobile devices that handle CUI \u2014 smartphones, tablets, e-readers \u2014 must be identified, authorized to connect, and monitored. This typically means MDM enrollment with device-specific identifiers, configuration enforcement, and connection logging. Personal devices accessing CUI without enrollment are a frequent gap. BYOD without MDM does not satisfy this control.",
     "objectives": [
       {
         "id": "a",
-        "text": "mobile devices that process, store, or transmit CUI are identified",
+        "text": "mobile devices that process, store, or transmit CUI are identified;",
         "whatToLookFor": "Inventory of mobile devices handling CUI, with device-specific identifiers (IMEI, serial number, certificate). Both corporate-issued and authorized personal devices accounted for.",
         "commonEvidence": [
           "Mobile device inventory",
           "MDM enrollment list",
           "Per-device certificates or identifiers"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "mdm_enrollment_list"
+          ],
+          "acceptable": [
+            "asset_inventory",
+            "certificate_inventory"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "mobile device connections are authorized",
-        "whatToLookFor": "Authorization workflow before mobile device gets access — typically MDM enrollment with corporate approval, device compliance check, and per-user authorization for CUI app access.",
+        "text": "mobile device connections are authorized; and",
+        "whatToLookFor": "Authorization workflow before mobile device gets access \u2014 typically MDM enrollment with corporate approval, device compliance check, and per-user authorization for CUI app access.",
         "commonEvidence": [
           "MDM enrollment policy",
           "Device authorization records",
           "Conditional access policies requiring compliant devices"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "mdm_enrollment_list"
+          ],
+          "acceptable": [
+            "access_authorization_record",
+            "access_enforcement_configuration"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "mobile device connections are monitored and logged",
-        "whatToLookFor": "Active monitoring of mobile device connections — MDM compliance reporting, connection logs in SIEM, alerts on jailbreak/root detection or compliance drift.",
+        "text": "mobile device connections are monitored and logged.",
+        "whatToLookFor": "Active monitoring of mobile device connections \u2014 MDM compliance reporting, connection logs in SIEM, alerts on jailbreak/root detection or compliance drift.",
         "commonEvidence": [
           "MDM compliance dashboards and reports",
           "Mobile device connection logs",
           "Alerting rules for device compliance violations"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "audit_log_sample"
+          ],
+          "acceptable": [
+            "monitoring_tool_configuration",
+            "mdm_enrollment_list"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -952,7 +1515,7 @@
     ],
     "commonGaps": [
       "Personal phones accessing corporate email containing CUI without MDM enrollment",
-      "MDM deployed but enrollment not enforced — users can opt out",
+      "MDM deployed but enrollment not enforced \u2014 users can opt out",
       "No alerting on jailbroken/rooted devices accessing CUI apps",
       "BYOD policy exists but no technical enforcement"
     ]
@@ -962,28 +1525,49 @@
     "family": "Access Control",
     "title": "Encrypt CUI on Mobile",
     "controlText": "Encrypt CUI on mobile devices and mobile computing platforms.",
-    "plainEnglish": "Any mobile device or laptop handling CUI must encrypt that CUI using FIPS-validated cryptography — full-disk encryption (BitLocker, FileVault, LUKS) or container-based encryption for mobile apps. The FIPS validation requirement matters: BitLocker is FIPS-capable but must be configured in FIPS-compliant mode. Same caveat as remote access encryption — the module must be CMVP-listed.",
+    "plainEnglish": "Any mobile device or laptop handling CUI must encrypt that CUI using FIPS-validated cryptography \u2014 full-disk encryption (BitLocker, FileVault, LUKS) or container-based encryption for mobile apps. The FIPS validation requirement matters: BitLocker is FIPS-capable but must be configured in FIPS-compliant mode. Same caveat as remote access encryption \u2014 the module must be CMVP-listed.",
     "objectives": [
       {
         "id": "a",
-        "text": "mobile devices and mobile computing platforms that process, store, or transmit CUI are identified",
-        "whatToLookFor": "Inventory of devices handling CUI — phones, tablets, laptops. Should be the same inventory used for AC.L2-3.1.18 plus laptops.",
+        "text": "mobile devices and mobile computing platforms that process, store, or transmit CUI are identified; and",
+        "whatToLookFor": "Inventory of devices handling CUI \u2014 phones, tablets, laptops. Should be the same inventory used for AC.L2-3.1.18 plus laptops.",
         "commonEvidence": [
           "Mobile device and laptop inventory",
           "MDM enrollment list",
           "Asset management records flagging CUI-handling devices"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "mdm_enrollment_list"
+          ],
+          "acceptable": [
+            "asset_inventory"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "encryption is employed to protect CUI on identified mobile devices and mobile computing platforms",
+        "text": "encryption is employed to protect CUI on identified mobile devices and mobile computing platforms.",
         "whatToLookFor": "Full-disk encryption or container encryption deployed and verified, using FIPS-validated cryptographic modules. BitLocker in FIPS mode, FileVault, LUKS with FIPS-validated implementation, MDM-enforced container encryption on phones.",
         "commonEvidence": [
           "Encryption status reports from MDM",
           "BitLocker/FileVault compliance dashboards",
           "FIPS mode configuration evidence",
           "CMVP certificate references"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "encryption_configuration"
+          ],
+          "acceptable": [
+            "fips_validation_evidence",
+            "mdm_enrollment_list"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -1004,67 +1588,129 @@
     "family": "Access Control",
     "title": "External Connections",
     "controlText": "Verify and control/limit connections to and use of external information systems.",
-    "plainEnglish": "External systems — anything you don't directly manage, including personal devices, partner systems, cloud services, and contractor laptops — must be identified, verified, and limited when they connect to or process FCI/CUI. This is one of the FAR 52.204-21 Level 1 practices, but it scales up significantly at Level 2 because of the cloud and supply chain implications. Cloud SaaS containing FCI/CUI is in scope.",
+    "plainEnglish": "External systems \u2014 anything you don't directly manage, including personal devices, partner systems, cloud services, and contractor laptops \u2014 must be identified, verified, and limited when they connect to or process FCI/CUI. This is one of the FAR 52.204-21 Level 1 practices, but it scales up significantly at Level 2 because of the cloud and supply chain implications. Cloud SaaS containing FCI/CUI is in scope.",
     "objectives": [
       {
         "id": "a",
-        "text": "connections to external systems are identified",
-        "whatToLookFor": "Inventory of external systems that connect to in-scope systems — partner VPNs, supplier portals, cloud SaaS, federated authentication providers.",
+        "text": "connections to external systems are identified;",
+        "whatToLookFor": "Inventory of external systems that connect to in-scope systems \u2014 partner VPNs, supplier portals, cloud SaaS, federated authentication providers.",
         "commonEvidence": [
           "External connection inventory",
           "Network architecture diagram showing external connections",
           "Federation and SSO configuration documentation"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "network_diagram"
+          ],
+          "acceptable": [
+            "signed_agreement"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "the use of external systems is identified",
-        "whatToLookFor": "Inventory of external systems used to process FCI/CUI — cloud applications, contractor systems, personal devices where authorized.",
+        "text": "the use of external systems is identified;",
+        "whatToLookFor": "Inventory of external systems used to process FCI/CUI \u2014 cloud applications, contractor systems, personal devices where authorized.",
         "commonEvidence": [
           "Cloud SaaS inventory with FCI/CUI handling status",
           "Authorized external system usage list",
           "Shadow IT discovery reports"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "software_inventory"
+          ],
+          "acceptable": [
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "connections to external systems are verified",
-        "whatToLookFor": "Each external connection has an Interconnection Security Agreement (ISA) or equivalent. Authentication enforced — the connection actually proves it is the authorized partner, not just any system.",
+        "text": "connections to external systems are verified;",
+        "whatToLookFor": "Each external connection has an Interconnection Security Agreement (ISA) or equivalent. Authentication enforced \u2014 the connection actually proves it is the authorized partner, not just any system.",
         "commonEvidence": [
           "Interconnection Security Agreements",
           "Mutual TLS or certificate-based authentication evidence",
           "Connection authentication logs"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "signed_agreement"
+          ],
+          "acceptable": [
+            "certificate_inventory",
+            "authentication_configuration"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "the use of external systems is verified",
+        "text": "the use of external systems is verified;",
         "whatToLookFor": "External system usage authorized in writing. Cloud SaaS evaluated and approved before use for FCI/CUI. Personal device usage governed by policy.",
         "commonEvidence": [
           "Cloud service approval records",
           "Personal device authorization records",
           "Vendor security assessments"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "access_authorization_record"
+          ],
+          "acceptable": [
+            "signed_agreement",
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "e",
-        "text": "connections to external systems are controlled/limited",
-        "whatToLookFor": "Technical controls limit what external systems can do — restricted IP ranges, scoped permissions, rate limits, allow-listed integrations only.",
+        "text": "connections to external systems are controlled/limited; and",
+        "whatToLookFor": "Technical controls limit what external systems can do \u2014 restricted IP ranges, scoped permissions, rate limits, allow-listed integrations only.",
         "commonEvidence": [
           "Firewall rules for external connections",
           "API gateway configuration with scoping",
           "Allow-list documentation"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "firewall_ruleset"
+          ],
+          "acceptable": [
+            "access_enforcement_configuration"
+          ]
+        }
       },
       {
         "id": "f",
-        "text": "the use of external systems is controlled/limited",
-        "whatToLookFor": "Policy and technical enforcement limit how external systems are used — approved cloud environments only, sanctioned tools only, no shadow IT for FCI/CUI workloads.",
+        "text": "the use of external systems is controlled/limited.",
+        "whatToLookFor": "Policy and technical enforcement limit how external systems are used \u2014 approved cloud environments only, sanctioned tools only, no shadow IT for FCI/CUI workloads.",
         "commonEvidence": [
           "Sanctioned applications list",
           "CASB enforcement policies",
           "Web filtering rules blocking unauthorized cloud services"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "access_enforcement_configuration"
+          ],
+          "acceptable": [
+            "firewall_ruleset"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -1077,9 +1723,9 @@
     "commonGaps": [
       "Cloud SaaS containing CUI used without formal approval or vendor assessment",
       "Subcontractor connections set up ad hoc without ISAs",
-      "Shadow IT proliferation — unsanctioned cloud apps used for project work",
+      "Shadow IT proliferation \u2014 unsanctioned cloud apps used for project work",
       "Personal devices accessing CUI without authorization or technical control",
-      "External connections allowed but not actually verified — connection by IP only"
+      "External connections allowed but not actually verified \u2014 connection by IP only"
     ]
   },
   {
@@ -1087,37 +1733,69 @@
     "family": "Access Control",
     "title": "Portable Storage Use",
     "controlText": "Limit use of portable storage devices on external systems.",
-    "plainEnglish": "When a USB drive, external hard disk, or similar portable storage contains CUI, its use on external systems (anything you do not manage) must be limited or prohibited. The cleanest implementation is technical — encrypted enterprise USBs that only work on managed endpoints. The fallback is policy-based prohibition, but that's harder to demonstrate as enforcement.",
+    "plainEnglish": "When a USB drive, external hard disk, or similar portable storage contains CUI, its use on external systems (anything you do not manage) must be limited or prohibited. The cleanest implementation is technical \u2014 encrypted enterprise USBs that only work on managed endpoints. The fallback is policy-based prohibition, but that's harder to demonstrate as enforcement.",
     "objectives": [
       {
         "id": "a",
-        "text": "the use of portable storage devices containing CUI on external systems is identified and documented",
-        "whatToLookFor": "Documented identification of any scenarios where portable storage with CUI is used on external systems — should be exceptional, with explicit justification.",
+        "text": "the use of portable storage devices containing CUI on external systems is identified and documented;",
+        "whatToLookFor": "Documented identification of any scenarios where portable storage with CUI is used on external systems \u2014 should be exceptional, with explicit justification.",
         "commonEvidence": [
           "Portable storage usage policy",
           "Documented use cases for external system use (if any)",
           "Issued device inventory"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "media_inventory"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "limits on the use of portable storage devices containing CUI on external systems are defined",
-        "whatToLookFor": "Defined limits — typically prohibition by default, with narrow exceptions requiring approval. Encrypted enterprise USBs that can only authenticate to managed endpoints. No personal USBs containing CUI on personal computers.",
+        "text": "limits on the use of portable storage devices containing CUI on external systems are defined; and",
+        "whatToLookFor": "Defined limits \u2014 typically prohibition by default, with narrow exceptions requiring approval. Encrypted enterprise USBs that can only authenticate to managed endpoints. No personal USBs containing CUI on personal computers.",
         "commonEvidence": [
           "Defined limits in policy",
           "Encrypted USB device specification",
           "Exception approval records"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "procedure_document"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "the use of portable storage devices containing CUI on external systems is limited as defined",
+        "text": "the use of portable storage devices containing CUI on external systems is limited as defined.",
         "whatToLookFor": "Technical or administrative enforcement of the limits. DLP rules detecting USB writes of CUI, encrypted USBs requiring managed-endpoint authentication, audit of USB usage.",
         "commonEvidence": [
           "DLP rules for USB writes",
           "Encrypted USB authentication logs",
           "USB device control configuration on endpoints"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "dlp_configuration"
+          ],
+          "acceptable": [
+            "access_enforcement_configuration",
+            "audit_log_sample",
+            "media_inventory"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -1127,7 +1805,7 @@
       "DLP rules for portable storage"
     ],
     "commonGaps": [
-      "USB ports not controlled — any drive can be inserted and used",
+      "USB ports not controlled \u2014 any drive can be inserted and used",
       "Policy prohibits use but no technical enforcement",
       "Encrypted USB program issued but personal USBs still tolerated",
       "No audit of what data ends up on portable storage"
@@ -1138,56 +1816,105 @@
     "family": "Access Control",
     "title": "Control Public Information",
     "controlText": "Control information posted or processed on publicly accessible information systems.",
-    "plainEnglish": "Information posted to public-facing systems — corporate website, marketing site, social media, public-facing portals — must be reviewed before posting to ensure no FCI/CUI gets exposed. Control includes: identifying who is authorized to post, defining the review process, periodic reviews of what is already posted, and a removal mechanism for anything that should not be there.",
+    "plainEnglish": "Information posted to public-facing systems \u2014 corporate website, marketing site, social media, public-facing portals \u2014 must be reviewed before posting to ensure no FCI/CUI gets exposed. Control includes: identifying who is authorized to post, defining the review process, periodic reviews of what is already posted, and a removal mechanism for anything that should not be there.",
     "objectives": [
       {
         "id": "a",
-        "text": "individuals authorized to post or process information on publicly accessible systems are identified",
-        "whatToLookFor": "Documented list of individuals (or roles) with authority to post to public systems — typically marketing, communications, HR for job listings. Limited to need-to-have.",
+        "text": "individuals authorized to post or process information on publicly accessible systems are identified;",
+        "whatToLookFor": "Documented list of individuals (or roles) with authority to post to public systems \u2014 typically marketing, communications, HR for job listings. Limited to need-to-have.",
         "commonEvidence": [
           "Authorized publishers list",
           "Role assignments in CMS or social media management tools",
           "Public posting authorization policy"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "role_permission_matrix"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "procedures to ensure FCI is not posted or processed on publicly accessible systems are identified",
-        "whatToLookFor": "Documented procedure preventing FCI/CUI from public posting — typically content review checklist, training for authorized publishers, classification labeling.",
+        "text": "procedures to ensure FCI is not posted or processed on publicly accessible systems are identified;",
+        "whatToLookFor": "Documented procedure preventing FCI/CUI from public posting \u2014 typically content review checklist, training for authorized publishers, classification labeling.",
         "commonEvidence": [
           "Public content review procedure",
           "Content classification guide for publishers",
           "Training records for authorized publishers"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "procedure_document"
+          ],
+          "acceptable": [
+            "training_content",
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "a review process is in place prior to posting of any content to publicly accessible systems",
-        "whatToLookFor": "Pre-publication review actually happens — content goes through a workflow with at least one second set of eyes before going live.",
+        "text": "a review process is in place prior to posting of any content to publicly accessible systems;",
+        "whatToLookFor": "Pre-publication review actually happens \u2014 content goes through a workflow with at least one second set of eyes before going live.",
         "commonEvidence": [
           "Review and approval workflow in CMS",
           "Approval records for recent posts",
           "Documented review checklist"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "procedure_document"
+          ],
+          "acceptable": [
+            "access_authorization_record"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "content on publicly accessible systems is reviewed to ensure that it does not include FCI",
-        "whatToLookFor": "Periodic review of what is already posted — quarterly or annually. Verifies nothing inappropriate has accumulated. Includes social media accounts and any subsidiary public sites.",
+        "text": "content on publicly accessible systems is reviewed to ensure that it does not include FCI; and",
+        "whatToLookFor": "Periodic review of what is already posted \u2014 quarterly or annually. Verifies nothing inappropriate has accumulated. Includes social media accounts and any subsidiary public sites.",
         "commonEvidence": [
           "Periodic public content review records",
           "Inventory of public-facing sites and accounts under review"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "procedure_document"
+          ],
+          "acceptable": []
+        }
       },
       {
         "id": "e",
-        "text": "mechanisms are in place to remove and address improper posting of FCI",
-        "whatToLookFor": "Documented procedure for removing improperly posted content — who has authority to take it down, how fast, and how to address potential disclosure consequences.",
+        "text": "mechanisms are in place to remove and address improper posting of FCI.",
+        "whatToLookFor": "Documented procedure for removing improperly posted content \u2014 who has authority to take it down, how fast, and how to address potential disclosure consequences.",
         "commonEvidence": [
           "Content removal procedure",
           "Incident response procedure for public disclosure",
           "Records of any past removal actions"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "procedure_document"
+          ],
+          "acceptable": [
+            "incident_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -1198,10 +1925,10 @@
       "Content removal procedure"
     ],
     "commonGaps": [
-      "Anyone with website credentials can post — no review workflow",
+      "Anyone with website credentials can post \u2014 no review workflow",
       "Marketing posts contain customer or program names that count as FCI",
       "Subsidiary websites and social media accounts not included in review scope",
-      "No periodic review of existing content — only pre-publication",
+      "No periodic review of existing content \u2014 only pre-publication",
       "No removal procedure documented for when something inappropriate is found"
     ]
   }
