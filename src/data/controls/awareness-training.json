@@ -4,51 +4,92 @@
     "family": "Awareness and Training",
     "title": "Role-Based Risk Awareness",
     "controlText": "Ensure that managers, systems administrators, and users of organizational systems are made aware of the security risks associated with their activities and of the applicable policies, standards, and procedures related to the security of those systems.",
-    "plainEnglish": "Everyone who touches organizational systems — from regular users to sysadmins to managers — must receive security awareness training that covers two things: (1) the security risks that come with their specific activities, and (2) the policies, standards, and procedures they are expected to follow. This is the foundational awareness layer. It is distinct from role-based training (AT.L2-3.2.2), which builds job-specific skills on top of this general awareness. The Assessment Guide assesses four objectives independently: risks are identified, policies are identified, personnel are made aware of risks, and personnel are made aware of policies. An organization that has an awareness program covering only one of these two dimensions — risks but not policies, or policies but not risks — has a gap on one or more objectives.",
+    "plainEnglish": "Everyone who touches organizational systems \u2014 from regular users to sysadmins to managers \u2014 must receive security awareness training that covers two things: (1) the security risks that come with their specific activities, and (2) the policies, standards, and procedures they are expected to follow. This is the foundational awareness layer. It is distinct from role-based training (AT.L2-3.2.2), which builds job-specific skills on top of this general awareness. The Assessment Guide assesses four objectives independently: risks are identified, policies are identified, personnel are made aware of risks, and personnel are made aware of policies. An organization that has an awareness program covering only one of these two dimensions \u2014 risks but not policies, or policies but not risks \u2014 has a gap on one or more objectives.",
     "objectives": [
       {
         "id": "a",
-        "text": "security risks associated with organizational activities involving CUI are identified",
-        "whatToLookFor": "Documentation showing that the organization has identified and catalogued the security risks tied to its CUI-related activities — typically in a risk assessment, risk register, or the security awareness training curriculum itself. The risk identification should be specific enough to be meaningful: 'phishing,' 'removable media,' 'unauthorized cloud storage,' 'tailgating' — not just a generic statement that risks exist.",
+        "text": "security risks associated with organizational activities involving CUI are identified;",
+        "whatToLookFor": "Documentation showing that the organization has identified and catalogued the security risks tied to its CUI-related activities \u2014 typically in a risk assessment, risk register, or the security awareness training curriculum itself. The risk identification should be specific enough to be meaningful: 'phishing,' 'removable media,' 'unauthorized cloud storage,' 'tailgating' \u2014 not just a generic statement that risks exist.",
         "commonEvidence": [
           "Risk register or risk assessment output identifying CUI-related activity risks",
           "Security awareness training curriculum showing risks addressed",
           "Threat assessment documentation referencing organizational CUI activities",
           "System Security Plan section on security risks to the system"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "training_content"
+          ],
+          "acceptable": [
+            "risk_assessment_report"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "policies, standards, and procedures related to the security of the system are identified",
-        "whatToLookFor": "A documented inventory or reference list of applicable security policies, standards, and procedures — and evidence that this list has been incorporated into awareness training content. Assessors look for whether training materials actually name and reference the policies users are expected to follow, not just declare that policies exist.",
+        "text": "policies, standards, and procedures related to the security of the system are identified;",
+        "whatToLookFor": "A documented inventory or reference list of applicable security policies, standards, and procedures \u2014 and evidence that this list has been incorporated into awareness training content. Assessors look for whether training materials actually name and reference the policies users are expected to follow, not just declare that policies exist.",
         "commonEvidence": [
           "Security policy library or inventory referenced in training materials",
           "Training content that identifies specific policies by name (acceptable use, data handling, remote access)",
           "System Security Plan policy references",
           "Employee handbook or onboarding materials listing security policies"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "training_content"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "managers, systems administrators, and users of the system are made aware of the security risks associated with their activities",
-        "whatToLookFor": "Training completion records demonstrating that all three population categories — managers, sysadmins, and general users — received awareness training covering security risks. Assessors sample training records across roles to verify coverage. Training should be current (typically within the past year) and tailored or at minimum applicable to each group's actual activities.",
+        "text": "managers, systems administrators, and users of the system are made aware of the security risks associated with their activities; and",
+        "whatToLookFor": "Training completion records demonstrating that all three population categories \u2014 managers, sysadmins, and general users \u2014 received awareness training covering security risks. Assessors sample training records across roles to verify coverage. Training should be current (typically within the past year) and tailored or at minimum applicable to each group's actual activities.",
         "commonEvidence": [
           "Training completion records showing all user categories received awareness training",
           "LMS (Learning Management System) completion reports",
           "Annual security awareness training records with role breakdown",
           "Acknowledgment forms or training certificates signed by personnel"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "training_completion_record"
+          ],
+          "acceptable": [
+            "training_content"
+          ]
+        }
       },
       {
         "id": "d",
-        "text": "managers, systems administrators, and users of the system are made aware of the applicable policies, standards, and procedures related to the security of the system",
-        "whatToLookFor": "Training records and training content showing that personnel were specifically made aware of applicable policies — not just that a training session occurred, but that policy content was covered. Common gaps: training covers general security topics but does not reference or incorporate the organization's own specific policies, standards, and procedures.",
+        "text": "managers, systems administrators, and users of the system are made aware of the applicable policies, standards, and procedures related to the security of the system.",
+        "whatToLookFor": "Training records and training content showing that personnel were specifically made aware of applicable policies \u2014 not just that a training session occurred, but that policy content was covered. Common gaps: training covers general security topics but does not reference or incorporate the organization's own specific policies, standards, and procedures.",
         "commonEvidence": [
           "Training materials showing policy-specific content (acceptable use, CUI handling, incident reporting)",
           "Training completion records tied to policy awareness",
           "Policy acknowledgment or acceptance records signed by all personnel",
           "Annual refresher training records with policy update incorporation"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "training_completion_record"
+          ],
+          "acceptable": [
+            "training_content",
+            "acknowledgment_record"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -62,10 +103,10 @@
     ],
     "commonGaps": [
       "Training covers generic security topics but does not reference the organization's own specific policies",
-      "Managers excluded from awareness training — program targets only end users",
+      "Managers excluded from awareness training \u2014 program targets only end users",
       "System administrators receive the same general awareness training as end users with no coverage of elevated-privilege risks",
       "Training conducted once at onboarding with no refresher cadence",
-      "No records of training completion — training may have occurred but cannot be demonstrated to an assessor",
+      "No records of training completion \u2014 training may have occurred but cannot be demonstrated to an assessor",
       "Risk content is generic (e.g., 'be careful online') and not tailored to the organization's actual CUI-handling activities",
       "Policies referenced in training are outdated and no longer match current organizational practice"
     ]
@@ -75,41 +116,71 @@
     "family": "Awareness and Training",
     "title": "Role-Based Training",
     "controlText": "Ensure that personnel are trained to carry out their assigned information security-related duties and responsibilities.",
-    "plainEnglish": "Beyond general awareness (AT.L2-3.2.1), personnel who have specific information security duties must receive training that gives them the skills and knowledge to actually perform those duties. This is role-based training: targeted, job-function-specific content rather than broad awareness campaigns. The Assessment Guide identifies three objectives: security duties are defined, they are assigned to specific personnel, and those personnel are trained to perform them. The key distinction from AT.L2-3.2.1 is depth and specificity — a sysadmin needs to understand firewall configuration, privileged account management, and patch deployment procedures; a developer needs secure coding practices; an auditor needs log analysis and SIEM skills. General awareness training does not satisfy this control for these roles.",
+    "plainEnglish": "Beyond general awareness (AT.L2-3.2.1), personnel who have specific information security duties must receive training that gives them the skills and knowledge to actually perform those duties. This is role-based training: targeted, job-function-specific content rather than broad awareness campaigns. The Assessment Guide identifies three objectives: security duties are defined, they are assigned to specific personnel, and those personnel are trained to perform them. The key distinction from AT.L2-3.2.1 is depth and specificity \u2014 a sysadmin needs to understand firewall configuration, privileged account management, and patch deployment procedures; a developer needs secure coding practices; an auditor needs log analysis and SIEM skills. General awareness training does not satisfy this control for these roles.",
     "objectives": [
       {
         "id": "a",
-        "text": "information security-related duties, roles, and responsibilities are defined",
-        "whatToLookFor": "Documentation that formally defines the security-specific duties associated with each role in the organization — not just general job descriptions, but specifically what security responsibilities attach to each role. This is typically found in the System Security Plan, position descriptions, or a security roles-and-responsibilities document. Assessors look for specificity: 'responsible for patch management' and 'administers firewall rules' are meaningful; 'responsible for security' is not.",
+        "text": "information security-related duties, roles, and responsibilities are defined;",
+        "whatToLookFor": "Documentation that formally defines the security-specific duties associated with each role in the organization \u2014 not just general job descriptions, but specifically what security responsibilities attach to each role. This is typically found in the System Security Plan, position descriptions, or a security roles-and-responsibilities document. Assessors look for specificity: 'responsible for patch management' and 'administers firewall rules' are meaningful; 'responsible for security' is not.",
         "commonEvidence": [
           "System Security Plan section defining security roles and responsibilities",
           "Position descriptions with explicitly listed information security duties",
           "Security roles-and-responsibilities matrix",
           "RACI chart covering security functions and controls"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "policy_document"
+          ],
+          "acceptable": [
+            "system_security_plan"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "information security-related duties, roles, and responsibilities are assigned to designated personnel",
-        "whatToLookFor": "Evidence that specific individuals or positions are formally assigned to each defined security role — appointments, access authorizations, or documented assignments. The assignment should be current and reflect the current organizational structure. Assessors check that security-critical roles are not vacant and that assignments are not merely inherited from old org charts.",
+        "text": "information security-related duties, roles, and responsibilities are assigned to designated personnel; and",
+        "whatToLookFor": "Evidence that specific individuals or positions are formally assigned to each defined security role \u2014 appointments, access authorizations, or documented assignments. The assignment should be current and reflect the current organizational structure. Assessors check that security-critical roles are not vacant and that assignments are not merely inherited from old org charts.",
         "commonEvidence": [
           "Formal appointment letters or security role assignment records",
           "Updated organization chart showing security role holders",
           "System access authorization records tying personnel to privileged roles",
           "HR records confirming current assignment to security-related positions"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "role_permission_matrix"
+          ],
+          "acceptable": [
+            "access_authorization_record"
+          ]
+        }
       },
       {
         "id": "c",
-        "text": "personnel are adequately trained to carry out their assigned information security-related duties, roles, and responsibilities",
-        "whatToLookFor": "Training records showing that personnel assigned to security roles received training specific to those roles — not just general awareness training. Adequacy is the key word: the training content should match the actual duties. A firewall administrator who received only a one-hour general security awareness module has not been adequately trained for firewall administration. Assessors look for training plans, completion records, and content alignment with the assigned duties.",
+        "text": "personnel are adequately trained to carry out their assigned information security-related duties, roles, and responsibilities.",
+        "whatToLookFor": "Training records showing that personnel assigned to security roles received training specific to those roles \u2014 not just general awareness training. Adequacy is the key word: the training content should match the actual duties. A firewall administrator who received only a one-hour general security awareness module has not been adequately trained for firewall administration. Assessors look for training plans, completion records, and content alignment with the assigned duties.",
         "commonEvidence": [
           "Role-specific training completion records (e.g., firewall administration, SIEM operation, incident handling)",
           "Vendor or third-party training certifications relevant to assigned duties",
           "Internal training materials for security-specific roles",
           "Training plans for personnel in security-critical positions",
           "Skills matrices showing training coverage against assigned responsibilities"
-        ]
+        ],
+        "evidenceClass": "mixed",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "training_completion_record"
+          ],
+          "acceptable": [
+            "training_content"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -123,12 +194,12 @@
     ],
     "commonGaps": [
       "Security duties are defined at a high level in the SSP but not mapped to specific individuals currently in those roles",
-      "Role assignments exist in old org charts but are not kept current — departed personnel still listed as responsible",
-      "All personnel receive the same general awareness training regardless of role — no differentiated role-based content",
+      "Role assignments exist in old org charts but are not kept current \u2014 departed personnel still listed as responsible",
+      "All personnel receive the same general awareness training regardless of role \u2014 no differentiated role-based content",
       "Sysadmins and privileged users trained only on general awareness, not on privileged account management, patch management, or their specific technical responsibilities",
       "Training plans exist for security roles on paper but training has not actually been completed",
-      "No training records maintained — whether training occurred cannot be demonstrated to an assessor",
-      "Role-based training conducted once and never refreshed — skills assumed to remain current indefinitely"
+      "No training records maintained \u2014 whether training occurred cannot be demonstrated to an assessor",
+      "Role-based training conducted once and never refreshed \u2014 skills assumed to remain current indefinitely"
     ]
   },
   {
@@ -136,31 +207,52 @@
     "family": "Awareness and Training",
     "title": "Insider Threat Awareness",
     "controlText": "Provide security awareness training on recognizing and reporting potential indicators of insider threat.",
-    "plainEnglish": "The organization must train personnel — both managers and general employees — to recognize behavioral indicators that could signal an insider threat and to report those indicators through established organizational channels. The Assessment Guide identifies two objectives: potential insider threat indicators are identified (so training content is grounded in something specific), and security awareness training covering those indicators is provided to managers and employees. This is distinct from AT.L2-3.2.1's general risk awareness — it targets a specific threat category with defined behavioral patterns. The Assessment Guide notes that organizations may integrate this into their existing awareness training program rather than running separate training; what matters is that the content is present and personnel receive it. Tailoring by role is encouraged: managers focus on behavioral changes in team members, employees on more general observation indicators.",
+    "plainEnglish": "The organization must train personnel \u2014 both managers and general employees \u2014 to recognize behavioral indicators that could signal an insider threat and to report those indicators through established organizational channels. The Assessment Guide identifies two objectives: potential insider threat indicators are identified (so training content is grounded in something specific), and security awareness training covering those indicators is provided to managers and employees. This is distinct from AT.L2-3.2.1's general risk awareness \u2014 it targets a specific threat category with defined behavioral patterns. The Assessment Guide notes that organizations may integrate this into their existing awareness training program rather than running separate training; what matters is that the content is present and personnel receive it. Tailoring by role is encouraged: managers focus on behavioral changes in team members, employees on more general observation indicators.",
     "objectives": [
       {
         "id": "a",
-        "text": "potential indicators associated with insider threats are identified",
-        "whatToLookFor": "Documentation showing the organization has identified and defined the behavioral and observable indicators it uses to characterize potential insider threats — not a generic policy statement, but an enumerated list of specific indicators. The Assessment Guide cites examples: inordinate long-term job dissatisfaction, attempts to access information not required for job performance, unexplained access to financial resources, workplace violence, bullying, and serious policy violations. Assessors look for evidence that this list was deliberately constructed and incorporated into training content.",
+        "text": "potential indicators associated with insider threats are identified; and",
+        "whatToLookFor": "Documentation showing the organization has identified and defined the behavioral and observable indicators it uses to characterize potential insider threats \u2014 not a generic policy statement, but an enumerated list of specific indicators. The Assessment Guide cites examples: inordinate long-term job dissatisfaction, attempts to access information not required for job performance, unexplained access to financial resources, workplace violence, bullying, and serious policy violations. Assessors look for evidence that this list was deliberately constructed and incorporated into training content.",
         "commonEvidence": [
           "Insider threat policy or procedure enumerating specific behavioral indicators",
           "Security awareness training curriculum section on insider threat indicators",
           "Law enforcement bulletins, CISA guidance, or similar reference sources used to build the indicator list",
           "System Security Plan reference to insider threat awareness requirements",
           "Insider threat program documentation (if a formal program exists)"
-        ]
+        ],
+        "evidenceClass": "documentation",
+        "evidenceConfidence": "medium",
+        "expectedTags": {
+          "primary": [
+            "training_content"
+          ],
+          "acceptable": [
+            "policy_document"
+          ]
+        }
       },
       {
         "id": "b",
-        "text": "security awareness training on recognizing and reporting potential indicators of insider threat is provided to managers and employees",
-        "whatToLookFor": "Training completion records showing that both managers and employees received insider threat awareness training — either as a standalone module or integrated into the existing security awareness program. The content must cover both recognition (what to look for) and reporting (how to report, to whom, through what channel). Assessors check that the training delivery mechanism and records demonstrate actual coverage, not just availability of materials.",
+        "text": "security awareness training on recognizing and reporting potential indicators of insider threat is provided to managers and employees.",
+        "whatToLookFor": "Training completion records showing that both managers and employees received insider threat awareness training \u2014 either as a standalone module or integrated into the existing security awareness program. The content must cover both recognition (what to look for) and reporting (how to report, to whom, through what channel). Assessors check that the training delivery mechanism and records demonstrate actual coverage, not just availability of materials.",
         "commonEvidence": [
           "Training completion records showing manager and employee populations covered",
           "Insider threat module within the security awareness training curriculum",
           "LMS records or sign-in sheets for insider threat training sessions",
           "Training materials showing both indicator recognition content and reporting procedures",
           "Incident reporting channel documentation communicated as part of training (hotline, HR contact, security team)"
-        ]
+        ],
+        "evidenceClass": "artifact",
+        "evidenceConfidence": "high",
+        "expectedTags": {
+          "primary": [
+            "training_completion_record"
+          ],
+          "acceptable": [
+            "training_content",
+            "incident_response_plan"
+          ]
+        }
       }
     ],
     "commonArtifacts": [
@@ -174,11 +266,11 @@
     "commonGaps": [
       "Insider threat awareness content is absent from the security awareness training program entirely",
       "Training covers insider threat in a single sentence ('be aware of insider threats') with no specific indicators defined",
-      "Manager population excluded from training — only general employees trained, missing the role-tailoring the Assessment Guide recommends for managers",
-      "Training covers indicator recognition but does not tell personnel how or where to report — the reporting channel is undefined or undocumented",
+      "Manager population excluded from training \u2014 only general employees trained, missing the role-tailoring the Assessment Guide recommends for managers",
+      "Training covers indicator recognition but does not tell personnel how or where to report \u2014 the reporting channel is undefined or undocumented",
       "Training materials reference a reporting hotline or contact that no longer exists or is unmanned",
       "Insider threat content exists in training materials but completion records do not distinguish whether this module was actually delivered to all personnel",
-      "Organization conflates AT.L2-3.2.3 with a formal insider threat program — the control requires awareness training, not a full program, but organizations sometimes delay training pending a program they never build"
+      "Organization conflates AT.L2-3.2.3 with a formal insider threat program \u2014 the control requires awareness training, not a full program, but organizations sometimes delay training pending a program they never build"
     ]
   }
 ]
