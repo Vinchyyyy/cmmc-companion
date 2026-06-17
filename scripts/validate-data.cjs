@@ -541,7 +541,7 @@ function validateExpectedTags(validTagIds) {
   for (const c of allControls) {
     if (!Array.isArray(c?.objectives)) continue
     const fam = String(c.id || '').slice(0, 2)
-    const enforced = fam === 'IA' || fam === 'AC' || fam === 'SC' || fam === 'AU' || fam === 'CM' || fam === 'SI' || fam === 'RA' || fam === 'CA' || fam === 'IR' || fam === 'MP' || fam === 'PE'
+    const enforced = fam === 'IA' || fam === 'AC' || fam === 'SC' || fam === 'AU' || fam === 'CM' || fam === 'SI' || fam === 'RA' || fam === 'CA' || fam === 'IR' || fam === 'MP' || fam === 'PE' || fam === 'PS'
 
     for (const o of c.objectives) {
       bumpCheck('ExpectedTags')
@@ -600,7 +600,7 @@ function validateExpectedTags(validTagIds) {
   }
 
   if (nonEnforcedArtifactishMissing > 0)
-    recordWarning('ExpectedTags', `${nonEnforcedArtifactishMissing} non-IA/AC/SC/AU/CM/SI/RA/CA/IR/MP/PE artifact/mixed objectives have no expectedTags yet (expected during phased rollout; IA, AC, SC, AU, CM, SI, RA, CA, IR, MP, and PE are enforced)`)
+    recordWarning('ExpectedTags', `${nonEnforcedArtifactishMissing} non-IA/AC/SC/AU/CM/SI/RA/CA/IR/MP/PE/PS artifact/mixed objectives have no expectedTags yet (expected during phased rollout; IA, AC, SC, AU, CM, SI, RA, CA, IR, MP, PE, and PS are enforced)`)
 
   expectedTagsSummary = { withTags, missingCount, waived, enforcedTagUsage }
 }
@@ -638,12 +638,12 @@ function validateExpectedTags(validTagIds) {
 
   if (expectedTagsSummary) {
     const e = expectedTagsSummary
-    console.log(`\nObjective expectedTags: ${e.withTags} mapped, ${e.missingCount} unmapped (non-IA/AC/SC/AU/CM/SI/RA/CA/IR/MP/PE, expected during phased rollout), ${e.waived.length} intentionally waived`)
-    console.log(`  enforced families: IA, AC, SC, AU, CM, SI, RA, CA, IR, MP, PE`)
+    console.log(`\nObjective expectedTags: ${e.withTags} mapped, ${e.missingCount} unmapped (non-IA/AC/SC/AU/CM/SI/RA/CA/IR/MP/PE/PS, expected during phased rollout), ${e.waived.length} intentionally waived`)
+    console.log(`  enforced families: IA, AC, SC, AU, CM, SI, RA, CA, IR, MP, PE, PS`)
     if (e.waived.length) console.log(`  waived: ${e.waived.join(', ')}`)
     const tags = Object.keys(e.enforcedTagUsage)
     if (tags.length) {
-      console.log(`  IA+AC+SC+AU+CM+SI+RA+CA+IR+MP+PE tag usage (${tags.length} distinct tags):`)
+      console.log(`  IA+AC+SC+AU+CM+SI+RA+CA+IR+MP+PE+PS tag usage (${tags.length} distinct tags):`)
       for (const t of tags.sort((a, b) => e.enforcedTagUsage[b] - e.enforcedTagUsage[a] || a.localeCompare(b)))
         console.log(`    ${String(e.enforcedTagUsage[t]).padStart(2)}  ${t}`)
     }
