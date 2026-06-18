@@ -6,8 +6,9 @@ import relationships from '../data/relationships/index.js'
 import { buildArtifactIndex } from '../utils/artifactIndex.js'
 import { inferKillChainCategory } from '../utils/killChainLookup.js'
 import { readObjectiveArtifacts, writeObjectiveArtifacts } from '../utils/objectiveArtifacts.js'
-import { findByName } from '../utils/artifactRegistry.js'
-import ArtifactTagEditor from '../components/ArtifactTagEditor.jsx'
+import { findByName, findOrCreate, updateArtifactTags } from '../utils/artifactRegistry.js'
+import EvidenceTagPickerModal from '../components/EvidenceTagPickerModal.jsx'
+import ArtifactTagChipList from '../components/ArtifactTagChipList.jsx'
 
 const SUGGESTION_PAGE_SIZE = 5
 
@@ -189,8 +190,14 @@ function ArtifactMap() {
   // Current suggestion page (0-based) keyed by artifact name.
   const [reuseSuggestionPages, setReuseSuggestionPages] = useState({})
 
-  // Incremented after accepting a suggestion to force artifact index recomputation.
+  // Incremented after accepting a suggestion or saving tags to force re-render.
   const [refreshKey, setRefreshKey] = useState(0)
+
+  // Artifact record currently open in the tag picker modal (null = closed).
+  const [pickerArtifact, setPickerArtifact] = useState(null)
+  // Incremented each time the picker opens so EvidenceTagPickerModal remounts
+  // with fresh state (even when the same artifact is reopened after a cancel).
+  const [modalKey, setModalKey] = useState(0)
 
   const handleSearchChange = (value) => {
     setSearch(value)
@@ -475,9 +482,28 @@ function ArtifactMap() {
                               </p>
 
                               {/* ------------------------------------------ */}
-                              {/* Artifact evidence tag editor                 */}
+                              {/* Artifact evidence tags                        */}
                               {/* ------------------------------------------ */}
-                              <ArtifactTagEditor artifact={findByName(entry.artifact)} />
+                              <div className="artifact-tag-editor">
+                                <div className="artifact-tag-editor-header">Artifact evidence tags</div>
+                                <ArtifactTagChipList tagIds={findByName(entry.artifact)?.tags ?? []} />
+                                <p className="artifact-tag-editor-helper">
+                                  Tags describe what kind of evidence this artifact is — guidance only.
+                                </p>
+                                <div className="artifact-tag-editor-actions">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setPickerArtifact(findOrCreate(entry.artifact))
+                                      setModalKey((k) => k + 1)
+                                    }}
+                                  >
+                                    {(findByName(entry.artifact)?.tags?.length ?? 0) > 0
+                                      ? 'Edit evidence tags'
+                                      : 'Add evidence tags'}
+                                  </button>
+                                </div>
+                              </div>
 
                               {/* ------------------------------------------ */}
                               {/* Potential Reuse Opportunities                */}
@@ -591,6 +617,21 @@ function ArtifactMap() {
             </div>
           )
         })
+      )}
+
+      {pickerArtifact && (
+        <EvidenceTagPickerModal
+          key={modalKey}
+          isOpen={true}
+          artifact={pickerArtifact}
+          initialSelectedTagIds={pickerArtifact.tags ?? []}
+          onCancel={() => setPickerArtifact(null)}
+          onSave={(tagIds) => {
+            updateArtifactTags(pickerArtifact.id, tagIds)
+            setPickerArtifact(null)
+            setRefreshKey((k) => k + 1)
+          }}
+        />
       )}
     </div>
   )
