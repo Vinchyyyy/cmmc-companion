@@ -17,6 +17,11 @@
 
 import relationships from '../data/relationships/index.js'
 import { readObjectiveArtifacts } from './objectiveArtifacts.js'
+import {
+  getObjectiveExpectedTagIds,
+  getArtifactTagIdsByName,
+  classifyReuseOpportunity,
+} from './evidenceTagMatch.js'
 
 function _relConfScore(c) {
   if (c === 'high') return 100
@@ -54,7 +59,7 @@ function _computeScore(relMeta, relObj) {
 }
 
 // Returns a copy of a candidate without the internal scoring fields used only
-// for ranking. The public `rationale` field is preserved.
+// for ranking. The public `tagAlignment`/`rationale` fields are preserved.
 function _stripInternalSuggestionFields(candidate) {
   const result = { ...candidate }
   delete result._score
@@ -81,7 +86,15 @@ function _stripInternalSuggestionFields(candidate) {
  *   sourceObjectiveId:   string,
  *   sourceObjectiveText: string,
  *   rationale:           string,
+ *   tagAlignment:        { tier: number, kind: string, label: string,
+ *                          overlap: { primary: string[], acceptable: string[], all: string[] } },
  * }>}
+ *
+ * Candidate discovery is unchanged (relationship-gated, evidence_reuse only).
+ * Each candidate is additionally classified by how its controlled evidence tags
+ * align with the TARGET objective's expectedTags, and results are ordered by
+ * tag-aware tier first (lower = stronger alignment) then by the existing score.
+ * No tag-only candidates are added and none are suppressed for lacking overlap.
  */
 export function getObjectiveArtifactSuggestions({
   control,
@@ -167,9 +180,20 @@ export function getObjectiveArtifactSuggestions({
     }
   }
 
-  // --- 4. Sort (score desc → tie-breakers) and return top `limit`
-  // (strip internal scoring fields). ---
+  // --- 4. Tag-aware classification against the TARGET objective's expectedTags.
+  // Read-only: explains and orders existing candidates; adds/suppresses none. ---
+  const expectedTags = getObjectiveExpectedTagIds(objective)
+  for (const c of candidates) {
+    c.tagAlignment = classifyReuseOpportunity({
+      artifactTagIds: getArtifactTagIdsByName(c.artifact),
+      expectedTags,
+    })
+  }
+
+  // --- 5. Sort (tag tier asc → existing score desc → existing tie-breakers)
+  // and return top `limit` (strip internal scoring fields). ---
   candidates.sort((a, b) => {
+    if (a.tagAlignment.tier !== b.tagAlignment.tier) return a.tagAlignment.tier - b.tagAlignment.tier
     if (b._score !== a._score) return b._score - a._score
     if (b._relConf !== a._relConf) return b._relConf - a._relConf
     if (b._objEvidConf !== a._objEvidConf) return b._objEvidConf - a._objEvidConf

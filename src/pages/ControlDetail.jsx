@@ -25,6 +25,7 @@ import { buildArtifactIndex } from '../utils/artifactIndex.js'
 import { findByName, findOrCreate } from '../utils/artifactRegistry.js'
 import ArtifactDetailModal from '../components/ArtifactDetailModal.jsx'
 import { getObjectiveArtifactSuggestions } from '../utils/evidenceRecommendations.js'
+import { evidenceTags } from '../data/evidenceTags.js'
 import { readObjectiveResult, writeObjectiveResult } from '../utils/objectiveResults'
 import {
   OBJECTIVE_STATUSES,
@@ -37,6 +38,9 @@ import {
 // scoring.js is intentionally NOT imported here — the Scoring & POA&M
 // section has been removed from the detail view. Metadata remains available
 // in the Library (badges, filters) and Quick Search.
+
+// Evidence tag id → display label (for tag-aware reuse overlap chips).
+const EVIDENCE_TAG_LABEL = new Map(evidenceTags.map((t) => [t.id, t.label]))
 
 function resolveBackUrl(rawFrom) {
   if (!rawFrom) return '/controls'
@@ -660,6 +664,10 @@ function ControlDetail() {
 
                       {isOpen && (
                         <>
+                          <p className="reuse-tag-helper">
+                            Evidence tags are classification aids. They help explain reuse
+                            suggestions but do not determine whether an objective is satisfied.
+                          </p>
                           {total > PAGE_SIZE && (
                             <p className="evidence-reuse-suggestions-count">
                               Showing {start + 1}–{Math.min(start + PAGE_SIZE, total)} of {total}
@@ -700,6 +708,33 @@ function ControlDetail() {
                                   </span>
                                   {s.rationale && (
                                     <span className="evidence-reuse-suggestion-rationale">{s.rationale}</span>
+                                  )}
+                                  {s.tagAlignment && (
+                                    <div className="reuse-tag-alignment">
+                                      <span className="reuse-tag-alignment-label">
+                                        {s.tagAlignment.label}
+                                      </span>
+                                      {s.tagAlignment.overlap.all.length > 0 && (
+                                        <span className="reuse-tag-overlap-chips">
+                                          {s.tagAlignment.overlap.primary.map((id) => (
+                                            <span
+                                              key={id}
+                                              className="reuse-tag-overlap-chip reuse-tag-overlap-chip--primary"
+                                            >
+                                              {EVIDENCE_TAG_LABEL.get(id) ?? id}
+                                            </span>
+                                          ))}
+                                          {s.tagAlignment.overlap.acceptable.map((id) => (
+                                            <span
+                                              key={id}
+                                              className="reuse-tag-overlap-chip reuse-tag-overlap-chip--acceptable"
+                                            >
+                                              {EVIDENCE_TAG_LABEL.get(id) ?? id}
+                                            </span>
+                                          ))}
+                                        </span>
+                                      )}
+                                    </div>
                                   )}
                                 </div>
                               </li>
