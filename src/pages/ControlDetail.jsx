@@ -459,18 +459,32 @@ function ControlDetail() {
             )}
           </div>
           {pool.length > 0 && (
-            <div className="evidence-chips">
-              {pool.map((item) => (
-                <span key={item} className="evidence-chip">
-                  <span className="evidence-chip-name" title={item}>{item}</span>
-                  <button
-                    type="button"
-                    className="evidence-chip-remove"
-                    onClick={() => handleRemovePoolItem(item)}
-                    aria-label={`Remove ${item} from Evidence Pool`}
-                  >×</button>
-                </span>
-              ))}
+            <div className="evidence-chips" data-tag-version={artifactTagVersion}>
+              {pool.map((item) => {
+                const rec = findByName(item)
+                const untagged = !rec || !Array.isArray(rec.tags) || rec.tags.length === 0
+                return (
+                  <span
+                    key={item}
+                    className={`evidence-chip${untagged ? ' evidence-chip--untagged' : ''}`}
+                    title={untagged ? 'No evidence tags yet — click to add tags.' : undefined}
+                  >
+                    <button
+                      type="button"
+                      className="evidence-chip-name evidence-chip-name--button"
+                      title={item}
+                      onClick={() => setSelectedArtifact(findOrCreate(item))}
+                      aria-label={`Edit evidence tags for ${item}`}
+                    >{item}</button>
+                    <button
+                      type="button"
+                      className="evidence-chip-remove"
+                      onClick={(e) => { e.stopPropagation(); handleRemovePoolItem(item) }}
+                      aria-label={`Remove ${item} from Evidence Pool`}
+                    >×</button>
+                  </span>
+                )
+              })}
             </div>
           )}
         </div>
@@ -652,16 +666,28 @@ function ControlDetail() {
                             </p>
                           )}
                           <ul>
-                            {pageSuggestions.map((s) => (
-                              <li key={s.artifact} className="evidence-reuse-suggestion">
+                            {pageSuggestions.map((s) => {
+                              const sRec = findByName(s.artifact)
+                              const sUntagged = !sRec || !Array.isArray(sRec.tags) || sRec.tags.length === 0
+                              return (
+                              <li
+                                key={s.artifact}
+                                className={`evidence-reuse-suggestion${sUntagged ? ' evidence-reuse-suggestion--untagged' : ''}`}
+                                title={sUntagged ? 'No evidence tags yet — click to add tags.' : undefined}
+                              >
                                 <button
                                   type="button"
                                   className="evidence-reuse-suggestion-add"
-                                  onClick={() => commitObjArtifact(obj.id, s.artifact)}
+                                  onClick={(e) => { e.stopPropagation(); commitObjArtifact(obj.id, s.artifact) }}
                                   aria-label={`Add ${s.artifact} to objective ${obj.id}`}
                                 >+</button>
                                 <div className="evidence-reuse-suggestion-body">
-                                  <span className="evidence-reuse-suggestion-name">{s.artifact}</span>
+                                  <button
+                                    type="button"
+                                    className="evidence-reuse-suggestion-name evidence-reuse-suggestion-name--button"
+                                    onClick={() => setSelectedArtifact(findOrCreate(s.artifact))}
+                                    aria-label={`Edit evidence tags for ${s.artifact}`}
+                                  >{s.artifact}</button>
                                   <span className="evidence-reuse-suggestion-source">
                                     from{' '}
                                     <Link
@@ -677,7 +703,8 @@ function ControlDetail() {
                                   )}
                                 </div>
                               </li>
-                            ))}
+                              )
+                            })}
                           </ul>
                           {total > PAGE_SIZE && (
                             <div className="evidence-reuse-suggestions-pagination">
