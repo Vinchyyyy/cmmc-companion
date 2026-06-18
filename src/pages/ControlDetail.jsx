@@ -22,6 +22,7 @@ import { readAssignedTo, writeAssignedTo, normalizeAssignee } from '../utils/ass
 import { readPool, writePool } from '../utils/evidencePool'
 import { readObjectiveArtifacts, writeObjectiveArtifacts } from '../utils/objectiveArtifacts'
 import { buildArtifactIndex } from '../utils/artifactIndex.js'
+import { findByName } from '../utils/artifactRegistry.js'
 import { getObjectiveArtifactSuggestions } from '../utils/evidenceRecommendations.js'
 import { readObjectiveResult, writeObjectiveResult } from '../utils/objectiveResults'
 import {
@@ -562,17 +563,25 @@ function ControlDetail() {
                 </div>
                 {assignedArtifacts.length > 0 && (
                   <div className="evidence-chips">
-                    {assignedArtifacts.map((item) => (
-                      <span key={item} className="evidence-chip">
-                        <span className="evidence-chip-name" title={item}>{item}</span>
-                        <button
-                          type="button"
-                          className="evidence-chip-remove"
-                          onClick={() => handleRemoveObjArtifact(obj.id, item)}
-                          aria-label={`Remove ${item} from objective ${obj.id}`}
-                        >×</button>
-                      </span>
-                    ))}
+                    {assignedArtifacts.map((item) => {
+                      const rec = findByName(item)
+                      const untagged = !rec || !Array.isArray(rec.tags) || rec.tags.length === 0
+                      return (
+                        <span
+                          key={item}
+                          className={`evidence-chip${untagged ? ' evidence-chip--untagged' : ''}`}
+                          title={untagged ? 'No evidence tags yet — classify this artifact in Artifact Map.' : undefined}
+                        >
+                          <span className="evidence-chip-name" title={item}>{item}</span>
+                          <button
+                            type="button"
+                            className="evidence-chip-remove"
+                            onClick={() => handleRemoveObjArtifact(obj.id, item)}
+                            aria-label={`Remove ${item} from objective ${obj.id}`}
+                          >×</button>
+                        </span>
+                      )
+                    })}
                   </div>
                 )}
 

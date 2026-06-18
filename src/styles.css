@@ -2063,6 +2063,14 @@ details[open] .backup-actions-toggle::after {
   box-shadow: 0 0 0 2px var(--color-accent);
 }
 
+/* Soft attention state for artifact chips that have no evidence tags yet.
+   Uses the existing not-met color family for visual consistency — signals
+   "needs attention" without implying compliance failure. */
+.evidence-chip--untagged {
+  background: var(--color-not-met-bg);
+  border-color: var(--color-not-met);
+}
+
 /* -------------------------------------------------------------------------
    Objective Artifacts — suggestion dropdown
    ------------------------------------------------------------------------- */
