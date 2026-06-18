@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from 'react'
 import AutoResizeTextarea from '../components/AutoResizeTextarea'
+import ExpectedEvidenceTypes from '../components/ExpectedEvidenceTypes'
 import { useParams, Link, useSearchParams, useLocation } from 'react-router-dom'
 import controls from '../data/controls/index.js'
 import { PROVIDERS } from '../data/providers'
+import { getEnvironmentTechTags } from '../utils/environmentProfile'
 import evidenceTypes from '../data/evidence/index.js'
 import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
 import { readNote, writeNote } from '../utils/notes'
@@ -319,27 +321,33 @@ function ControlDetail() {
                   }
                 />
                 {inheritanceSource.trim() &&
-                  !PROVIDERS.some((p) => p.name === inheritanceSource) &&
                   (() => {
                     const q = inheritanceSource.toLowerCase()
-                    const suggestions = PROVIDERS.filter(
-                      (p) =>
-                        p.name.toLowerCase().includes(q) ||
-                        p.category.toLowerCase().includes(q)
-                    ).slice(0, 8)
+                    // Merge PROVIDERS catalog with environment tech tags.
+                    // Environment tags take precedence on case-insensitive collisions.
+                    const envTags = getEnvironmentTechTags()
+                    const envLower = new Set(envTags.map((t) => t.toLowerCase()))
+                    const catalogNames = PROVIDERS
+                      .map((p) => p.name)
+                      .filter((name) => !envLower.has(name.toLowerCase()))
+                    const allCandidates = [...envTags, ...catalogNames]
+                    const suggestions = allCandidates
+                      .filter((name) => name.toLowerCase().includes(q))
+                      .filter((name) => name !== inheritanceSource)
+                      .slice(0, 8)
                     return suggestions.length > 0 ? (
                       <ul className="provider-picker-results">
-                        {suggestions.map((p) => (
+                        {suggestions.map((name) => (
                           <li
-                            key={p.id}
+                            key={name}
                             className="provider-picker-result"
                             onMouseDown={(e) => {
                               e.preventDefault()
-                              setInheritanceSource(p.name)
-                              writeInheritanceSource(id, p.name)
+                              setInheritanceSource(name)
+                              writeInheritanceSource(id, name)
                             }}
                           >
-                            {p.name}
+                            {name}
                           </li>
                         ))}
                       </ul>
@@ -516,6 +524,11 @@ function ControlDetail() {
                 {obj.commonEvidence.map((item, i) => <li key={i}>{item}</li>)}
               </ul>
 
+              <ExpectedEvidenceTypes
+                expectedTags={obj.expectedTags}
+                note={obj.expectedTagsNote}
+              />
+
               <div style={{ marginTop: 'var(--space-3)' }}>
                 <label htmlFor={objArtifactInputId}>
                   <strong>Artifacts{assignedArtifacts.length > 0 ? ` (${assignedArtifacts.length})` : ''}</strong>
@@ -564,6 +577,8 @@ function ControlDetail() {
                 )}
 
                 {(() => {
+                  const ec = obj.evidenceClass
+                  if (ec !== 'artifact' && ec !== 'mixed') return null
                   const PAGE_SIZE = 5
                   const allSuggestions = getObjectiveArtifactSuggestions({
                     control,
@@ -626,17 +641,22 @@ function ControlDetail() {
                                   onClick={() => commitObjArtifact(obj.id, s.artifact)}
                                   aria-label={`Add ${s.artifact} to objective ${obj.id}`}
                                 >+</button>
-                                <span className="evidence-reuse-suggestion-name">{s.artifact}</span>
-                                <span className="evidence-reuse-suggestion-source">
-                                  from{' '}
-                                  <Link
-                                    to={`/controls/${encodeURIComponent(s.sourceControlId)}#objective-${s.sourceObjectiveId}`}
-                                    title={`${s.sourceControlId} — ${s.sourceControlTitle}`}
-                                  >
-                                    {s.sourceControlId}
-                                  </Link>
-                                  {' '}[{s.sourceObjectiveId}]
-                                </span>
+                                <div className="evidence-reuse-suggestion-body">
+                                  <span className="evidence-reuse-suggestion-name">{s.artifact}</span>
+                                  <span className="evidence-reuse-suggestion-source">
+                                    from{' '}
+                                    <Link
+                                      to={`/controls/${encodeURIComponent(s.sourceControlId)}#objective-${s.sourceObjectiveId}`}
+                                      title={`${s.sourceControlId} — ${s.sourceControlTitle}`}
+                                    >
+                                      {s.sourceControlId}
+                                    </Link>
+                                    {' '}[{s.sourceObjectiveId}]
+                                  </span>
+                                  {s.rationale && (
+                                    <span className="evidence-reuse-suggestion-rationale">{s.rationale}</span>
+                                  )}
+                                </div>
                               </li>
                             ))}
                           </ul>
