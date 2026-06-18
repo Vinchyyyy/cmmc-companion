@@ -22,7 +22,8 @@ import { readAssignedTo, writeAssignedTo, normalizeAssignee } from '../utils/ass
 import { readPool, writePool } from '../utils/evidencePool'
 import { readObjectiveArtifacts, writeObjectiveArtifacts } from '../utils/objectiveArtifacts'
 import { buildArtifactIndex } from '../utils/artifactIndex.js'
-import { findByName } from '../utils/artifactRegistry.js'
+import { findByName, findOrCreate } from '../utils/artifactRegistry.js'
+import ArtifactDetailModal from '../components/ArtifactDetailModal.jsx'
 import { getObjectiveArtifactSuggestions } from '../utils/evidenceRecommendations.js'
 import { readObjectiveResult, writeObjectiveResult } from '../utils/objectiveResults'
 import {
@@ -69,6 +70,9 @@ function ControlDetail() {
   const [poolFocused, setPoolFocused]               = useState(false)
   const [suggestionPages, setSuggestionPages]       = useState({})
   const [expandedSuggestions, setExpandedSuggestions] = useState(() => new Set())
+  const [selectedArtifact, setSelectedArtifact] = useState(null)
+  // Bumped after tag saves so findByName() re-runs and untagged chip state updates.
+  const [artifactTagVersion, setArtifactTagVersion] = useState(0)
 
   const globalArtifactNames = useMemo(() => buildArtifactIndex(controls).map((e) => e.artifact), [])
 
@@ -562,7 +566,7 @@ function ControlDetail() {
                   )}
                 </div>
                 {assignedArtifacts.length > 0 && (
-                  <div className="evidence-chips">
+                  <div className="evidence-chips" data-tag-version={artifactTagVersion}>
                     {assignedArtifacts.map((item) => {
                       const rec = findByName(item)
                       const untagged = !rec || !Array.isArray(rec.tags) || rec.tags.length === 0
@@ -570,13 +574,19 @@ function ControlDetail() {
                         <span
                           key={item}
                           className={`evidence-chip${untagged ? ' evidence-chip--untagged' : ''}`}
-                          title={untagged ? 'No evidence tags yet — classify this artifact in Artifact Map.' : undefined}
+                          title={untagged ? 'No evidence tags yet — click to add tags.' : undefined}
                         >
-                          <span className="evidence-chip-name" title={item}>{item}</span>
+                          <button
+                            type="button"
+                            className="evidence-chip-name evidence-chip-name--button"
+                            title={item}
+                            onClick={() => setSelectedArtifact(findOrCreate(item))}
+                            aria-label={`Edit evidence tags for ${item}`}
+                          >{item}</button>
                           <button
                             type="button"
                             className="evidence-chip-remove"
-                            onClick={() => handleRemoveObjArtifact(obj.id, item)}
+                            onClick={(e) => { e.stopPropagation(); handleRemoveObjArtifact(obj.id, item) }}
                             aria-label={`Remove ${item} from objective ${obj.id}`}
                           >×</button>
                         </span>
@@ -756,6 +766,14 @@ function ControlDetail() {
           {control.commonGaps.map((item, i) => <li key={i}>{item}</li>)}
         </ul>
       </section>
+
+      <ArtifactDetailModal
+        key={selectedArtifact?.id}
+        isOpen={!!selectedArtifact}
+        artifact={selectedArtifact}
+        onClose={() => setSelectedArtifact(null)}
+        onTagsUpdated={() => setArtifactTagVersion((v) => v + 1)}
+      />
     </div>
   )
 }
