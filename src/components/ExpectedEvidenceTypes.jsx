@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useId } from 'react'
 import { evidenceTags } from '../data/evidenceTags.js'
 
 const TAG_BY_ID = new Map(evidenceTags.map((tag) => [tag.id, tag]))
@@ -9,7 +9,8 @@ function resolveTag(id) {
 }
 
 export default function ExpectedEvidenceTypes({ expectedTags, note }) {
-  const [detailsOpen, setDetailsOpen] = useState(false)
+  const instanceId = useId()
+  const [selectedTagId, setSelectedTagId] = useState(null)
 
   const primary    = expectedTags?.primary    ?? []
   const acceptable = expectedTags?.acceptable ?? []
@@ -17,7 +18,17 @@ export default function ExpectedEvidenceTypes({ expectedTags, note }) {
 
   if (!hasTags && !note) return null
 
-  const allTagIds = [...primary, ...acceptable]
+  const handleChipClick = (id) => {
+    setSelectedTagId((prev) => (prev === id ? null : id))
+  }
+
+  const panelId = `expected-tag-panel-${instanceId}`
+  const selectedTag  = selectedTagId ? resolveTag(selectedTagId) : null
+  const selectedRole = selectedTagId
+    ? primary.includes(selectedTagId)
+      ? 'Primary evidence type'
+      : 'Acceptable supporting evidence type'
+    : null
 
   return (
     <div className="expected-evidence-types">
@@ -25,7 +36,7 @@ export default function ExpectedEvidenceTypes({ expectedTags, note }) {
 
       {hasTags && (
         <p className="expected-evidence-helper">
-          Evidence types commonly reviewed for this objective — guidance only.
+          Evidence types commonly reviewed for this objective — guidance only. Click a chip for details.
         </p>
       )}
 
@@ -35,14 +46,18 @@ export default function ExpectedEvidenceTypes({ expectedTags, note }) {
           <div className="expected-evidence-chip-row">
             {primary.map((id) => {
               const tag = resolveTag(id)
+              const isSelected = selectedTagId === id
               return (
-                <span
+                <button
                   key={id}
-                  className="evidence-type-chip evidence-type-chip-primary"
-                  title={tag.definition || undefined}
+                  type="button"
+                  className={`evidence-type-chip evidence-type-chip-primary${isSelected ? ' evidence-type-chip--selected' : ''}`}
+                  onClick={() => handleChipClick(id)}
+                  aria-expanded={isSelected}
+                  aria-controls={panelId}
                 >
                   {tag.label}
-                </span>
+                </button>
               )
             })}
           </div>
@@ -55,46 +70,49 @@ export default function ExpectedEvidenceTypes({ expectedTags, note }) {
           <div className="expected-evidence-chip-row">
             {acceptable.map((id) => {
               const tag = resolveTag(id)
+              const isSelected = selectedTagId === id
               return (
-                <span
+                <button
                   key={id}
-                  className="evidence-type-chip evidence-type-chip-acceptable"
-                  title={tag.definition || undefined}
+                  type="button"
+                  className={`evidence-type-chip evidence-type-chip-acceptable${isSelected ? ' evidence-type-chip--selected' : ''}`}
+                  onClick={() => handleChipClick(id)}
+                  aria-expanded={isSelected}
+                  aria-controls={panelId}
                 >
                   {tag.label}
-                </span>
+                </button>
               )
             })}
           </div>
         </div>
       )}
 
-      {hasTags && (
-        <>
-          <div className="evidence-type-details-toggle">
-            <button
-              type="button"
-              onClick={() => setDetailsOpen((o) => !o)}
-              aria-expanded={detailsOpen}
-            >
-              <span aria-hidden="true">{detailsOpen ? '▾' : '▸'}</span>
-              {' '}Evidence type details
-            </button>
+      {selectedTag && (
+        <div
+          id={panelId}
+          className="expected-tag-panel"
+          role="region"
+          aria-label={`Evidence type details: ${selectedTag.label}`}
+        >
+          <div className="expected-tag-panel-header">
+            <span className="expected-tag-panel-title">{selectedTag.label}</span>
+            <span className="expected-tag-panel-role">{selectedRole}</span>
           </div>
-          {detailsOpen && (
-            <div className="evidence-type-details">
-              {allTagIds.map((id) => {
-                const tag = resolveTag(id)
-                return (
-                  <div key={id} className="evidence-type-detail-item">
-                    <strong>{tag.label}</strong>
-                    {tag.definition && <> — {tag.definition}</>}
-                  </div>
-                )
-              })}
+          {selectedTag.category && (
+            <div className="expected-tag-panel-meta">
+              Category: {selectedTag.category}
             </div>
           )}
-        </>
+          {selectedTag.definition && (
+            <div className="expected-tag-panel-definition">
+              {selectedTag.definition}
+            </div>
+          )}
+          <div className="expected-tag-panel-footer">
+            Guidance only.
+          </div>
+        </div>
       )}
 
       {note && (
