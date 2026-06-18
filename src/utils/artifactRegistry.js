@@ -207,6 +207,20 @@ export function namesToIds(names) {
   return out
 }
 
+// Update the tags array for an existing artifact record.
+// Normalizes to a de-duplicated array of non-empty strings.
+// Returns the updated record on success, or false if the id is unknown.
+export function updateArtifactTags(id, tags) {
+  _load()
+  const rec = _cache[id]
+  if (!rec) return false
+  const deduped = [...new Set((tags ?? []).filter((t) => typeof t === 'string' && t.trim()))]
+  rec.tags = deduped
+  rec.updatedAt = new Date().toISOString()
+  _persist()
+  return rec
+}
+
 // Force the next access to reload from storage. Primarily for tests and for
 // callers that mutate cmmc-artifacts outside this module.
 export function _resetCache() {
