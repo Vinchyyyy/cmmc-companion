@@ -1,9 +1,9 @@
 
 ## Phase 2 Milestone Checkpoint — Artifact Tagging & Tag-Aware Reuse
 
-Date: June 18, 2026 · Status: ✅ Checkpoint (pre-cleanup)
+Date: June 18, 2026 · Status: ✅ Checkpoint (post-cleanup)
 
-Captures the state after the artifact evidence-tagging and tag-aware reuse work, before the planned cleanup pass.
+Captures the state after the artifact evidence-tagging and tag-aware reuse work, including the cleanup pass completed after the initial checkpoint.
 
 ### Completed in Phase 2
 
@@ -18,7 +18,7 @@ Captures the state after the artifact evidence-tagging and tag-aware reuse work,
 9. **Relationship-based reuse ranking rewrite isolated** — commit `fcb9032` (`refactor: improve reuse opportunity ranking`): 4-factor relationship score (relationship confidence, objective evidence confidence, evidence class, relationship type); relationship-gated candidate discovery preserved; public suggestion output shape unchanged; no tag logic.
 10. **ControlDetail tag-aware reuse labels/ranking complete** — commit `ccbb504` (`feat: add tag-aware reuse labels`): new `src/utils/evidenceTagMatch.js`; `tagAlignment` metadata attached to suggestions; tier-first ordering ahead of the existing reuse score; neutral alignment labels + overlap chips and a section helper in Suggested Existing Artifacts.
 
-Latest commit hashes: `fcb9032` (scoring rewrite), `ccbb504` (tag-aware reuse).
+Latest commit hashes: `fcb9032` (scoring rewrite), `ccbb504` (tag-aware reuse), `d1ce8d3` (remove ArtifactTagEditor), `3917bd6` (ControlDetail lint), `ae40c97` (ArtifactMap lint).
 
 ### Current behavior (important)
 
@@ -34,21 +34,21 @@ Latest commit hashes: `fcb9032` (scoring rewrite), `ccbb504` (tag-aware reuse).
 1. Artifact Map "Potential Reuse Opportunities" are **not yet tag-aware**.
 2. Tag-only candidate discovery is **intentionally deferred**.
 3. Expected-evidence hints inside `ArtifactDetailModal` are **deferred**.
-4. `ArtifactTagEditor.jsx` is now **unused** and can be removed in cleanup.
 
-### Known pre-existing lint issues (not introduced by Phase 2)
+### Cleanup completed (post-checkpoint)
 
-- `ControlDetail.jsx`: `set-state-in-effect`; unused `handleNoteChange`; unused `handleObjectiveNoteChange`; unused `objNoteId`.
-- `ArtifactMap.jsx`: `setCategoryFilter` `set-state-in-effect`; `setExpandedSet` `set-state-in-effect`.
+- `ArtifactTagEditor.jsx` removed — commit `d1ce8d3`. No remaining references.
+- `ControlDetail.jsx` lint debt fixed — commit `3917bd6`. `set-state-in-effect` issues and unused variables resolved. Now lint-clean.
+- `ArtifactMap.jsx` lint debt fixed — commit `ae40c97`. Both `set-state-in-effect` issues replaced with guarded render-time state adjustments. Now lint-clean.
 
-These are tracked as known and were **not** caused by the Phase 2 commits. New Phase 2 files (`evidenceTagMatch.js`) and the modified `evidenceRecommendations.js` are lint-clean.
+New Phase 2 files (`evidenceTagMatch.js`) and the modified `evidenceRecommendations.js` were already lint-clean at checkpoint.
 
-### Next recommended cleanup steps
+### Next recommended steps (future phases)
 
-1. Remove the now-unused `ArtifactTagEditor.jsx`.
-2. Address the known pre-existing lint issues in `ControlDetail.jsx` and `ArtifactMap.jsx`.
-3. (Future phase) Extend tag-aware reuse to Artifact Map.
-4. (Future phase) Consider tag-only candidate discovery and expected-evidence hints in `ArtifactDetailModal`.
+1. (Future phase) Extend tag-aware reuse to Artifact Map "Potential Reuse Opportunities".
+2. (Future phase) Add expected-evidence hints inside `ArtifactDetailModal`.
+3. (Future phase) Consider tag-only candidate discovery.
+4. (Future phase) Release / changelog / version work.
 
 ## Version History
 
