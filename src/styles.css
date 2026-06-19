@@ -2380,6 +2380,10 @@ details[open] .backup-actions-toggle::after {
   word-break: break-all;
 }
 
+.artifact-card-name--untagged {
+  color: var(--color-not-met);
+}
+
 .artifact-card-count {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
@@ -2703,6 +2707,15 @@ details[open] .backup-actions-toggle::after {
   font-size: var(--text-xs);
   color: var(--color-muted);
   margin: 0 0 var(--space-2) 0;
+}
+
+.artifact-untagged-hint {
+  font-size: var(--text-xs);
+  color: var(--color-not-met);
+  background: var(--color-not-met-bg);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  margin: var(--space-2) 0;
 }
 
 .artifact-tag-chip-row {

@@ -484,7 +484,7 @@ function ArtifactMap() {
                             <span className="artifact-card-chevron" aria-hidden="true">
                               {isExpanded ? '▼' : '▶'}
                             </span>
-                            <span className="artifact-card-name">{entry.artifact}</span>
+                            <span className={`artifact-card-name${hasTags ? '' : ' artifact-card-name--untagged'}`}>{entry.artifact}</span>
                             <span className="artifact-card-count">
                               ({entry.usages.length})
                             </span>
@@ -502,6 +502,11 @@ function ArtifactMap() {
                               <div className="artifact-tag-editor">
                                 <div className="artifact-tag-editor-header">Artifact evidence tags</div>
                                 <ArtifactTagChipList tagIds={artifactTagIds} />
+                                {!hasTags && (
+                                  <p className="artifact-untagged-hint">
+                                    Add evidence tags to see reuse opportunities.
+                                  </p>
+                                )}
                                 <p className="artifact-tag-editor-helper">
                                   Tags describe what kind of evidence this artifact is — guidance only.
                                 </p>
@@ -521,11 +526,7 @@ function ArtifactMap() {
                               {/* ------------------------------------------ */}
                               {/* Potential Reuse Opportunities                */}
                               {/* ------------------------------------------ */}
-                              {!hasTags ? (
-                                <p className="artifact-tag-editor-helper" style={{ marginTop: 'var(--space-2)' }}>
-                                  Add evidence tags to see reuse opportunities.
-                                </p>
-                              ) : suggestions.length > 0 ? (() => {
+                              {suggestions.length > 0 ? (() => {
                                 const page = reuseSuggestionPages[entry.artifact] ?? 0
                                 const totalPages = Math.ceil(suggestions.length / SUGGESTION_PAGE_SIZE)
                                 const safePage = Math.min(page, Math.max(totalPages - 1, 0))
