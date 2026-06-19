@@ -1,4 +1,55 @@
 
+## Phase 2 Milestone Checkpoint — Artifact Tagging & Tag-Aware Reuse
+
+Date: June 18, 2026 · Status: ✅ Checkpoint (pre-cleanup)
+
+Captures the state after the artifact evidence-tagging and tag-aware reuse work, before the planned cleanup pass.
+
+### Completed in Phase 2
+
+1. **ExpectedTags foundation complete** across all CMMC L2 objectives (`primary` / `acceptable` evidence tag ids per objective).
+2. **Artifact records support controlled evidence tags** — `artifact.tags` on registry records, drawn from the controlled `evidenceTags.js` vocabulary.
+3. **Artifact Map modal tag editing** — modal-based evidence tag picker.
+4. **ControlDetail assigned artifact chips** open `ArtifactDetailModal` for tag view/edit.
+5. **Evidence Pool artifacts** open `ArtifactDetailModal`.
+6. **Suggested Existing Artifact names** open `ArtifactDetailModal`.
+7. **Untagged artifacts** show a NOT MET-style warning tint (attention cue only).
+8. **Expected evidence type chips** expand to show tag definition/role details.
+9. **Relationship-based reuse ranking rewrite isolated** — commit `fcb9032` (`refactor: improve reuse opportunity ranking`): 4-factor relationship score (relationship confidence, objective evidence confidence, evidence class, relationship type); relationship-gated candidate discovery preserved; public suggestion output shape unchanged; no tag logic.
+10. **ControlDetail tag-aware reuse labels/ranking complete** — commit `ccbb504` (`feat: add tag-aware reuse labels`): new `src/utils/evidenceTagMatch.js`; `tagAlignment` metadata attached to suggestions; tier-first ordering ahead of the existing reuse score; neutral alignment labels + overlap chips and a section helper in Suggested Existing Artifacts.
+
+Latest commit hashes: `fcb9032` (scoring rewrite), `ccbb504` (tag-aware reuse).
+
+### Current behavior (important)
+
+- Artifact tags are **classification aids** — they describe what kind of evidence an artifact is.
+- Tags **do not** determine whether an objective is satisfied; no pass/fail/compliance meaning.
+- Tag-aware reuse currently only **re-ranks and labels** existing relationship-backed suggestions.
+- **No tag-only candidates** are added; candidate discovery remains **relationship-gated**.
+- **Objective status does not change** from artifact tags.
+- Recommendation / matching / scoring / status / data behavior remains untouched **except** for reuse suggestion ranking and labels in ControlDetail.
+
+### Intentionally out of scope (deferred future work)
+
+1. Artifact Map "Potential Reuse Opportunities" are **not yet tag-aware**.
+2. Tag-only candidate discovery is **intentionally deferred**.
+3. Expected-evidence hints inside `ArtifactDetailModal` are **deferred**.
+4. `ArtifactTagEditor.jsx` is now **unused** and can be removed in cleanup.
+
+### Known pre-existing lint issues (not introduced by Phase 2)
+
+- `ControlDetail.jsx`: `set-state-in-effect`; unused `handleNoteChange`; unused `handleObjectiveNoteChange`; unused `objNoteId`.
+- `ArtifactMap.jsx`: `setCategoryFilter` `set-state-in-effect`; `setExpandedSet` `set-state-in-effect`.
+
+These are tracked as known and were **not** caused by the Phase 2 commits. New Phase 2 files (`evidenceTagMatch.js`) and the modified `evidenceRecommendations.js` are lint-clean.
+
+### Next recommended cleanup steps
+
+1. Remove the now-unused `ArtifactTagEditor.jsx`.
+2. Address the known pre-existing lint issues in `ControlDetail.jsx` and `ArtifactMap.jsx`.
+3. (Future phase) Extend tag-aware reuse to Artifact Map.
+4. (Future phase) Consider tag-only candidate discovery and expected-evidence hints in `ArtifactDetailModal`.
+
 ## Version History
 
 | Version | Date | Summary |
