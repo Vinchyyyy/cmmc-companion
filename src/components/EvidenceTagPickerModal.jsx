@@ -18,6 +18,7 @@ function buildGroups(tags) {
 }
 
 const ALL_GROUPS = buildGroups(evidenceTags)
+const TAG_LOOKUP = Object.fromEntries(evidenceTags.map((t) => [t.id, t]))
 
 export default function EvidenceTagPickerModal({
   isOpen,
@@ -80,8 +81,6 @@ export default function EvidenceTagPickerModal({
     })
   }
 
-  const selectedCount = selected.size
-
   return (
     <div
       className="confirm-overlay"
@@ -116,6 +115,34 @@ export default function EvidenceTagPickerModal({
         <p id={descId} className="evidence-tag-picker-helper">
           Tags describe what kind of evidence this artifact is — guidance only.
         </p>
+
+        {/* Selected tags */}
+        <div className="evidence-tag-picker-selected-wrap">
+          <div className="evidence-tag-picker-selected-label">Assigned tags</div>
+          {selected.size === 0 ? (
+            <span className="evidence-tag-picker-selected-empty">No tags selected.</span>
+          ) : (
+            <div className="artifact-tag-chip-row">
+              {[...selected].map((id) => {
+                const tag = TAG_LOOKUP[id]
+                const label = tag ? tag.label : id
+                return (
+                  <span key={id} className="tag-chip">
+                    {label}
+                    <button
+                      type="button"
+                      className="tag-chip-remove"
+                      aria-label={`Remove ${label}`}
+                      onClick={() => toggle(id)}
+                    >
+                      ×
+                    </button>
+                  </span>
+                )
+              })}
+            </div>
+          )}
+        </div>
 
         {/* Search */}
         <div className="evidence-tag-picker-search-wrap">
@@ -157,13 +184,6 @@ export default function EvidenceTagPickerModal({
               </div>
             ))
           )}
-        </div>
-
-        {/* Selected count */}
-        <div className="evidence-tag-picker-selected">
-          {selectedCount === 0
-            ? 'No tags selected.'
-            : `${selectedCount} tag${selectedCount !== 1 ? 's' : ''} selected.`}
         </div>
 
         {/* Actions */}

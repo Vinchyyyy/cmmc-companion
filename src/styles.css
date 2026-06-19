@@ -2710,6 +2710,7 @@ details[open] .backup-actions-toggle::after {
 }
 
 .artifact-untagged-hint {
+  display: inline-block;
   font-size: var(--text-xs);
   color: var(--color-not-met);
   background: var(--color-not-met-bg);
@@ -3316,6 +3317,26 @@ button.evidence-type-chip:focus-visible {
 
 .evidence-tag-option-label {
   flex: 1;
+}
+
+.evidence-tag-picker-selected-wrap {
+  padding: var(--space-2) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.evidence-tag-picker-selected-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-1);
+}
+
+.evidence-tag-picker-selected-empty {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
 }
 
 .evidence-tag-picker-selected {
