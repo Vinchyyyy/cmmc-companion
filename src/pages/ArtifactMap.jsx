@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import InfoPanel from '../components/InfoPanel.jsx'
 import { Link, useSearchParams } from 'react-router-dom'
 import controls from '../data/controls/index.js'
@@ -185,6 +185,9 @@ function ArtifactMap() {
   const [expandedCategories, setExpandedCategories] = useState(() => new Set())
   // Artifact-level: expanded set. Empty = all artifacts collapsed (default).
   const [expandedSet, setExpandedSet] = useState(() => new Set())
+  // Tracks the artifact last auto-expanded when results narrowed to one, so the
+  // auto-expand fires once per transition without re-expanding a manual collapse.
+  const [autoExpandedFor, setAutoExpandedFor] = useState(null)
   // Suggestion section: expanded set per artifact name.
   const [expandedSuggestions, setExpandedSuggestions] = useState(() => new Set())
   // Current suggestion page (0-based) keyed by artifact name.
@@ -237,12 +240,14 @@ function ArtifactMap() {
   const availableCategories = [...new Set(filtered.map((e) => e.category))]
     .sort(sortCategoryNames)
 
-  // Reset category filter if it is no longer present after a search change
-  useEffect(() => {
-    if (categoryFilter !== 'all' && !availableCategories.includes(categoryFilter)) {
-      setCategoryFilter('all')
-    }
-  }, [availableCategories.join(','), categoryFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Reset category filter if it is no longer present after a search change.
+  // Adjusted during render (React's recommended pattern for correcting state from
+  // a derived value) rather than in an effect: the guard becomes false once the
+  // filter is 'all', so the immediate re-render self-terminates with no extra
+  // commit and no frame showing the now-invalid filter.
+  if (categoryFilter !== 'all' && !availableCategories.includes(categoryFilter)) {
+    setCategoryFilter('all')
+  }
 
   // Step 3: category filter
   const categoryFiltered =
@@ -282,18 +287,19 @@ function ArtifactMap() {
       totalUsages: artifacts.reduce((s, e) => s + e.usages.length, 0),
     }))
 
-  // Auto-expand when search/filter narrows to exactly one artifact
+  // Auto-expand when search/filter narrows to exactly one artifact.
+  // Applied during render via a "previous value" guard (React's recommended
+  // pattern for reacting to a derived-value change) instead of an effect. It
+  // fires once each time the single result changes — including re-entering the
+  // same artifact after the result set widened and narrowed again — and leaves
+  // the card collapsible afterward, matching the prior effect's behavior.
   const singleResult = displayFiltered.length === 1 ? displayFiltered[0].artifact : null
-  useEffect(() => {
-    if (singleResult) {
-      setExpandedSet((prev) => {
-        if (prev.has(singleResult)) return prev
-        const next = new Set(prev)
-        next.add(singleResult)
-        return next
-      })
-    }
-  }, [singleResult])
+  if (singleResult && singleResult !== autoExpandedFor) {
+    setAutoExpandedFor(singleResult)
+    setExpandedSet((prev) => (prev.has(singleResult) ? prev : new Set(prev).add(singleResult)))
+  } else if (!singleResult && autoExpandedFor !== null) {
+    setAutoExpandedFor(null)
+  }
 
   // Category accordion
   const toggleCategory = (cat) => {
