@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { getObjectiveExpectedTagIds, classifyReuseOpportunity } from '../utils/evidenceTagMatch.js'
 import InfoPanel from '../components/InfoPanel.jsx'
 import { Link, useSearchParams } from 'react-router-dom'
 import controls from '../data/controls/index.js'
@@ -95,7 +96,7 @@ function computeSuggestionScore(rel, obj) {
 //      → controlId asc → objectiveId asc.
 //   Returns all matching suggestions (no cap — caller handles pagination).
 // -------------------------------------------------------------------------
-function getReuseSuggestions(artifactName, usages, allControls, allRelationships) {
+function getReuseSuggestions(artifactName, usages, allControls, allRelationships, artifactTagIds = []) {
   const artifactLower = artifactName.toLowerCase()
 
   // Source control IDs — only objective-level usages count (not Evidence Pool)
@@ -149,6 +150,9 @@ function getReuseSuggestions(artifactName, usages, allControls, allRelationships
       const existing = readObjectiveArtifacts(control.id, obj.id)
       if (existing.some((a) => a.toLowerCase() === artifactLower)) continue
 
+      const expectedTags = getObjectiveExpectedTagIds(obj)
+      const tagMatch = classifyReuseOpportunity({ artifactTagIds, expectedTags })
+
       suggestions.push({
         controlId: control.id,
         controlTitle: control.title,
@@ -158,11 +162,13 @@ function getReuseSuggestions(artifactName, usages, allControls, allRelationships
         _score: computeSuggestionScore(rel, obj),
         _relConf: relConfScore(rel.confidence),
         _objEvidConf: objEvidConfScore(obj.evidenceConfidence),
+        _tagTier: tagMatch.tier,
       })
     }
   }
 
   suggestions.sort((a, b) => {
+    if (a._tagTier !== b._tagTier) return a._tagTier - b._tagTier
     if (b._score !== a._score) return b._score - a._score
     if (b._relConf !== a._relConf) return b._relConf - a._relConf
     if (b._objEvidConf !== a._objEvidConf) return b._objEvidConf - a._objEvidConf
@@ -459,8 +465,11 @@ function ArtifactMap() {
                   <ul style={{ listStyle: 'none', padding: 0 }}>
                     {group.artifacts.map((entry) => {
                       const isExpanded = expandedSet.has(entry.artifact)
-                      const suggestions = isExpanded
-                        ? getReuseSuggestions(entry.artifact, entry.usages, controls, relationships)
+                      const artifactRecord = findByName(entry.artifact)
+                      const artifactTagIds = artifactRecord?.tags ?? []
+                      const hasTags = artifactTagIds.length > 0
+                      const suggestions = isExpanded && hasTags
+                        ? getReuseSuggestions(entry.artifact, entry.usages, controls, relationships, artifactTagIds)
                         : []
                       const suggestionsOpen = expandedSuggestions.has(entry.artifact)
 
@@ -492,7 +501,7 @@ function ArtifactMap() {
                               {/* ------------------------------------------ */}
                               <div className="artifact-tag-editor">
                                 <div className="artifact-tag-editor-header">Artifact evidence tags</div>
-                                <ArtifactTagChipList tagIds={findByName(entry.artifact)?.tags ?? []} />
+                                <ArtifactTagChipList tagIds={artifactTagIds} />
                                 <p className="artifact-tag-editor-helper">
                                   Tags describe what kind of evidence this artifact is — guidance only.
                                 </p>
@@ -504,9 +513,7 @@ function ArtifactMap() {
                                       setModalKey((k) => k + 1)
                                     }}
                                   >
-                                    {(findByName(entry.artifact)?.tags?.length ?? 0) > 0
-                                      ? 'Edit evidence tags'
-                                      : 'Add evidence tags'}
+                                    {hasTags ? 'Edit evidence tags' : 'Add evidence tags'}
                                   </button>
                                 </div>
                               </div>
@@ -514,7 +521,11 @@ function ArtifactMap() {
                               {/* ------------------------------------------ */}
                               {/* Potential Reuse Opportunities                */}
                               {/* ------------------------------------------ */}
-                              {suggestions.length > 0 && (() => {
+                              {!hasTags ? (
+                                <p className="artifact-tag-editor-helper" style={{ marginTop: 'var(--space-2)' }}>
+                                  Add evidence tags to see reuse opportunities.
+                                </p>
+                              ) : suggestions.length > 0 ? (() => {
                                 const page = reuseSuggestionPages[entry.artifact] ?? 0
                                 const totalPages = Math.ceil(suggestions.length / SUGGESTION_PAGE_SIZE)
                                 const safePage = Math.min(page, Math.max(totalPages - 1, 0))
@@ -594,7 +605,7 @@ function ArtifactMap() {
                                     )}
                                   </div>
                                 )
-                              })()}
+                              })() : null}
 
                               <ul className="artifact-card-usages">
                                 {entry.usages.map((u, i) => (
