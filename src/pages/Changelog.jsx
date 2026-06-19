@@ -9,8 +9,266 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v1.5.0 — current release, open by default */}
+      {/* v2.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v2.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span>Evidence Tag Registry &amp; Artifact Reuse</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 19, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Evidence Tags</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added controlled evidence tag taxonomy — 66 tags across 17 categories covering all 14 CMMC control families</li>
+              <li>All 320 assessment objectives now have expected evidence tag mappings (one objective intentionally waived: IA.L2-3.5.11[a])</li>
+              <li>Tags classify artifact evidence types — guidance only; they do not determine objective outcomes</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Artifact Tag Editing</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Artifact evidence tags are now editable from the Artifact Map via a tag picker modal</li>
+              <li>Artifact evidence tags are also editable from ControlDetail artifact suggestion modals</li>
+              <li>Tag picker supports search, category browsing, checkbox selection, and removable chip selections</li>
+              <li>Assigned-tags chip area shows at the top of the picker with individual chip X-removal</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>ControlDetail — Suggested Existing Artifacts</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Each assessment objective now surfaces a collapsed list of existing artifacts from related controls</li>
+              <li>Suggestions are relationship-gated — only controls linked via evidence_reuse relationships contribute candidates</li>
+              <li>Tag alignment is computed against the target objective's expected tags and used to rank and label candidates</li>
+              <li>Tags explain and rank suggestions — they do not filter or suppress candidates</li>
+              <li>Tag-only candidate discovery (no relationship backing) remains deferred</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Artifact Map — Tag-Gated Reuse</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Tagged artifacts show a collapsed Potential Reuse Opportunities section sourced from existing relationship data</li>
+              <li>Untagged artifacts show a compact prompt inside the evidence tags card; reuse section is hidden</li>
+              <li>Untagged artifact titles are visually highlighted in red</li>
+              <li>Reuse pagination: 5 candidates per page with range display and Previous / Next controls</li>
+              <li>Relationship gating remains the source of truth — no tag-only discovery added</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>ControlDetail — Common Artifacts</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Common Artifacts section removed from ControlDetail UI</li>
+              <li>Underlying data is preserved in full — search indexing and Evidence Lookup remain unaffected</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-2)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Validator: Passed — 110 controls, 320 objectives, 130 evidence types, 189 relationships, 66 evidence tags</li>
+              <li>Build: Passed</li>
+              <li>No changes to scoring, assessment status, control definitions, or validator logic</li>
+            </ul>
+          </section>
+
+        </div>
+      </details>
+
+      {/* v1.6 — collapsed */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v1.6</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span>Official Assessment Template Export &amp; Assessment Guide Reconciliation</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 13, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Official Assessment Template Export</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Bundled official CMMC Level 2 Assessment Results Template into the application</li>
+              <li>Removed template upload requirement — export is now one click</li>
+              <li>Added OSC Name and Assessment Name export dialog</li>
+              <li>Added standardized export filename: <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>CMMC_Companion_&#123;OSC&#125;_&#123;Assessment&#125;_Assessment_Results.xlsx</span></li>
+              <li>Promoted as the primary assessment deliverable in the export UI</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Export Engine Rewrite</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Replaced SheetJS workbook reconstruction with JSZip-based XML patching</li>
+              <li>Previous approach rebuilt the workbook from scratch, stripping all formatting, styles, CUI metadata, data validation dropdowns, and compliance markings</li>
+              <li>New approach opens the official workbook package directly, locates the Requirement Objectives worksheet, and patches only target cells</li>
+              <li>Exported workbook is now visually identical to the official template</li>
+              <li>Preserved: styles.xml, sharedStrings.xml, customXml, docMetadata (CUI sensitivity labels), printerSettings, data validations, merged cells, hidden sheets, and full workbook structure</li>
+              <li>File size reduced from ~1.2 MB (SheetJS reconstruction) to ~78 KB (surgical patch)</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Guide Reconciliation</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Performed objective-by-objective comparison against the official CMMC Assessment Guide Level 2</li>
+              <li><span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>RA.L2-3.11.1</span> — corrected from 5 objectives to official 2 objectives</li>
+              <li><span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>RA.L2-3.11.2</span> — corrected from 4 objectives to official 5 objectives</li>
+              <li><span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>RA.L2-3.11.3</span> — corrected from 1 objective to official 2 objectives</li>
+              <li><span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>SI.L1-3.14.5</span> — corrected objective wording to match official guide</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Objective Standardization</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Restored official assessment guide punctuation formatting across all objectives</li>
+              <li>Final objectives end with <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>.</span></li>
+              <li>Penultimate objectives end with <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>; and</span></li>
+              <li>Intermediate objectives end with <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>;</span></li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Objective Count Alignment</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Previous objective count: 321</li>
+              <li>Current objective count: 320</li>
+              <li>Official Assessment Guide: 320</li>
+              <li>Tool objective inventory now aligns with the official assessment guide</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Export Simplification</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Removed all temporary Risk Assessment export workaround logic</li>
+              <li>Direct objective mapping — no RA-specific translation layer</li>
+              <li>Cleaner export pipeline with reduced maintenance surface</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation Improvements</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added validation checks for official objective counts</li>
+              <li>Added RA control structure validation</li>
+              <li>Added SI.L1-3.14.5 structure validation</li>
+              <li>Added objective punctuation standards validation</li>
+              <li>Added template alignment requirement checks</li>
+              <li>All validation checks passing</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-2)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>UI Improvements</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Official Assessment Template export promoted as the primary assessment deliverable</li>
+              <li>Backup and recovery workflows separated from deliverable generation</li>
+              <li>Export experience simplified and streamlined</li>
+              <li>Validator: Passed — 110 controls, 320 objectives, 130 evidence types, 189 relationships</li>
+              <li>Build: Passed</li>
+            </ul>
+          </section>
+
+        </div>
+      </details>
+
+      {/* v1.5.1 — collapsed */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v1.5.1</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span>Artifact Intelligence &amp; Usability Update</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 10, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Artifact Map</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added direct objective-level navigation using <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>/controls/&#123;controlId&#125;#objective-&#123;objectiveId&#125;</span></li>
+              <li>Artifact usages now link directly to the specific objective instead of only the parent control</li>
+              <li>Added Potential Reuse Opportunities section for artifacts</li>
+              <li>Added relationship-driven evidence reuse suggestions</li>
+              <li>Added collapsible reuse suggestion sections</li>
+              <li>Added one-click artifact reuse assignment via +</li>
+              <li>Accepted suggestions immediately disappear after assignment</li>
+              <li>Added per-artifact suggestion pagination</li>
+              <li>Added Previous / Next navigation with page indicators (5 results per page)</li>
+              <li>Added category-based artifact grouping (collapsed by default)</li>
+              <li>Added Expand All / Collapse All controls</li>
+              <li>Added artifact sorting: Most Connections, Least Connections, Name A–Z, Name Z–A</li>
+              <li>Removed Evidence Pool-only entries from Artifact Map display</li>
+              <li>Artifact Map statistics now reflect objective-level usage only</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Relationship-Driven Recommendations</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Implemented Phase 1 relationship-driven evidence reuse recommendations</li>
+              <li>Suggestions are generated directly from the relationship dataset</li>
+              <li>Added explanation text showing relationship source and type</li>
+              <li>Added direct navigation from suggestions to target objectives</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Navigation &amp; Deep Linking</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added objective anchor support for direct objective navigation</li>
+              <li>Artifact Map and reuse recommendations now support direct objective navigation</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Informational Panels</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added reusable InfoPanel component</li>
+              <li>Deployed page purpose panels to: Home, Control Library, Environment Profile, Artifact Map, Relationship Explorer, Evidence Lookup</li>
+              <li>Panels provide page purpose, assessment context, and common usage guidance</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assignment Improvements</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added assignee normalization — names stored consistently in Title Case</li>
+              <li>Eliminates duplicate assignee variants caused by capitalization differences</li>
+              <li>Examples: vince → Vince, VINCE → Vince, alex smith → Alex Smith</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Quality of Life</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Improved assessment navigation flow</li>
+              <li>Reduced Artifact Map clutter</li>
+              <li>Improved evidence reuse discovery</li>
+              <li>Improved objective-level workflow efficiency</li>
+              <li>Added page-level orientation for new users</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-2)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Validator: Passed — 110 controls, 130 evidence types, 189 relationships</li>
+              <li>Build: Passed</li>
+            </ul>
+          </section>
+
+        </div>
+      </details>
+
+      {/* v1.5.0 — collapsed */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v1.5.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
