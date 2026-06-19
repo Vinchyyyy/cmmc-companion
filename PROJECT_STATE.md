@@ -18,22 +18,20 @@ Captures the state after the artifact evidence-tagging and tag-aware reuse work,
 9. **Relationship-based reuse ranking rewrite isolated** — commit `fcb9032` (`refactor: improve reuse opportunity ranking`): 4-factor relationship score (relationship confidence, objective evidence confidence, evidence class, relationship type); relationship-gated candidate discovery preserved; public suggestion output shape unchanged; no tag logic.
 10. **ControlDetail tag-aware reuse labels/ranking complete** — commit `ccbb504` (`feat: add tag-aware reuse labels`): new `src/utils/evidenceTagMatch.js`; `tagAlignment` metadata attached to suggestions; tier-first ordering ahead of the existing reuse score; neutral alignment labels + overlap chips and a section helper in Suggested Existing Artifacts.
 
-Latest commit hashes: `fcb9032` (scoring rewrite), `ccbb504` (tag-aware reuse), `d1ce8d3` (remove ArtifactTagEditor), `3917bd6` (ControlDetail lint), `ae40c97` (ArtifactMap lint), `94a974e` (hide Common Artifacts UI).
+Latest commit hashes: `fcb9032` (scoring rewrite), `ccbb504` (tag-aware reuse), `d1ce8d3` (remove ArtifactTagEditor), `3917bd6` (ControlDetail lint), `ae40c97` (ArtifactMap lint), `94a974e` (hide Common Artifacts UI), `4405d5c` (Artifact Map tag-gated reuse), `39ebb52` (untagged visual state), `ffabcba` (tag picker selected-state UI).
 
 ### Current behavior (important)
 
 - Artifact tags are **classification aids** — they describe what kind of evidence an artifact is.
 - Tags **do not** determine whether an objective is satisfied; no pass/fail/compliance meaning.
-- Tag-aware reuse currently only **re-ranks and labels** existing relationship-backed suggestions.
-- **No tag-only candidates** are added; candidate discovery remains **relationship-gated**.
+- **No tag-only candidates** are added; candidate discovery remains **relationship-gated** in both ControlDetail and Artifact Map.
 - **Objective status does not change** from artifact tags.
-- Recommendation / matching / scoring / status / data behavior remains untouched **except** for reuse suggestion ranking and labels in ControlDetail.
+- Recommendation / matching / scoring / status / data behavior remains untouched **except** for reuse suggestion ranking and labels in ControlDetail and Artifact Map.
 
 ### Intentionally out of scope (deferred future work)
 
-1. Artifact Map "Potential Reuse Opportunities" are **not yet tag-aware**.
-2. Tag-only candidate discovery is **intentionally deferred**.
-3. Expected-evidence hints inside `ArtifactDetailModal` are **deferred**.
+1. Tag-only candidate discovery is **intentionally deferred**.
+2. Expected-evidence hints inside `ArtifactDetailModal` are **deferred**.
 
 ### Cleanup completed (post-checkpoint)
 
@@ -43,6 +41,12 @@ Latest commit hashes: `fcb9032` (scoring rewrite), `ccbb504` (tag-aware reuse), 
 - **Common Artifacts UI hidden** — commit `94a974e`. The Common Artifacts heading and static bullet list were removed from ControlDetail. `commonArtifacts` data in all control JSON files is preserved. `commonArtifacts` search indexing in `ControlLibrary.jsx` and `Home.jsx` is preserved. Common Evidence and Expected Evidence Types remain visible.
 
 New Phase 2 files (`evidenceTagMatch.js`) and the modified `evidenceRecommendations.js` were already lint-clean at checkpoint.
+
+### Post-checkpoint features completed
+
+- **Artifact Map tag-gated reuse** — commit `4405d5c`. Reuse opportunities are hidden for untagged artifacts; shown (paginated, 5 per page) for tagged artifacts. Tag-aware ranking applied using `evidenceTagMatch.js` helpers. Relationship-gated candidate discovery unchanged. No tag-only candidates added.
+- **Untagged Artifact Map visual state** — commit `39ebb52`. Untagged artifact titles are red/tinted using the existing NOT MET theme color. A compact inside-card callout ("Add evidence tags to see reuse opportunities.") appears inside the Artifact evidence tags box. No duplicate external helper text.
+- **Evidence tag picker selected-state UI** — commit `ffabcba`. Modal now shows an "Assigned tags" area above the search input. Selected tags render as removable chips with accessible × buttons. Removing a chip updates local modal state and unchecks the corresponding checkbox. Cancel discards; Done persists. Old selected-count footer removed.
 
 ### ControlDetail current UI state
 
@@ -61,12 +65,29 @@ ControlDetail no longer shows:
 
 - Common Artifacts static bullet list (data preserved in source JSON; hidden from UI in `94a974e`)
 
+### Artifact Map current UI state
+
+Artifact Map currently shows (per artifact, when expanded):
+
+- Artifact evidence tags (with compact callout if untagged)
+- Potential Reuse Opportunities — paginated at 5 per page, **only for tagged artifacts**; relationship-gated; tag-aware ranking
+- Current usage locations
+
+Artifact Map currently shows (per artifact title):
+
+- Red/tinted title when untagged; normal title when tagged
+
+Artifact Map no longer shows:
+
+- Reuse opportunities for untagged artifacts (hidden in `4405d5c`)
+- Full-width untagged callout (narrowed to inline in `39ebb52`)
+
 ### Next recommended steps (future phases)
 
-1. (Future phase) Extend tag-aware reuse to Artifact Map "Potential Reuse Opportunities".
-2. (Future phase) Add expected-evidence hints inside `ArtifactDetailModal`.
-3. (Future phase) Consider tag-only candidate discovery.
-4. (Future phase) Release / changelog / version work.
+1. (Future phase) Add expected-evidence hints inside `ArtifactDetailModal`.
+2. (Future phase) Consider tag-only candidate discovery (intentionally deferred).
+3. (Future phase) Release / changelog / version work.
+4. (Future phase) Broader UI/layout redesign.
 
 ## Version History
 
