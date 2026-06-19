@@ -7,8 +7,6 @@ import { PROVIDERS } from '../data/providers'
 import { getEnvironmentTechTags } from '../utils/environmentProfile'
 import evidenceTypes from '../data/evidence/index.js'
 import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
-import { readNote, writeNote } from '../utils/notes'
-import { readObjectiveNote, writeObjectiveNote } from '../utils/objectiveNotes'
 import {
   INHERITANCE_VALUES,
   DEFAULT_INHERITANCE,
@@ -50,7 +48,7 @@ function resolveBackUrl(rawFrom) {
   return rawFrom
 }
 
-function ControlDetail() {
+function ControlDetailView() {
   const { id } = useParams()
   const [searchParams] = useSearchParams()
   const location = useLocation()
@@ -59,11 +57,9 @@ function ControlDetail() {
   const backUrl = resolveBackUrl(searchParams.get('from'))
 
   const [status, setStatus]           = useState(() => readStatus(id))
-  const [note, setNote]               = useState(() => readNote(id))
   const [inheritance, setInheritance] = useState(() => readInheritance(id))
   const [inheritanceSource, setInheritanceSource] = useState(() => readInheritanceSource(id))
   const [assignedTo, setAssignedTo] = useState(() => readAssignedTo(id))
-  const [objectiveNotes, setObjectiveNotes] = useState(() => loadObjectiveNotes(id, control))
   const [pool, setPool]               = useState(() => readPool(id))
   const [poolInput, setPoolInput]     = useState('')
   const [objectiveStatuses, setObjectiveStatuses]   = useState(() => loadObjectiveStatuses(id, control))
@@ -80,25 +76,9 @@ function ControlDetail() {
 
   const globalArtifactNames = useMemo(() => buildArtifactIndex(controls).map((e) => e.artifact), [])
 
-  useEffect(() => {
-    setStatus(readStatus(id))
-    setNote(readNote(id))
-    setInheritance(readInheritance(id))
-    setInheritanceSource(readInheritanceSource(id))
-    setAssignedTo(readAssignedTo(id))
-    setObjectiveNotes(loadObjectiveNotes(id, control))
-    setObjectiveStatuses(loadObjectiveStatuses(id, control))
-    setPool(readPool(id))
-    setPoolInput('')
-    setObjectiveArtifacts(loadObjectiveArtifacts(id, control))
-    setObjectiveResults(loadObjectiveResults(id, control))
-    setObjArtifactInputs({})
-    setFocusedObjId(null)
-    setPoolFocused(false)
-    setSuggestionPages({})
-    setExpandedSuggestions(new Set())
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+  // Per-control state is reset by remounting on `id` change (see the
+  // ControlDetail wrapper's key={id}); every useState initializer above reads
+  // fresh from storage, so no synchronizing effect is needed here.
 
   // Scroll to the objective anchor when navigating here via a hash link
   // (e.g. from Evidence Reuse Recommendation source links).
@@ -119,12 +99,6 @@ function ControlDetail() {
   )
 
   const handleStatusChange      = (e) => { const v = e.target.value; setStatus(v); writeStatus(id, v) }
-  const handleNoteChange        = (e) => {
-    const v = e.target.value
-    setNote(v)
-    writeNote(id, v)
-    syncAutoStatus(v, objectiveNotes, status, id, setStatus)
-  }
   const handleInheritanceChange = (e) => { const v = e.target.value; setInheritance(v); writeInheritance(id, v) }
   const handleInheritanceSourceChange = (e) => { const v = e.target.value; setInheritanceSource(v); writeInheritanceSource(id, v) }
   const handleAssignedToChange = (e) => { const v = e.target.value; setAssignedTo(v); writeAssignedTo(id, v) }
@@ -133,13 +107,6 @@ function ControlDetail() {
     setObjectiveStatuses((prev) => ({ ...prev, [objId]: value }))
     writeObjectiveStatus(id, objId, value)
     if (value !== OBJECTIVE_STATUS_UNREVIEWED) promoteToInProgress(status, id, setStatus)
-  }
-
-  const handleObjectiveNoteChange = (objId, value) => {
-    const nextObjNotes = { ...objectiveNotes, [objId]: value }
-    setObjectiveNotes(nextObjNotes)
-    writeObjectiveNote(id, objId, value)
-    syncAutoStatus(note, nextObjNotes, status, id, setStatus)
   }
 
   const handleObjectiveResultChange = (objId, field, value) => {
@@ -517,7 +484,6 @@ function ControlDetail() {
         <h2>Assessment Objectives</h2>
         {control.objectives.map((obj) => {
           const objStatusId = `obj-status-${control.id}-${obj.id}`
-          const objNoteId = `obj-note-${control.id}-${obj.id}`
           const objArtifactInputId = `obj-artifacts-${control.id}-${obj.id}`
           const suggestions = focusedObjId === obj.id ? getObjSuggestions(obj.id) : []
           const assignedArtifacts = objectiveArtifacts[obj.id] ?? []
@@ -840,30 +806,11 @@ function ControlDetail() {
   )
 }
 
-// Artifact-driven promotion only. Never reverts — reversion stays note-driven
-// via syncAutoStatus.
+// Artifact-driven promotion only. Never reverts.
 function promoteToInProgress(currentStatus, controlId, setStatus) {
   if (currentStatus !== 'Not Started') return
   writeStatus(controlId, 'In Progress')
   setStatus('In Progress')
-}
-
-function syncAutoStatus(assessmentNote, objNotes, currentStatus, controlId, setStatus) {
-  if (currentStatus !== 'Not Started' && currentStatus !== 'In Progress') return
-  const allEmpty =
-    assessmentNote.trim() === '' &&
-    Object.values(objNotes).every((v) => (v ?? '').trim() === '')
-  const targetStatus = allEmpty ? 'Not Started' : 'In Progress'
-  if (targetStatus === currentStatus) return
-  writeStatus(controlId, targetStatus)
-  setStatus(targetStatus)
-}
-
-function loadObjectiveNotes(controlId, control) {
-  if (!control) return {}
-  const map = {}
-  for (const obj of control.objectives) map[obj.id] = readObjectiveNote(controlId, obj.id)
-  return map
 }
 
 function loadObjectiveStatuses(controlId, control) {
@@ -885,6 +832,14 @@ function loadObjectiveResults(controlId, control) {
   const map = {}
   for (const obj of control.objectives) map[obj.id] = readObjectiveResult(controlId, obj.id)
   return map
+}
+
+// Keying the view by control id remounts it on navigation, so all per-control
+// state is re-initialized from storage by the useState initializers — no
+// synchronizing effect required.
+function ControlDetail() {
+  const { id } = useParams()
+  return <ControlDetailView key={id} />
 }
 
 export default ControlDetail
