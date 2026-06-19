@@ -18,7 +18,7 @@ Captures the state after the artifact evidence-tagging and tag-aware reuse work,
 9. **Relationship-based reuse ranking rewrite isolated** — commit `fcb9032` (`refactor: improve reuse opportunity ranking`): 4-factor relationship score (relationship confidence, objective evidence confidence, evidence class, relationship type); relationship-gated candidate discovery preserved; public suggestion output shape unchanged; no tag logic.
 10. **ControlDetail tag-aware reuse labels/ranking complete** — commit `ccbb504` (`feat: add tag-aware reuse labels`): new `src/utils/evidenceTagMatch.js`; `tagAlignment` metadata attached to suggestions; tier-first ordering ahead of the existing reuse score; neutral alignment labels + overlap chips and a section helper in Suggested Existing Artifacts.
 
-Latest commit hashes: `fcb9032` (scoring rewrite), `ccbb504` (tag-aware reuse), `d1ce8d3` (remove ArtifactTagEditor), `3917bd6` (ControlDetail lint), `ae40c97` (ArtifactMap lint).
+Latest commit hashes: `fcb9032` (scoring rewrite), `ccbb504` (tag-aware reuse), `d1ce8d3` (remove ArtifactTagEditor), `3917bd6` (ControlDetail lint), `ae40c97` (ArtifactMap lint), `94a974e` (hide Common Artifacts UI).
 
 ### Current behavior (important)
 
@@ -40,8 +40,26 @@ Latest commit hashes: `fcb9032` (scoring rewrite), `ccbb504` (tag-aware reuse), 
 - `ArtifactTagEditor.jsx` removed — commit `d1ce8d3`. No remaining references.
 - `ControlDetail.jsx` lint debt fixed — commit `3917bd6`. `set-state-in-effect` issues and unused variables resolved. Now lint-clean.
 - `ArtifactMap.jsx` lint debt fixed — commit `ae40c97`. Both `set-state-in-effect` issues replaced with guarded render-time state adjustments. Now lint-clean.
+- **Common Artifacts UI hidden** — commit `94a974e`. The Common Artifacts heading and static bullet list were removed from ControlDetail. `commonArtifacts` data in all control JSON files is preserved. `commonArtifacts` search indexing in `ControlLibrary.jsx` and `Home.jsx` is preserved. Common Evidence and Expected Evidence Types remain visible.
 
 New Phase 2 files (`evidenceTagMatch.js`) and the modified `evidenceRecommendations.js` were already lint-clean at checkpoint.
+
+### ControlDetail current UI state
+
+ControlDetail currently shows (per objective):
+
+- Common Evidence
+- Expected Evidence Types
+
+ControlDetail currently shows (per control):
+
+- Assigned Artifacts
+- Evidence Pool
+- Suggested Existing Artifacts (with tag-aware reuse labels)
+
+ControlDetail no longer shows:
+
+- Common Artifacts static bullet list (data preserved in source JSON; hidden from UI in `94a974e`)
 
 ### Next recommended steps (future phases)
 
