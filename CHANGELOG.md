@@ -1,4 +1,59 @@
 
+## Version 2.0 — Evidence Tag Registry & Artifact Reuse
+Date: June 19, 2026
+
+### Evidence Tags
+- Added controlled evidence tag taxonomy — 66 tags across 17 categories covering all 14 CMMC control families
+- All 320 assessment objectives now have expected evidence tag mappings (one objective intentionally waived: IA.L2-3.5.11[a])
+- Tags classify artifact evidence types; they do not make scoring, compliance, or pass/fail determinations
+
+### Artifact Tag Editing
+- Artifact evidence tags are now editable from the Artifact Map via a modal tag picker
+- Artifact evidence tags are also editable from ControlDetail artifact suggestion modals
+- Evidence tag picker modal supports search, category browsing, checkbox selection, and removable chip selections
+- Assigned-tags chip area shows at the top of the picker with individual chip X-removal
+
+### ControlDetail — Suggested Existing Artifacts
+- Each assessment objective now surfaces a collapsed list of existing artifacts from related controls
+- Suggestions are relationship-gated: only controls linked via `evidence_reuse` relationships contribute candidates
+- Suggestions are tag-aware: tag alignment is computed against the target objective's expected tags and used to rank and label candidates
+- Tags explain and rank suggestions — they do not filter or suppress candidates
+- Tag-only discovery (surfacing artifacts with no relationship backing) remains deferred
+
+### Artifact Map — Tag-Gated Reuse Opportunities
+- Tagged artifacts show a collapsed Potential Reuse Opportunities section sourced from existing relationship data
+- Untagged artifacts show a compact prompt inside the evidence tags card; Potential Reuse Opportunities section is hidden
+- Untagged artifact titles are visually highlighted in red
+- Reuse pagination: 5 candidates per page with range display ("Showing 1–5 of N") and Previous/Next controls
+- No tag-only candidate discovery added; relationship gating remains the source of truth
+
+### ControlDetail — Common Artifacts UI
+- Common Artifacts section is no longer shown in the ControlDetail UI
+- Underlying Common Artifacts data is preserved in full; search indexing and Evidence Lookup remain unaffected
+
+### Code Quality
+- ControlDetail and ArtifactMap lint debt resolved
+- Removed unused ArtifactTagEditor component
+
+### Validation
+- Controls: 110
+- Objectives: 320
+- Evidence Types: 130
+- Evidence Tags: 66 (17 categories)
+- Relationships: 189
+- Families: 14/14
+- Validator: Pass (4 pre-existing relationship warnings, unchanged)
+
+### Deployment Status
+- Status: Production
+- GitHub: https://github.com/Vinchyyyy/cmmc-companion
+- Cloudflare Pages: https://cmmc-companion.pages.dev
+
+### Notes
+No changes to scoring logic, assessment status behavior, control definitions, relationship definitions, or validator rules. Evidence tags are guidance-only classification aids. No compliance claims, satisfaction determinations, or pass/fail language added to tag or reuse UI.
+
+---
+
 ## Version 1.1.2 — Assessment Workflow & Disclosure Update
 Date: June 4, 2026
 
