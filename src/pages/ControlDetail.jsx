@@ -782,13 +782,6 @@ function ControlDetailView() {
       </section>
 
       <section>
-        <h2>Common Artifacts</h2>
-        <ul>
-          {control.commonArtifacts.map((item, i) => <li key={i}>{item}</li>)}
-        </ul>
-      </section>
-
-      <section>
         <h2>Common Gaps</h2>
         <ul>
           {control.commonGaps.map((item, i) => <li key={i}>{item}</li>)}
