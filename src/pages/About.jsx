@@ -1,150 +1,242 @@
-function About() {
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { APP_VERSION, APP_DEPLOYMENT } from '../utils/version.js'
+
+// ── FAQ data ──────────────────────────────────────────────────────────────────
+
+const FAQ_ITEMS = [
+  {
+    q: 'Is this an official CMMC assessment tool?',
+    a: 'No. CMMC Companion is an independent assessment support and reference tool. It does not replace a C3PAO assessment, CCP, CCA, or official Cyber AB process.',
+  },
+  {
+    q: 'Does this tool store data on a server?',
+    a: 'No. Assessment progress is stored locally in your browser using localStorage. There is no backend database for assessment project data. No assessment data is transmitted to the developer, GitHub, or Cloudflare.',
+  },
+  {
+    q: 'Can CUI be stored in this tool?',
+    a: 'No. Do not enter CUI, sensitive customer data, system diagrams, real evidence files, screenshots containing customer data, or other sensitive organizational documentation. The tool is designed for artifact names, notes, and reference use only.',
+  },
+  {
+    q: 'What happens if browser data is cleared?',
+    a: 'Local project data may be removed. Export a Project JSON backup before clearing browser data or moving work to another machine.',
+  },
+  {
+    q: 'How do I back up a project?',
+    a: 'Use the project export action on the Home page to save a Project JSON file. That file can later be imported into the same browser or another browser to restore the project state.',
+  },
+  {
+    q: 'Can multiple assessors share the same project?',
+    a: 'Yes, by exporting and sharing Project JSON backups through approved team channels. File handling and distribution remain the responsibility of the assessment team.',
+  },
+  {
+    q: 'Are imported files uploaded anywhere?',
+    a: 'No. Imported CSV and JSON files are processed locally in the browser and are never transmitted to a server.',
+  },
+  {
+    q: 'What is Evidence Library?',
+    a: 'Evidence Library is a reference catalog of common evidence examples, likely control mappings, and assessor review context. It is a read-only reference — no assessment data is entered there.',
+  },
+  {
+    q: 'What is Documented Artifacts?',
+    a: 'Documented Artifacts is the project workspace for managing artifact names, evidence tags, objective mappings, and reuse opportunities across the assessment.',
+  },
+  {
+    q: 'What is Relationship Explorer?',
+    a: 'Relationship Explorer shows how controls relate to each other — prerequisites, supports, and supported-by relationships — and which evidence types commonly support a selected control.',
+  },
+  {
+    q: 'Is internet access required?',
+    a: 'No. Once loaded, the application functions entirely within the browser. Assessment data remains local.',
+  },
+  {
+    q: 'Is assessment data encrypted?',
+    a: 'No. Assessment data is stored in browser localStorage. Users are responsible for protecting exported files and securing the workstation used to access the application.',
+  },
+]
+
+// ── Sub-components ─────────────────────────────────────────────────────────────
+
+function FaqItem({ item, open, onToggle }) {
   return (
-    <div className="page">
-      <h1>About CMMC Companion</h1>
-      <p>
-        CMMC Companion is an offline planning tool for organizations preparing for a CMMC Level 2
-        assessment. It provides a structured reference to all 110 Level 2 practices, assessment
-        objectives, evidence requirements, control relationships, and scoring impacts — in one
-        place, in your browser.
-      </p>
+    <div className={`about-faq-item${open ? ' about-faq-item--open' : ''}`}>
+      <button
+        type="button"
+        className="about-faq-question"
+        onClick={onToggle}
+        aria-expanded={open}
+      >
+        <span>{item.q}</span>
+        <span className="about-faq-caret" aria-hidden="true">{open ? '▾' : '▸'}</span>
+      </button>
+      {open && (
+        <div className="about-faq-answer">
+          <p>{item.a}</p>
+        </div>
+      )}
+    </div>
+  )
+}
 
-      {/* 1. Project Author */}
-      <section>
-        <h2>Project Author</h2>
-        <p>
-          <strong>Vincent Azada, CCA</strong><br />
-          Certified CMMC Assessor (CCA), Spider-Man (SM)<br />
-          Bachelor of Science in Cybersecurity &amp; Information Assurance
+// ── Main page ─────────────────────────────────────────────────────────────────
+
+function About() {
+  const [openFaq, setOpenFaq] = useState(null)
+
+  const toggleFaq = (i) => setOpenFaq((prev) => (prev === i ? null : i))
+
+  return (
+    <div className="about-page">
+
+      {/* ── Hero ── */}
+      <div className="about-hero">
+        <h1 className="about-title">About CMMC Companion</h1>
+        <p className="about-subtitle">
+          A local-first CMMC Level 2 assessment support workspace for control review, evidence planning,
+          relationship exploration, documented artifact tracking, and project backup.
         </p>
-        <p>
-          This project was created to provide a practical companion tool for navigating CMMC Level 2
-          controls, evidence mapping, scoring methodology, relationship analysis, and assessment
-          preparation workflows.
-        </p>
-        <p>
-          <a href="https://www.linkedin.com/in/vincent-azada/" target="_blank" rel="noopener noreferrer">
-            linkedin.com/in/vincent-azada
-          </a>
-        </p>
+      </div>
+
+      {/* ── Summary cards ── */}
+      <div className="about-summary-cards">
+        <div className="about-summary-card">
+          <div className="about-summary-card-title">Local-First Workspace</div>
+          <p className="about-summary-card-body">
+            Your assessment progress is stored in this browser. Export Project JSON files to back up
+            or move work between browsers or machines.
+          </p>
+        </div>
+        <div className="about-summary-card">
+          <div className="about-summary-card-title">Assessment Support, Not Certification</div>
+          <p className="about-summary-card-body">
+            Use this as a preparation and workflow tool. It does not replace assessor judgment or an
+            official CMMC assessment.
+          </p>
+        </div>
+        <div className="about-summary-card about-summary-card--caution">
+          <div className="about-summary-card-title">No CUI Storage</div>
+          <p className="about-summary-card-body">
+            Use artifact names and notes only. Do not enter CUI, sensitive customer data, system
+            diagrams, or real evidence file contents.
+          </p>
+        </div>
+      </div>
+
+      {/* ── Workspace Guide ── */}
+      <section className="about-section">
+        <h2 className="about-section-heading">Getting Started: Workspace Guide</h2>
+        <div className="about-feature-grid">
+          {[
+            {
+              name: 'Control Library',
+              to: '/controls',
+              desc: 'Review CMMC Level 2 controls, track status, assign ownership, document objective notes, and map artifacts to objectives.',
+            },
+            {
+              name: 'Evidence Library',
+              to: '/evidence',
+              desc: 'Browse common evidence examples, likely controls, and assessor review context. Read-only reference catalog.',
+            },
+            {
+              name: 'Relationship Explorer',
+              to: '/relationships',
+              desc: 'Explore how controls support, depend on, or connect to each other, and which evidence types are commonly reviewed alongside a control.',
+            },
+            {
+              name: 'Documented Artifacts',
+              to: '/artifact-map',
+              desc: 'Manage project artifact names, evidence tags, objective mappings, and reuse opportunities across the assessment.',
+            },
+            {
+              name: 'Project Backup / Export',
+              to: '/',
+              desc: 'Export Project JSON files from the Home page to preserve local work or move a project between browsers or machines.',
+            },
+          ].map(({ name, to, desc }) => (
+            <div key={name} className="about-feature-card">
+              <div className="about-feature-card-name">
+                <Link to={to} className="about-feature-link">{name}</Link>
+              </div>
+              <p className="about-feature-card-desc">{desc}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
-      {/* 2. Copyright & Ownership */}
-      <section>
-        <h2>Copyright &amp; Ownership</h2>
-        <p>Copyright &copy; 2026 Vincent Azada. All rights reserved.</p>
-        <p>
-          CMMC Companion is proprietary software and an independent personal project created and
-          maintained by Vincent Azada.
-        </p>
-        <p>
-          Unauthorized reproduction, redistribution, resale, commercial repackaging, or creation
-          of derivative works is prohibited without prior written permission from the author.
-        </p>
-
-        <h3>Independence &amp; Affiliation</h3>
-        <ul>
-          <li>CMMC Companion is an independently developed software project.</li>
-          <li>This project is not affiliated with, endorsed by, sponsored by, operated by, or maintained on behalf of any C3PAO.</li>
-          <li>This project is not affiliated with The Cyber AB, DIBCAC, the Department of Defense, NIST, or any government agency.</li>
-          <li>References to CMMC, NIST publications, assessment methodologies, controls, objectives, evidence requirements, and assessment workflows are provided solely for educational and workflow-support purposes.</li>
-          <li>Use of this software does not constitute an official assessment, certification, validation, consulting engagement, or compliance determination.</li>
-          <li>Users remain solely responsible for assessment decisions, evidence evaluation, documentation, and compliance determinations.</li>
-        </ul>
+      {/* ── Data & Privacy Model ── */}
+      <section className="about-section" id="data-handling">
+        <h2 className="about-section-heading">Data &amp; Privacy Model</h2>
+        <div className="about-privacy-grid">
+          {[
+            {
+              label: 'Local browser storage',
+              detail: 'Assessment progress — statuses, notes, artifacts, tags — is stored in your browser\'s localStorage only.',
+            },
+            {
+              label: 'No backend database',
+              detail: 'The app does not transmit assessment project data to a server. No user accounts, sessions, or server-side storage exist.',
+            },
+            {
+              label: 'Project JSON backup',
+              detail: 'Export a Project JSON file from the Home page before clearing browser data or moving work to another machine.',
+            },
+            {
+              label: 'No real evidence files',
+              detail: 'Document artifact names and references only. Do not upload or store actual evidence files, screenshots, or file contents.',
+            },
+            {
+              label: 'No CUI',
+              detail: 'Do not enter Controlled Unclassified Information, SSP content, network diagrams, system inventories, or sensitive organizational data.',
+            },
+            {
+              label: 'Local-only exports',
+              detail: 'CSV and JSON exports are generated and downloaded by your browser. No export data passes through any external server.',
+            },
+          ].map(({ label, detail }) => (
+            <div key={label} className="about-privacy-card">
+              <div className="about-privacy-card-label">{label}</div>
+              <p className="about-privacy-card-detail">{detail}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
-      {/* 3. Data Handling, Privacy & Limitations */}
-      <section id="data-handling">
-        <h2>Data Handling, Privacy &amp; Limitations</h2>
-
-        <h3>Intended Use</h3>
-        <p>CMMC Companion is intended to assist with:</p>
-        <ul>
-          <li>Assessment planning and preparation</li>
-          <li>Control review and objective analysis</li>
-          <li>Evidence mapping and artifact identification</li>
-          <li>Control relationship analysis</li>
-          <li>Assessment progress tracking</li>
-        </ul>
-        <p>
-          The application is designed as a workflow and reference aid — not as a repository for
-          assessment artifacts or sensitive organizational documentation.
-        </p>
-
-        <h3>Not Intended For</h3>
-        <p>
-          Users should not use CMMC Companion to store or document:
-        </p>
-        <ul>
-          <li>Controlled Unclassified Information (CUI)</li>
-          <li>System Security Plans (SSPs)</li>
-          <li>Assessment artifacts or evidence packages</li>
-          <li>Network diagrams or system architecture documentation</li>
-          <li>System inventories or asset lists</li>
-          <li>Configuration exports or technical baselines</li>
-          <li>Customer or organizational documentation</li>
-          <li>Screenshots or other materials containing sensitive information</li>
-        </ul>
-
-        <h3>Storage Architecture</h3>
-        <p>
-          All project state — assessment status, notes, inheritance assignments — is stored
-          exclusively in your browser's <code>localStorage</code>. Specifically:
-        </p>
-        <ul>
-          <li>No backend database exists</li>
-          <li>No user accounts or sessions exist</li>
-          <li>No server-side storage exists</li>
-          <li>No assessment data is transmitted to the developer, GitHub, or Cloudflare</li>
-          <li>No analytics or telemetry collect assessment content</li>
-          <li>Clearing browser data will erase your project state — use the JSON export on the Home page to back up your work</li>
-        </ul>
-
-        <h3>Export Responsibility</h3>
-        <p>
-          CSV and JSON exports are generated locally by your browser and downloaded directly to
-          your device. No export data passes through any external server. Users are responsible
-          for handling exported files in accordance with their organization's data handling
-          requirements. Exported files should be reviewed before sharing or transmitting.
-        </p>
-
-        <h3>Limitations</h3>
-        <ul>
-          <li>CMMC Companion is not an official Cyber AB or DoD assessment platform</li>
-          <li>It does not produce documentation that satisfies C3PAO or DoD assessment requirements</li>
-          <li>It does not replace the judgment of a Certified Third-Party Assessment Organization (C3PAO) or a Certified CMMC Professional (CCP/CCA)</li>
-          <li>It does not replace required assessment documentation or official reporting processes</li>
-          <li>All final compliance determinations must be made by a qualified assessor through the official CMMC assessment process</li>
-        </ul>
-
-        <h3>Important</h3>
-        <p>
-          CMMC Companion was intentionally designed to support assessment planning and workflow
-          management without requiring Controlled Unclassified Information (CUI) for normal
-          operation. Users should avoid storing CUI, assessment artifacts, SSPs, network diagrams,
-          inventories, screenshots, or other sensitive customer documentation within the
-          application.
-        </p>
+      {/* ── Assessment Boundaries & Disclaimers ── */}
+      <section className="about-section">
+        <h2 className="about-section-heading">Assessment Boundaries &amp; Disclaimers</h2>
+        <div className="about-boundary-card">
+          <ul className="about-boundary-list">
+            <li>CMMC Companion is an independently developed personal project.</li>
+            <li>It is not affiliated with, endorsed by, sponsored by, operated by, or maintained on behalf of any C3PAO, The Cyber AB, DIBCAC, NIST, the Department of Defense, or any government agency.</li>
+            <li>The tool is for assessment preparation, workflow organization, and reference support.</li>
+            <li>It does not make compliance determinations.</li>
+            <li>It does not replace C3PAO assessment activities, assessor judgment, official scoring methodology, or contractual requirements.</li>
+            <li>Users remain responsible for assessment decisions, evidence evaluation, documentation, and compliance determinations.</li>
+            <li>Unauthorized reproduction, redistribution, resale, or commercial repackaging is prohibited without prior written permission from the author.</li>
+          </ul>
+        </div>
       </section>
 
-      {/* 4. How to Use */}
-      <section>
-        <h2>How to Use</h2>
-        <ul>
-          <li><strong>Dashboard (Home)</strong> — Track overall and per-family assessment progress. Use Quick Search to find controls by keyword, status, or scoring term.</li>
-          <li><strong>Control Library</strong> — Browse all 110 practices. Filter by family, status, inheritance, score, or POA&amp;M eligibility. Mark controls as MET, NOT MET, or In Progress. Add notes and set inheritance from a shared service.</li>
-          <li><strong>Control Detail</strong> — View full assessment objectives, evidence requirements, and cross-control relationships for any practice.</li>
-          <li><strong>Evidence Lookup</strong> — Search 130 evidence types to identify artifacts needed for specific controls or families.</li>
-          <li><strong>Relationship Explorer</strong> — Visualize how controls support, depend on, or relate to each other across all 14 families.</li>
-          <li><strong>Export / Import</strong> — Use the Home page to export your assessment state as CSV or a full project JSON backup, and restore it later.</li>
-        </ul>
+      {/* ── FAQ ── */}
+      <section className="about-section">
+        <h2 className="about-section-heading">Support &amp; FAQ</h2>
+        <div className="about-faq-list">
+          {FAQ_ITEMS.map((item, i) => (
+            <FaqItem
+              key={i}
+              item={item}
+              open={openFaq === i}
+              onToggle={() => toggleFaq(i)}
+            />
+          ))}
+        </div>
       </section>
 
-      {/* 5. Dataset */}
-      <section>
-        <h2>Dataset</h2>
-        <p>All data is derived from official CMMC and NIST source documents.</p>
-        <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+      {/* ── Dataset ── */}
+      <section className="about-section">
+        <h2 className="about-section-heading">Dataset</h2>
+        <p className="about-meta-note">All data is derived from official CMMC and NIST source documents.</p>
+        <table className="about-dataset-table">
           <tbody>
             {[
               ['Controls (practices)', '110'],
@@ -152,26 +244,48 @@ function About() {
               ['Control relationships', '189'],
               ['Control families', '14 of 14'],
             ].map(([label, value]) => (
-              <tr key={label} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                <td style={{ padding: 'var(--space-2) var(--space-3)', color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>{label}</td>
-                <td style={{ padding: 'var(--space-2) var(--space-3)', fontWeight: 600, fontFamily: 'var(--font-mono)', fontSize: 'var(--text-sm)' }}>{value}</td>
+              <tr key={label}>
+                <td className="about-dataset-label">{label}</td>
+                <td className="about-dataset-value">{value}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        <p className="about-meta-note" style={{ marginTop: 'var(--space-2)' }}>
+          Source: CMMC Level 2 Assessment Guide · NIST SP 800-171 Rev. 2 · CMMC Scoring Methodology
+        </p>
       </section>
 
-      {/* 6. Source Methodology */}
-      <section>
-        <h2>Source Methodology</h2>
-        <p>Control data, scoring, and POA&amp;M eligibility are derived from:</p>
-        <ul>
-          <li>CMMC Level 2 Assessment Guide (DoD, current release)</li>
-          <li>NIST SP 800-171 Rev. 2 — Protecting Controlled Unclassified Information in Nonfederal Systems and Organizations</li>
-          <li>CMMC Scoring Methodology (DoD, current release) — defines 5-point basic, 3-point, and 1-point derived practice weights</li>
-          <li>POA&amp;M requirements as specified in the CMMC Program rule and associated DoD guidance</li>
-        </ul>
+      {/* ── Project / Author / Version ── */}
+      <section className="about-section about-meta">
+        <h2 className="about-section-heading">Project</h2>
+        <div className="about-meta-grid">
+          <div>
+            <div className="about-meta-label">Project Author</div>
+            <div className="about-meta-value">Vincent Azada, CCA</div>
+            <div className="about-meta-sub">Certified CMMC Assessor · BS Cybersecurity &amp; Information Assurance</div>
+            <a
+              href="https://www.linkedin.com/in/vincent-azada/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="about-meta-link"
+            >
+              linkedin.com/in/vincent-azada
+            </a>
+          </div>
+          <div>
+            <div className="about-meta-label">Version</div>
+            <div className="about-meta-value mono">{APP_VERSION}</div>
+            <div className="about-meta-sub">{APP_DEPLOYMENT}</div>
+          </div>
+          <div>
+            <div className="about-meta-label">Copyright &amp; Ownership</div>
+            <div className="about-meta-value">Copyright &copy; 2026 Vincent Azada</div>
+            <div className="about-meta-sub">Independent personal project. All rights reserved.</div>
+          </div>
+        </div>
       </section>
+
     </div>
   )
 }

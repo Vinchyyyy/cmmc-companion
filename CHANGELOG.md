@@ -1,4 +1,41 @@
 
+## Version 3.0.0 — UI Workspace Overhaul
+Date: June 23, 2026
+
+### Home / Assessment Dashboard
+- Redesigned Home page into a structured assessment dashboard with control family progress, status summary, and quick-jump navigation
+
+### Control Library
+- Refined filter modal with improved family and status UX
+- Cleaner filter chip display and reset behavior
+
+### Control Detail
+- Redesigned layout with stacked metadata and cleaner section hierarchy
+- Objective inheritance chips now surface inherited controls and relationships inline
+- Assessment objectives now display MET / NOT MET status pills alongside scoring controls
+
+### Evidence Library
+- Redesigned Evidence Lookup into a full Evidence Library workspace
+- Improved evidence browsing, filtering, and tag-based discovery
+
+### Relationship Explorer
+- Redesigned with a family/control tile launcher and improved relationship board
+- Cleaner entry point for navigating control dependencies and evidence reuse links
+
+### Documented Artifacts (formerly Artifact Map)
+- Redesigned Artifact Map into a Documented Artifacts workspace
+- Added filtering, sorting, expanded artifact rows, mapping pagination, status logic, and reuse visibility improvements
+
+### About Page
+- Merged About and FAQ into a single unified About page
+- Removed redundant FAQ navigation item and consolidated all reference content
+
+### Navigation
+- Cleaned navigation labels for clarity
+- Removed standalone FAQ nav entry
+
+---
+
 ## Version 2.0 — Evidence Tag Registry & Artifact Reuse
 Date: June 19, 2026
 

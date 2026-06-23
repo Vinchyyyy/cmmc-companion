@@ -1,34 +1,21 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { getObjectiveExpectedTagIds, classifyReuseOpportunity } from '../utils/evidenceTagMatch.js'
-import InfoPanel from '../components/InfoPanel.jsx'
 import { Link, useSearchParams } from 'react-router-dom'
 import controls from '../data/controls/index.js'
 import relationships from '../data/relationships/index.js'
+import { evidenceTags } from '../data/evidenceTags.js'
 import { buildArtifactIndex } from '../utils/artifactIndex.js'
 import { inferKillChainCategory } from '../utils/killChainLookup.js'
 import { readObjectiveArtifacts, writeObjectiveArtifacts } from '../utils/objectiveArtifacts.js'
-import { findByName, findOrCreate, updateArtifactTags } from '../utils/artifactRegistry.js'
+import { listArtifacts, findByName, findOrCreate, updateArtifactTags } from '../utils/artifactRegistry.js'
 import EvidenceTagPickerModal from '../components/EvidenceTagPickerModal.jsx'
 import ArtifactTagChipList from '../components/ArtifactTagChipList.jsx'
 
+const MAPPINGS_PAGE_SIZE = 5
 const SUGGESTION_PAGE_SIZE = 5
 
-function formatControlNumber(controlId) {
-  // AC.L1-3.1.1 → 3.1.1
-  const match = controlId.match(/[\d.]+$/)
-  return match ? match[0] : controlId
-}
-
-// Sort comparator for artifact entries
-function makeArtifactSorter(sort) {
-  return (a, b) => {
-    if (sort === 'most') return b.usages.length - a.usages.length
-    if (sort === 'least') return a.usages.length - b.usages.length
-    if (sort === 'az') return a.artifact.toLowerCase().localeCompare(b.artifact.toLowerCase())
-    if (sort === 'za') return b.artifact.toLowerCase().localeCompare(a.artifact.toLowerCase())
-    return 0
-  }
-}
+// Build a fast tag-id → label lookup once at module load
+const TAG_LABEL = Object.fromEntries(evidenceTags.map((t) => [t.id, t.label]))
 
 // Sort category names: alphabetical, Mixed and Uncategorized last
 function categoryRank(name) {
@@ -36,41 +23,26 @@ function categoryRank(name) {
   if (name === 'Uncategorized') return 2
   return 0
 }
-
 function sortCategoryNames(a, b) {
   const diff = categoryRank(a) - categoryRank(b)
   return diff !== 0 ? diff : a.localeCompare(b)
 }
 
 // -------------------------------------------------------------------------
-// Scoring helpers for reuse suggestions
+// Reuse suggestion helpers (unchanged logic)
 // -------------------------------------------------------------------------
-function relConfScore(confidence) {
-  if (confidence === 'high') return 100
-  if (confidence === 'medium') return 65
-  if (confidence === 'low') return 30
-  return 0
+function relConfScore(c) {
+  return c === 'high' ? 100 : c === 'medium' ? 65 : c === 'low' ? 30 : 0
 }
-
-function objEvidConfScore(evidenceConfidence) {
-  if (evidenceConfidence === 'high') return 100
-  if (evidenceConfidence === 'medium') return 60
-  if (evidenceConfidence === 'low') return 30
-  return 0
+function objEvidConfScore(c) {
+  return c === 'high' ? 100 : c === 'medium' ? 60 : c === 'low' ? 30 : 0
 }
-
-function evidClassScore(evidenceClass) {
-  if (evidenceClass === 'artifact') return 100
-  if (evidenceClass === 'mixed') return 60
-  return 0
+function evidClassScore(c) {
+  return c === 'artifact' ? 100 : c === 'mixed' ? 60 : 0
 }
-
-function relTypeScore(relationshipType) {
-  if (relationshipType === 'prerequisite') return 100
-  if (relationshipType === 'supports' || relationshipType === 'supported-by') return 80
-  return 50
+function relTypeScore(t) {
+  return t === 'prerequisite' ? 100 : t === 'supports' || t === 'supported-by' ? 80 : 50
 }
-
 function computeSuggestionScore(rel, obj) {
   return (
     relConfScore(rel.confidence) * 0.40 +
@@ -80,47 +52,64 @@ function computeSuggestionScore(rel, obj) {
   )
 }
 
-// -------------------------------------------------------------------------
-// Relationship-driven reuse suggestions
-//
-// Steps:
-//   1. Source controls = controls already using this artifact at objective level.
-//   2. Related controls = bidirectional relationship partners of source controls.
-//      Only evidence_reuse relationships are considered; interview_reuse,
-//      demonstration_reuse, reference, and missing assessmentCategory are excluded.
-//      The first-seen relationship entry per related control is kept as the reason.
-//   3. Candidate objectives = all objectives of related controls.
-//   4. Filter: skip objectives where artifact is already assigned (case-insensitive).
-//   5. Deduplicate by controlId+objectiveId; keep first reason.
-//   6. Score each suggestion and sort: score desc → relConf desc → objEvidConf desc
-//      → controlId asc → objectiveId asc.
-//   Returns all matching suggestions (no cap — caller handles pagination).
-// -------------------------------------------------------------------------
+// Tag-only fallback for unmapped artifacts: find objectives whose expectedTags
+// overlap with the artifact's tags at tier 1 (primary) or tier 2 (acceptable).
+function getTagOnlySuggestions(artifactName, artifactTagIds, allControls) {
+  if (artifactTagIds.length === 0) return []
+  const artifactLower = artifactName.toLowerCase()
+  const suggestions = []
+  const seen = new Set()
+  for (const control of allControls) {
+    for (const obj of (control.objectives ?? [])) {
+      const ec = obj.evidenceClass
+      if (ec !== 'artifact' && ec !== 'mixed') continue
+      const key = `${control.id}-${obj.id}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      const existing = readObjectiveArtifacts(control.id, obj.id)
+      if (existing.some((a) => a.toLowerCase() === artifactLower)) continue
+      const expectedTags = getObjectiveExpectedTagIds(obj)
+      const tagMatch = classifyReuseOpportunity({ artifactTagIds, expectedTags })
+      if (tagMatch.tier > 2) continue // only meaningful tag alignment
+      suggestions.push({
+        controlId: control.id,
+        controlTitle: control.title,
+        objectiveId: obj.id,
+        objectiveText: obj.text || '',
+        reason: 'Evidence tags suggest this artifact may be relevant to this objective.',
+        _score: tagMatch.tier === 1 ? 80 : 50,
+        _relConf: 0,
+        _objEvidConf: 0,
+        _tagTier: tagMatch.tier,
+      })
+    }
+  }
+  suggestions.sort((a, b) => {
+    if (a._tagTier !== b._tagTier) return a._tagTier - b._tagTier
+    const cmp = a.controlId.localeCompare(b.controlId)
+    return cmp !== 0 ? cmp : a.objectiveId.localeCompare(b.objectiveId)
+  })
+  return suggestions
+}
+
 function getReuseSuggestions(artifactName, usages, allControls, allRelationships, artifactTagIds = []) {
   const artifactLower = artifactName.toLowerCase()
-
-  // Source control IDs — only objective-level usages count (not Evidence Pool)
   const sourceControlIds = new Set(
     usages
       .filter((u) => u.location === 'Objective Artifact' && u.objectiveId)
       .map((u) => u.controlId)
   )
+  // Unmapped but tagged: use tag-only suggestions instead of relationship traversal
+  if (sourceControlIds.size === 0) {
+    return getTagOnlySuggestions(artifactName, artifactTagIds, allControls)
+  }
 
-  if (sourceControlIds.size === 0) return []
-
-  // Map related control ID → first relationship metadata (bidirectional traversal).
-  // Only operational relationships; reference and missing-category are excluded.
   const relatedMap = new Map()
   for (const rel of allRelationships) {
-    if (rel.assessmentCategory !== 'evidence_reuse') continue
-
+    if (rel.assessmentCategory && rel.assessmentCategory !== 'evidence_reuse') continue
     const srcIsSource = sourceControlIds.has(rel.sourceControl)
     const tgtIsSource = sourceControlIds.has(rel.targetControl)
-    const reason =
-      rel.assessorRationale ||
-      rel.reasoning ||
-      `Related via ${rel.relationshipType}`
-
+    const reason = rel.assessorRationale || rel.reasoning || `Related via ${rel.relationshipType}`
     if (srcIsSource && !sourceControlIds.has(rel.targetControl) && !relatedMap.has(rel.targetControl)) {
       relatedMap.set(rel.targetControl, { reason, confidence: rel.confidence, relationshipType: rel.relationshipType })
     }
@@ -128,31 +117,23 @@ function getReuseSuggestions(artifactName, usages, allControls, allRelationships
       relatedMap.set(rel.sourceControl, { reason, confidence: rel.confidence, relationshipType: rel.relationshipType })
     }
   }
-
   if (relatedMap.size === 0) return []
 
   const suggestions = []
   const seen = new Set()
-
   for (const control of allControls) {
     if (!relatedMap.has(control.id)) continue
     const rel = relatedMap.get(control.id)
-
     for (const obj of (control.objectives ?? [])) {
       const ec = obj.evidenceClass
       if (ec !== 'artifact' && ec !== 'mixed') continue
-
       const key = `${control.id}-${obj.id}`
       if (seen.has(key)) continue
       seen.add(key)
-
-      // Skip if artifact already assigned to this objective
       const existing = readObjectiveArtifacts(control.id, obj.id)
       if (existing.some((a) => a.toLowerCase() === artifactLower)) continue
-
       const expectedTags = getObjectiveExpectedTagIds(obj)
       const tagMatch = classifyReuseOpportunity({ artifactTagIds, expectedTags })
-
       suggestions.push({
         controlId: control.id,
         controlTitle: control.title,
@@ -166,475 +147,815 @@ function getReuseSuggestions(artifactName, usages, allControls, allRelationships
       })
     }
   }
-
   suggestions.sort((a, b) => {
     if (a._tagTier !== b._tagTier) return a._tagTier - b._tagTier
     if (b._score !== a._score) return b._score - a._score
     if (b._relConf !== a._relConf) return b._relConf - a._relConf
     if (b._objEvidConf !== a._objEvidConf) return b._objEvidConf - a._objEvidConf
     const cmp = a.controlId.localeCompare(b.controlId)
-    if (cmp !== 0) return cmp
-    return a.objectiveId.localeCompare(b.objectiveId)
+    return cmp !== 0 ? cmp : a.objectiveId.localeCompare(b.objectiveId)
   })
-
   return suggestions
 }
 
+// -------------------------------------------------------------------------
+// Status badge — Untagged / Tagged / Mapped only
+// -------------------------------------------------------------------------
+function getArtifactStatus(entry) {
+  const rec = findByName(entry.artifact)
+  const hasTags = (rec?.tags ?? []).length > 0
+  if (!hasTags) return { label: 'Untagged', cls: 'am-badge am-badge--untagged', key: 'untagged' }
+  if (entry.usages.length > 0) return { label: 'Mapped', cls: 'am-badge am-badge--mapped', key: 'mapped' }
+  return { label: 'Tagged', cls: 'am-badge am-badge--tagged', key: 'tagged' }
+}
+
+// -------------------------------------------------------------------------
+// Sort icon helper
+// -------------------------------------------------------------------------
+function SortIcon({ active, dir }) {
+  if (!active) return <span className="am-sort-icon am-sort-icon--idle" aria-hidden="true">↕</span>
+  return <span className="am-sort-icon am-sort-icon--active" aria-hidden="true">{dir === 'asc' ? '↑' : '↓'}</span>
+}
+
+// -------------------------------------------------------------------------
+// Expanded artifact row
+// -------------------------------------------------------------------------
+function ArtifactExpandedRow({ entry, onOpenTagPicker, onAcceptSuggestion, reuseSuggestionPages, setReuseSuggestionPages, refreshKey }) {
+  const [mappingPage, setMappingPage] = useState(0)
+
+  const rec = findByName(entry.artifact)
+  const tagIds = rec?.tags ?? []
+  const hasTags = tagIds.length > 0
+
+  const suggestions = useMemo(() => {
+    if (!hasTags) return []
+    return getReuseSuggestions(entry.artifact, entry.usages, controls, relationships, tagIds)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entry.artifact, hasTags, refreshKey])
+
+  // Mappings pagination
+  const mappingTotal = entry.usages.length
+  const mappingTotalPages = Math.ceil(mappingTotal / MAPPINGS_PAGE_SIZE)
+  const mappingSafePage = Math.min(mappingPage, Math.max(mappingTotalPages - 1, 0))
+  const mStart = mappingSafePage * MAPPINGS_PAGE_SIZE
+  const mEnd = Math.min(mStart + MAPPINGS_PAGE_SIZE, mappingTotal)
+  const visibleMappings = entry.usages.slice(mStart, mEnd)
+
+  // Suggestions pagination
+  const artName = entry.artifact
+  const sPage = reuseSuggestionPages[artName] ?? 0
+  const sTotalPages = Math.ceil(suggestions.length / SUGGESTION_PAGE_SIZE)
+  const sSafePage = Math.min(sPage, Math.max(sTotalPages - 1, 0))
+  const sStart = sSafePage * SUGGESTION_PAGE_SIZE
+  const sEnd = Math.min(sStart + SUGGESTION_PAGE_SIZE, suggestions.length)
+  const visibleSuggestions = suggestions.slice(sStart, sEnd)
+  const setSPage = (p) => setReuseSuggestionPages((prev) => ({ ...prev, [artName]: p }))
+
+  return (
+    <tr className="am-expanded-row">
+      <td colSpan={5} className="am-expanded-cell">
+        <div className="am-expanded-body">
+
+          {/* ── Column 1: Evidence Tags ── */}
+          <div className="am-exp-section">
+            <div className="am-exp-label">Evidence Tags</div>
+            {hasTags ? (
+              <div className="am-exp-tag-row">
+                <ArtifactTagChipList tagIds={tagIds} />
+              </div>
+            ) : (
+              <>
+                <p className="am-exp-empty">No evidence tags added yet.</p>
+                <p className="artifact-untagged-hint">Add evidence tags to unlock reuse opportunities.</p>
+              </>
+            )}
+            <div className="am-exp-actions">
+              <button
+                type="button"
+                className="am-exp-action-btn"
+                onClick={() => onOpenTagPicker(entry.artifact)}
+              >
+                {hasTags ? 'Edit tags' : 'Add tags'}
+              </button>
+            </div>
+          </div>
+
+          {/* ── Column 2: Current Mappings ── */}
+          <div className="am-exp-section">
+            <div className="am-exp-label">
+              Current Mappings
+              {mappingTotal > 0 && <span className="am-exp-count">{mappingTotal}</span>}
+            </div>
+            {mappingTotal === 0 ? (
+              <p className="am-exp-empty">Not mapped to any objectives.</p>
+            ) : (
+              <>
+                <ul className="am-exp-usages">
+                  {visibleMappings.map((u, i) => (
+                    <li key={mStart + i} className="am-exp-usage">
+                      <Link
+                        to={`/controls/${encodeURIComponent(u.controlId)}#objective-${u.objectiveId}`}
+                        className="am-exp-usage-link"
+                      >
+                        <span className="mono">{u.controlId}</span>
+                        {u.objectiveId && <span className="am-exp-obj"> [{u.objectiveId}]</span>}
+                        {u.objectiveText && <span className="muted"> — {u.objectiveText}</span>}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                {mappingTotalPages > 1 && (
+                  <div className="am-exp-pagination">
+                    <button
+                      type="button"
+                      className="am-exp-page-btn"
+                      disabled={mappingSafePage === 0}
+                      onClick={() => setMappingPage(mappingSafePage - 1)}
+                    >
+                      ‹ Prev
+                    </button>
+                    <span className="am-exp-page-info">
+                      {mStart + 1}–{mEnd} of {mappingTotal}
+                    </span>
+                    <button
+                      type="button"
+                      className="am-exp-page-btn"
+                      disabled={mappingSafePage >= mappingTotalPages - 1}
+                      onClick={() => setMappingPage(mappingSafePage + 1)}
+                    >
+                      Next ›
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* ── Column 3: Suggested Reuse ── */}
+          <div className="am-exp-section am-exp-section--last">
+            <div className="am-exp-label">
+              Suggested Reuse
+              {suggestions.length > 0 && <span className="am-exp-count">{suggestions.length}</span>}
+            </div>
+            {!hasTags ? (
+              <p className="am-exp-empty">Add evidence tags to see reuse opportunities.</p>
+            ) : suggestions.length === 0 ? (
+              <p className="am-exp-empty">No reuse opportunities found yet.</p>
+            ) : (
+              <>
+                <ul className="reuse-suggestions-list">
+                  {visibleSuggestions.map((s) => (
+                    <li key={`${s.controlId}-${s.objectiveId}`} className="reuse-suggestion-item">
+                      <button
+                        type="button"
+                        className="reuse-suggestion-add"
+                        title={`Add "${entry.artifact}" to ${s.controlId} [${s.objectiveId}]`}
+                        onClick={() => onAcceptSuggestion(entry.artifact, s.controlId, s.objectiveId, suggestions.length)}
+                      >
+                        +
+                      </button>
+                      <div className="reuse-suggestion-detail">
+                        <Link
+                          to={`/controls/${encodeURIComponent(s.controlId)}#objective-${s.objectiveId}`}
+                          className="reuse-suggestion-link"
+                        >
+                          <span className="mono">{s.controlId}</span>
+                          {' '}[{s.objectiveId}]
+                          {s.objectiveText && <span className="muted"> — {s.objectiveText}</span>}
+                        </Link>
+                        <span className="reuse-suggestion-reason">
+                          <span className="reuse-suggestion-reason-label">Rationale:</span> {s.reason}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                {sTotalPages > 1 && (
+                  <div className="am-exp-pagination">
+                    <button
+                      type="button"
+                      className="am-exp-page-btn"
+                      disabled={sSafePage === 0}
+                      onClick={() => setSPage(sSafePage - 1)}
+                    >
+                      ‹ Prev
+                    </button>
+                    <span className="am-exp-page-info">
+                      {sStart + 1}–{sEnd} of {suggestions.length}
+                    </span>
+                    <button
+                      type="button"
+                      className="am-exp-page-btn"
+                      disabled={sSafePage >= sTotalPages - 1}
+                      onClick={() => setSPage(sSafePage + 1)}
+                    >
+                      Next ›
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+        </div>
+      </td>
+    </tr>
+  )
+}
+
+// -------------------------------------------------------------------------
+// Filter modal
+// -------------------------------------------------------------------------
+const STATUS_FILTER_OPTIONS = [
+  { key: 'mapped',    label: 'Mapped' },
+  { key: 'tagged',    label: 'Tagged' },
+  { key: 'untagged',  label: 'Untagged' },
+]
+
+function ArtifactFilterModal({ onClose, statusFilters, onToggleStatus, tagFilter, onToggleTag, availableTagIds, onClearAll }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
+
+  return (
+    <div
+      className="am-filter-modal-overlay"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div className="am-filter-modal" role="dialog" aria-modal="true" aria-label="Filters">
+        <div className="am-filter-modal-header">
+          <span className="am-filter-modal-title">Filters</span>
+          <button className="am-filter-modal-close" onClick={onClose} aria-label="Close filters">✕</button>
+        </div>
+
+        <div className="am-filter-modal-body">
+          <section className="am-filter-modal-section">
+            <div className="am-filter-modal-section-title">Status</div>
+            <div className="am-filter-modal-pills">
+              {STATUS_FILTER_OPTIONS.map(({ key, label }) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`am-filter-pill${statusFilters.has(key) ? ' am-filter-pill--active' : ''}`}
+                  onClick={() => onToggleStatus(key)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {availableTagIds.length > 0 && (
+            <section className="am-filter-modal-section am-filter-modal-section--tags">
+              <div className="am-filter-modal-section-title">Evidence Tags</div>
+              <div className="am-filter-modal-pills">
+                {availableTagIds.map((tagId) => (
+                  <button
+                    key={tagId}
+                    type="button"
+                    className={`am-filter-pill${tagFilter.has(tagId) ? ' am-filter-pill--active' : ''}`}
+                    onClick={() => onToggleTag(tagId)}
+                  >
+                    {TAG_LABEL[tagId] ?? tagId}
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+
+        <div className="am-filter-modal-footer">
+          <button type="button" className="am-filter-modal-clear" onClick={onClearAll}>
+            Clear all filters
+          </button>
+          <button type="button" className="am-filter-modal-done" onClick={onClose}>
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// -------------------------------------------------------------------------
+// Main component
+// -------------------------------------------------------------------------
 function ArtifactMap() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState(() => searchParams.get('search') ?? '')
-  const [reusedOnly, setReusedOnly] = useState(false)
-  const [sort, setSort] = useState('most')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [statusFilters, setStatusFilters] = useState(() => new Set())  // Set<'mapped'|'tagged'|'untagged'>
+  const [tagFilter, setTagFilter] = useState(() => new Set())          // Set<tagId>
+  const [filterModalOpen, setFilterModalOpen] = useState(false)
 
-  // Category-level: expanded set. Empty = all categories collapsed (default).
-  const [expandedCategories, setExpandedCategories] = useState(() => new Set())
-  // Artifact-level: expanded set. Empty = all artifacts collapsed (default).
-  const [expandedSet, setExpandedSet] = useState(() => new Set())
-  // Tracks the artifact last auto-expanded when results narrowed to one, so the
-  // auto-expand fires once per transition without re-expanding a manual collapse.
-  const [autoExpandedFor, setAutoExpandedFor] = useState(null)
-  // Suggestion section: expanded set per artifact name.
-  const [expandedSuggestions, setExpandedSuggestions] = useState(() => new Set())
-  // Current suggestion page (0-based) keyed by artifact name.
-  const [reuseSuggestionPages, setReuseSuggestionPages] = useState({})
+  // Unified sort state — single object avoids nested-setState race
+  const [sortConfig, setSortConfig] = useState({ key: 'mappings', dir: 'desc' })
+  const { key: sortKey, dir: sortDir } = sortConfig
 
-  // Incremented after accepting a suggestion or saving tags to force re-render.
+  const [expandedArtifact, setExpandedArtifact] = useState(null)
   const [refreshKey, setRefreshKey] = useState(0)
-
-  // Artifact record currently open in the tag picker modal (null = closed).
   const [pickerArtifact, setPickerArtifact] = useState(null)
-  // Incremented each time the picker opens so EvidenceTagPickerModal remounts
-  // with fresh state (even when the same artifact is reopened after a cancel).
   const [modalKey, setModalKey] = useState(0)
+  const [reuseSuggestionPages, setReuseSuggestionPages] = useState({})
 
   const handleSearchChange = (value) => {
     setSearch(value)
     setSearchParams(value ? { search: value } : {}, { replace: true })
   }
 
-  // Build artifact index; refreshKey as dep so accepting a suggestion
-  // causes a fresh read from localStorage on the next render.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const index = useMemo(() => buildArtifactIndex(controls), [refreshKey])
-
-  const indexWithCategory = useMemo(
-    () =>
-      index.map((entry) => ({
-        ...entry,
-        category: inferKillChainCategory(entry.usages.map((u) => u.controlId)),
-      })),
-    [index]
-  )
-
-  const term = search.trim().toLowerCase()
-
-  // Step 1 + 2: search and reused-only filters
-  const filtered = indexWithCategory.filter((entry) => {
-    if (reusedOnly && entry.usages.length < 2) return false
-    if (!term) return true
-    if (entry.artifact.toLowerCase().includes(term)) return true
-    return entry.usages.some(
-      (u) =>
-        u.controlId.toLowerCase().includes(term) ||
-        u.controlTitle.toLowerCase().includes(term) ||
-        u.objectiveText.toLowerCase().includes(term)
-    )
-  })
-
-  // Derive available category options from post-search/reused results
-  const availableCategories = [...new Set(filtered.map((e) => e.category))]
-    .sort(sortCategoryNames)
-
-  // Reset category filter if it is no longer present after a search change.
-  // Adjusted during render (React's recommended pattern for correcting state from
-  // a derived value) rather than in an effect: the guard becomes false once the
-  // filter is 'all', so the immediate re-render self-terminates with no extra
-  // commit and no frame showing the now-invalid filter.
-  if (categoryFilter !== 'all' && !availableCategories.includes(categoryFilter)) {
-    setCategoryFilter('all')
+  const toggleRow = (artifactName) => {
+    setExpandedArtifact((prev) => (prev === artifactName ? null : artifactName))
   }
 
-  // Step 3: category filter
-  const categoryFiltered =
-    categoryFilter === 'all'
-      ? filtered
-      : filtered.filter((entry) => entry.category === categoryFilter)
-
-  // Step 4: strip Evidence Pool usages for display only.
-  // Artifacts whose only usages are pool entries are dropped entirely.
-  // The full index (including pool usages) is preserved for global suggestions
-  // and future reuse recommendation logic.
-  const displayFiltered = categoryFiltered
-    .map((entry) => ({
-      ...entry,
-      usages: entry.usages.filter((u) => u.location !== 'Evidence Pool'),
-    }))
-    .filter((entry) => entry.usages.length > 0)
-
-  // Stats — all derived from displayFiltered (objective usages only)
-  const totalArtifacts = displayFiltered.length
-  const reusedArtifacts = displayFiltered.filter((e) => e.usages.length > 1).length
-  const singleUseArtifacts = displayFiltered.filter((e) => e.usages.length === 1).length
-  const totalUsages = displayFiltered.reduce((sum, e) => sum + e.usages.length, 0)
-
-  // Build groups: group by category, sort artifacts within, sort groups
-  const cmp = makeArtifactSorter(sort)
-  const groupMap = new Map()
-  for (const entry of displayFiltered) {
-    if (!groupMap.has(entry.category)) groupMap.set(entry.category, [])
-    groupMap.get(entry.category).push(entry)
-  }
-  const groups = [...groupMap.entries()]
-    .sort(([a], [b]) => sortCategoryNames(a, b))
-    .map(([category, artifacts]) => ({
-      category,
-      artifacts: [...artifacts].sort(cmp),
-      totalUsages: artifacts.reduce((s, e) => s + e.usages.length, 0),
-    }))
-
-  // Auto-expand when search/filter narrows to exactly one artifact.
-  // Applied during render via a "previous value" guard (React's recommended
-  // pattern for reacting to a derived-value change) instead of an effect. It
-  // fires once each time the single result changes — including re-entering the
-  // same artifact after the result set widened and narrowed again — and leaves
-  // the card collapsible afterward, matching the prior effect's behavior.
-  const singleResult = displayFiltered.length === 1 ? displayFiltered[0].artifact : null
-  if (singleResult && singleResult !== autoExpandedFor) {
-    setAutoExpandedFor(singleResult)
-    setExpandedSet((prev) => (prev.has(singleResult) ? prev : new Set(prev).add(singleResult)))
-  } else if (!singleResult && autoExpandedFor !== null) {
-    setAutoExpandedFor(null)
+  const openTagPicker = (artifactName) => {
+    setPickerArtifact(findOrCreate(artifactName))
+    setModalKey((k) => k + 1)
   }
 
-  // Category accordion
-  const toggleCategory = (cat) => {
-    setExpandedCategories((prev) => {
-      const next = new Set(prev)
-      if (next.has(cat)) next.delete(cat)
-      else next.add(cat)
-      return next
-    })
-  }
-
-  // Artifact accordion
-  const toggleArtifact = (artifact) => {
-    setExpandedSet((prev) => {
-      const next = new Set(prev)
-      if (next.has(artifact)) next.delete(artifact)
-      else next.add(artifact)
-      return next
-    })
-  }
-
-  // Suggestion section accordion per artifact
-  const toggleSuggestions = (artifact) => {
-    setExpandedSuggestions((prev) => {
-      const next = new Set(prev)
-      if (next.has(artifact)) next.delete(artifact)
-      else next.add(artifact)
-      return next
-    })
-  }
-
-  // Accept a reuse suggestion: add artifact to the objective, then refresh.
-  // Page is clamped after the suggestion count drops by one.
-  const acceptSuggestion = (artifactName, controlId, objectiveId, currentSuggestionCount) => {
+  const acceptSuggestion = (artifactName, controlId, objectiveId, totalCount) => {
     const existing = readObjectiveArtifacts(controlId, objectiveId)
     writeObjectiveArtifacts(controlId, objectiveId, [...existing, artifactName])
-    // Clamp page: after removal the list shrinks by one, so recompute safe page.
     setReuseSuggestionPages((prev) => {
       const currentPage = prev[artifactName] ?? 0
-      const newTotal = currentSuggestionCount - 1
-      const newTotalPages = Math.ceil(newTotal / SUGGESTION_PAGE_SIZE)
+      const newTotalPages = Math.ceil((totalCount - 1) / SUGGESTION_PAGE_SIZE)
       const safePage = Math.min(currentPage, Math.max(newTotalPages - 1, 0))
       return { ...prev, [artifactName]: safePage }
     })
     setRefreshKey((k) => k + 1)
   }
 
-  // Expand All: open all categories + all visible artifact cards
-  const expandAll = () => {
-    setExpandedCategories(new Set(groups.map((g) => g.category)))
-    setExpandedSet(new Set(displayFiltered.map((e) => e.artifact)))
+  // Column sort toggle — single setState keeps key+dir in sync
+  const handleSort = (key) => {
+    setSortConfig((prev) => {
+      if (prev.key === key) {
+        return { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+      }
+      return { key, dir: key === 'name' ? 'asc' : 'desc' }
+    })
   }
 
-  // Collapse All: close all categories + all artifact cards
-  const collapseAll = () => {
-    setExpandedCategories(new Set())
-    setExpandedSet(new Set())
+  // Status filter helpers (multi-select)
+  const toggleStatusFilter = (key) => {
+    setStatusFilters((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  // Tag filter helpers
+  const toggleTagFilter = (tagId) => {
+    setTagFilter((prev) => {
+      const next = new Set(prev)
+      if (next.has(tagId)) next.delete(tagId)
+      else next.add(tagId)
+      return next
+    })
+  }
+
+  // -----------------------------------------------------------------------
+  // Data pipeline
+  // Registry is the source of truth for which artifacts exist.
+  // buildArtifactIndex provides mapping (pool + objective) enrichment.
+  // -----------------------------------------------------------------------
+
+  // All artifacts ever registered — survives removal from objectives/pool
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const registryList = useMemo(() => listArtifacts(), [refreshKey])
+
+  // Mapping data from controls (pool + objective assignments)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const index = useMemo(() => buildArtifactIndex(controls), [refreshKey])
+
+  // Fast lookup: normalized name → index entry (for mapping enrichment)
+  const indexByName = useMemo(() => {
+    const m = new Map()
+    for (const e of index) m.set(e.artifact.toLowerCase(), e)
+    return m
+  }, [index])
+
+  // Full artifact list: every registry artifact enriched with mapping data
+  const allArtifacts = useMemo(
+    () => registryList.map((rec) => {
+      const entry = indexByName.get(rec.name.toLowerCase())
+      return {
+        artifact: entry?.artifact ?? rec.name,
+        usages: entry?.usages ?? [],
+      }
+    }),
+    [registryList, indexByName]
+  )
+
+  const allWithCategory = useMemo(
+    () => allArtifacts.map((entry) => ({
+      ...entry,
+      category: inferKillChainCategory(entry.usages.map((u) => u.controlId)),
+    })),
+    [allArtifacts]
+  )
+
+  const term = search.trim().toLowerCase()
+
+  const searched = useMemo(
+    () => allWithCategory.filter((entry) => {
+      if (!term) return true
+      if (entry.artifact.toLowerCase().includes(term)) return true
+      return entry.usages.some(
+        (u) =>
+          u.controlId.toLowerCase().includes(term) ||
+          u.controlTitle.toLowerCase().includes(term) ||
+          u.objectiveText.toLowerCase().includes(term)
+      )
+    }),
+    [allWithCategory, term]
+  )
+
+  const availableCategories = useMemo(
+    () => [...new Set(searched.map((e) => e.category))].sort(sortCategoryNames),
+    [searched]
+  )
+
+  // Reset category filter if it disappears from available options
+  if (categoryFilter !== 'all' && !availableCategories.includes(categoryFilter)) {
+    setCategoryFilter('all')
+  }
+
+  const categoryFiltered = useMemo(
+    () => categoryFilter === 'all' ? searched : searched.filter((e) => e.category === categoryFilter),
+    [searched, categoryFilter]
+  )
+
+  // Strip Evidence Pool usages; all registry artifacts remain visible regardless of mapping count
+  const displayFiltered = useMemo(
+    () => categoryFiltered.map((entry) => ({
+      ...entry,
+      usages: entry.usages.filter((u) => u.location !== 'Evidence Pool'),
+    })),
+    [categoryFiltered]
+  )
+
+  // Status filter — OR within selected set; empty set = show all
+  const statusFiltered = useMemo(
+    () => {
+      if (statusFilters.size === 0) return displayFiltered
+      return displayFiltered.filter((entry) => {
+        const s = getArtifactStatus(entry)
+        return statusFilters.has(s.key)
+      })
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [displayFiltered, statusFilters, refreshKey]
+  )
+
+  // Tag filter — OR within selected tags
+  const tagFiltered = useMemo(
+    () => {
+      if (tagFilter.size === 0) return statusFiltered
+      return statusFiltered.filter((entry) => {
+        const rec = findByName(entry.artifact)
+        const artTags = rec?.tags ?? []
+        return artTags.some((t) => tagFilter.has(t))
+      })
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [statusFiltered, tagFilter, refreshKey]
+  )
+
+  // Collect unique tag IDs present across all displayFiltered artifacts for the filter dropdown
+  const availableTagIds = useMemo(() => {
+    const ids = new Set()
+    for (const entry of displayFiltered) {
+      const rec = findByName(entry.artifact)
+      for (const t of rec?.tags ?? []) ids.add(t)
+    }
+    return [...ids].sort((a, b) => (TAG_LABEL[a] ?? a).localeCompare(TAG_LABEL[b] ?? b))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [displayFiltered, refreshKey])
+
+  // Pre-compute reuse counts for sortable Reuse column
+  const reuseCountMap = useMemo(() => {
+    const map = new Map()
+    for (const entry of tagFiltered) {
+      const rec = findByName(entry.artifact)
+      const artTagIds = rec?.tags ?? []
+      if (artTagIds.length === 0) {
+        map.set(entry.artifact, 0)
+      } else {
+        const suggestions = getReuseSuggestions(entry.artifact, entry.usages, controls, relationships, artTagIds)
+        map.set(entry.artifact, suggestions.length)
+      }
+    }
+    return map
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tagFiltered, refreshKey])
+
+  // Sort
+  const finalList = useMemo(() => {
+    const multiplier = sortDir === 'asc' ? 1 : -1
+    return [...tagFiltered].sort((a, b) => {
+      if (sortKey === 'name') {
+        return multiplier * a.artifact.toLowerCase().localeCompare(b.artifact.toLowerCase())
+      }
+      if (sortKey === 'mappings') {
+        return multiplier * (a.usages.length - b.usages.length)
+      }
+      if (sortKey === 'reuse') {
+        const ra = reuseCountMap.get(a.artifact) ?? 0
+        const rb = reuseCountMap.get(b.artifact) ?? 0
+        return multiplier * (ra - rb)
+      }
+      return 0
+    })
+  }, [tagFiltered, sortKey, sortDir, reuseCountMap])
+
+  // Stats — mutually exclusive: Mapped > Tagged > Untagged
+  const totalArtifacts = displayFiltered.length
+  const mappedCount = useMemo(
+    () => displayFiltered.filter((e) => {
+      const rec = findByName(e.artifact)
+      return (rec?.tags ?? []).length > 0 && e.usages.length > 0
+    }).length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [displayFiltered, refreshKey]
+  )
+  const taggedCount = useMemo(
+    () => displayFiltered.filter((e) => {
+      const rec = findByName(e.artifact)
+      return (rec?.tags ?? []).length > 0 && e.usages.length === 0
+    }).length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [displayFiltered, refreshKey]
+  )
+  const untaggedCount = useMemo(
+    () => displayFiltered.filter((e) => (findByName(e.artifact)?.tags ?? []).length === 0).length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [displayFiltered, refreshKey]
+  )
+
+  const hasModalFilters = statusFilters.size > 0 || tagFilter.size > 0
+  const hasActiveFilters = categoryFilter !== 'all' || hasModalFilters || term
+  const modalFilterCount = statusFilters.size + tagFilter.size
+
+  const clearModalFilters = () => {
+    setStatusFilters(new Set())
+    setTagFilter(new Set())
+  }
+
+  const clearAllFilters = () => {
+    handleSearchChange('')
+    setCategoryFilter('all')
+    clearModalFilters()
   }
 
   return (
-    <div className="page">
-      <h1>Artifact Map</h1>
-      <InfoPanel
-        description="The Artifact Map provides a centralized view of evidence usage across the assessment. Use it to identify reused artifacts, discover evidence overlap, and understand how documentation supports multiple controls and objectives."
-        bullets={[
-          'Identify evidence reuse opportunities',
-          'Find heavily used artifacts',
-          'Discover supporting objectives',
-          'Review assessment coverage',
-          'Navigate directly to evidence locations',
-        ]}
-      />
-
-      <div className="artifact-stats-grid">
-        <div className="status-card">
-          <span className="status-card-label">Total Artifacts</span>
-          <span className="status-card-count">{totalArtifacts}</span>
+    <div className="am-page">
+      {/* Header */}
+      <div className="am-header">
+        <div className="am-header-title">
+          <h1 className="am-title">Documented Artifacts</h1>
+          <p className="am-subtitle">Manage documented project artifacts, evidence tags, mappings, and reuse opportunities.</p>
         </div>
-        <div className="status-card">
-          <span className="status-card-label">Reused Artifacts</span>
-          <span className="status-card-count">{reusedArtifacts}</span>
-        </div>
-        <div className="status-card">
-          <span className="status-card-label">Single-Use Artifacts</span>
-          <span className="status-card-count">{singleUseArtifacts}</span>
-        </div>
-        <div className="status-card">
-          <span className="status-card-label">Total Usages</span>
-          <span className="status-card-count">{totalUsages}</span>
+        <div className="am-stat-row">
+          <div className="am-stat">
+            <span className="am-stat-value">{totalArtifacts}</span>
+            <span className="am-stat-label">Total</span>
+          </div>
+          <div className="am-stat">
+            <span className="am-stat-value am-stat-value--mapped">{mappedCount}</span>
+            <span className="am-stat-label">Mapped</span>
+          </div>
+          <div className="am-stat">
+            <span className="am-stat-value am-stat-value--tagged">{taggedCount}</span>
+            <span className="am-stat-label">Tagged</span>
+          </div>
+          <div className="am-stat">
+            <span className="am-stat-value am-stat-value--untagged">{untaggedCount}</span>
+            <span className="am-stat-label">Untagged</span>
+          </div>
         </div>
       </div>
 
-      <div className="filter-row">
-        <input
-          type="text"
-          placeholder="Search artifacts..."
-          value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
-        />
-        <select value={sort} onChange={(e) => setSort(e.target.value)}>
-          <option value="most">Most connections</option>
-          <option value="least">Least connections</option>
-          <option value="az">Artifact name A–Z</option>
-          <option value="za">Artifact name Z–A</option>
-        </select>
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-        >
-          <option value="all">All categories</option>
-          {availableCategories.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
-        <label className="control-utility-toggle">
-          <input
-            type="checkbox"
-            checked={reusedOnly}
-            onChange={(e) => setReusedOnly(e.target.checked)}
-          />
-          Show only reused artifacts
-        </label>
-        <button type="button" onClick={expandAll}>Expand All</button>
-        <button type="button" onClick={collapseAll}>Collapse All</button>
-      </div>
+      {/* 2-column workspace */}
+      <div className="am-workspace">
 
-      <p className="result-count">
-        Showing {displayFiltered.length} of {index.length} artifact{index.length !== 1 ? 's' : ''}
-      </p>
-
-      {index.length === 0 ? (
-        <p className="muted">No artifacts documented yet.</p>
-      ) : displayFiltered.length === 0 ? (
-        <p className="muted">No artifacts match your filters.</p>
-      ) : (
-        groups.map((group) => {
-          const isCategoryOpen = expandedCategories.has(group.category)
-          return (
-            <div key={group.category} className="artifact-category-group">
+        {/* ── Left filter rail ── */}
+        <aside className="am-filter-rail">
+          <div className="am-rail-section">
+            <div className="am-rail-heading">Category</div>
+            <button
+              type="button"
+              className={`am-rail-item${categoryFilter === 'all' ? ' am-rail-item--active' : ''}`}
+              onClick={() => setCategoryFilter('all')}
+            >
+              All
+            </button>
+            {availableCategories.map((cat) => (
               <button
+                key={cat}
                 type="button"
-                className="artifact-category-header"
-                onClick={() => toggleCategory(group.category)}
-                aria-expanded={isCategoryOpen}
+                className={`am-rail-item${categoryFilter === cat ? ' am-rail-item--active' : ''}`}
+                onClick={() => setCategoryFilter(cat)}
               >
-                <span className="artifact-category-chevron" aria-hidden="true">
-                  {isCategoryOpen ? '▼' : '▶'}
-                </span>
-                <span className="artifact-category-name">{group.category}</span>
-                <span className="artifact-category-meta">
-                  ({group.artifacts.length} artifact{group.artifacts.length !== 1 ? 's' : ''}, {group.totalUsages} usage{group.totalUsages !== 1 ? 's' : ''})
-                </span>
+                {cat}
               </button>
+            ))}
+          </div>
 
-              {isCategoryOpen && (
-                <div className="artifact-category-body">
-                  <ul style={{ listStyle: 'none', padding: 0 }}>
-                    {group.artifacts.map((entry) => {
-                      const isExpanded = expandedSet.has(entry.artifact)
-                      const artifactRecord = findByName(entry.artifact)
-                      const artifactTagIds = artifactRecord?.tags ?? []
-                      const hasTags = artifactTagIds.length > 0
-                      const suggestions = isExpanded && hasTags
-                        ? getReuseSuggestions(entry.artifact, entry.usages, controls, relationships, artifactTagIds)
-                        : []
-                      const suggestionsOpen = expandedSuggestions.has(entry.artifact)
+        </aside>
 
-                      return (
-                        <li key={entry.artifact} className="card artifact-card">
-                          <button
-                            type="button"
-                            className={`artifact-card-header${isExpanded ? ' artifact-card-header--open' : ''}`}
-                            onClick={() => toggleArtifact(entry.artifact)}
-                            aria-expanded={isExpanded}
-                          >
-                            <span className="artifact-card-chevron" aria-hidden="true">
-                              {isExpanded ? '▼' : '▶'}
-                            </span>
-                            <span className={`artifact-card-name${hasTags ? '' : ' artifact-card-name--untagged'}`}>{entry.artifact}</span>
-                            <span className="artifact-card-count">
-                              ({entry.usages.length})
-                            </span>
-                          </button>
+        {/* ── Main table ── */}
+        <div className="am-main">
 
-                          {isExpanded && (
-                            <div className="artifact-card-body">
-                              <p className="muted" style={{ marginTop: 0, marginBottom: 'var(--space-3)' }}>
-                                Used in {entry.usages.length} location{entry.usages.length !== 1 ? 's' : ''}
-                              </p>
+          {/* Toolbar row */}
+          <div className="am-toolbar">
+            <input
+              type="text"
+              className="am-search"
+              placeholder="Search artifacts, controls, objectives…"
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+            />
 
-                              {/* ------------------------------------------ */}
-                              {/* Artifact evidence tags                        */}
-                              {/* ------------------------------------------ */}
-                              <div className="artifact-tag-editor">
-                                <div className="artifact-tag-editor-header">Artifact evidence tags</div>
-                                <ArtifactTagChipList tagIds={artifactTagIds} />
-                                {!hasTags && (
-                                  <p className="artifact-untagged-hint">
-                                    Add evidence tags to see reuse opportunities.
-                                  </p>
-                                )}
-                                <p className="artifact-tag-editor-helper">
-                                  Tags describe what kind of evidence this artifact is — guidance only.
-                                </p>
-                                <div className="artifact-tag-editor-actions">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setPickerArtifact(findOrCreate(entry.artifact))
-                                      setModalKey((k) => k + 1)
-                                    }}
-                                  >
-                                    {hasTags ? 'Edit evidence tags' : 'Add evidence tags'}
-                                  </button>
-                                </div>
-                              </div>
+            {/* Filters button — opens modal */}
+            <button
+              type="button"
+              className={`am-filters-btn${hasModalFilters ? ' am-filters-btn--active' : ''}`}
+              onClick={() => setFilterModalOpen(true)}
+            >
+              Filters{modalFilterCount > 0 ? ` (${modalFilterCount})` : ''}
+            </button>
+          </div>
 
-                              {/* ------------------------------------------ */}
-                              {/* Potential Reuse Opportunities                */}
-                              {/* ------------------------------------------ */}
-                              {suggestions.length > 0 ? (() => {
-                                const page = reuseSuggestionPages[entry.artifact] ?? 0
-                                const totalPages = Math.ceil(suggestions.length / SUGGESTION_PAGE_SIZE)
-                                const safePage = Math.min(page, Math.max(totalPages - 1, 0))
-                                const start = safePage * SUGGESTION_PAGE_SIZE
-                                const end = Math.min(start + SUGGESTION_PAGE_SIZE, suggestions.length)
-                                const visibleSuggestions = suggestions.slice(start, end)
-                                const setPage = (p) =>
-                                  setReuseSuggestionPages((prev) => ({ ...prev, [entry.artifact]: p }))
-
-                                return (
-                                  <div className="reuse-suggestions-wrap">
-                                    <button
-                                      type="button"
-                                      className="reuse-suggestions-toggle"
-                                      onClick={() => toggleSuggestions(entry.artifact)}
-                                      aria-expanded={suggestionsOpen}
-                                    >
-                                      <span className="reuse-suggestions-chevron" aria-hidden="true">
-                                        {suggestionsOpen ? '▼' : '▶'}
-                                      </span>
-                                      Potential Reuse Opportunities ({suggestions.length})
-                                    </button>
-
-                                    {suggestionsOpen && (
-                                      <>
-                                        <ul className="reuse-suggestions-list">
-                                          {visibleSuggestions.map((s) => (
-                                            <li key={`${s.controlId}-${s.objectiveId}`} className="reuse-suggestion-item">
-                                              <button
-                                                type="button"
-                                                className="reuse-suggestion-add"
-                                                title={`Add "${entry.artifact}" to ${s.controlId} [${s.objectiveId}]`}
-                                                onClick={() => acceptSuggestion(entry.artifact, s.controlId, s.objectiveId, suggestions.length)}
-                                              >
-                                                +
-                                              </button>
-                                              <div className="reuse-suggestion-detail">
-                                                <Link
-                                                  to={`/controls/${encodeURIComponent(s.controlId)}#objective-${s.objectiveId}`}
-                                                  className="reuse-suggestion-link"
-                                                >
-                                                  <span className="mono">{s.controlId}</span>
-                                                  {' '}[{s.objectiveId}]
-                                                  {s.objectiveText && (
-                                                    <span className="muted"> — {s.objectiveText}</span>
-                                                  )}
-                                                </Link>
-                                                <span className="reuse-suggestion-reason"><span className="reuse-suggestion-reason-label">Rationale:</span> {s.reason}</span>
-                                              </div>
-                                            </li>
-                                          ))}
-                                        </ul>
-                                        {totalPages > 1 && (
-                                          <div className="reuse-suggestions-pagination">
-                                            <button
-                                              type="button"
-                                              className="reuse-suggestions-page-btn"
-                                              disabled={safePage === 0}
-                                              onClick={() => setPage(safePage - 1)}
-                                            >
-                                              Previous
-                                            </button>
-                                            <span className="reuse-suggestions-page-info">
-                                              Showing {start + 1}–{end} of {suggestions.length}
-                                            </span>
-                                            <button
-                                              type="button"
-                                              className="reuse-suggestions-page-btn"
-                                              disabled={safePage >= totalPages - 1}
-                                              onClick={() => setPage(safePage + 1)}
-                                            >
-                                              Next
-                                            </button>
-                                          </div>
-                                        )}
-                                      </>
-                                    )}
-                                  </div>
-                                )
-                              })() : null}
-
-                              <ul className="artifact-card-usages">
-                                {entry.usages.map((u, i) => (
-                                  <li key={i} className="artifact-card-usage">
-                                    <Link
-                                      to={`/controls/${encodeURIComponent(u.controlId)}#objective-${u.objectiveId}`}
-                                      title={`${u.controlId} — ${u.controlTitle}`}
-                                    >
-                                      {u.controlId} — {u.controlTitle}
-                                      <br />
-                                      <span className="muted">
-                                        {formatControlNumber(u.controlId)} [{u.objectiveId}]{u.objectiveText ? ` — ${u.objectiveText}` : ''}
-                                      </span>
-                                    </Link>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </div>
-              )}
+          {/* Active filter chips — status + tag */}
+          {hasModalFilters && (
+            <div className="am-active-tag-chips">
+              {[...statusFilters].map((key) => {
+                const opt = STATUS_FILTER_OPTIONS.find((o) => o.key === key)
+                return (
+                  <span key={key} className="am-active-tag-chip">
+                    {opt?.label ?? key}
+                    <button
+                      type="button"
+                      className="am-active-tag-chip-remove"
+                      onClick={() => toggleStatusFilter(key)}
+                      aria-label={`Remove status filter: ${opt?.label ?? key}`}
+                    >
+                      ×
+                    </button>
+                  </span>
+                )
+              })}
+              {[...tagFilter].map((tagId) => (
+                <span key={tagId} className="am-active-tag-chip">
+                  {TAG_LABEL[tagId] ?? tagId}
+                  <button
+                    type="button"
+                    className="am-active-tag-chip-remove"
+                    onClick={() => toggleTagFilter(tagId)}
+                    aria-label={`Remove tag filter: ${TAG_LABEL[tagId] ?? tagId}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
             </div>
-          )
-        })
+          )}
+
+          <div className="am-result-bar">
+            <span className="am-result-count">
+              {finalList.length} of {registryList.length} artifact{registryList.length !== 1 ? 's' : ''}
+            </span>
+            {hasActiveFilters && (
+              <button type="button" className="am-clear-filters" onClick={clearAllFilters}>
+                Clear filters
+              </button>
+            )}
+          </div>
+
+          {registryList.length === 0 ? (
+            <p className="muted am-empty">No artifacts documented yet. Add artifacts to control objectives or the evidence pool to see them here.</p>
+          ) : finalList.length === 0 ? (
+            <p className="muted am-empty">
+              No artifacts match the current filters.{' '}
+              {hasActiveFilters && (
+                <button type="button" className="am-clear-filters" onClick={clearAllFilters}>Clear filters</button>
+              )}
+            </p>
+          ) : (
+            <div className="am-table-wrap">
+              <table className="am-table">
+                <thead>
+                  <tr>
+                    <th className="am-th am-th-name">
+                      <button type="button" className="am-th-sort-btn" onClick={() => handleSort('name')} title="Sort by name">
+                        Artifact <SortIcon active={sortKey === 'name'} dir={sortDir} />
+                      </button>
+                    </th>
+                    <th className="am-th am-th-tags">Evidence Tags</th>
+                    <th className="am-th am-th-mappings">
+                      <button type="button" className="am-th-sort-btn" onClick={() => handleSort('mappings')} title="Sort by mapped controls">
+                        Mapped <SortIcon active={sortKey === 'mappings'} dir={sortDir} />
+                      </button>
+                    </th>
+                    <th className="am-th am-th-reuse">
+                      <button type="button" className="am-th-sort-btn" onClick={() => handleSort('reuse')} title="Sort by reuse opportunities">
+                        Reuse <SortIcon active={sortKey === 'reuse'} dir={sortDir} />
+                      </button>
+                    </th>
+                    <th className="am-th am-th-status">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {finalList.map((entry) => {
+                    const status = getArtifactStatus(entry)
+                    const isExpanded = entry.artifact === expandedArtifact
+                    const isUntagged = status.key === 'untagged'
+                    const rec = findByName(entry.artifact)
+                    const tagIds = rec?.tags ?? []
+                    const reuseCount = reuseCountMap.get(entry.artifact) ?? 0
+                    return (
+                      <>
+                        <tr
+                          key={entry.artifact}
+                          className={[
+                            'am-row',
+                            isExpanded ? 'am-row--expanded' : '',
+                            isUntagged ? 'am-row--untagged' : '',
+                          ].filter(Boolean).join(' ')}
+                          onClick={() => toggleRow(entry.artifact)}
+                          aria-expanded={isExpanded}
+                        >
+                          <td className="am-td am-td-name">
+                            <span className="am-row-chevron" aria-hidden="true">
+                              {isExpanded ? '▾' : '▸'}
+                            </span>
+                            <span className="am-artifact-name" title={entry.artifact}>
+                              {entry.artifact}
+                            </span>
+                          </td>
+                          <td className="am-td am-td-tags">
+                            {tagIds.length > 0 ? (
+                              <ArtifactTagChipList tagIds={tagIds} />
+                            ) : (
+                              <span className="am-no-tags">—</span>
+                            )}
+                          </td>
+                          <td className="am-td am-td-mappings">
+                            <span className="am-mapping-count">{entry.usages.length}</span>
+                          </td>
+                          <td className="am-td am-td-reuse">
+                            {isUntagged ? (
+                              <span className="am-reuse-count am-reuse-count--none">—</span>
+                            ) : (
+                              <span className={`am-reuse-count${reuseCount > 0 ? ' am-reuse-count--has' : ''}`}>
+                                {reuseCount}
+                              </span>
+                            )}
+                          </td>
+                          <td className="am-td am-td-status">
+                            <span className={status.cls}>{status.label}</span>
+                          </td>
+                        </tr>
+                        {isExpanded && (
+                          <ArtifactExpandedRow
+                            key={`${entry.artifact}-detail`}
+                            entry={entry}
+                            onOpenTagPicker={openTagPicker}
+                            onAcceptSuggestion={acceptSuggestion}
+                            reuseSuggestionPages={reuseSuggestionPages}
+                            setReuseSuggestionPages={setReuseSuggestionPages}
+                            refreshKey={refreshKey}
+                          />
+                        )}
+                      </>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {filterModalOpen && (
+        <ArtifactFilterModal
+          onClose={() => setFilterModalOpen(false)}
+          statusFilters={statusFilters}
+          onToggleStatus={toggleStatusFilter}
+          tagFilter={tagFilter}
+          onToggleTag={toggleTagFilter}
+          availableTagIds={availableTagIds}
+          onClearAll={clearModalFilters}
+        />
       )}
 
       {pickerArtifact && (

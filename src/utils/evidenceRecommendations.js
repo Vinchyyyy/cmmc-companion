@@ -105,7 +105,7 @@ export function getObjectiveArtifactSuggestions({
   // --- 1. Related control IDs + relationship metadata (bidirectional, evidence_reuse only) ---
   const relMetaMap = new Map() // relatedId → { rationale, confidence, relationshipType }
   for (const rel of relationships) {
-    if (rel.assessmentCategory !== 'evidence_reuse') continue
+    if (rel.assessmentCategory && rel.assessmentCategory !== 'evidence_reuse') continue
     const rationale = rel.assessorRationale || rel.reasoning || ''
     if (rel.sourceControl === control.id && !relMetaMap.has(rel.targetControl)) {
       relMetaMap.set(rel.targetControl, { rationale, confidence: rel.confidence, relationshipType: rel.relationshipType })

@@ -82,7 +82,7 @@ function App() {
           <Route path="/relationships" element={<RelationshipExplorer />} />
           <Route path="/artifact-map" element={<ArtifactMap />} />
           <Route path="/about" element={<About />} />
-          <Route path="/faq" element={<Faq />} />
+          <Route path="/faq" element={<About />} />
           <Route path="/changelog" element={<Changelog />} />
           <Route path="*" element={<Home />} />
         </Routes>
