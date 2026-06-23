@@ -9,8 +9,100 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v2.0 — current release, open by default */}
+      {/* v3.0.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.0.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span>UI Workspace Overhaul</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 23, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
+
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            A major interface overhaul that turns CMMC Companion into a cleaner assessment workspace with redesigned dashboards, libraries, relationship views, documented artifact workflows, and a merged About/FAQ page.
+          </p>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Home — Assessment Dashboard</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Redesigned Home into a full assessment dashboard with control, objective, artifact, and attention summaries</li>
+              <li>Added assessment progress, family progress, needs attention, inheritance source, continue review, and project action sections</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Control Library</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Refined the main Control Library layout and filter experience</li>
+              <li>Added a consolidated filter modal with clearer chip-based filter selection</li>
+              <li>Improved family navigation and active filter visibility</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Control Detail</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Redesigned the control detail workspace for wider responsive layouts</li>
+              <li>Added cleaner stacked metadata for status, inheritance, inherited-from sources, trending, and assignment</li>
+              <li>Added objective-level inheritance chips</li>
+              <li>Replaced objective status dropdowns with MET / NOT MET pill controls</li>
+              <li>Refined expected evidence, guidance, assigned artifacts, and suggested artifact sections</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Evidence Library</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Renamed Evidence Lookup to Evidence Library</li>
+              <li>Redesigned the page into a categorized evidence reference library</li>
+              <li>Added category navigation, improved evidence cards, likely control links, and assessor context</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Relationship Explorer</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Redesigned the empty state into a family/control launcher</li>
+              <li>Added a more visual relationship exploration workflow</li>
+              <li>Improved relationship board/card layout and supporting evidence presentation</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Documented Artifacts</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Renamed Artifact Map to Documented Artifacts</li>
+              <li>Redesigned artifact management into a table-based workspace</li>
+              <li>Added category filtering, chip-based filter modal, evidence tag filtering, sortable mappings/reuse columns, expandable artifact rows, mapping pagination, and clearer status logic</li>
+              <li>Updated status logic: Untagged, Tagged, and Mapped</li>
+              <li>Preserved tag-driven reuse opportunities and artifact registry source-of-truth behavior</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>About + FAQ</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Merged About and FAQ into one About page</li>
+              <li>Added workspace guide, privacy model, assessment boundaries, FAQ accordion, dataset summary, and project/version information</li>
+              <li>Removed the redundant FAQ navigation item</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-2)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Validator: Passed — 110 controls, 320 objectives, 130 evidence types, 189 relationships, 66 evidence tags</li>
+              <li>Build: Passed</li>
+              <li>No changes to CMMC controls, evidence types, relationship data, or scoring logic</li>
+            </ul>
+          </section>
+
+        </div>
+      </details>
+
+      {/* v2.0 — collapsed */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v2.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
