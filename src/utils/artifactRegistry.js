@@ -227,3 +227,11 @@ export function _resetCache() {
   _cache = null
   _nameIndex = null
 }
+
+// Remove all artifact registry data from localStorage and reset the in-memory
+// cache. Called as part of the full project wipe flow.
+export function clearRegistry() {
+  try { localStorage.removeItem(STORAGE_KEY) } catch { /* unavailable */ }
+  _cache = null
+  _nameIndex = null
+}

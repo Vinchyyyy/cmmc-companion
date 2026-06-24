@@ -29,6 +29,17 @@ import ArtifactDetailModal from '../components/ArtifactDetailModal.jsx'
 import { getObjectiveArtifactSuggestions } from '../utils/evidenceRecommendations.js'
 import { evidenceTags } from '../data/evidenceTags.js'
 import { readObjectiveResult, writeObjectiveResult } from '../utils/objectiveResults'
+import FindingsBuilderModal from '../components/FindingsBuilderModal'
+import InterviewRolePickerModal from '../components/InterviewRolePickerModal'
+import {
+  readObjectiveFinding,
+  writeObjectiveFinding,
+  clearObjectiveFinding,
+} from '../utils/objectiveFindings'
+import {
+  readObjectiveInterviewedRoles,
+  writeObjectiveInterviewedRoles,
+} from '../utils/objectiveInterviewedRoles'
 import { getDibcacStandard } from '../data/dibcacAssessmentStandards'
 import {
   getReviewGroups,
@@ -281,6 +292,211 @@ function AddToGroupModal({ controlId, obj, dibcacStd, onClose, onGroupsChanged }
   )
 }
 
+// ── Suggested Artifacts modal ─────────────────────────────────────────────────
+
+const SUGGESTION_TIER_PAGE_SIZE = 5
+
+function SuggestedArtifactsModal({ control, obj, allControls, onAssign, onClose }) {
+  const modalRef = useRef(null)
+  useFocusTrap(modalRef, true)
+
+  const [strongPage, setStrongPage] = useState(0)
+  const [relatedPage, setRelatedPage] = useState(0)
+  const [relatedExpanded, setRelatedExpanded] = useState(false)
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
+
+  const { strong, related, excluded } = useMemo(() => getObjectiveArtifactSuggestions({
+    control,
+    objective: obj,
+    allControls,
+    limit: 20,
+  }), [control, obj, allControls])
+
+  const totalVisible = strong.length + related.length
+  const excludedTotal =
+    excluded.untaggedCount + excluded.broadCount
+
+  // Strong tier pagination
+  const strongTotal = strong.length
+  const strongTotalPages = Math.ceil(strongTotal / SUGGESTION_TIER_PAGE_SIZE)
+  const strongSafePage = Math.min(strongPage, Math.max(strongTotalPages - 1, 0))
+  const sStart = strongSafePage * SUGGESTION_TIER_PAGE_SIZE
+  const sEnd = Math.min(sStart + SUGGESTION_TIER_PAGE_SIZE, strongTotal)
+  const visibleStrong = strong.slice(sStart, sEnd)
+
+  // Related tier pagination
+  const relatedTotal = related.length
+  const relatedTotalPages = Math.ceil(relatedTotal / SUGGESTION_TIER_PAGE_SIZE)
+  const relatedSafePage = Math.min(relatedPage, Math.max(relatedTotalPages - 1, 0))
+  const rStart = relatedSafePage * SUGGESTION_TIER_PAGE_SIZE
+  const rEnd = Math.min(rStart + SUGGESTION_TIER_PAGE_SIZE, relatedTotal)
+  const visibleRelated = related.slice(rStart, rEnd)
+
+  const renderCard = (s) => (
+    <li key={s.artifact} className="cd-suggested-item">
+      <div className="cd-suggested-item-body">
+        <span className="cd-suggested-item-name">{s.artifact}</span>
+        {s.reason && (
+          <span className="cd-suggested-item-reason">{s.reason}</span>
+        )}
+        {s.sourceControlId && (
+          <span className="cd-suggested-item-source muted">
+            also mapped to{' '}
+            <Link
+              to={`/controls/${encodeURIComponent(s.sourceControlId)}#objective-${s.sourceObjectiveId}`}
+              onClick={onClose}
+              title={`${s.sourceControlId} — ${s.sourceControlTitle}`}
+            >
+              {s.sourceControlId}
+            </Link>
+            {s.sourceObjectiveId ? ` [${s.sourceObjectiveId}]` : ''}
+          </span>
+        )}
+        {s.tagAlignment && s.tagAlignment.overlap.all.length > 0 && (
+          <span className="reuse-tag-overlap-chips">
+            {s.tagAlignment.overlap.primary.map((tagId) => (
+              <span key={tagId} className="reuse-tag-overlap-chip reuse-tag-overlap-chip--primary">
+                {EVIDENCE_TAG_LABEL.get(tagId) ?? tagId}
+              </span>
+            ))}
+            {s.tagAlignment.overlap.acceptable.map((tagId) => (
+              <span key={tagId} className="reuse-tag-overlap-chip reuse-tag-overlap-chip--acceptable">
+                {EVIDENCE_TAG_LABEL.get(tagId) ?? tagId}
+              </span>
+            ))}
+          </span>
+        )}
+        {s.rationale && (
+          <details className="cd-suggested-item-details">
+            <summary>Details</summary>
+            <span className="cd-suggested-item-rationale muted">{s.rationale}</span>
+          </details>
+        )}
+      </div>
+      <button
+        type="button"
+        className="cd-suggested-item-assign"
+        onClick={() => { onAssign(s.artifact); onClose() }}
+        aria-label={`Assign ${s.artifact} to this objective`}
+      >
+        + Assign
+      </button>
+    </li>
+  )
+
+  return (
+    <div
+      className="cd-edit-modal-overlay"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="suggested-artifacts-title"
+    >
+      <div className="cd-edit-modal cd-suggested-modal" ref={modalRef}>
+        <div className="cd-edit-modal-header">
+          <span id="suggested-artifacts-title" className="cd-edit-modal-title">Suggested Tagged Artifacts</span>
+          <button type="button" className="cd-edit-modal-close" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+
+        <div className="cd-edit-modal-body">
+          <p className="cd-suggested-subtitle muted">
+            Suggestions are based on evidence tags, expected evidence alignment, Assessment Guide evidence objects, and relationship context. Tags classify artifacts; they do not determine assessment outcomes. Suggestions are guidance only and do not determine assessment outcomes.
+          </p>
+
+          {totalVisible === 0 ? (
+            <div className="cd-suggested-empty-state">
+              <p className="muted cd-suggested-empty">
+                No tagged artifact suggestions found for this objective. Add evidence tags to artifacts to improve reuse recommendations.
+              </p>
+              {excludedTotal > 0 && (
+                <p className="muted cd-suggested-excluded-note">
+                  {excludedTotal} broad or untagged candidate{excludedTotal !== 1 ? 's were' : ' was'} excluded from suggestions.
+                </p>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Strong Suggestions — expanded by default */}
+              <div className="cd-suggested-tier">
+                <h4 className="cd-suggested-tier-heading">
+                  Strong Suggestions{strong.length > 0 ? ` (${strong.length})` : ''}
+                </h4>
+                {strong.length === 0 ? (
+                  <p className="muted cd-suggested-tier-empty">No strong suggestions found.</p>
+                ) : (
+                  <>
+                    <ul className="cd-suggested-list">{visibleStrong.map(renderCard)}</ul>
+                    {strongTotalPages > 1 && (
+                      <div className="am-exp-pagination">
+                        <button type="button" className="am-exp-page-btn" disabled={strongSafePage === 0} onClick={() => setStrongPage(strongSafePage - 1)}>‹ Prev</button>
+                        <span className="am-exp-page-info">{sStart + 1}–{sEnd} of {strongTotal}</span>
+                        <button type="button" className="am-exp-page-btn" disabled={strongSafePage >= strongTotalPages - 1} onClick={() => setStrongPage(strongSafePage + 1)}>Next ›</button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Related Candidates — collapsed by default */}
+              {related.length > 0 && (
+                <div className="cd-suggested-tier">
+                  <button
+                    type="button"
+                    className="cd-suggested-tier-heading cd-suggested-tier-heading--toggle"
+                    onClick={() => setRelatedExpanded((v) => !v)}
+                    aria-expanded={relatedExpanded}
+                  >
+                    Related Candidates ({relatedTotal})
+                    <span className="reuse-tier-chevron" aria-hidden="true">{relatedExpanded ? ' ▾' : ' ▸'}</span>
+                  </button>
+                  {relatedExpanded && (
+                    <>
+                      <ul className="cd-suggested-list">{visibleRelated.map(renderCard)}</ul>
+                      {relatedTotalPages > 1 && (
+                        <div className="am-exp-pagination">
+                          <button type="button" className="am-exp-page-btn" disabled={relatedSafePage === 0} onClick={() => setRelatedPage(relatedSafePage - 1)}>‹ Prev</button>
+                          <span className="am-exp-page-info">{rStart + 1}–{rEnd} of {relatedTotal}</span>
+                          <button type="button" className="am-exp-page-btn" disabled={relatedSafePage >= relatedTotalPages - 1} onClick={() => setRelatedPage(relatedSafePage + 1)}>Next ›</button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {excluded.cappedCount > 0 && (
+                <p className="muted cd-suggested-excluded-note">
+                  Additional lower-ranked candidates were hidden to keep suggestions focused.
+                </p>
+              )}
+              {excludedTotal > 0 && (
+                <p className="muted cd-suggested-excluded-note">
+                  {excludedTotal} broad or untagged candidate{excludedTotal !== 1 ? 's were' : ' was'} excluded from suggestions.
+                </p>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="cd-edit-modal-footer">
+          <button type="button" className="cd-edit-btn-secondary" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Edit Details modal ────────────────────────────────────────────────────────
 
 function EditDetailsModal({
@@ -477,6 +693,167 @@ function EditDetailsModal({
   )
 }
 
+// ── Inline Suggested Artifacts (center column, below objective workspace) ─────
+
+function SuggestedArtifactsInline({ control, obj, allControls, onAdd, onOpenArtifact }) {
+  const [strongPage, setStrongPage] = useState(0)
+  const [relatedPage, setRelatedPage] = useState(0)
+  const [relatedExpanded, setRelatedExpanded] = useState(false)
+
+  const { strong, related, excluded } = useMemo(() => getObjectiveArtifactSuggestions({
+    control,
+    objective: obj,
+    allControls,
+    limit: 50,
+  }), [control, obj, allControls])
+
+  const total = strong.length + related.length
+  const excludedTotal = excluded.untaggedCount + excluded.broadCount
+
+  // Strong tier pagination
+  const strongTotal = strong.length
+  const strongTotalPages = Math.ceil(strongTotal / SUGGESTION_TIER_PAGE_SIZE)
+  const strongSafePage = Math.min(strongPage, Math.max(strongTotalPages - 1, 0))
+  const sStart = strongSafePage * SUGGESTION_TIER_PAGE_SIZE
+  const sEnd = Math.min(sStart + SUGGESTION_TIER_PAGE_SIZE, strongTotal)
+  const visibleStrong = strong.slice(sStart, sEnd)
+
+  // Related tier pagination
+  const relatedTotal = related.length
+  const relatedTotalPages = Math.ceil(relatedTotal / SUGGESTION_TIER_PAGE_SIZE)
+  const relatedSafePage = Math.min(relatedPage, Math.max(relatedTotalPages - 1, 0))
+  const rStart = relatedSafePage * SUGGESTION_TIER_PAGE_SIZE
+  const rEnd = Math.min(rStart + SUGGESTION_TIER_PAGE_SIZE, relatedTotal)
+  const visibleRelated = related.slice(rStart, rEnd)
+
+  const ec = obj.evidenceClass
+  if (ec !== 'artifact' && ec !== 'mixed') return null
+  if (total === 0 && excludedTotal === 0) return null
+
+  const renderSuggestion = (s) => (
+    <li key={s.artifact} className="evidence-reuse-suggestion">
+      <button
+        type="button"
+        className="evidence-reuse-suggestion-add"
+        onClick={(e) => { e.stopPropagation(); onAdd(obj.id, s.artifact) }}
+        aria-label={`Add ${s.artifact} to objective ${obj.id}`}
+      >+</button>
+      <div className="evidence-reuse-suggestion-body">
+        <button
+          type="button"
+          className="evidence-reuse-suggestion-name evidence-reuse-suggestion-name--button"
+          onClick={() => onOpenArtifact(s.artifact)}
+          aria-label={`Edit evidence tags for ${s.artifact}`}
+        >{s.artifact}</button>
+        {s.reason && (
+          <span className="evidence-reuse-suggestion-reason">{s.reason}</span>
+        )}
+        {s.sourceControlId && (
+          <span className="evidence-reuse-suggestion-source">
+            also mapped to{' '}
+            <Link
+              to={`/controls/${encodeURIComponent(s.sourceControlId)}#objective-${s.sourceObjectiveId}`}
+              title={`${s.sourceControlId} — ${s.sourceControlTitle}`}
+            >
+              {s.sourceControlId}
+            </Link>
+            {s.sourceObjectiveId ? ` [${s.sourceObjectiveId}]` : ''}
+          </span>
+        )}
+        {s.tagAlignment && s.tagAlignment.overlap.all.length > 0 && (
+          <span className="reuse-tag-overlap-chips">
+            {s.tagAlignment.overlap.primary.map((tagId) => (
+              <span key={tagId} className="reuse-tag-overlap-chip reuse-tag-overlap-chip--primary">
+                {EVIDENCE_TAG_LABEL.get(tagId) ?? tagId}
+              </span>
+            ))}
+            {s.tagAlignment.overlap.acceptable.map((tagId) => (
+              <span key={tagId} className="reuse-tag-overlap-chip reuse-tag-overlap-chip--acceptable">
+                {EVIDENCE_TAG_LABEL.get(tagId) ?? tagId}
+              </span>
+            ))}
+          </span>
+        )}
+        {s.rationale && (
+          <details className="evidence-reuse-suggestion-details">
+            <summary>Details</summary>
+            <span className="evidence-reuse-suggestion-rationale">{s.rationale}</span>
+          </details>
+        )}
+      </div>
+    </li>
+  )
+
+  return (
+    <div className="evidence-reuse-suggestions">
+      <p className="reuse-tag-helper">
+        Suggestions are based on evidence tags, expected evidence alignment, and relationship context. Suggestions are guidance only and do not determine assessment outcomes.
+      </p>
+      {total === 0 ? (
+        <div className="evidence-reuse-suggestions-empty">
+          <p className="reuse-tag-helper">No tagged artifact suggestions found for this objective. Add evidence tags to artifacts to improve reuse recommendations.</p>
+        </div>
+      ) : (
+        <>
+          {/* Strong Suggestions — expanded by default */}
+          <p className="reuse-tier-heading">Strong Suggestions{strong.length > 0 ? ` (${strong.length})` : ''}</p>
+          {strong.length === 0 ? (
+            <p className="reuse-tag-helper">No strong suggestions found.</p>
+          ) : (
+            <>
+              <ul>{visibleStrong.map(renderSuggestion)}</ul>
+              {strongTotalPages > 1 && (
+                <div className="am-exp-pagination">
+                  <button type="button" className="am-exp-page-btn" disabled={strongSafePage === 0} onClick={() => setStrongPage(strongSafePage - 1)}>‹ Prev</button>
+                  <span className="am-exp-page-info">{sStart + 1}–{sEnd} of {strongTotal}</span>
+                  <button type="button" className="am-exp-page-btn" disabled={strongSafePage >= strongTotalPages - 1} onClick={() => setStrongPage(strongSafePage + 1)}>Next ›</button>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Related Candidates — collapsed by default */}
+          {related.length > 0 && (
+            <>
+              <button
+                type="button"
+                className="reuse-tier-heading reuse-tier-heading--toggle"
+                onClick={() => setRelatedExpanded((v) => !v)}
+                aria-expanded={relatedExpanded}
+              >
+                Related Candidates ({relatedTotal})
+                <span className="reuse-tier-chevron" aria-hidden="true">{relatedExpanded ? ' ▾' : ' ▸'}</span>
+              </button>
+              {relatedExpanded && (
+                <>
+                  <ul>{visibleRelated.map(renderSuggestion)}</ul>
+                  {relatedTotalPages > 1 && (
+                    <div className="am-exp-pagination">
+                      <button type="button" className="am-exp-page-btn" disabled={relatedSafePage === 0} onClick={() => setRelatedPage(relatedSafePage - 1)}>‹ Prev</button>
+                      <span className="am-exp-page-info">{rStart + 1}–{rEnd} of {relatedTotal}</span>
+                      <button type="button" className="am-exp-page-btn" disabled={relatedSafePage >= relatedTotalPages - 1} onClick={() => setRelatedPage(relatedSafePage + 1)}>Next ›</button>
+                    </div>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </>
+      )}
+      {excluded.cappedCount > 0 && (
+        <p className="reuse-tag-excluded-note">
+          Additional lower-ranked candidates were hidden to keep suggestions focused.
+        </p>
+      )}
+      {excludedTotal > 0 && (
+        <p className="reuse-tag-excluded-note">
+          {excludedTotal} broad or untagged candidate{excludedTotal !== 1 ? 's were' : ' was'} excluded from suggestions.
+        </p>
+      )}
+    </div>
+  )
+}
+
 // ── Main view ─────────────────────────────────────────────────────────────────
 
 function ControlDetailView() {
@@ -503,8 +880,6 @@ function ControlDetailView() {
   const [objArtifactInputs, setObjArtifactInputs]   = useState({})
   const [focusedObjId, setFocusedObjId]             = useState(null)
   const [poolFocused, setPoolFocused]               = useState(false)
-  const [suggestionPages, setSuggestionPages]       = useState({})
-  const [expandedSuggestions, setExpandedSuggestions] = useState(() => new Set())
   const [selectedObjectiveId, setSelectedObjectiveId] = useState(() => control?.objectives[0]?.id ?? null)
   const [selectedArtifact, setSelectedArtifact] = useState(null)
   // Bumped after tag saves so findByName() re-runs and untagged chip state updates.
@@ -512,6 +887,15 @@ function ControlDetailView() {
   // Review group modal state
   const [showAddToGroupModal, setShowAddToGroupModal] = useState(false)
   const [reviewGroupsVersion, setReviewGroupsVersion] = useState(0) // bump to recompute
+  // Suggested artifacts modal
+  const [showSuggestedModal, setShowSuggestedModal] = useState(false)
+  // Findings Builder modal
+  const [showFindingsModal, setShowFindingsModal] = useState(false)
+  const [objectiveFindings, setObjectiveFindings] = useState(() => loadObjectiveFindings(id, control))
+  // Per-objective interviewed roles (separate from finding and from interview notes)
+  const [objectiveInterviewedRoles, setObjectiveInterviewedRoles] = useState(() => loadObjectiveInterviewedRolesMap(id, control))
+  // Role picker modal — can be opened from the Interviews section header
+  const [showRolePickerModal, setShowRolePickerModal] = useState(false)
 
   const globalArtifactNames = useMemo(() => buildArtifactIndex(controls).map((e) => e.artifact), [])
 
@@ -597,6 +981,28 @@ function ControlDetailView() {
     setObjectiveResults((prev) => ({ ...prev, [objId]: next }))
     writeObjectiveResult(id, objId, next)
     promoteToInProgress(status, id, setStatus)
+  }
+
+  const handleSaveFinding = (objId, finding) => {
+    writeObjectiveFinding(id, objId, finding)
+    setObjectiveFindings((prev) => ({ ...prev, [objId]: finding }))
+    setShowFindingsModal(false)
+  }
+
+  const handleClearFinding = (objId) => {
+    clearObjectiveFinding(id, objId)
+    setObjectiveFindings((prev) => {
+      const next = { ...prev }
+      delete next[objId]
+      return next
+    })
+    setShowFindingsModal(false)
+  }
+
+  const handleRolesSaved = (objId, roles) => {
+    writeObjectiveInterviewedRoles(id, objId, roles)
+    setObjectiveInterviewedRoles((prev) => ({ ...prev, [objId]: roles }))
+    setShowRolePickerModal(false)
   }
 
   const commitPoolInput = (raw) => {
@@ -714,140 +1120,6 @@ function ControlDetailView() {
   const controlIndex = controls.findIndex((c) => c.id === id)
   const prevControl = controlIndex > 0 ? controls[controlIndex - 1] : null
   const nextControl = controlIndex < controls.length - 1 ? controls[controlIndex + 1] : null
-
-  // Suggested artifacts block — driven by selectedObj, rendered in right panel
-  const renderSuggestedArtifacts = (obj) => {
-    if (!obj) return null
-    const ec = obj.evidenceClass
-    if (ec !== 'artifact' && ec !== 'mixed') return null
-    const PAGE_SIZE = 5
-    const allSuggestions = getObjectiveArtifactSuggestions({
-      control,
-      objective: obj,
-      allControls: controls,
-      limit: 1000,
-    })
-    if (allSuggestions.length === 0) return null
-
-    const total = allSuggestions.length
-    const isOpen = expandedSuggestions.has(obj.id)
-
-    const toggleOpen = () => {
-      setExpandedSuggestions((prev) => {
-        const next = new Set(prev)
-        if (next.has(obj.id)) next.delete(obj.id)
-        else next.add(obj.id)
-        return next
-      })
-    }
-
-    const totalPages = Math.ceil(total / PAGE_SIZE)
-    const rawPage = suggestionPages[obj.id] ?? 0
-    const page = Math.min(rawPage, totalPages - 1)
-    const start = page * PAGE_SIZE
-    const pageSuggestions = allSuggestions.slice(start, start + PAGE_SIZE)
-    const setPage = (next) => setSuggestionPages((prev) => ({ ...prev, [obj.id]: next }))
-
-    return (
-      <div className="evidence-reuse-suggestions">
-        <button
-          type="button"
-          className="evidence-reuse-suggestions-toggle"
-          onClick={toggleOpen}
-          aria-expanded={isOpen}
-        >
-          <span className="evidence-reuse-suggestions-chevron" aria-hidden="true">
-            {isOpen ? '▼' : '▶'}
-          </span>
-          <span className="evidence-reuse-suggestions-label">
-            Suggested Existing Artifacts ({total})
-          </span>
-        </button>
-
-        {isOpen && (
-          <>
-            <p className="reuse-tag-helper">
-              Evidence tags are classification aids. They help explain reuse
-              suggestions but do not determine whether an objective is satisfied.
-            </p>
-            {total > PAGE_SIZE && (
-              <p className="evidence-reuse-suggestions-count">
-                Showing {start + 1}–{Math.min(start + PAGE_SIZE, total)} of {total}
-              </p>
-            )}
-            <ul>
-              {pageSuggestions.map((s) => {
-                const sRec = findByName(s.artifact)
-                const sUntagged = !sRec || !Array.isArray(sRec.tags) || sRec.tags.length === 0
-                return (
-                  <li
-                    key={s.artifact}
-                    className={`evidence-reuse-suggestion${sUntagged ? ' evidence-reuse-suggestion--untagged' : ''}`}
-                    title={sUntagged ? 'No evidence tags yet — click to add tags.' : undefined}
-                  >
-                    <button
-                      type="button"
-                      className="evidence-reuse-suggestion-add"
-                      onClick={(e) => { e.stopPropagation(); commitObjArtifact(obj.id, s.artifact) }}
-                      aria-label={`Add ${s.artifact} to objective ${obj.id}`}
-                    >+</button>
-                    <div className="evidence-reuse-suggestion-body">
-                      <button
-                        type="button"
-                        className="evidence-reuse-suggestion-name evidence-reuse-suggestion-name--button"
-                        onClick={() => setSelectedArtifact(findOrCreate(s.artifact))}
-                        aria-label={`Edit evidence tags for ${s.artifact}`}
-                      >{s.artifact}</button>
-                      <span className="evidence-reuse-suggestion-source">
-                        from{' '}
-                        <Link
-                          to={`/controls/${encodeURIComponent(s.sourceControlId)}#objective-${s.sourceObjectiveId}`}
-                          title={`${s.sourceControlId} — ${s.sourceControlTitle}`}
-                        >
-                          {s.sourceControlId}
-                        </Link>
-                        {' '}[{s.sourceObjectiveId}]
-                      </span>
-                      {s.rationale && (
-                        <span className="evidence-reuse-suggestion-rationale">{s.rationale}</span>
-                      )}
-                      {s.tagAlignment && (
-                        <div className="reuse-tag-alignment">
-                          <span className="reuse-tag-alignment-label">
-                            {s.tagAlignment.label}
-                          </span>
-                          {s.tagAlignment.overlap.all.length > 0 && (
-                            <span className="reuse-tag-overlap-chips">
-                              {s.tagAlignment.overlap.primary.map((tagId) => (
-                                <span key={tagId} className="reuse-tag-overlap-chip reuse-tag-overlap-chip--primary">
-                                  {EVIDENCE_TAG_LABEL.get(tagId) ?? tagId}
-                                </span>
-                              ))}
-                              {s.tagAlignment.overlap.acceptable.map((tagId) => (
-                                <span key={tagId} className="reuse-tag-overlap-chip reuse-tag-overlap-chip--acceptable">
-                                  {EVIDENCE_TAG_LABEL.get(tagId) ?? tagId}
-                                </span>
-                              ))}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-            {total > PAGE_SIZE && (
-              <div className="evidence-reuse-suggestions-pagination">
-                <button type="button" onClick={() => setPage(page - 1)} disabled={page === 0} aria-label="Previous suggestions">← Previous</button>
-                <button type="button" onClick={() => setPage(page + 1)} disabled={page >= totalPages - 1} aria-label="Next suggestions">Next →</button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    )
-  }
 
   return (
     <div className="cd-workspace">
@@ -1176,16 +1448,44 @@ function ControlDetailView() {
                       </div>
                     </div>
                   )}
+
+                  {/* Findings Builder — last in header, final output after review */}
+                  <div className="cd-obj-pills-group cd-obj-findings-group">
+                    <span className="cd-obj-pills-label">Findings</span>
+                    <div className="cd-obj-findings-row">
+                      {objectiveFindings[selectedObj.id] && (
+                        <span className="cd-findings-drafted-chip">Finding Drafted</span>
+                      )}
+                      <button
+                        type="button"
+                        className="cd-findings-builder-btn"
+                        onClick={() => setShowFindingsModal(true)}
+                      >
+                        {objectiveFindings[selectedObj.id] ? 'Edit Finding' : 'Create Finding'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div className="cd-obj-body">
                 {/* Assigned Artifacts — shown first for quick access */}
                 <div style={{ marginBottom: 'var(--space-4)' }}>
-                  <label htmlFor={`obj-artifacts-${control.id}-${selectedObj.id}`}>
-                    <strong>Assigned Artifacts{(objectiveArtifacts[selectedObj.id] ?? []).length > 0
-                      ? ` (${(objectiveArtifacts[selectedObj.id] ?? []).length})` : ''}</strong>
-                  </label>
+                  <div className="cd-assigned-artifacts-header">
+                    <label htmlFor={`obj-artifacts-${control.id}-${selectedObj.id}`}>
+                      <strong>Assigned Artifacts{(objectiveArtifacts[selectedObj.id] ?? []).length > 0
+                        ? ` (${(objectiveArtifacts[selectedObj.id] ?? []).length})` : ''}</strong>
+                    </label>
+                    {(selectedObj.evidenceClass === 'artifact' || selectedObj.evidenceClass === 'mixed') && (
+                      <button
+                        type="button"
+                        className="cd-view-suggested-btn"
+                        onClick={() => setShowSuggestedModal(true)}
+                      >
+                        View Suggested Artifacts
+                      </button>
+                    )}
+                  </div>
                   <div className="obj-artifact-input-wrap">
                     <input
                       id={`obj-artifacts-${control.id}-${selectedObj.id}`}
@@ -1241,9 +1541,41 @@ function ControlDetailView() {
                   { field: 'overallComments', label: 'Overall Comments', placeholder: 'Overall assessment comments for this objective…' },
                 ].map(({ field, label, placeholder }) => {
                   const fieldId = `obj-${field}-${control.id}-${selectedObj.id}`
+                  const isInterviews = field === 'interviews'
+                  const objRoles = isInterviews ? (objectiveInterviewedRoles[selectedObj.id] ?? []) : []
                   return (
                     <div key={field} style={{ marginBottom: 'var(--space-3)' }}>
-                      <label htmlFor={fieldId}><strong>{label}</strong></label>
+                      <div className={isInterviews ? 'cd-interviews-header' : undefined}>
+                        <label htmlFor={fieldId}><strong>{label}</strong></label>
+                        {isInterviews && (
+                          <button
+                            type="button"
+                            className="cd-interviews-add-role-btn"
+                            onClick={() => setShowRolePickerModal(true)}
+                          >
+                            + Add Role
+                          </button>
+                        )}
+                      </div>
+                      {isInterviews && objRoles.length > 0 && (
+                        <div className="cd-interviews-role-chips">
+                          {objRoles.map((r) => (
+                            <span key={r} className="cd-interviews-role-chip">
+                              {r}
+                              <button
+                                type="button"
+                                className="cd-interviews-role-chip-remove"
+                                onClick={() => {
+                                  const next = objRoles.filter((x) => x !== r)
+                                  writeObjectiveInterviewedRoles(id, selectedObj.id, next)
+                                  setObjectiveInterviewedRoles((prev) => ({ ...prev, [selectedObj.id]: next }))
+                                }}
+                                aria-label={`Remove ${r}`}
+                              >×</button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
                       <AutoResizeTextarea
                         id={fieldId}
                         value={(objectiveResults[selectedObj.id] ?? {})[field] ?? ''}
@@ -1268,12 +1600,14 @@ function ControlDetailView() {
           {selectedObj && (
             <div className="cd-suggestions-card">
               <h3 className="cd-suggestions-heading">Suggested Existing Artifacts</h3>
-              {(() => {
-                const suggestions = renderSuggestedArtifacts(selectedObj)
-                return suggestions ?? (
-                  <p className="muted cd-suggestions-empty">No suggested artifacts for this objective yet.</p>
-                )
-              })()}
+              <SuggestedArtifactsInline
+                key={selectedObj.id}
+                control={control}
+                obj={selectedObj}
+                allControls={controls}
+                onAdd={(objId, artifact) => commitObjArtifact(objId, artifact)}
+                onOpenArtifact={(name) => setSelectedArtifact(findOrCreate(name))}
+              />
             </div>
           )}
         </main>
@@ -1341,6 +1675,44 @@ function ControlDetailView() {
         />
       )}
 
+      {showSuggestedModal && selectedObj && (
+        <SuggestedArtifactsModal
+          control={control}
+          obj={selectedObj}
+          allControls={controls}
+          onAssign={(name) => commitObjArtifact(selectedObj.id, name)}
+          onClose={() => setShowSuggestedModal(false)}
+        />
+      )}
+
+      {showFindingsModal && selectedObj && (
+        <FindingsBuilderModal
+          controlId={control.id}
+          controlTitle={control.title}
+          obj={selectedObj}
+          objStatus={objectiveStatuses[selectedObj.id] ?? 'Unreviewed'}
+          dibcacStd={getDibcacStandard(control.id, selectedObj.id)}
+          assignedArtifacts={objectiveArtifacts[selectedObj.id] ?? []}
+          interviewedRoles={objectiveInterviewedRoles[selectedObj.id] ?? []}
+          existingFinding={objectiveFindings[selectedObj.id] ?? null}
+          onSave={(finding) => handleSaveFinding(selectedObj.id, finding)}
+          onClear={() => handleClearFinding(selectedObj.id)}
+          onClose={() => setShowFindingsModal(false)}
+          onRolesSaved={(roles) => {
+            writeObjectiveInterviewedRoles(id, selectedObj.id, roles)
+            setObjectiveInterviewedRoles((prev) => ({ ...prev, [selectedObj.id]: roles }))
+          }}
+        />
+      )}
+
+      {showRolePickerModal && selectedObj && (
+        <InterviewRolePickerModal
+          currentRoles={objectiveInterviewedRoles[selectedObj.id] ?? []}
+          onSave={(roles) => handleRolesSaved(selectedObj.id, roles)}
+          onClose={() => setShowRolePickerModal(false)}
+        />
+      )}
+
       {showDetailsModal && (
         <EditDetailsModal
           onClose={() => setShowDetailsModal(false)}
@@ -1387,6 +1759,26 @@ function loadObjectiveResults(controlId, control) {
   if (!control) return {}
   const map = {}
   for (const obj of control.objectives) map[obj.id] = readObjectiveResult(controlId, obj.id)
+  return map
+}
+
+function loadObjectiveInterviewedRolesMap(controlId, control) {
+  if (!control) return {}
+  const map = {}
+  for (const obj of control.objectives) {
+    const roles = readObjectiveInterviewedRoles(controlId, obj.id)
+    if (roles.length > 0) map[obj.id] = roles
+  }
+  return map
+}
+
+function loadObjectiveFindings(controlId, control) {
+  if (!control) return {}
+  const map = {}
+  for (const obj of control.objectives) {
+    const f = readObjectiveFinding(controlId, obj.id)
+    if (f) map[obj.id] = f
+  }
   return map
 }
 

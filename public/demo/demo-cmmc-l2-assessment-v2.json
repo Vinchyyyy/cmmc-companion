@@ -1,0 +1,720 @@
+{
+  "schemaVersion": 3,
+  "exportedAt": "2026-06-19T14:00:00.000Z",
+  "artifacts": [
+    {
+      "id": "art_a1b2c3d4",
+      "name": "Entra User Export.xlsx",
+      "tags": ["identity_roster", "account_lifecycle_record", "access_review_record"],
+      "createdAt": "2026-06-01T09:00:00.000Z",
+      "updatedAt": "2026-06-10T11:30:00.000Z"
+    },
+    {
+      "id": "art_b2c3d4e5",
+      "name": "Privileged Role Review.xlsx",
+      "tags": ["privileged_account_inventory", "role_permission_matrix", "access_review_record"],
+      "createdAt": "2026-06-02T10:00:00.000Z",
+      "updatedAt": "2026-06-11T14:00:00.000Z"
+    },
+    {
+      "id": "art_c3d4e5f6",
+      "name": "Access Control Policy.pdf",
+      "tags": ["policy_document"],
+      "createdAt": "2026-05-15T08:00:00.000Z",
+      "updatedAt": "2026-05-15T08:00:00.000Z"
+    },
+    {
+      "id": "art_d4e5f6a7",
+      "name": "Account Provisioning SOP.pdf",
+      "tags": ["procedure_document", "account_lifecycle_record"],
+      "createdAt": "2026-05-15T08:30:00.000Z",
+      "updatedAt": "2026-05-15T08:30:00.000Z"
+    },
+    {
+      "id": "art_e5f6a7b8",
+      "name": "MFA Conditional Access Export.pdf",
+      "tags": ["authentication_configuration", "mfa_configuration"],
+      "createdAt": "2026-06-03T09:15:00.000Z",
+      "updatedAt": "2026-06-12T10:00:00.000Z"
+    },
+    {
+      "id": "art_f6a7b8c9",
+      "name": "Sentinel Audit Log Configuration.pdf",
+      "tags": ["audit_log_configuration", "monitoring_tool_configuration"],
+      "createdAt": "2026-06-04T10:00:00.000Z",
+      "updatedAt": "2026-06-04T10:00:00.000Z"
+    },
+    {
+      "id": "art_a7b8c9d0",
+      "name": "Sentinel Failed Login Query Results.csv",
+      "tags": ["audit_log_sample", "log_review_record"],
+      "createdAt": "2026-06-05T11:00:00.000Z",
+      "updatedAt": "2026-06-05T11:00:00.000Z"
+    },
+    {
+      "id": "art_b8c9d0e1",
+      "name": "Audit Log Review Evidence.pdf",
+      "tags": ["log_review_record", "management_review_record"],
+      "createdAt": "2026-06-06T13:00:00.000Z",
+      "updatedAt": "2026-06-06T13:00:00.000Z"
+    },
+    {
+      "id": "art_c9d0e1f2",
+      "name": "Configuration Baseline - Windows 11.xlsx",
+      "tags": ["configuration_baseline_record", "configuration_standard"],
+      "createdAt": "2026-05-20T09:00:00.000Z",
+      "updatedAt": "2026-06-08T16:00:00.000Z"
+    },
+    {
+      "id": "art_d0e1f2a3",
+      "name": "Intune Compliance Policy Export.pdf",
+      "tags": ["configuration_compliance_report", "mdm_enrollment_list"],
+      "createdAt": "2026-06-07T10:30:00.000Z",
+      "updatedAt": "2026-06-07T10:30:00.000Z"
+    },
+    {
+      "id": "art_e1f2a3b4",
+      "name": "Incident Response Plan.pdf",
+      "tags": ["incident_response_plan", "policy_document"],
+      "createdAt": "2026-05-10T09:00:00.000Z",
+      "updatedAt": "2026-05-10T09:00:00.000Z"
+    },
+    {
+      "id": "art_f2a3b4c5",
+      "name": "Incident Tabletop Exercise Notes.pdf",
+      "tags": ["incident_response_test_record", "training_completion_record"],
+      "createdAt": "2026-06-09T14:00:00.000Z",
+      "updatedAt": "2026-06-09T14:00:00.000Z"
+    },
+    {
+      "id": "art_a3b4c5d6",
+      "name": "Risk Assessment 2026.pdf",
+      "tags": ["risk_assessment_report"],
+      "createdAt": "2026-04-01T08:00:00.000Z",
+      "updatedAt": "2026-04-01T08:00:00.000Z"
+    },
+    {
+      "id": "art_b4c5d6e7",
+      "name": "Vulnerability Scan Report - June.pdf",
+      "tags": ["vulnerability_scan_report"],
+      "createdAt": "2026-06-10T08:00:00.000Z",
+      "updatedAt": "2026-06-10T08:00:00.000Z"
+    },
+    {
+      "id": "art_c5d6e7f8",
+      "name": "Patch Compliance Export.xlsx",
+      "tags": ["patch_management_record", "remediation_record"],
+      "createdAt": "2026-06-11T09:00:00.000Z",
+      "updatedAt": "2026-06-11T09:00:00.000Z"
+    },
+    {
+      "id": "art_d6e7f8a9",
+      "name": "Firewall Rules Export.pdf",
+      "tags": ["firewall_ruleset", "network_diagram"],
+      "createdAt": "2026-06-03T15:00:00.000Z",
+      "updatedAt": "2026-06-03T15:00:00.000Z"
+    },
+    {
+      "id": "art_e7f8a9b0",
+      "name": "VPN Configuration Screenshot.png",
+      "tags": ["remote_access_configuration"],
+      "createdAt": "2026-06-05T10:00:00.000Z",
+      "updatedAt": "2026-06-05T10:00:00.000Z"
+    },
+    {
+      "id": "art_f8a9b0c1",
+      "name": "Visitor Access Log.pdf",
+      "tags": ["physical_access_record"],
+      "createdAt": "2026-06-12T11:00:00.000Z",
+      "updatedAt": "2026-06-12T11:00:00.000Z"
+    },
+    {
+      "id": "art_a9b0c1d2",
+      "name": "Badge Access Authorization List.xlsx",
+      "tags": ["physical_access_authorization"],
+      "createdAt": "2026-06-01T08:00:00.000Z",
+      "updatedAt": "2026-06-01T08:00:00.000Z"
+    },
+    {
+      "id": "art_b0c1d2e3",
+      "name": "Personnel Screening Tracker.xlsx",
+      "tags": ["personnel_screening_record"],
+      "createdAt": "2026-05-28T09:00:00.000Z",
+      "updatedAt": "2026-05-28T09:00:00.000Z"
+    },
+    {
+      "id": "art_c1d2e3f4",
+      "name": "Security Awareness Training Completion Report.pdf",
+      "tags": ["training_completion_record", "training_content"],
+      "createdAt": "2026-06-13T10:00:00.000Z",
+      "updatedAt": "2026-06-13T10:00:00.000Z"
+    },
+    {
+      "id": "art_d2e3f4a5",
+      "name": "Least Privilege Review - Q1.xlsx",
+      "tags": ["role_permission_matrix", "access_review_record"],
+      "createdAt": "2026-04-15T09:00:00.000Z",
+      "updatedAt": "2026-04-15T09:00:00.000Z"
+    },
+    {
+      "id": "art_e3f4a5b6",
+      "name": "Remote Desktop Policy.pdf",
+      "tags": ["policy_document", "remote_access_configuration"],
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    },
+    {
+      "id": "art_f4a5b6c7",
+      "name": "Entra ID Password Policy Export.pdf",
+      "tags": ["password_policy_configuration", "account_lockout_configuration"],
+      "createdAt": "2026-06-06T09:30:00.000Z",
+      "updatedAt": "2026-06-06T09:30:00.000Z"
+    },
+    {
+      "id": "art_a5b6c7d8",
+      "name": "Screenshot - Unknown Admin Group.png",
+      "tags": [],
+      "createdAt": "2026-06-14T14:00:00.000Z",
+      "updatedAt": "2026-06-14T14:00:00.000Z"
+    },
+    {
+      "id": "art_b6c7d8e9",
+      "name": "Legacy Shared Drive Permissions.xlsx",
+      "tags": [],
+      "createdAt": "2026-06-14T14:30:00.000Z",
+      "updatedAt": "2026-06-14T14:30:00.000Z"
+    },
+    {
+      "id": "art_c7d8e9f0",
+      "name": "Old VPN Screenshot.png",
+      "tags": [],
+      "createdAt": "2026-06-14T15:00:00.000Z",
+      "updatedAt": "2026-06-14T15:00:00.000Z"
+    },
+    {
+      "id": "art_d8e9f0a1",
+      "name": "Misc Security Notes.docx",
+      "tags": [],
+      "createdAt": "2026-06-14T15:30:00.000Z",
+      "updatedAt": "2026-06-14T15:30:00.000Z"
+    }
+  ],
+  "environmentProfile": {
+    "businessOverview": "Nimbus Ridge Systems LLC is a defense subcontractor providing engineering support services to prime contractors on multiple DoD programs. CUI is received from the prime contractor via email and SharePoint, processed on government-program endpoints, and stored in SharePoint Online (GCC High).",
+    "environmentOverview": "Primary environment is Microsoft 365 GCC High. Endpoints are managed via Intune and Defender for Endpoint. Identity is centralized in Entra ID. Audit logging is handled by Microsoft Sentinel. On-premises presence is limited to a small server room at headquarters used for legacy file storage.",
+    "technologies": {
+      "identityProvider": ["Microsoft Entra ID"],
+      "endpointProtection": ["Microsoft Defender for Endpoint"],
+      "firewall": ["Palo Alto Networks"],
+      "vpn": ["Cisco AnyConnect"],
+      "vulnerabilityManagement": ["Microsoft Defender Vulnerability Management"],
+      "backupSolution": ["Veeam Backup & Replication"]
+    },
+    "esps": [
+      {
+        "name": "Microsoft Corporation",
+        "services": "Microsoft 365 GCC High — Exchange Online, SharePoint Online, Teams, Entra ID, Intune, Defender for Endpoint, Sentinel"
+      }
+    ],
+    "locationsAndCui": {
+      "physicalLocations": "Headquarters: Reston, VA (primary). Remote workforce across multiple states.",
+      "cuiStored": "SharePoint Online (GCC High), encrypted endpoint local storage (Intune-managed)",
+      "cuiProcessed": "Microsoft 365 GCC High applications, government-program endpoint workstations",
+      "cuiTransmitted": "Email via Exchange Online (GCC High), SharePoint sharing links (internal only)"
+    }
+  },
+  "controls": [
+    {
+      "id": "AC.L1-3.1.1",
+      "status": "In Progress",
+      "note": "Evidence collection underway for authorized user identification. User export obtained but account types are not fully differentiated between human users, service accounts, and shared accounts.",
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft Corporation — Entra ID provides the identity platform; Nimbus Ridge manages account provisioning and authorization.",
+      "objectiveNotes": {
+        "a": "User export identifies active users; however, export date and owner are not annotated on the artifact. Cannot confirm this represents the state at the time of assessment.",
+        "c": "Untagged screenshot shows an admin group with members whose authorization basis is not documented. Add evidence tags to this artifact to evaluate potential reuse in Artifact Map."
+      },
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "MET",
+        "c": "NOT MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_a1b2c3d4", "art_c3d4e5f6"],
+        "b": ["art_a1b2c3d4", "art_d4e5f6a7"],
+        "c": ["art_a5b6c7d8"]
+      },
+      "objectiveResults": {
+        "a": {
+          "interviews": "IT administrator confirmed the account inventory process and stated accounts are reviewed quarterly.",
+          "examine": "Entra User Export reviewed. Shows active users with account type and department columns.",
+          "test": "",
+          "overallComments": "Export date is missing from the artifact. Annotate with export date before finalizing."
+        },
+        "b": {
+          "interviews": "HR coordinator confirmed onboarding triggers account provisioning request to IT.",
+          "examine": "Account Provisioning SOP reviewed. Describes account creation workflow but does not address account disabling after termination.",
+          "test": "",
+          "overallComments": "Procedure describes account creation but does not clearly address account disabling after separation."
+        }
+      }
+    },
+    {
+      "id": "AC.L1-3.1.2",
+      "status": "In Progress",
+      "note": "RBAC structure partially documented. Role permission matrix shows defined roles, but some accounts appear to exceed minimum necessary access. Remediation tracking for over-provisioned accounts is not evident.",
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "objectiveNotes": {
+        "b": "Least privilege review identifies several accounts with permissions broader than their role requires. No remediation tracking or corrective action plan is included with the artifact."
+      },
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "NOT MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_b2c3d4e5", "art_c3d4e5f6"],
+        "b": ["art_b2c3d4e5", "art_d2e3f4a5"]
+      },
+      "objectiveResults": {
+        "b": {
+          "interviews": "",
+          "examine": "Least Privilege Review reviewed. Several accounts identified with excess permissions. No disposition column or remediation date.",
+          "test": "",
+          "overallComments": "Artifact identifies the issue but does not demonstrate corrective action was taken or tracked."
+        }
+      }
+    },
+    {
+      "id": "AC.L2-3.1.5",
+      "status": "In Progress",
+      "note": "Least privilege partially implemented for identity and endpoint controls. Shared drive access is not consistently scoped to minimum necessary.",
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "objectiveNotes": {
+        "b": "Legacy shared drive permissions artifact is untagged. Artifact appears to show broad read access across multiple departments without documented justification. Add evidence tags to evaluate reuse opportunities."
+      },
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "NOT MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_b2c3d4e5", "art_d2e3f4a5"],
+        "b": ["art_b6c7d8e9"]
+      },
+      "objectiveResults": {
+        "b": {
+          "interviews": "",
+          "examine": "Legacy Shared Drive Permissions reviewed. Permissions appear broadly granted across department groups without function-based scoping.",
+          "test": "",
+          "overallComments": "Shared drive permissions are not scoped to minimum necessary. Remediation plan needed."
+        }
+      }
+    },
+    {
+      "id": "AC.L2-3.1.7",
+      "status": "In Progress",
+      "note": "Privileged remote access controls are partially documented. Primary remote access paths require MFA. Legacy remote access configuration requires clarification.",
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "objectiveNotes": {
+        "c": "No artifact yet provided for privileged remote access session monitoring. Confirm whether Sentinel or Defender logs capture remote sessions initiated under privileged accounts."
+      },
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_b2c3d4e5"],
+        "b": ["art_e3f4a5b6", "art_e7f8a9b0"]
+      },
+      "objectiveResults": {
+        "a": {
+          "interviews": "IT administrator confirmed privileged accounts are reviewed as part of the quarterly role review process.",
+          "examine": "Privileged Role Review reviewed. Documents admin and service account inventory.",
+          "test": "",
+          "overallComments": ""
+        }
+      }
+    },
+    {
+      "id": "IA.L1-3.5.1",
+      "status": "MET",
+      "note": "Identification controls supported by Entra ID. User and device identity is managed through a centralized IdP. Account provisioning procedures are documented.",
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft Corporation — Entra ID provides the identity platform.",
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "MET",
+        "c": "MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_a1b2c3d4"],
+        "b": ["art_a1b2c3d4", "art_d4e5f6a7"],
+        "c": ["art_c3d4e5f6"]
+      },
+      "objectiveResults": {
+        "a": {
+          "interviews": "IT administrator confirmed all users are provisioned through Entra ID and are assigned unique identifiers.",
+          "examine": "Entra User Export confirms unique user identifiers for all active accounts.",
+          "test": "",
+          "overallComments": "Identification is centralized and consistently applied."
+        }
+      }
+    },
+    {
+      "id": "IA.L1-3.5.2",
+      "status": "In Progress",
+      "note": "MFA is enforced for most user accounts via Conditional Access. Scope of MFA enforcement for guest, shared, and service accounts requires clarification.",
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft Corporation — Entra ID Conditional Access enforces MFA for covered accounts.",
+      "objectiveNotes": {
+        "b": "MFA Conditional Access Export shows the policy exists, but the scope of included users is unclear. Guest accounts and service accounts may be excluded from MFA enforcement.",
+        "c": "Account lockout configuration has not yet been reviewed. Password policy artifact does not address lockout threshold or duration."
+      },
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "NOT MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_e5f6a7b8", "art_f4a5b6c7"],
+        "b": ["art_e5f6a7b8"]
+      },
+      "objectiveResults": {
+        "b": {
+          "interviews": "IT administrator stated MFA is required for all users, but acknowledged guest access policies have not been formally reviewed.",
+          "examine": "MFA Conditional Access Export reviewed. Policy assignment scope does not explicitly exclude or include guest accounts.",
+          "test": "",
+          "overallComments": "Evidence shows MFA policy exists, but scope of included users is unclear. Supplemental evidence needed for guest and service account MFA enforcement."
+        }
+      }
+    },
+    {
+      "id": "IA.L2-3.5.3",
+      "status": "In Progress",
+      "note": "MFA is enforced for primary remote access paths (VPN, RDP via Conditional Access). Legacy VPN configuration may not require MFA and requires clarification.",
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "objectiveNotes": {
+        "c": "Old VPN screenshot is untagged. Artifact appears to show a legacy remote access configuration. Current MFA enforcement status of this legacy path is unclear. Add evidence tags to evaluate reuse opportunities."
+      },
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "MET",
+        "c": "NOT MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_e5f6a7b8"],
+        "b": ["art_e7f8a9b0", "art_e3f4a5b6"],
+        "c": ["art_c7d8e9f0"]
+      },
+      "objectiveResults": {
+        "b": {
+          "interviews": "IT administrator confirmed Cisco AnyConnect VPN requires Entra ID MFA before session establishment.",
+          "examine": "VPN Configuration Screenshot and Remote Desktop Policy reviewed.",
+          "test": "",
+          "overallComments": "Primary remote access paths appear to enforce MFA. Legacy configuration requires follow-up."
+        }
+      }
+    },
+    {
+      "id": "AU.L2-3.3.1",
+      "status": "In Progress",
+      "note": "Microsoft Sentinel configured for audit logging. Retention period and event scope documentation are incomplete.",
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft Corporation — Sentinel and Microsoft 365 audit logging provide the underlying log collection platform.",
+      "objectiveNotes": {
+        "c": "Sentinel Audit Log Configuration artifact does not show the retention period setting. Confirm Sentinel workspace retention is set to at least 90 days.",
+        "d": "Event types logged have not been fully enumerated. Provide Sentinel data connector list and logging scope documentation to confirm required event types are captured."
+      },
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "MET",
+        "c": "NOT MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_f6a7b8c9"],
+        "b": ["art_a7b8c9d0", "art_b8c9d0e1"],
+        "c": ["art_f6a7b8c9"]
+      },
+      "objectiveResults": {
+        "a": {
+          "interviews": "IT administrator confirmed Sentinel is deployed and ingesting logs from Entra ID, Defender, and Exchange Online.",
+          "examine": "Sentinel Audit Log Configuration reviewed. Shows workspace is active and data connectors are enabled.",
+          "test": "",
+          "overallComments": "Audit logging appears configured, but retention period is not visible in the artifact provided."
+        },
+        "b": {
+          "interviews": "Security analyst confirmed weekly log review cadence but could not provide written procedures for the review process.",
+          "examine": "Audit Log Review Evidence and Sentinel Failed Login Query Results reviewed.",
+          "test": "",
+          "overallComments": "Log review record shows review activity, but does not identify review frequency or reviewer role in writing."
+        }
+      }
+    },
+    {
+      "id": "AU.L2-3.3.3",
+      "status": "In Progress",
+      "note": "Audit log review is performed using Sentinel. Review frequency and criteria are not consistently documented.",
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "objectiveNotes": {
+        "b": "Audit Log Review Evidence shows review activity occurred but does not document the review frequency, the reviewer role, or criteria used to determine when escalation is required."
+      },
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "NOT MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_f6a7b8c9", "art_b8c9d0e1"],
+        "b": ["art_b8c9d0e1"]
+      },
+      "objectiveResults": {
+        "b": {
+          "interviews": "",
+          "examine": "Audit Log Review Evidence reviewed. Shows review dates but no documented frequency or escalation threshold.",
+          "test": "",
+          "overallComments": "Evidence of log review exists but is insufficient to demonstrate a defined, repeatable review process."
+        }
+      }
+    },
+    {
+      "id": "CM.L2-3.4.1",
+      "status": "NOT MET",
+      "note": "Configuration baselines exist for Windows 11 endpoints. Formal approval, version control, and traceability between the baseline and Intune compliance policy are not established.",
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft Corporation — Intune enforces endpoint compliance policies on managed devices.",
+      "objectiveNotes": {
+        "a": "Configuration baseline artifact exists but approval date and authorized baseline owner are not evident. The baseline cannot be confirmed as authoritative without these elements.",
+        "b": "Intune Compliance Policy Export does not reference the Windows 11 baseline document. Policy settings may not enforce all baseline requirements; traceability is not established."
+      },
+      "objectiveStatuses": {
+        "a": "NOT MET",
+        "b": "NOT MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_c9d0e1f2"],
+        "b": ["art_d0e1f2a3"]
+      },
+      "objectiveResults": {
+        "a": {
+          "interviews": "IT administrator confirmed the baseline exists but acknowledged it has not been formally reviewed or approved since initial deployment.",
+          "examine": "Configuration Baseline - Windows 11 reviewed. Contains settings but no version, approval date, or owner field.",
+          "test": "",
+          "overallComments": "Baseline artifact exists, but approval date and authorized baseline owner are not evident."
+        },
+        "b": {
+          "interviews": "",
+          "examine": "Intune Compliance Policy Export reviewed. Policy does not reference the Windows 11 baseline by name or version.",
+          "test": "",
+          "overallComments": "Traceability between the documented baseline and the enforced policy is not established."
+        }
+      }
+    },
+    {
+      "id": "CM.L2-3.4.2",
+      "status": "In Progress",
+      "note": "Security configurations are partially enforced through Intune. Patch remediation tracking for non-compliant endpoints is not demonstrated.",
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "objectiveNotes": {
+        "b": "Patch compliance report shows patch deployment status by device but does not include remediation tracking for devices with failed or pending patches beyond the initial scan."
+      },
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "NOT MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_c9d0e1f2", "art_d0e1f2a3"],
+        "b": ["art_c5d6e7f8"]
+      },
+      "objectiveResults": {
+        "b": {
+          "interviews": "IT administrator stated patching is managed through Intune and overdue patches are addressed within 30 days.",
+          "examine": "Patch Compliance Export reviewed. Shows deployment status but no remediation tracking column for failed endpoints.",
+          "test": "",
+          "overallComments": "Patch report shows deployment status but does not include remediation tracking for failed endpoints."
+        }
+      }
+    },
+    {
+      "id": "IR.L2-3.6.1",
+      "status": "In Progress",
+      "note": "Incident Response Plan is present and a tabletop exercise was conducted. Participation evidence and external reporting procedures require additional documentation.",
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "objectiveNotes": {
+        "c": "Incident tabletop exercise notes do not include a participation roster or list of attendees. Evidence does not demonstrate that all required roles participated in the exercise.",
+        "d": "No evidence of incident reporting procedures to external parties (e.g., DoD, prime contractor) has been provided. The Incident Response Plan references external reporting but does not specify reporting chains or required timeframes."
+      },
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "MET",
+        "c": "NOT MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_e1f2a3b4"],
+        "b": ["art_e1f2a3b4"],
+        "c": ["art_f2a3b4c5"]
+      },
+      "objectiveResults": {
+        "a": {
+          "interviews": "ISSO confirmed the Incident Response Plan is reviewed annually and was last updated in Q1 2026.",
+          "examine": "Incident Response Plan reviewed. Describes roles, responsibilities, and response procedures.",
+          "test": "",
+          "overallComments": ""
+        },
+        "c": {
+          "interviews": "IT manager stated tabletop exercise was attended by IT, ISSO, and management, but no sign-in sheet was used.",
+          "examine": "Incident Tabletop Exercise Notes reviewed. Notes do not include participant list.",
+          "test": "",
+          "overallComments": "Incident response plan exists, but tabletop evidence does not show participation roster."
+        }
+      }
+    },
+    {
+      "id": "RA.L2-3.11.1",
+      "status": "NOT MET",
+      "note": "Risk assessment was conducted in 2026. Risk treatment decisions are incomplete; several identified risks lack a documented remediation or acceptance decision.",
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "objectiveNotes": {
+        "b": "Risk Assessment 2026 is present, but risk treatment decisions are not consistently documented. Several identified risks show no corresponding remediation plan, risk acceptance, or disposition date."
+      },
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "NOT MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_a3b4c5d6"],
+        "b": ["art_a3b4c5d6", "art_b4c5d6e7"]
+      },
+      "objectiveResults": {
+        "b": {
+          "interviews": "ISSO acknowledged that risk treatment documentation is a known gap and is currently being addressed.",
+          "examine": "Risk Assessment 2026 reviewed. Risk register present but disposition column is blank for approximately 40% of identified risks.",
+          "test": "",
+          "overallComments": "Risk assessment report is present, but risk treatment decisions are not consistently documented."
+        }
+      }
+    },
+    {
+      "id": "SI.L1-3.14.2",
+      "status": "In Progress",
+      "note": "Malware protection is provided by Microsoft Defender for Endpoint. Patch compliance report does not demonstrate timely remediation of all flagged items.",
+      "inheritance": "Partial",
+      "inheritanceSource": "Microsoft Corporation — Defender for Endpoint provides malware protection on managed endpoints.",
+      "objectiveNotes": {
+        "b": "Vulnerability scan and patch compliance report both show outstanding items. Remediation of malicious code indicators within required timeframes is not consistently demonstrated."
+      },
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "NOT MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_e1f2a3b4"],
+        "b": ["art_c5d6e7f8", "art_b4c5d6e7"]
+      },
+      "objectiveResults": {
+        "b": {
+          "interviews": "IT administrator confirmed Defender alerts are reviewed in Sentinel, but acknowledged remediation SLAs are not formally documented.",
+          "examine": "Patch Compliance Export and Vulnerability Scan Report reviewed.",
+          "test": "",
+          "overallComments": "Patch report shows deployment status but does not demonstrate remediation tracking for flagged endpoints within required timeframes."
+        }
+      }
+    },
+    {
+      "id": "SC.L1-3.13.1",
+      "status": "In Progress",
+      "note": "Boundary protection is implemented through perimeter firewall and VPN. A current network boundary diagram has not been provided.",
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "objectiveNotes": {
+        "c": "No current network boundary diagram has been provided. Boundary protection configuration cannot be fully assessed without a diagram showing system boundaries, connections, and external interfaces."
+      },
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_d6e7f8a9"],
+        "b": ["art_d6e7f8a9", "art_e7f8a9b0"]
+      },
+      "objectiveResults": {
+        "a": {
+          "interviews": "Network engineer confirmed firewall is managed by the network team and rules are reviewed semi-annually.",
+          "examine": "Firewall Rules Export reviewed. Shows inbound and outbound rules with deny-all default posture.",
+          "test": "",
+          "overallComments": ""
+        }
+      }
+    },
+    {
+      "id": "PE.L1-3.10.1",
+      "status": "In Progress",
+      "note": "Physical access to the facility is controlled by badge readers. Visitor access log exists, but escort validation is not demonstrated.",
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "objectiveNotes": {
+        "b": "Visitor Access Log shows visitor entries but does not record escort identity or confirm an escort was present throughout the visit. Escort validation is not evident from the sample provided."
+      },
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "NOT MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_a9b0c1d2"],
+        "b": ["art_f8a9b0c1"]
+      },
+      "objectiveResults": {
+        "b": {
+          "interviews": "Facilities manager stated escorts are required for all visitors but acknowledged no formal sign-in procedure captures the escort name.",
+          "examine": "Visitor Access Log reviewed. Columns include visitor name, date, purpose, and badge number — no escort column.",
+          "test": "",
+          "overallComments": "Physical access log exists, but visitor escort validation is not evident from the sample."
+        }
+      }
+    },
+    {
+      "id": "PS.L2-3.9.2",
+      "status": "In Progress",
+      "note": "Personnel screening is tracked for all employees with CUI access. Adjudication evidence and final suitability determination records are not included in the artifact.",
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "objectiveNotes": {
+        "b": "Personnel Screening Tracker shows completed background checks but does not include adjudication evidence or a final suitability determination record for each individual."
+      },
+      "objectiveStatuses": {
+        "a": "MET",
+        "b": "NOT MET"
+      },
+      "objectiveArtifacts": {
+        "a": ["art_b0c1d2e3"],
+        "b": ["art_b0c1d2e3"]
+      },
+      "objectiveResults": {
+        "b": {
+          "interviews": "HR director confirmed background checks are completed prior to CUI access, but adjudication letters are not systematically retained.",
+          "examine": "Personnel Screening Tracker reviewed. Shows check completion date and vendor used. No adjudication outcome column.",
+          "test": "",
+          "overallComments": "Personnel screening tracker shows completed checks, but adjudication evidence is not included."
+        }
+      }
+    },
+    {
+      "id": "AT.L2-3.2.1",
+      "status": "Not Started",
+      "note": "Security awareness training completion evidence collection initiated. Content coverage and frequency review has not yet been performed.",
+      "inheritance": "None",
+      "inheritanceSource": "",
+      "objectiveNotes": {
+        "a": "Training completion report obtained. Review of content coverage scope and training frequency has not yet been performed. Confirm whether training content addresses CUI handling, phishing, and insider threat topics."
+      },
+      "objectiveArtifacts": {
+        "a": ["art_c1d2e3f4"],
+        "b": ["art_d8e9f0a1"]
+      }
+    }
+  ]
+}

@@ -1,206 +1,215 @@
 /**
- * Evidence Reuse Recommendations
+ * Evidence Reuse Recommendations (Phase 2 — compound scoring)
  *
- * Suggests existing objective-level artifacts from related controls that may be
- * reusable for the current objective. No AI, no semantic matching, no filename
- * heuristics — purely relationship-graph + artifact-usage data.
+ * Suggests existing tagged artifacts that may be reusable for a target objective.
+ * No AI, no embeddings, no filename heuristics — controlled evidence-tag metadata
+ * plus deterministic compound scoring (see scoreArtifactForObjective).
  *
- * Relationships are treated bidirectionally: if A → B or B → A, both controls
- * are candidates. Only evidence_reuse relationships are included;
- * interview_reuse, demonstration_reuse, reference, and missing
- * assessmentCategory are all excluded.
+ * Discovery is POOL-BASED, not relationship-gated: every tagged artifact in the
+ * registry is a potential candidate and is scored against the target objective's
+ * expected-evidence profile. Relationship / mapping proximity (same control,
+ * directly related control, same family) is a *scoring signal*, never a gate.
  *
- * Results are ranked by a 4-factor score:
- *   relationship confidence (0.40) + objective evidence confidence (0.30)
- *   + evidence class (0.20) + relationship type (0.10)
+ * This is the Phase-2 fix for the rediscovery bug: an artifact removed from the
+ * target objective re-enters the candidate pool immediately (it is excluded only
+ * while *currently* assigned to the exact target objective), and strong tag
+ * alignment alone is enough to resurface it even with no current mapping.
  */
 
 import relationships from '../data/relationships/index.js'
 import { readObjectiveArtifacts } from './objectiveArtifacts.js'
+import { buildArtifactIndex } from './artifactIndex.js'
+import { listArtifacts } from './artifactRegistry.js'
 import {
-  getObjectiveExpectedTagIds,
-  getArtifactTagIdsByName,
-  classifyReuseOpportunity,
+  buildArtifactEvidenceProfile,
+  buildObjectiveEvidenceProfile,
+  buildAssessmentGuideProfile,
+  scoreArtifactForObjective,
+  summarizeReuseScore,
+  STRONG_CAP,
+  RELATED_CAP,
 } from './evidenceTagMatch.js'
 
-function _relConfScore(c) {
-  if (c === 'high') return 100
-  if (c === 'medium') return 65
-  if (c === 'low') return 30
-  return 0
-}
+const EMPTY_TIERED_RESULT = () => ({
+  strong: [],
+  related: [],
+  excluded: { untaggedCount: 0, broadCount: 0, alreadyAssignedCount: 0, cappedCount: 0 },
+})
 
-function _objEvidConfScore(c) {
-  if (c === 'high') return 100
-  if (c === 'medium') return 60
-  if (c === 'low') return 30
-  return 0
-}
-
-function _evidClassScore(ec) {
-  if (ec === 'artifact') return 100
-  if (ec === 'mixed') return 60
-  return 0
-}
-
-function _relTypeScore(t) {
-  if (t === 'prerequisite') return 100
-  if (t === 'supports' || t === 'supported-by') return 80
-  return 50
-}
-
-function _computeScore(relMeta, relObj) {
-  return (
-    _relConfScore(relMeta.confidence) * 0.40 +
-    _objEvidConfScore(relObj.evidenceConfidence) * 0.30 +
-    _evidClassScore(relObj.evidenceClass) * 0.20 +
-    _relTypeScore(relMeta.relationshipType) * 0.10
-  )
-}
-
-// Returns a copy of a candidate without the internal scoring fields used only
-// for ranking. The public `tagAlignment`/`rationale` fields are preserved.
-function _stripInternalSuggestionFields(candidate) {
-  const result = { ...candidate }
-  delete result._score
-  delete result._relConf
-  delete result._objEvidConf
-  return result
+// Deterministic ordering within a tier: score desc, then primary-match count,
+// then artifact name for stability.
+function _byScore(a, b) {
+  if (b.score !== a.score) return b.score - a.score
+  if (b.matchedPrimaryTags.length !== a.matchedPrimaryTags.length) {
+    return b.matchedPrimaryTags.length - a.matchedPrimaryTags.length
+  }
+  return a.artifact.toLowerCase().localeCompare(b.artifact.toLowerCase())
 }
 
 /**
- * Returns up to `limit` artifact suggestions for a single objective, ranked
- * by the 4-factor scoring model.
+ * Returns tiered, compound-scored artifact reuse suggestions for one objective.
  *
  * @param {{
- *   control:     { id: string, objectives?: Array<{ id: string, text?: string }> },
- *   objective:   { id: string },
- *   allControls: Array<{ id: string, objectives?: Array<{ id: string, text?: string }> }>,
- *   limit?:      number,
+ *   control:     { id: string, family?: string, objectives?: Array<object> },
+ *   objective:   { id: string, expectedTags?: object },
+ *   allControls: Array<{ id: string, family?: string, title?: string, objectives?: Array<object> }>,
+ *   limit?:      number,   // per-tier cap
  * }} params
  *
- * @returns {Array<{
- *   artifact:            string,
- *   sourceControlId:     string,
- *   sourceControlTitle:  string,
- *   sourceObjectiveId:   string,
- *   sourceObjectiveText: string,
- *   rationale:           string,
- *   tagAlignment:        { tier: number, kind: string, label: string,
- *                          overlap: { primary: string[], acceptable: string[], all: string[] } },
- * }>}
+ * @returns {{
+ *   strong:  Candidate[],
+ *   related: Candidate[],
+ *   excluded: { untaggedCount: number, broadCount: number, alreadyAssignedCount: number },
+ * }}
  *
- * Candidate discovery is unchanged (relationship-gated, evidence_reuse only).
- * Each candidate is additionally classified by how its controlled evidence tags
- * align with the TARGET objective's expectedTags, and results are ordered by
- * tag-aware tier first (lower = stronger alignment) then by the existing score.
- * No tag-only candidates are added and none are suppressed for lacking overlap.
+ * where Candidate = {
+ *   artifact, tier: 'strong'|'related', score, reason, reasons[], penalties[],
+ *   matchedPrimaryTags[], matchedAcceptableTags[], matchedCategoryTags[], matchedTags[],
+ *   sourceControlId, sourceControlTitle, sourceObjectiveId, sourceObjectiveText, rationale,
+ *   tagAlignment,   // back-compat shape consumed by existing chip rendering
+ * }
  */
 export function getObjectiveArtifactSuggestions({
   control,
   objective,
   allControls,
-  limit = 5,
+  limit = 50,
 }) {
-  // --- 1. Related control IDs + relationship metadata (bidirectional, evidence_reuse only) ---
-  const relMetaMap = new Map() // relatedId → { rationale, confidence, relationshipType }
+  const result = EMPTY_TIERED_RESULT()
+  if (!control || !objective) return result
+
+  const objectiveProfile = buildObjectiveEvidenceProfile(objective)
+  const guideProfile = buildAssessmentGuideProfile(control.id)
+
+  // --- Related control ids (evidence_reuse, bidirectional) — context signal only ---
+  const relatedControlIds = new Set()
+  const relRationaleByControl = new Map()
   for (const rel of relationships) {
     if (rel.assessmentCategory && rel.assessmentCategory !== 'evidence_reuse') continue
     const rationale = rel.assessorRationale || rel.reasoning || ''
-    if (rel.sourceControl === control.id && !relMetaMap.has(rel.targetControl)) {
-      relMetaMap.set(rel.targetControl, { rationale, confidence: rel.confidence, relationshipType: rel.relationshipType })
+    if (rel.sourceControl === control.id) {
+      relatedControlIds.add(rel.targetControl)
+      if (!relRationaleByControl.has(rel.targetControl)) relRationaleByControl.set(rel.targetControl, rationale)
     }
-    if (rel.targetControl === control.id && !relMetaMap.has(rel.sourceControl)) {
-      relMetaMap.set(rel.sourceControl, { rationale, confidence: rel.confidence, relationshipType: rel.relationshipType })
+    if (rel.targetControl === control.id) {
+      relatedControlIds.add(rel.sourceControl)
+      if (!relRationaleByControl.has(rel.sourceControl)) relRationaleByControl.set(rel.sourceControl, rationale)
     }
   }
-  relMetaMap.delete(control.id)
+  relatedControlIds.delete(control.id)
 
-  if (relMetaMap.size === 0) return []
+  // --- Family lookup + current mappings index ---
+  const familyById = new Map(allControls.map((c) => [c.id, c.family]))
+  const targetFamily = control.family
 
-  // --- 2. Already-assigned artifacts on the current objective (lowercase) ---
-  const alreadyAssigned = new Set(
+  const usageByName = new Map()
+  for (const entry of buildArtifactIndex(allControls)) {
+    usageByName.set(entry.artifact.toLowerCase(), entry.usages)
+  }
+
+  // --- Currently-assigned artifacts on the EXACT target objective (excluded) ---
+  const assignedHere = new Set(
     readObjectiveArtifacts(control.id, objective.id).map((a) => a.toLowerCase())
   )
 
-  // --- 3. Collect all candidate (artifact, source-objective) pairs with scores ---
-  // seen: lowercase artifact name → best score so far (keeps highest-scored source)
-  const seenKey = new Map()    // artifact key → index in candidates[]
-  const candidates = []
+  // --- Score every registry artifact against the target objective ---
+  for (const rec of listArtifacts()) {
+    const name = typeof rec.name === 'string' ? rec.name.trim() : ''
+    if (!name) continue
+    const key = name.toLowerCase()
+    const tags = Array.isArray(rec.tags) ? rec.tags.filter((t) => typeof t === 'string' && t) : []
 
-  for (const related of allControls) {
-    if (!relMetaMap.has(related.id)) continue
-    if (!Array.isArray(related.objectives)) continue
-    const relMeta = relMetaMap.get(related.id)
+    const usages = usageByName.get(key) ?? []
 
-    for (const relObj of related.objectives) {
-      const ec = relObj.evidenceClass
-      if (ec !== 'artifact' && ec !== 'mixed') continue
-
-      const score = _computeScore(relMeta, relObj)
-      const artifacts = readObjectiveArtifacts(related.id, relObj.id)
-
-      for (const raw of artifacts) {
-        const name = raw.trim()
-        if (!name) continue
-        const key = name.toLowerCase()
-        if (alreadyAssigned.has(key)) continue
-
-        if (seenKey.has(key)) {
-          // Keep the highest-scored source for this artifact
-          const idx = seenKey.get(key)
-          if (score > candidates[idx]._score) {
-            candidates[idx] = {
-              artifact: name,
-              sourceControlId: related.id,
-              sourceControlTitle: related.title ?? '',
-              sourceObjectiveId: relObj.id,
-              sourceObjectiveText: relObj.text ?? '',
-              rationale: relMeta.rationale,
-              _score: score,
-              _relConf: _relConfScore(relMeta.confidence),
-              _objEvidConf: _objEvidConfScore(relObj.evidenceConfidence),
-            }
-          }
-        } else {
-          seenKey.set(key, candidates.length)
-          candidates.push({
-            artifact: name,
-            sourceControlId: related.id,
-            sourceControlTitle: related.title ?? '',
-            sourceObjectiveId: relObj.id,
-            sourceObjectiveText: relObj.text ?? '',
-            rationale: relMeta.rationale,
-            _score: score,
-            _relConf: _relConfScore(relMeta.confidence),
-            _objEvidConf: _objEvidConfScore(relObj.evidenceConfidence),
-          })
-        }
+    // Proximity context from CURRENT mappings (recomputed from live state).
+    let sameControl = false
+    let directRelationship = false
+    let sameFamily = false
+    let relatedSource = null
+    let familySource = null
+    let anySource = null
+    for (const u of usages) {
+      if (!anySource) anySource = u
+      if (u.controlId === control.id) {
+        if (u.objectiveId === null || u.objectiveId !== objective.id) sameControl = true
+        continue
       }
+      if (relatedControlIds.has(u.controlId)) { directRelationship = true; if (!relatedSource) relatedSource = u }
+      if (familyById.get(u.controlId) === targetFamily) { sameFamily = true; if (!familySource) familySource = u }
     }
-  }
+    const hasConnection = sameControl || directRelationship || sameFamily
 
-  // --- 4. Tag-aware classification against the TARGET objective's expectedTags.
-  // Read-only: explains and orders existing candidates; adds/suppresses none. ---
-  const expectedTags = getObjectiveExpectedTagIds(objective)
-  for (const c of candidates) {
-    c.tagAlignment = classifyReuseOpportunity({
-      artifactTagIds: getArtifactTagIdsByName(c.artifact),
-      expectedTags,
+    // Currently assigned to the exact target objective → excluded (counted), never suggested.
+    if (assignedHere.has(key)) {
+      result.excluded.alreadyAssignedCount += 1
+      continue
+    }
+
+    // Untagged → never eligible. Counted only when it is connected to the target
+    // (a real, in-play artifact), to avoid inflating the count with the whole library.
+    if (tags.length === 0) {
+      if (hasConnection) result.excluded.untaggedCount += 1
+      continue
+    }
+
+    const artifactProfile = buildArtifactEvidenceProfile(tags)
+    const scored = scoreArtifactForObjective(artifactProfile, objectiveProfile, {
+      sameControl, directRelationship, sameFamily, guideProfile,
     })
+
+    if (scored.tier === 'hidden') {
+      // Near-miss (some alignment) or relationship-only connected artifact → broad.
+      // Tagged-but-unrelated-and-unaligned artifacts are not candidates at all.
+      if (scored.relevantMatchCount > 0 || hasConnection) result.excluded.broadCount += 1
+      continue
+    }
+
+    const src = relatedSource ?? familySource ?? anySource
+    const matchedTags = [...scored.matchedPrimaryTags, ...scored.matchedAcceptableTags]
+    const candidate = {
+      artifact: name,
+      tier: scored.tier,
+      score: scored.score,
+      reason: summarizeReuseScore(scored),
+      reasons: scored.reasons,
+      penalties: scored.penalties,
+      matchedPrimaryTags: scored.matchedPrimaryTags,
+      matchedAcceptableTags: scored.matchedAcceptableTags,
+      matchedCategoryTags: scored.matchedCategoryTags,
+      matchedGuideObjects: scored.matchedGuideObjects,
+      matchedTags,
+      sourceControlId: src?.controlId ?? '',
+      sourceControlTitle: src?.controlTitle ?? '',
+      sourceObjectiveId: src?.objectiveId ?? '',
+      sourceObjectiveText: src?.objectiveText ?? '',
+      rationale: (src && relatedControlIds.has(src.controlId))
+        ? (relRationaleByControl.get(src.controlId) ?? '')
+        : '',
+      // Back-compat shape so existing matched-tag chip rendering keeps working.
+      tagAlignment: {
+        overlap: {
+          primary: scored.matchedPrimaryTags,
+          acceptable: scored.matchedAcceptableTags,
+          all: matchedTags,
+        },
+      },
+    }
+
+    if (scored.tier === 'strong') result.strong.push(candidate)
+    else result.related.push(candidate)
   }
 
-  // --- 5. Sort (tag tier asc → existing score desc → existing tie-breakers)
-  // and return top `limit` (strip internal scoring fields). ---
-  candidates.sort((a, b) => {
-    if (a.tagAlignment.tier !== b.tagAlignment.tier) return a.tagAlignment.tier - b.tagAlignment.tier
-    if (b._score !== a._score) return b._score - a._score
-    if (b._relConf !== a._relConf) return b._relConf - a._relConf
-    if (b._objEvidConf !== a._objEvidConf) return b._objEvidConf - a._objEvidConf
-    const cmp = a.sourceControlId.localeCompare(b.sourceControlId)
-    if (cmp !== 0) return cmp
-    return a.sourceObjectiveId.localeCompare(b.sourceObjectiveId)
-  })
+  result.strong.sort(_byScore)
+  result.related.sort(_byScore)
 
-  return candidates.slice(0, limit).map(_stripInternalSuggestionFields)
+  // Visible caps — Suggested Artifacts is an elite, focused list. Candidates above
+  // the cap are still eligible (and ranked) but hidden to keep the list useful.
+  const strongCap = Math.min(STRONG_CAP, limit)
+  const relatedCap = Math.min(RELATED_CAP, limit)
+  result.excluded.cappedCount =
+    Math.max(0, result.strong.length - strongCap) +
+    Math.max(0, result.related.length - relatedCap)
+  result.strong = result.strong.slice(0, strongCap)
+  result.related = result.related.slice(0, relatedCap)
+  return result
 }

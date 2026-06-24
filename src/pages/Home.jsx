@@ -12,12 +12,13 @@ import {
   exportProjectState,
   importProjectState,
   downloadProjectJson,
+  wipeProjectState,
   DEFAULT_IMPORT_OPTIONS,
   SCHEMA_VERSION,
   ACCEPTED_SCHEMA_VERSIONS,
 } from '../utils/projectState'
 import { readExportMeta, writeExportMeta, buildExportFilename, readLastBackup, writeLastBackup, formatLastBackup } from '../utils/exportMeta'
-import { buildAssessmentWorkbook, downloadWorkbook } from '../utils/exportXlsx'
+import { buildCmmcTemplateWorkbook, downloadCmmcTemplate, formatWarningSummary } from '../utils/exportCmmcTemplate'
 import { THEME_LIGHT, THEME_DARK, readTheme, writeTheme, applyTheme } from '../utils/theme'
 import { APP_VERSION, APP_DEPLOYMENT } from '../utils/version'
 import { listArtifacts } from '../utils/artifactRegistry'
@@ -141,15 +142,6 @@ function searchRelationships(term) {
 }
 
 // =========================================================================
-// XLSX export handler
-// =========================================================================
-
-async function handleXlsxExport(filename) {
-  const wb = buildAssessmentWorkbook(controls)
-  await downloadWorkbook(wb, filename)
-}
-
-// =========================================================================
 // CSV import helpers
 // =========================================================================
 
@@ -217,8 +209,13 @@ function Home() {
   const [searchTerm, setSearchTerm] = useState('')
   // exportDialog: null (closed) | { mode: 'xlsx'|'json', osc: string, assessment: string }
   const [exportDialog, setExportDialog] = useState(null)
+  const [xlsxResult, setXlsxResult] = useState(null)
   const [pendingJsonImport, setPendingJsonImport] = useState(null)
   const [importOptions, setImportOptions] = useState(DEFAULT_IMPORT_OPTIONS)
+  // wipeStage: null | 'confirm1' | 'confirm2'
+  const [wipeStage, setWipeStage] = useState(null)
+  const [wipeInput, setWipeInput] = useState('')
+  const [wipeSuccess, setWipeSuccess] = useState(false)
   const [lastBackup, setLastBackup] = useState(() => readLastBackup())
   const [theme, setTheme] = useState(() => readTheme())
   const [sourceLimit, setSourceLimit] = useState('5')
@@ -332,12 +329,32 @@ function Home() {
   // Export handlers
   // -----------------------------------------------------------------------
 
-  const confirmExport = () => {
+  const confirmExport = async () => {
     const { mode, osc, assessment } = exportDialog
     writeExportMeta(osc, assessment)
+    closeExportDialog()
+
     if (mode === 'xlsx') {
-      const filename = buildExportFilename(osc, assessment, 'ConsultingReport', 'xlsx')
-      handleXlsxExport(filename)
+      setXlsxResult(null)
+      try {
+        const res = await fetch('/templates/CMMC_Level2_AssessmentResults_Template.xlsx')
+        if (!res.ok) throw new Error(`Failed to fetch bundled template (HTTP ${res.status}).`)
+        const buffer = await res.arrayBuffer()
+        const { workbook, warnings } = await buildCmmcTemplateWorkbook(buffer, controls)
+        const sanitize = (s) => (s ?? '').trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '_')
+        const parts = ['CMMC_Companion']
+        const cleanOsc = sanitize(osc)
+        const cleanAssessment = sanitize(assessment)
+        if (cleanOsc) parts.push(cleanOsc)
+        if (cleanAssessment) parts.push(cleanAssessment)
+        parts.push('Assessment_Results')
+        const filename = parts.join('_') + '.xlsx'
+        await downloadCmmcTemplate(workbook, filename)
+        const summary = formatWarningSummary(warnings)
+        setXlsxResult({ ok: true, message: `Assessment Workbook exported: ${filename}`, detail: summary })
+      } catch (err) {
+        setXlsxResult({ ok: false, message: `Export failed: ${err.message}`, detail: '' })
+      }
     } else {
       const filename = buildExportFilename(osc, assessment, 'ProjectBackup', 'json')
       const state = exportProjectState(controls)
@@ -346,7 +363,6 @@ function Home() {
       setLastBackup(readLastBackup())
       setJsonResult({ ok: true, message: `Project exported — ${controls.length} controls, schema v${SCHEMA_VERSION}.` })
     }
-    closeExportDialog()
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -453,7 +469,7 @@ function Home() {
           setJsonResult({ ok: false, message: 'Invalid JSON: expected an object.' }); return
         }
         if (!ACCEPTED_SCHEMA_VERSIONS.includes(parsed.schemaVersion)) {
-          setJsonResult({ ok: false, message: `Unsupported schema version ${parsed.schemaVersion}. Expected version 1 or 2.` }); return
+          setJsonResult({ ok: false, message: `Unsupported schema version ${parsed.schemaVersion}. Expected version 1, 2, 3, or 4.` }); return
         }
         if (!Array.isArray(parsed.controls)) {
           setJsonResult({ ok: false, message: 'Invalid JSON: "controls" must be an array.' }); return
@@ -510,6 +526,21 @@ function Home() {
   }
 
   const cancelJsonRestore = () => setPendingJsonImport(null)
+
+  // -----------------------------------------------------------------------
+  // Wipe project state handlers
+  // -----------------------------------------------------------------------
+
+  const handleWipeConfirmed = () => {
+    wipeProjectState()
+    setWipeStage(null)
+    setWipeInput('')
+    setWipeSuccess(true)
+    setRefreshKey((k) => k + 1)
+    setLastBackup(null)
+    setJsonResult(null)
+    setTimeout(() => setWipeSuccess(false), 5000)
+  }
 
   // -----------------------------------------------------------------------
   // Render
@@ -898,17 +929,43 @@ function Home() {
           </ul>
           {/* hidden — CSV import kept for consulting workflow, not exposed here */}
           <input ref={csvFileRef} type="file" accept=".csv,text/csv" onChange={handleCsvFileChange} style={{ display: 'none' }} />
+          {xlsxResult && (
+            <div className="home-actions-feedback">
+              <p className={`feedback ${xlsxResult.ok ? 'feedback--ok' : 'feedback--error'}`}>{xlsxResult.message}</p>
+            </div>
+          )}
           {jsonResult && (
             <div className="home-actions-feedback">
               <p className={`feedback ${jsonResult.ok ? 'feedback--ok' : 'feedback--error'}`}>{jsonResult.message}</p>
             </div>
           )}
+          {wipeSuccess && (
+            <div className="home-actions-feedback">
+              <p className="feedback feedback--ok">Project wiped. All local assessment data has been cleared.</p>
+            </div>
+          )}
+
+          <div className="home-actions-divider home-actions-divider--danger" />
+          <div className="home-actions-danger-zone">
+            <p className="home-actions-danger-label">Danger Zone</p>
+            <ul className="home-actions-list home-actions-list--inline">
+              <li>
+                <button
+                  className="home-action-btn home-action-btn--danger"
+                  onClick={() => { setWipeStage('confirm1'); setWipeInput('') }}
+                >
+                  Wipe Entire Project
+                </button>
+              </li>
+            </ul>
+          </div>
+
           <div className="home-actions-divider" />
           <div className="home-actions-instructions">
             <p className="home-actions-instructions-text">
               <strong>Export Project JSON</strong> creates a portable backup of your current local project state.{' '}
               <strong>Import Project JSON</strong> restores a previously exported project file into this browser.{' '}
-              <strong>Export Assessment Workbook</strong> generates an assessment-results workbook from the current project data.
+              <strong>Export Assessment Workbook</strong> populates the official CMMC Level 2 Assessment Results Template with current project data.
             </p>
             <p className="home-actions-instructions-note muted">
               Use Project JSON for backup and restore. Use the workbook export when preparing assessment documentation.
@@ -932,7 +989,7 @@ function Home() {
         <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="export-dialog-title">
           <div className="confirm-dialog">
             <h2 id="export-dialog-title">
-              {exportDialog.mode === 'xlsx' ? 'Export Consulting Report' : 'Create Project Backup'}
+              {exportDialog.mode === 'xlsx' ? 'Export Assessment Workbook' : 'Create Project Backup'}
             </h2>
             <p>These fields are optional. If left blank, a generic filename will be used.</p>
             <div className="export-dialog-fields">
@@ -961,7 +1018,64 @@ function Home() {
             <div className="confirm-dialog-buttons">
               <button onClick={closeExportDialog}>Cancel</button>
               <button onClick={confirmExport}>
-                {exportDialog.mode === 'xlsx' ? 'Export Consulting Report' : 'Create Backup'}
+                {exportDialog.mode === 'xlsx' ? 'Export Assessment Workbook' : 'Create Backup'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Wipe Stage 1 ─────────────────────────────────────────────────── */}
+      {wipeStage === 'confirm1' && (
+        <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="wipe-dialog-title">
+          <div className="confirm-dialog confirm-dialog--danger">
+            <h2 id="wipe-dialog-title" className="confirm-dialog-title--danger">Wipe Entire Project?</h2>
+            <p>This will permanently remove all local assessment progress from this browser, including:</p>
+            <ul>
+              <li>Control and objective statuses</li>
+              <li>Assessment notes and objective results (interviews, examine, test, overall comments)</li>
+              <li>Assigned artifacts and evidence pool entries</li>
+              <li>Evidence tags on artifacts</li>
+              <li>Inheritance settings and inheritance sources</li>
+              <li>Control assignments</li>
+              <li>Review groups and group memberships</li>
+              <li>Environment profile</li>
+            </ul>
+            <p><strong>This action cannot be undone.</strong> Export a project backup first if you want to preserve your work.</p>
+            <div className="confirm-dialog-buttons">
+              <button onClick={() => setWipeStage(null)}>Cancel</button>
+              <button className="bulk-toolbar-danger" onClick={() => { setWipeStage('confirm2'); setWipeInput('') }}>
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Wipe Stage 2 ─────────────────────────────────────────────────── */}
+      {wipeStage === 'confirm2' && (
+        <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="wipe-final-title">
+          <div className="confirm-dialog confirm-dialog--danger">
+            <h2 id="wipe-final-title" className="confirm-dialog-title--danger">Final Confirmation</h2>
+            <p>Type <strong>WIPE</strong> to confirm. This cannot be undone.</p>
+            <input
+              type="text"
+              className="export-dialog-input"
+              placeholder="Type WIPE here"
+              value={wipeInput}
+              onChange={(e) => setWipeInput(e.target.value)}
+              autoFocus
+              autoComplete="off"
+              spellCheck={false}
+            />
+            <div className="confirm-dialog-buttons">
+              <button onClick={() => setWipeStage(null)}>Cancel</button>
+              <button
+                className="bulk-toolbar-danger"
+                disabled={wipeInput !== 'WIPE'}
+                onClick={handleWipeConfirmed}
+              >
+                Wipe Project
               </button>
             </div>
           </div>

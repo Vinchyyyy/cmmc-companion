@@ -1,4 +1,65 @@
 
+## Version 3.2.0 — Findings Builder, Guide-Aware Reuse, and Export Integrity
+Date: June 24, 2026
+
+### Findings Builder
+- Added an objective-level Findings Builder for standardized Assessment Validation Statements.
+- Added interviewed role/title chips using controlled assessment role categories.
+- Added generated Findings Preview with Interviewed, Reviewed, Validation Reference, Findings/Differences, and Confirmation sections.
+- Added support for finding differences, including alternate "not implemented" confirmation language when differences are noted.
+- Findings are saved per objective and can be edited or cleared without overwriting Interview, Examine, Test, or Overall Comments notes.
+
+### Official Assessment Results Template Export
+- Restored the Assessment Workbook export to use the official CMMC Level 2 Assessment Results Template format.
+- Wired saved objective Findings Builder statements into the official template Findings column.
+- Preserved finding statement line breaks in the export.
+- Updated evidence/artifact formatting so each evidence item ends with a semicolon.
+- Populated Time to Assess in minutes using objective-level DIBCAC assessment standard logic.
+- Kept the exporter focused on the official results template rather than a custom consultation workbook.
+
+### Project JSON Export / Import Integrity
+- Fixed Project JSON export/import so artifact evidence tags are preserved and restored correctly.
+- Ensured artifact mappings and artifact tags both survive wipe/export/import round trips.
+- Preserved safe import behavior for older project JSON files without artifact tag data.
+- Confirmed restored tags are available to Documented Artifacts and reuse suggestion logic after import.
+
+### Guide-Aware Artifact Reuse
+- Refactored Suggested Artifacts reuse logic into a stricter deterministic evidence-profile scoring model.
+- Added Assessment Guide evidence-object context as a reuse scoring signal.
+- Added guide-derived assessment profile metadata for all 110 Level 2 practices.
+- Improved artifact matching using evidence tags, expected tags, compound tag combinations, guide evidence objects, existing mappings, and relationship context.
+- Preserved the rule that untagged artifacts are excluded from primary reuse suggestions.
+
+### Tiered Suggested Reuse UX
+- Tuned Strong Suggestions and Related Candidates so Strong Suggestions remain high-confidence.
+- Kept broad or weak Tier 3 candidates hidden from assessor-facing suggestion lists.
+- Added per-tier result caps to keep suggestions focused.
+- Added collapsible Related Candidates and per-tier pagination (5 items per page).
+- Preserved assignment behavior while making suggestion lists more assessment-useful.
+
+### Evidence Tag Picker
+- Redesigned the evidence tag picker into a categorized chip/pill selector.
+- Added selected tag chips, clearer category segmentation, and improved tag search.
+- Added alias/related-word search support for common terms such as VPN, MFA, Entra, firewall, logs, risk, visitor, and training.
+- Preserved the controlled evidence tag taxonomy and avoided free-form tags.
+
+### Project Safety Actions
+- Added a Wipe Entire Project action in Project Actions.
+- Added a two-stage confirmation flow requiring explicit final confirmation before clearing local project state.
+- Preserved static app data while clearing local assessment/project state.
+
+### Control Detail Suggested Artifacts
+- Added a View Suggested Artifacts popup near Assigned Artifacts.
+- Suggested artifacts now appear in a floating modal instead of disrupting the Control Detail layout.
+- Suggestions remain tag-informed guidance and do not determine assessment outcomes.
+
+### Validation
+- No scoring determination, POA&M, Sheet2 scoring, or compliance outcome automation was added.
+- DIBCAC assessment standards remain supplemental objective-level metadata.
+- Project data remains local-first and browser-based.
+
+---
+
 ## Version 3.1.0 — DIBCAC Mode & Assessment Planning
 Date: June 23, 2026
 

@@ -9,8 +9,117 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v3.1.0 — current release, open by default */}
+      {/* v3.2.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.2.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span>Findings Builder, Guide-Aware Reuse, and Export Integrity</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 24, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
+
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Adds the objective-level Findings Builder, findings export into the official Assessment Results Template, guide-aware compound artifact reuse scoring, tiered/collapsible/paginated suggested artifact reuse, Project JSON artifact tag export/import integrity, and a Wipe Entire Project safety action.
+          </p>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Findings Builder</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added an objective-level Findings Builder for standardized Assessment Validation Statements</li>
+              <li>Added interviewed role/title chips using controlled assessment role categories</li>
+              <li>Added generated Findings Preview with Interviewed, Reviewed, Validation Reference, Findings/Differences, and Confirmation sections</li>
+              <li>Added support for finding differences, including alternate "not implemented" confirmation language when differences are noted</li>
+              <li>Findings are saved per objective and can be edited or cleared without overwriting Interview, Examine, Test, or Overall Comments notes</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Official Assessment Results Template Export</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Restored the Assessment Workbook export to use the official CMMC Level 2 Assessment Results Template format</li>
+              <li>Wired saved objective Findings Builder statements into the official template Findings column</li>
+              <li>Preserved finding statement line breaks in the export</li>
+              <li>Updated evidence/artifact formatting so each evidence item ends with a semicolon</li>
+              <li>Populated Time to Assess in minutes using objective-level DIBCAC assessment standard logic</li>
+              <li>Kept the exporter focused on the official results template rather than a custom consultation workbook</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Project JSON Export / Import Integrity</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Fixed Project JSON export/import so artifact evidence tags are preserved and restored correctly</li>
+              <li>Ensured artifact mappings and artifact tags both survive wipe/export/import round trips</li>
+              <li>Preserved safe import behavior for older project JSON files without artifact tag data</li>
+              <li>Confirmed restored tags are available to Documented Artifacts and reuse suggestion logic after import</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Guide-Aware Artifact Reuse</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Refactored Suggested Artifacts reuse logic into a stricter deterministic evidence-profile scoring model</li>
+              <li>Added Assessment Guide evidence-object context as a reuse scoring signal</li>
+              <li>Added guide-derived assessment profile metadata for all 110 Level 2 practices</li>
+              <li>Improved artifact matching using evidence tags, expected tags, compound tag combinations, guide evidence objects, existing mappings, and relationship context</li>
+              <li>Preserved the rule that untagged artifacts are excluded from primary reuse suggestions</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Tiered Suggested Reuse UX</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Tuned Strong Suggestions and Related Candidates so Strong Suggestions remain high-confidence</li>
+              <li>Kept broad or weak Tier 3 candidates hidden from assessor-facing suggestion lists</li>
+              <li>Added per-tier result caps to keep suggestions focused</li>
+              <li>Added collapsible Related Candidates and per-tier pagination (5 items per page)</li>
+              <li>Preserved assignment behavior while making suggestion lists more assessment-useful</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Evidence Tag Picker</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Redesigned the evidence tag picker into a categorized chip/pill selector</li>
+              <li>Added selected tag chips, clearer category segmentation, and improved tag search</li>
+              <li>Added alias/related-word search support for common terms such as VPN, MFA, Entra, firewall, logs, risk, visitor, and training</li>
+              <li>Preserved the controlled evidence tag taxonomy and avoided free-form tags</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Project Safety Actions</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added a Wipe Entire Project action in Project Actions</li>
+              <li>Added a two-stage confirmation flow requiring explicit final confirmation before clearing local project state</li>
+              <li>Preserved static app data while clearing local assessment/project state</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Control Detail Suggested Artifacts</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added a View Suggested Artifacts popup near Assigned Artifacts</li>
+              <li>Suggested artifacts now appear in a floating modal instead of disrupting the Control Detail layout</li>
+              <li>Suggestions remain tag-informed guidance and do not determine assessment outcomes</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-2)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>No scoring determination, POA&amp;M, Sheet2 scoring, or compliance outcome automation was added</li>
+              <li>DIBCAC assessment standards remain supplemental objective-level metadata</li>
+              <li>Project data remains local-first and browser-based</li>
+            </ul>
+          </section>
+
+        </div>
+      </details>
+
+      {/* v3.1.0 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.1.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>

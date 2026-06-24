@@ -1,5 +1,13 @@
 import { useState, useMemo, useEffect } from 'react'
-import { getObjectiveExpectedTagIds, classifyReuseOpportunity } from '../utils/evidenceTagMatch.js'
+import {
+  buildArtifactEvidenceProfile,
+  buildObjectiveEvidenceProfile,
+  buildAssessmentGuideProfile,
+  scoreArtifactForObjective,
+  summarizeReuseScore,
+  STRONG_CAP,
+  RELATED_CAP,
+} from '../utils/evidenceTagMatch.js'
 import { Link, useSearchParams } from 'react-router-dom'
 import controls from '../data/controls/index.js'
 import relationships from '../data/relationships/index.js'
@@ -12,7 +20,7 @@ import EvidenceTagPickerModal from '../components/EvidenceTagPickerModal.jsx'
 import ArtifactTagChipList from '../components/ArtifactTagChipList.jsx'
 
 const MAPPINGS_PAGE_SIZE = 5
-const SUGGESTION_PAGE_SIZE = 5
+const SUGGESTION_TIER_PAGE_SIZE = 5
 
 // Build a fast tag-id → label lookup once at module load
 const TAG_LABEL = Object.fromEntries(evidenceTags.map((t) => [t.id, t.label]))
@@ -29,133 +37,100 @@ function sortCategoryNames(a, b) {
 }
 
 // -------------------------------------------------------------------------
-// Reuse suggestion helpers (unchanged logic)
+// Reuse suggestion helper (Phase 2 — compound scoring)
 // -------------------------------------------------------------------------
-function relConfScore(c) {
-  return c === 'high' ? 100 : c === 'medium' ? 65 : c === 'low' ? 30 : 0
-}
-function objEvidConfScore(c) {
-  return c === 'high' ? 100 : c === 'medium' ? 60 : c === 'low' ? 30 : 0
-}
-function evidClassScore(c) {
-  return c === 'artifact' ? 100 : c === 'mixed' ? 60 : 0
-}
-function relTypeScore(t) {
-  return t === 'prerequisite' ? 100 : t === 'supports' || t === 'supported-by' ? 80 : 50
-}
-function computeSuggestionScore(rel, obj) {
-  return (
-    relConfScore(rel.confidence) * 0.40 +
-    objEvidConfScore(obj.evidenceConfidence) * 0.30 +
-    evidClassScore(obj.evidenceClass) * 0.20 +
-    relTypeScore(rel.relationshipType) * 0.10
-  )
-}
-
-// Tag-only fallback for unmapped artifacts: find objectives whose expectedTags
-// overlap with the artifact's tags at tier 1 (primary) or tier 2 (acceptable).
-function getTagOnlySuggestions(artifactName, artifactTagIds, allControls) {
-  if (artifactTagIds.length === 0) return []
-  const artifactLower = artifactName.toLowerCase()
-  const suggestions = []
-  const seen = new Set()
-  for (const control of allControls) {
-    for (const obj of (control.objectives ?? [])) {
-      const ec = obj.evidenceClass
-      if (ec !== 'artifact' && ec !== 'mixed') continue
-      const key = `${control.id}-${obj.id}`
-      if (seen.has(key)) continue
-      seen.add(key)
-      const existing = readObjectiveArtifacts(control.id, obj.id)
-      if (existing.some((a) => a.toLowerCase() === artifactLower)) continue
-      const expectedTags = getObjectiveExpectedTagIds(obj)
-      const tagMatch = classifyReuseOpportunity({ artifactTagIds, expectedTags })
-      if (tagMatch.tier > 2) continue // only meaningful tag alignment
-      suggestions.push({
-        controlId: control.id,
-        controlTitle: control.title,
-        objectiveId: obj.id,
-        objectiveText: obj.text || '',
-        reason: 'Evidence tags suggest this artifact may be relevant to this objective.',
-        _score: tagMatch.tier === 1 ? 80 : 50,
-        _relConf: 0,
-        _objEvidConf: 0,
-        _tagTier: tagMatch.tier,
-      })
-    }
-  }
-  suggestions.sort((a, b) => {
-    if (a._tagTier !== b._tagTier) return a._tagTier - b._tagTier
-    const cmp = a.controlId.localeCompare(b.controlId)
-    return cmp !== 0 ? cmp : a.objectiveId.localeCompare(b.objectiveId)
-  })
-  return suggestions
-}
+// Pool-based, per-artifact: scores the artifact against every objective using
+// the shared compound scorer (src/utils/evidenceTagMatch.js). Relationship /
+// mapping proximity (same control, directly related control, same family) is a
+// scoring signal, not a gate. Excludes an objective only while the artifact is
+// CURRENTLY assigned to that exact objective, so a removed mapping reappears.
+const EMPTY_TIERED = () => ({
+  strong: [],
+  related: [],
+  excluded: { untaggedCount: 0, broadCount: 0, alreadyAssignedCount: 0, cappedCount: 0 },
+})
 
 function getReuseSuggestions(artifactName, usages, allControls, allRelationships, artifactTagIds = []) {
-  const artifactLower = artifactName.toLowerCase()
-  const sourceControlIds = new Set(
-    usages
-      .filter((u) => u.location === 'Objective Artifact' && u.objectiveId)
-      .map((u) => u.controlId)
-  )
-  // Unmapped but tagged: use tag-only suggestions instead of relationship traversal
-  if (sourceControlIds.size === 0) {
-    return getTagOnlySuggestions(artifactName, artifactTagIds, allControls)
-  }
+  const result = EMPTY_TIERED()
+  if (!artifactTagIds || artifactTagIds.length === 0) return result
 
-  const relatedMap = new Map()
+  const artifactLower = artifactName.toLowerCase()
+  const artifactProfile = buildArtifactEvidenceProfile(artifactTagIds)
+
+  // Controls where this artifact is currently mapped (objective-level or pool).
+  const sourceControlIds = new Set(usages.map((u) => u.controlId))
+
+  // evidence_reuse adjacency for those source controls.
+  const relatedToSource = new Set()
   for (const rel of allRelationships) {
     if (rel.assessmentCategory && rel.assessmentCategory !== 'evidence_reuse') continue
-    const srcIsSource = sourceControlIds.has(rel.sourceControl)
-    const tgtIsSource = sourceControlIds.has(rel.targetControl)
-    const reason = rel.assessorRationale || rel.reasoning || `Related via ${rel.relationshipType}`
-    if (srcIsSource && !sourceControlIds.has(rel.targetControl) && !relatedMap.has(rel.targetControl)) {
-      relatedMap.set(rel.targetControl, { reason, confidence: rel.confidence, relationshipType: rel.relationshipType })
-    }
-    if (tgtIsSource && !sourceControlIds.has(rel.sourceControl) && !relatedMap.has(rel.sourceControl)) {
-      relatedMap.set(rel.sourceControl, { reason, confidence: rel.confidence, relationshipType: rel.relationshipType })
-    }
+    if (sourceControlIds.has(rel.sourceControl)) relatedToSource.add(rel.targetControl)
+    if (sourceControlIds.has(rel.targetControl)) relatedToSource.add(rel.sourceControl)
   }
-  if (relatedMap.size === 0) return []
 
-  const suggestions = []
-  const seen = new Set()
+  const familyById = new Map(allControls.map((c) => [c.id, c.family]))
+  const sourceFamilies = new Set(
+    [...sourceControlIds].map((id) => familyById.get(id)).filter(Boolean)
+  )
+
   for (const control of allControls) {
-    if (!relatedMap.has(control.id)) continue
-    const rel = relatedMap.get(control.id)
     for (const obj of (control.objectives ?? [])) {
       const ec = obj.evidenceClass
       if (ec !== 'artifact' && ec !== 'mixed') continue
-      const key = `${control.id}-${obj.id}`
-      if (seen.has(key)) continue
-      seen.add(key)
+
       const existing = readObjectiveArtifacts(control.id, obj.id)
-      if (existing.some((a) => a.toLowerCase() === artifactLower)) continue
-      const expectedTags = getObjectiveExpectedTagIds(obj)
-      const tagMatch = classifyReuseOpportunity({ artifactTagIds, expectedTags })
-      suggestions.push({
+      if (existing.some((a) => a.toLowerCase() === artifactLower)) {
+        result.excluded.alreadyAssignedCount += 1
+        continue
+      }
+
+      const sameControl = sourceControlIds.has(control.id)
+      const directRelationship = relatedToSource.has(control.id)
+      const sameFamily = sourceFamilies.has(control.family)
+      const hasConnection = sameControl || directRelationship || sameFamily
+
+      const objectiveProfile = buildObjectiveEvidenceProfile(obj)
+      const scored = scoreArtifactForObjective(artifactProfile, objectiveProfile, {
+        sameControl, directRelationship, sameFamily,
+        guideProfile: buildAssessmentGuideProfile(control.id),
+      })
+
+      if (scored.tier === 'hidden') {
+        if (scored.relevantMatchCount > 0 || hasConnection) result.excluded.broadCount += 1
+        continue
+      }
+
+      const cand = {
         controlId: control.id,
         controlTitle: control.title,
         objectiveId: obj.id,
         objectiveText: obj.text || '',
-        reason: rel.reason,
-        _score: computeSuggestionScore(rel, obj),
-        _relConf: relConfScore(rel.confidence),
-        _objEvidConf: objEvidConfScore(obj.evidenceConfidence),
-        _tagTier: tagMatch.tier,
-      })
+        tier: scored.tier,
+        score: scored.score,
+        reason: summarizeReuseScore(scored),
+        reasons: scored.reasons,
+        rationale: '',
+        matchedTags: [...scored.matchedPrimaryTags, ...scored.matchedAcceptableTags],
+      }
+      if (scored.tier === 'strong') result.strong.push(cand)
+      else result.related.push(cand)
     }
   }
-  suggestions.sort((a, b) => {
-    if (a._tagTier !== b._tagTier) return a._tagTier - b._tagTier
-    if (b._score !== a._score) return b._score - a._score
-    if (b._relConf !== a._relConf) return b._relConf - a._relConf
-    if (b._objEvidConf !== a._objEvidConf) return b._objEvidConf - a._objEvidConf
-    const cmp = a.controlId.localeCompare(b.controlId)
-    return cmp !== 0 ? cmp : a.objectiveId.localeCompare(b.objectiveId)
-  })
-  return suggestions
+
+  const byScore = (a, b) =>
+    b.score - a.score ||
+    a.controlId.localeCompare(b.controlId) ||
+    a.objectiveId.localeCompare(b.objectiveId)
+  result.strong.sort(byScore)
+  result.related.sort(byScore)
+
+  // Visible caps — keep the Suggested Reuse list elite and focused.
+  result.excluded.cappedCount =
+    Math.max(0, result.strong.length - STRONG_CAP) +
+    Math.max(0, result.related.length - RELATED_CAP)
+  result.strong = result.strong.slice(0, STRONG_CAP)
+  result.related = result.related.slice(0, RELATED_CAP)
+  return result
 }
 
 // -------------------------------------------------------------------------
@@ -180,18 +155,24 @@ function SortIcon({ active, dir }) {
 // -------------------------------------------------------------------------
 // Expanded artifact row
 // -------------------------------------------------------------------------
-function ArtifactExpandedRow({ entry, onOpenTagPicker, onAcceptSuggestion, reuseSuggestionPages, setReuseSuggestionPages, refreshKey }) {
+function ArtifactExpandedRow({ entry, onOpenTagPicker, onAcceptSuggestion, refreshKey }) {
   const [mappingPage, setMappingPage] = useState(0)
+  const [strongPage, setStrongPage] = useState(0)
+  const [relatedPage, setRelatedPage] = useState(0)
+  const [relatedExpanded, setRelatedExpanded] = useState(false)
 
   const rec = findByName(entry.artifact)
   const tagIds = rec?.tags ?? []
   const hasTags = tagIds.length > 0
 
-  const suggestions = useMemo(() => {
-    if (!hasTags) return []
+  const tiered = useMemo(() => {
+    if (!hasTags) return EMPTY_TIERED()
     return getReuseSuggestions(entry.artifact, entry.usages, controls, relationships, tagIds)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entry.artifact, hasTags, refreshKey])
+
+  const visibleTotal = tiered.strong.length + tiered.related.length
+  const excludedTotal = tiered.excluded.untaggedCount + tiered.excluded.broadCount
 
   // Mappings pagination
   const mappingTotal = entry.usages.length
@@ -201,15 +182,53 @@ function ArtifactExpandedRow({ entry, onOpenTagPicker, onAcceptSuggestion, reuse
   const mEnd = Math.min(mStart + MAPPINGS_PAGE_SIZE, mappingTotal)
   const visibleMappings = entry.usages.slice(mStart, mEnd)
 
-  // Suggestions pagination
-  const artName = entry.artifact
-  const sPage = reuseSuggestionPages[artName] ?? 0
-  const sTotalPages = Math.ceil(suggestions.length / SUGGESTION_PAGE_SIZE)
-  const sSafePage = Math.min(sPage, Math.max(sTotalPages - 1, 0))
-  const sStart = sSafePage * SUGGESTION_PAGE_SIZE
-  const sEnd = Math.min(sStart + SUGGESTION_PAGE_SIZE, suggestions.length)
-  const visibleSuggestions = suggestions.slice(sStart, sEnd)
-  const setSPage = (p) => setReuseSuggestionPages((prev) => ({ ...prev, [artName]: p }))
+  // Strong tier pagination
+  const strongTotal = tiered.strong.length
+  const strongTotalPages = Math.ceil(strongTotal / SUGGESTION_TIER_PAGE_SIZE)
+  const strongSafePage = Math.min(strongPage, Math.max(strongTotalPages - 1, 0))
+  const sStart = strongSafePage * SUGGESTION_TIER_PAGE_SIZE
+  const sEnd = Math.min(sStart + SUGGESTION_TIER_PAGE_SIZE, strongTotal)
+  const visibleStrong = tiered.strong.slice(sStart, sEnd)
+
+  // Related tier pagination
+  const relatedTotal = tiered.related.length
+  const relatedTotalPages = Math.ceil(relatedTotal / SUGGESTION_TIER_PAGE_SIZE)
+  const relatedSafePage = Math.min(relatedPage, Math.max(relatedTotalPages - 1, 0))
+  const rStart = relatedSafePage * SUGGESTION_TIER_PAGE_SIZE
+  const rEnd = Math.min(rStart + SUGGESTION_TIER_PAGE_SIZE, relatedTotal)
+  const visibleRelated = tiered.related.slice(rStart, rEnd)
+
+  const renderSuggestion = (s) => (
+    <li key={`${s.controlId}-${s.objectiveId}`} className="reuse-suggestion-item">
+      <button
+        type="button"
+        className="reuse-suggestion-add"
+        title={`Add "${entry.artifact}" to ${s.controlId} [${s.objectiveId}]`}
+        onClick={() => onAcceptSuggestion(entry.artifact, s.controlId, s.objectiveId, visibleTotal)}
+      >
+        +
+      </button>
+      <div className="reuse-suggestion-detail">
+        <Link
+          to={`/controls/${encodeURIComponent(s.controlId)}#objective-${s.objectiveId}`}
+          className="reuse-suggestion-link"
+        >
+          <span className="mono">{s.controlId}</span>
+          {' '}[{s.objectiveId}]
+          {s.objectiveText && <span className="muted"> — {s.objectiveText}</span>}
+        </Link>
+        {s.reason && (
+          <span className="reuse-suggestion-reason">{s.reason}</span>
+        )}
+        {s.rationale && (
+          <details className="reuse-suggestion-details">
+            <summary>Details</summary>
+            <span className="reuse-suggestion-reason-detail">{s.rationale}</span>
+          </details>
+        )}
+      </div>
+    </li>
+  )
 
   return (
     <tr className="am-expanded-row">
@@ -295,63 +314,98 @@ function ArtifactExpandedRow({ entry, onOpenTagPicker, onAcceptSuggestion, reuse
           <div className="am-exp-section am-exp-section--last">
             <div className="am-exp-label">
               Suggested Reuse
-              {suggestions.length > 0 && <span className="am-exp-count">{suggestions.length}</span>}
+              {visibleTotal > 0 && (
+                <span className="am-exp-count">
+                  Strong {tiered.strong.length} · Related {tiered.related.length}
+                </span>
+              )}
             </div>
             {!hasTags ? (
               <p className="am-exp-empty">Add evidence tags to see reuse opportunities.</p>
-            ) : suggestions.length === 0 ? (
-              <p className="am-exp-empty">No reuse opportunities found yet.</p>
+            ) : visibleTotal === 0 ? (
+              <>
+                <p className="am-exp-empty">No tagged artifact suggestions found. Add evidence tags to artifacts to improve reuse recommendations.</p>
+                {excludedTotal > 0 && (
+                  <p className="reuse-tag-excluded-note">
+                    {excludedTotal} broad or untagged candidate{excludedTotal !== 1 ? 's' : ''} excluded from suggestions.
+                  </p>
+                )}
+              </>
             ) : (
               <>
-                <ul className="reuse-suggestions-list">
-                  {visibleSuggestions.map((s) => (
-                    <li key={`${s.controlId}-${s.objectiveId}`} className="reuse-suggestion-item">
-                      <button
-                        type="button"
-                        className="reuse-suggestion-add"
-                        title={`Add "${entry.artifact}" to ${s.controlId} [${s.objectiveId}]`}
-                        onClick={() => onAcceptSuggestion(entry.artifact, s.controlId, s.objectiveId, suggestions.length)}
-                      >
-                        +
-                      </button>
-                      <div className="reuse-suggestion-detail">
-                        <Link
-                          to={`/controls/${encodeURIComponent(s.controlId)}#objective-${s.objectiveId}`}
-                          className="reuse-suggestion-link"
-                        >
-                          <span className="mono">{s.controlId}</span>
-                          {' '}[{s.objectiveId}]
-                          {s.objectiveText && <span className="muted"> — {s.objectiveText}</span>}
-                        </Link>
-                        <span className="reuse-suggestion-reason">
-                          <span className="reuse-suggestion-reason-label">Rationale:</span> {s.reason}
-                        </span>
+                {/* Strong Suggestions — expanded by default */}
+                <p className="reuse-tier-heading">Strong Suggestions{tiered.strong.length > 0 ? ` (${tiered.strong.length})` : ''}</p>
+                {tiered.strong.length === 0 ? (
+                  <p className="am-exp-empty">No strong suggestions found.</p>
+                ) : (
+                  <>
+                    <ul className="reuse-suggestions-list">{visibleStrong.map(renderSuggestion)}</ul>
+                    {strongTotalPages > 1 && (
+                      <div className="am-exp-pagination">
+                        <button
+                          type="button"
+                          className="am-exp-page-btn"
+                          disabled={strongSafePage === 0}
+                          onClick={() => setStrongPage(strongSafePage - 1)}
+                        >‹ Prev</button>
+                        <span className="am-exp-page-info">{sStart + 1}–{sEnd} of {strongTotal}</span>
+                        <button
+                          type="button"
+                          className="am-exp-page-btn"
+                          disabled={strongSafePage >= strongTotalPages - 1}
+                          onClick={() => setStrongPage(strongSafePage + 1)}
+                        >Next ›</button>
                       </div>
-                    </li>
-                  ))}
-                </ul>
-                {sTotalPages > 1 && (
-                  <div className="am-exp-pagination">
+                    )}
+                  </>
+                )}
+
+                {/* Related Candidates — collapsed by default */}
+                {tiered.related.length > 0 && (
+                  <>
                     <button
                       type="button"
-                      className="am-exp-page-btn"
-                      disabled={sSafePage === 0}
-                      onClick={() => setSPage(sSafePage - 1)}
+                      className="reuse-tier-heading reuse-tier-heading--toggle"
+                      onClick={() => setRelatedExpanded((v) => !v)}
+                      aria-expanded={relatedExpanded}
                     >
-                      ‹ Prev
+                      Related Candidates ({relatedTotal})
+                      <span className="reuse-tier-chevron" aria-hidden="true">{relatedExpanded ? ' ▾' : ' ▸'}</span>
                     </button>
-                    <span className="am-exp-page-info">
-                      {sStart + 1}–{sEnd} of {suggestions.length}
-                    </span>
-                    <button
-                      type="button"
-                      className="am-exp-page-btn"
-                      disabled={sSafePage >= sTotalPages - 1}
-                      onClick={() => setSPage(sSafePage + 1)}
-                    >
-                      Next ›
-                    </button>
-                  </div>
+                    {relatedExpanded && (
+                      <>
+                        <ul className="reuse-suggestions-list">{visibleRelated.map(renderSuggestion)}</ul>
+                        {relatedTotalPages > 1 && (
+                          <div className="am-exp-pagination">
+                            <button
+                              type="button"
+                              className="am-exp-page-btn"
+                              disabled={relatedSafePage === 0}
+                              onClick={() => setRelatedPage(relatedSafePage - 1)}
+                            >‹ Prev</button>
+                            <span className="am-exp-page-info">{rStart + 1}–{rEnd} of {relatedTotal}</span>
+                            <button
+                              type="button"
+                              className="am-exp-page-btn"
+                              disabled={relatedSafePage >= relatedTotalPages - 1}
+                              onClick={() => setRelatedPage(relatedSafePage + 1)}
+                            >Next ›</button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
+
+                {tiered.excluded.cappedCount > 0 && (
+                  <p className="reuse-tag-excluded-note">
+                    Additional lower-ranked candidates were hidden to keep suggestions focused.
+                  </p>
+                )}
+                {excludedTotal > 0 && (
+                  <p className="reuse-tag-excluded-note">
+                    {excludedTotal} broad or untagged candidate{excludedTotal !== 1 ? 's' : ''} excluded from suggestions.
+                  </p>
                 )}
               </>
             )}
@@ -464,7 +518,6 @@ function ArtifactMap() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [pickerArtifact, setPickerArtifact] = useState(null)
   const [modalKey, setModalKey] = useState(0)
-  const [reuseSuggestionPages, setReuseSuggestionPages] = useState({})
 
   const handleSearchChange = (value) => {
     setSearch(value)
@@ -480,15 +533,9 @@ function ArtifactMap() {
     setModalKey((k) => k + 1)
   }
 
-  const acceptSuggestion = (artifactName, controlId, objectiveId, totalCount) => {
+  const acceptSuggestion = (artifactName, controlId, objectiveId) => {
     const existing = readObjectiveArtifacts(controlId, objectiveId)
     writeObjectiveArtifacts(controlId, objectiveId, [...existing, artifactName])
-    setReuseSuggestionPages((prev) => {
-      const currentPage = prev[artifactName] ?? 0
-      const newTotalPages = Math.ceil((totalCount - 1) / SUGGESTION_PAGE_SIZE)
-      const safePage = Math.min(currentPage, Math.max(newTotalPages - 1, 0))
-      return { ...prev, [artifactName]: safePage }
-    })
     setRefreshKey((k) => k + 1)
   }
 
@@ -650,8 +697,8 @@ function ArtifactMap() {
       if (artTagIds.length === 0) {
         map.set(entry.artifact, 0)
       } else {
-        const suggestions = getReuseSuggestions(entry.artifact, entry.usages, controls, relationships, artTagIds)
-        map.set(entry.artifact, suggestions.length)
+        const tiered = getReuseSuggestions(entry.artifact, entry.usages, controls, relationships, artTagIds)
+        map.set(entry.artifact, tiered.strong.length + tiered.related.length)
       }
     }
     return map
@@ -931,8 +978,6 @@ function ArtifactMap() {
                             entry={entry}
                             onOpenTagPicker={openTagPicker}
                             onAcceptSuggestion={acceptSuggestion}
-                            reuseSuggestionPages={reuseSuggestionPages}
-                            setReuseSuggestionPages={setReuseSuggestionPages}
                             refreshKey={refreshKey}
                           />
                         )}

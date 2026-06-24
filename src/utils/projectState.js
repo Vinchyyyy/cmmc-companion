@@ -24,7 +24,7 @@ import {
 import { readAssignedTo, writeAssignedTo } from './assignment'
 import { readPoolIds, writePoolIds } from './evidencePool'
 import { readObjectiveArtifactIds, writeObjectiveArtifactIds } from './objectiveArtifacts'
-import { listArtifacts, findOrCreate, isArtifactId } from './artifactRegistry'
+import { listArtifacts, findOrCreate, isArtifactId, updateArtifactTags } from './artifactRegistry'
 import { readObjectiveResult, writeObjectiveResult } from './objectiveResults'
 import { readEnvironmentProfile, writeEnvironmentProfile } from './environmentProfile'
 import {
@@ -33,8 +33,18 @@ import {
   readObjectiveStatus,
   writeObjectiveStatus,
 } from './objectiveStatus'
+import {
+  readObjectiveInheritance,
+  writeObjectiveInheritance,
+  readInheritanceSources,
+  writeInheritanceSources,
+} from './inheritance'
+import { getReviewGroups, saveReviewGroups } from './reviewGroups'
+import { clearRegistry } from './artifactRegistry'
+import { readObjectiveFinding, writeObjectiveFinding } from './objectiveFindings'
+import { readObjectiveInterviewedRoles, writeObjectiveInterviewedRoles } from './objectiveInterviewedRoles'
 
-export const SCHEMA_VERSION = 3
+export const SCHEMA_VERSION = 4
 
 export const DEFAULT_IMPORT_OPTIONS = {
   mode: 'replace',
@@ -49,12 +59,14 @@ export const DEFAULT_IMPORT_OPTIONS = {
     evidencePool: true,
     objectiveArtifacts: true,
     objectiveResults: true,
+    objectiveFindings: true,
+    objectiveInterviewedRoles: true,
   },
 }
 
 // All schema versions this app can import. Add new versions here as the
 // schema evolves — never remove old ones while users may have older backups.
-export const ACCEPTED_SCHEMA_VERSIONS = [1, 2, 3]
+export const ACCEPTED_SCHEMA_VERSIONS = [1, 2, 3, 4]
 
 // =========================================================================
 // Export
@@ -88,7 +100,28 @@ export function exportProjectState(controls) {
       if (Object.values(r).some((v) => v.trim() !== '')) objectiveResults[obj.id] = r
     }
 
+    const objectiveFindings = {}
+    for (const obj of control.objectives ?? []) {
+      const f = readObjectiveFinding(control.id, obj.id)
+      if (f) objectiveFindings[obj.id] = f
+    }
+
+    const objectiveInterviewedRoles = {}
+    for (const obj of control.objectives ?? []) {
+      const roles = readObjectiveInterviewedRoles(control.id, obj.id)
+      if (roles.length > 0) objectiveInterviewedRoles[obj.id] = roles
+    }
+
     const assignedTo = readAssignedTo(control.id)
+
+    // Objective-level inheritance sources
+    const objectiveInheritance = {}
+    for (const obj of control.objectives ?? []) {
+      const sources = readObjectiveInheritance(control.id, obj.id)
+      if (sources.length > 0) objectiveInheritance[obj.id] = sources
+    }
+
+    const inheritanceSourcesArr = readInheritanceSources(control.id)
 
     const entry = {
       id: control.id,
@@ -96,7 +129,10 @@ export function exportProjectState(controls) {
       note: readNote(control.id),
       objectiveNotes,
       inheritance: readInheritance(control.id),
+      // Legacy single-value field kept for backward-compat with v1/v2/v3 importers.
       inheritanceSource: readInheritanceSource(control.id),
+      // Full multi-source array (v4+). Takes priority over inheritanceSource on import.
+      inheritanceSources: inheritanceSourcesArr,
     }
 
     if (assignedTo) entry.assignedTo = assignedTo
@@ -105,6 +141,9 @@ export function exportProjectState(controls) {
     if (Object.keys(objectiveArtifacts).length > 0) entry.objectiveArtifacts = objectiveArtifacts
     if (Object.keys(objectiveStatuses).length > 0) entry.objectiveStatuses = objectiveStatuses
     if (Object.keys(objectiveResults).length > 0) entry.objectiveResults = objectiveResults
+    if (Object.keys(objectiveInheritance).length > 0) entry.objectiveInheritance = objectiveInheritance
+    if (Object.keys(objectiveFindings).length > 0) entry.objectiveFindings = objectiveFindings
+    if (Object.keys(objectiveInterviewedRoles).length > 0) entry.objectiveInterviewedRoles = objectiveInterviewedRoles
 
     return entry
   })
@@ -114,6 +153,7 @@ export function exportProjectState(controls) {
     exportedAt: new Date().toISOString(),
     artifacts: listArtifacts(),
     environmentProfile: readEnvironmentProfile(),
+    reviewGroups: getReviewGroups(),
     controls: exported,
   }
 }
@@ -153,7 +193,7 @@ export function importProjectState(projectJson, controls, options = {}) {
     return {
       ok: false,
       error: `Unsupported schema version ${projectJson.schemaVersion}. ` +
-             `Expected version 1, 2, or 3.`,
+             `Expected version 1, 2, 3, or 4.`,
     }
   }
   if (!Array.isArray(projectJson.controls)) {
@@ -193,22 +233,49 @@ export function importProjectState(projectJson, controls, options = {}) {
     evidencePoolsWritten: 0,
     objectiveArtifactsWritten: 0,
     objectiveResultsWritten: 0,
+    objectiveInheritanceWritten: 0,
+    objectiveFindingsWritten: 0,
+    objectiveInterviewedRolesWritten: 0,
+    reviewGroupsWritten: 0,
     skippedUnknownId: 0,
     skippedInvalidStatus: 0,
     skippedUnknownObjective: 0,
     skippedBecauseExisting: 0,
     droppedArtifactRefs: 0,
+    artifactTagsWritten: 0,
   }
 
-  // Artifact registry: v3 files carry a top-level `artifacts` array of records.
+  // Review groups — top-level field, not per-control. Restore in replace mode only
+  // (fill-empty is not well-defined for groups which have no default empty state).
+  if (Array.isArray(projectJson.reviewGroups) && opts.mode === 'replace') {
+    saveReviewGroups(projectJson.reviewGroups)
+    summary.reviewGroupsWritten = projectJson.reviewGroups.length
+  }
+
+  // Artifact registry: v3+ files carry a top-level `artifacts` array of records.
   // Build a foreign-id -> name lookup so referenced ids can be remapped to local
   // ids by normalized name. v1/v2 files have no array — entries are names.
+  // Also restore evidence tags stored on each artifact record (bug fix: tags were
+  // previously exported but never re-applied on import).
   const hasArtifactsArray = Array.isArray(projectJson.artifacts)
   const foreignIdToName = new Map()
   if (hasArtifactsArray) {
     for (const rec of projectJson.artifacts) {
       if (rec && typeof rec === 'object' && typeof rec.id === 'string' && typeof rec.name === 'string') {
         foreignIdToName.set(rec.id, rec.name)
+
+        // Restore evidence tags. Filter to non-empty strings and de-duplicate;
+        // unknown tag IDs are preserved as-is (the scorer ignores unrecognised tags).
+        if (Array.isArray(rec.tags) && rec.tags.length > 0) {
+          const validTags = [...new Set(rec.tags.filter((t) => typeof t === 'string' && t.trim()))]
+          if (validTags.length > 0) {
+            const localRec = findOrCreate(rec.name)
+            if (localRec) {
+              updateArtifactTags(localRec.id, validTags)
+              summary.artifactTagsWritten++
+            }
+          }
+        }
       }
     }
   }
@@ -315,12 +382,41 @@ export function importProjectState(projectJson, controls, options = {}) {
       }
     }
 
-    // Inheritance Source
+    // Inheritance Sources — prefer the v4 array field; fall back to legacy string.
     if (opts.categories.inheritanceSource) {
-      if (typeof entry.inheritanceSource === 'string') {
+      if (Array.isArray(entry.inheritanceSources)) {
+        // v4 multi-source array
+        const filtered = entry.inheritanceSources.filter((s) => typeof s === 'string' && s.trim())
+        if (canWrite(readInheritanceSources(control.id).length === 0, opts, summary)) {
+          writeInheritanceSources(control.id, filtered)
+          if (filtered.length > 0) summary.inheritanceSourcesWritten++
+        }
+      } else if (typeof entry.inheritanceSource === 'string') {
+        // Legacy single-value string (v1/v2/v3)
         if (canWrite(readInheritanceSource(control.id).trim() === '', opts, summary)) {
           writeInheritanceSource(control.id, entry.inheritanceSource)
           if (entry.inheritanceSource.trim() !== '') summary.inheritanceSourcesWritten++
+        }
+      }
+    }
+
+    // Objective-level inheritance sources (v4+)
+    if (opts.categories.inheritanceSource) {
+      if (
+        'objectiveInheritance' in entry &&
+        entry.objectiveInheritance !== null &&
+        typeof entry.objectiveInheritance === 'object' &&
+        !Array.isArray(entry.objectiveInheritance)
+      ) {
+        for (const [objId, sources] of Object.entries(entry.objectiveInheritance)) {
+          if (!knownObjectiveIds.has(objId)) { summary.skippedUnknownObjective++; continue }
+          if (Array.isArray(sources)) {
+            const filtered = sources.filter((s) => typeof s === 'string' && s.trim())
+            if (canWrite(readObjectiveInheritance(control.id, objId).length === 0, opts, summary)) {
+              writeObjectiveInheritance(control.id, objId, filtered)
+              if (filtered.length > 0) summary.objectiveInheritanceWritten++
+            }
+          }
         }
       }
     }
@@ -404,9 +500,104 @@ export function importProjectState(projectJson, controls, options = {}) {
         }
       }
     }
+
+    // Objective Findings (Findings Builder final statements)
+    if (opts.categories.objectiveFindings) {
+      if (
+        'objectiveFindings' in entry &&
+        entry.objectiveFindings !== null &&
+        typeof entry.objectiveFindings === 'object' &&
+        !Array.isArray(entry.objectiveFindings)
+      ) {
+        for (const [objId, finding] of Object.entries(entry.objectiveFindings)) {
+          if (!knownObjectiveIds.has(objId)) { summary.skippedUnknownObjective++; continue }
+          if (finding !== null && typeof finding === 'object' && !Array.isArray(finding)) {
+            // Only write if finalText is a non-empty string — malformed entries are skipped.
+            if (typeof finding.finalText !== 'string' || !finding.finalText.trim()) continue
+            const currentIsEmpty = readObjectiveFinding(control.id, objId) === null
+            if (canWrite(currentIsEmpty, opts, summary)) {
+              writeObjectiveFinding(control.id, objId, finding)
+              summary.objectiveFindingsWritten++
+            }
+          }
+        }
+      }
+    }
+
+    // Objective Interviewed Roles (role chips for the Findings Builder)
+    if (opts.categories.objectiveInterviewedRoles) {
+      if (
+        'objectiveInterviewedRoles' in entry &&
+        entry.objectiveInterviewedRoles !== null &&
+        typeof entry.objectiveInterviewedRoles === 'object' &&
+        !Array.isArray(entry.objectiveInterviewedRoles)
+      ) {
+        for (const [objId, roles] of Object.entries(entry.objectiveInterviewedRoles)) {
+          if (!knownObjectiveIds.has(objId)) { summary.skippedUnknownObjective++; continue }
+          if (Array.isArray(roles)) {
+            const filtered = roles.filter((r) => typeof r === 'string' && r.trim())
+            const currentIsEmpty = readObjectiveInterviewedRoles(control.id, objId).length === 0
+            if (canWrite(currentIsEmpty, opts, summary)) {
+              writeObjectiveInterviewedRoles(control.id, objId, filtered)
+              if (filtered.length > 0) summary.objectiveInterviewedRolesWritten++
+            }
+          }
+        }
+      }
+    }
   }
 
   return summary
+}
+
+// =========================================================================
+// Wipe helper — clears all user/project state from localStorage.
+// Does NOT remove static source data (controls, evidence, relationships).
+// Does NOT remove UI preferences (theme).
+// =========================================================================
+
+// localStorage key prefixes that belong to project/assessment state.
+const WIPE_PREFIXES = [
+  'cmmc-status-',
+  'cmmc-note-',
+  'cmmc-objective-note-',
+  'cmmc-obj-status-',
+  'cmmc-inheritance-',
+  'cmmc-inheritance-source-',
+  'cmmc-inheritance-sources-',
+  'cmmc-obj-inheritance-',
+  'cmmc-assigned-to-',
+  'cmmc-pool-',
+  'cmmc-obj-artifacts-',
+  'cmmc-objective-result-',
+  'cmmc-objective-finding-',
+  'cmmc-objective-interviewed-roles-',
+]
+
+// Exact localStorage keys that belong to project/assessment state.
+const WIPE_EXACT_KEYS = [
+  'cmmc-artifacts',
+  'cmmc-companion-dibcac-review-groups',
+  'cmmc-environment-profile',
+  'cmmc-export-osc',
+  'cmmc-export-assessment',
+  'cmmc-last-backup',
+]
+
+export function wipeProjectState() {
+  try {
+    // Collect prefix-matched keys first (iterating while deleting is unsafe).
+    const keysToRemove = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && WIPE_PREFIXES.some((p) => key.startsWith(p))) keysToRemove.push(key)
+    }
+    for (const key of keysToRemove) localStorage.removeItem(key)
+    for (const key of WIPE_EXACT_KEYS) localStorage.removeItem(key)
+  } catch { /* storage unavailable */ }
+
+  // Reset in-memory artifact registry cache so the cleared storage takes effect.
+  clearRegistry()
 }
 
 // =========================================================================

@@ -9,6 +9,9 @@ import {
   OBJECTIVE_STATUS_NOT_MET,
 } from './objectiveStatus'
 import { readObjectiveArtifacts } from './objectiveArtifacts'
+import { readObjectiveResult } from './objectiveResults'
+import { getDibcacStandard } from '../data/dibcacAssessmentStandards'
+import { getReviewGroups } from './reviewGroups'
 
 // ---------------------------------------------------------------------------
 // Warning helper
@@ -112,16 +115,55 @@ function buildFamilyData(controls) {
 
     if (objectives.length > 0) {
       rows.push([])
-      rows.push(['Objective', 'Objective Status', 'Artifacts'])
+      rows.push(['Objective', 'Obj Status', 'DIBCAC Standard', 'Artifacts', 'Interviews', 'Examine', 'Test', 'Overall Comments'])
 
       for (const obj of objectives) {
-        const objStatus    = readObjectiveStatus(c.id, obj.id)
-        const artifacts    = readObjectiveArtifacts(c.id, obj.id)
-        rows.push([`[${obj.id}] ${obj.text}`, objStatus, artifacts.join(', ')])
+        const objStatus = readObjectiveStatus(c.id, obj.id)
+        const artifacts = readObjectiveArtifacts(c.id, obj.id)
+        const result    = readObjectiveResult(c.id, obj.id)
+        const dibcac    = getDibcacStandard(c.id, obj.id)
+        rows.push([
+          `[${obj.id}] ${obj.text}`,
+          objStatus,
+          dibcac ? dibcac.label : '',
+          artifacts.join(', '),
+          result.interviews,
+          result.examine,
+          result.test,
+          result.overallComments,
+        ])
       }
     }
 
     rows.push([]) // blank row between controls
+  }
+
+  return rows
+}
+
+// ---------------------------------------------------------------------------
+// Review Groups sheet
+// ---------------------------------------------------------------------------
+
+function buildReviewGroupsData() {
+  const groups = getReviewGroups()
+  if (groups.length === 0) return null
+
+  const rows = [['Group Name', 'Planned Ask', 'Objective Ref', 'Control ID', 'Objective Text', 'DIBCAC Standard']]
+
+  for (const g of groups) {
+    if (!g.objectives || g.objectives.length === 0) {
+      rows.push([g.name, g.plannedAsk ?? '', '', '', '', ''])
+      continue
+    }
+    for (const obj of g.objectives) {
+      const controlId  = obj.controlId ?? ''
+      const objId      = obj.objId ?? ''
+      const objRef     = obj.key ?? obj.objectiveRef ?? ''
+      const objText    = obj.objText ?? ''
+      const dibcac     = controlId && objId ? getDibcacStandard(controlId, objId) : null
+      rows.push([g.name, g.plannedAsk ?? '', objRef, controlId, objText, dibcac ? dibcac.label : ''])
+    }
   }
 
   return rows
@@ -150,8 +192,16 @@ export function buildAssessmentWorkbook(controls) {
     const members = byFamily.get(code)
     if (members.length === 0) continue
     const ws = XLSX.utils.aoa_to_sheet(buildFamilyData(members))
-    ws['!cols'] = [{ wch: 70 }, { wch: 18 }, { wch: 50 }]
+    ws['!cols'] = [{ wch: 70 }, { wch: 16 }, { wch: 20 }, { wch: 50 }, { wch: 40 }, { wch: 40 }, { wch: 40 }, { wch: 50 }]
     XLSX.utils.book_append_sheet(wb, ws, code)
+  }
+
+  // Review Groups tab (omitted when no groups exist)
+  const rgData = buildReviewGroupsData()
+  if (rgData) {
+    const rgWs = XLSX.utils.aoa_to_sheet(rgData)
+    rgWs['!cols'] = [{ wch: 30 }, { wch: 50 }, { wch: 28 }, { wch: 14 }, { wch: 60 }, { wch: 20 }]
+    XLSX.utils.book_append_sheet(wb, rgWs, 'Review Groups')
   }
 
   return wb
