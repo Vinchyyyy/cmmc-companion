@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useId } from 'react'
 import { evidenceTags } from '../data/evidenceTags.js'
 import useFocusTrap from './useFocusTrap.js'
 
-// Pre-compute grouped structure once at module load — evidenceTags is static.
 function buildGroups(tags) {
   const catMap = new Map()
   const groups = []
@@ -19,6 +18,20 @@ function buildGroups(tags) {
 
 const ALL_GROUPS = buildGroups(evidenceTags)
 const TAG_LOOKUP = Object.fromEntries(evidenceTags.map((t) => [t.id, t]))
+
+function matchTag(tag, term) {
+  if (!term) return { matches: true, isAliasMatch: false, matchedAlias: null }
+  if (
+    tag.label.toLowerCase().includes(term) ||
+    tag.id.replace(/_/g, ' ').includes(term) ||
+    tag.category.toLowerCase().includes(term)
+  ) {
+    return { matches: true, isAliasMatch: false, matchedAlias: null }
+  }
+  const matchedAlias = (tag.aliases ?? []).find((a) => a.toLowerCase().includes(term))
+  if (matchedAlias) return { matches: true, isAliasMatch: true, matchedAlias }
+  return { matches: false, isAliasMatch: false, matchedAlias: null }
+}
 
 export default function EvidenceTagPickerModal({
   isOpen,
@@ -37,16 +50,12 @@ export default function EvidenceTagPickerModal({
 
   useFocusTrap(dialogRef, isOpen)
 
-  // Defer focus to the search input once the modal is painted.
-  // State is initialized fresh on each mount via lazy initializers above;
-  // the parent resets state by passing a new key when reopening the modal.
   useEffect(() => {
     if (!isOpen) return
     const t = setTimeout(() => searchRef.current?.focus(), 0)
     return () => clearTimeout(t)
   }, [isOpen])
 
-  // Escape closes as Cancel.
   useEffect(() => {
     if (!isOpen) return
     const handler = (e) => { if (e.key === 'Escape') onCancel() }
@@ -61,14 +70,9 @@ export default function EvidenceTagPickerModal({
   const visibleGroups = ALL_GROUPS
     .map((group) => ({
       category: group.category,
-      tags: term
-        ? group.tags.filter(
-            (t) =>
-              t.label.toLowerCase().includes(term) ||
-              t.id.includes(term) ||
-              t.category.toLowerCase().includes(term)
-          )
-        : group.tags,
+      tags: group.tags
+        .map((tag) => ({ ...tag, ...matchTag(tag, term) }))
+        .filter((t) => t.matches),
     }))
     .filter((g) => g.tags.length > 0)
 
@@ -80,6 +84,8 @@ export default function EvidenceTagPickerModal({
       return next
     })
   }
+
+  const selectedCount = selected.size
 
   return (
     <div
@@ -95,7 +101,7 @@ export default function EvidenceTagPickerModal({
         className="confirm-dialog evidence-tag-picker-dialog"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header row */}
+        {/* Header */}
         <div className="evidence-tag-picker-header">
           <h2 id={titleId} className="evidence-tag-picker-title">{title}</h2>
           <button
@@ -111,18 +117,30 @@ export default function EvidenceTagPickerModal({
         {artifact && (
           <p className="evidence-tag-picker-artifact-name">{artifact.name}</p>
         )}
-
         <p id={descId} className="evidence-tag-picker-helper">
-          Tags describe what kind of evidence this artifact is — guidance only.
+          Tags classify what kind of evidence this artifact is. Tags do not determine assessment outcomes.
         </p>
 
-        {/* Selected tags */}
+        {/* Selected tags area */}
         <div className="evidence-tag-picker-selected-wrap">
-          <div className="evidence-tag-picker-selected-label">Assigned tags</div>
-          {selected.size === 0 ? (
-            <span className="evidence-tag-picker-selected-empty">No tags selected.</span>
+          <div className="etp-selected-row">
+            <span className="evidence-tag-picker-selected-label">
+              Selected tags{selectedCount > 0 ? ` (${selectedCount})` : ''}
+            </span>
+            {selectedCount > 0 && (
+              <button
+                type="button"
+                className="etp-clear-btn"
+                onClick={() => setSelected(new Set())}
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+          {selectedCount === 0 ? (
+            <span className="evidence-tag-picker-selected-empty">No tags selected yet.</span>
           ) : (
-            <div className="artifact-tag-chip-row">
+            <div className="etp-selected-chips">
               {[...selected].map((id) => {
                 const tag = TAG_LOOKUP[id]
                 const label = tag ? tag.label : id
@@ -148,39 +166,48 @@ export default function EvidenceTagPickerModal({
         <div className="evidence-tag-picker-search-wrap">
           <input
             ref={searchRef}
-            type="text"
+            type="search"
             className="evidence-tag-picker-search"
-            placeholder="Search evidence tags…"
+            placeholder="Search — try 'vpn', 'mfa', 'firewall', 'logs', 'training'…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Search evidence tags"
           />
         </div>
 
-        {/* Scrollable tag list */}
+        {/* Pill grid body */}
         <div className="evidence-tag-picker-body">
           {visibleGroups.length === 0 ? (
-            <p className="evidence-tag-picker-empty">No matching tags.</p>
+            <p className="evidence-tag-picker-empty">No matching tags. Try a broader or related term.</p>
           ) : (
             visibleGroups.map((group) => (
-              <div key={group.category} className="evidence-tag-category">
-                <div className="evidence-tag-category-title">{group.category}</div>
-                {group.tags.map((tag) => {
-                  const isChecked = selected.has(tag.id)
-                  return (
-                    <label
-                      key={tag.id}
-                      className={`evidence-tag-option${isChecked ? ' evidence-tag-option-selected' : ''}`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => toggle(tag.id)}
-                      />
-                      <span className="evidence-tag-option-label">{tag.label}</span>
-                    </label>
-                  )
-                })}
+              <div key={group.category} className="etp-category">
+                <div className="etp-category-title">{group.category}</div>
+                <div className="etp-chip-grid">
+                  {group.tags.map((tag) => {
+                    const isSelected = selected.has(tag.id)
+                    return (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        className={`etp-chip${isSelected ? ' etp-chip--selected' : ''}`}
+                        onClick={() => toggle(tag.id)}
+                        aria-pressed={isSelected}
+                        title={tag.definition}
+                      >
+                        {isSelected && (
+                          <span className="etp-chip-check" aria-hidden="true">✓</span>
+                        )}
+                        <span className="etp-chip-label">{tag.label}</span>
+                        {tag.isAliasMatch && (
+                          <span className="etp-chip-hint" aria-hidden="true">
+                            · {tag.matchedAlias}
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             ))
           )}
@@ -189,7 +216,7 @@ export default function EvidenceTagPickerModal({
         {/* Actions */}
         <div className="confirm-dialog-buttons evidence-tag-picker-actions">
           <button type="button" onClick={onCancel}>Cancel</button>
-          <button type="button" onClick={() => onSave([...selected])}>Done</button>
+          <button type="button" onClick={() => onSave([...selected])}>Apply</button>
         </div>
       </div>
     </div>

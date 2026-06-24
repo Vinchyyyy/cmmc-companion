@@ -4,6 +4,7 @@ import ExpectedEvidenceTypes from '../components/ExpectedEvidenceTypes'
 import useFocusTrap from '../components/useFocusTrap'
 import { useParams, Link, useSearchParams, useLocation } from 'react-router-dom'
 import controls from '../data/controls/index.js'
+import { controlDiscussions } from '../data/controlDiscussions.js'
 import { PROVIDERS } from '../data/providers'
 import { getEnvironmentTechTags } from '../utils/environmentProfile'
 import evidenceTypes from '../data/evidence/index.js'
@@ -28,6 +29,13 @@ import ArtifactDetailModal from '../components/ArtifactDetailModal.jsx'
 import { getObjectiveArtifactSuggestions } from '../utils/evidenceRecommendations.js'
 import { evidenceTags } from '../data/evidenceTags.js'
 import { readObjectiveResult, writeObjectiveResult } from '../utils/objectiveResults'
+import { getDibcacStandard } from '../data/dibcacAssessmentStandards'
+import {
+  getReviewGroups,
+  addObjectiveToGroup,
+  createReviewGroup,
+  findGroupsForObjective,
+} from '../utils/reviewGroups'
 import {
   OBJECTIVE_STATUS_UNREVIEWED,
   OBJECTIVE_STATUS_MET,
@@ -50,6 +58,227 @@ function resolveBackUrl(rawFrom) {
   if (rawFrom.startsWith('//')) return '/controls'
   if (rawFrom !== '/controls' && !rawFrom.startsWith('/controls?')) return '/controls'
   return rawFrom
+}
+
+// ── Review Group row (inside objective header) ────────────────────────────────
+
+function ReviewGroupRow({ controlId, objId, reviewGroupsVersion, onAddClick }) {
+  const objectiveRef = `${controlId}[${objId}]`
+  const memberGroups = useMemo(
+    () => findGroupsForObjective(objectiveRef),
+    // reviewGroupsVersion is the dependency that triggers a refresh when groups change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [objectiveRef, reviewGroupsVersion]
+  )
+  return (
+    <div className="cd-obj-pills-group">
+      <span className="cd-obj-pills-label">Review Group</span>
+      <div className="cd-rg-chips-row">
+        {memberGroups.map((g) => (
+          <span key={g.id} className="cd-rg-chip" title={g.plannedAsk || undefined}>
+            {g.name}
+          </span>
+        ))}
+        <button
+          type="button"
+          className="cd-rg-add-btn"
+          onClick={onAddClick}
+          aria-label="Add objective to a review group"
+        >
+          {memberGroups.length > 0 ? '+ Add' : '+ Add to Group'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Add Objective to Review Group modal ───────────────────────────────────────
+
+function AddToGroupModal({ controlId, obj, dibcacStd, onClose, onGroupsChanged }) {
+  const modalRef = useRef(null)
+  useFocusTrap(modalRef, true)
+
+  const objectiveRef = `${controlId}[${obj.id}]`
+
+  const [groups] = useState(() => getReviewGroups())
+  const [selectedGroupId, setSelectedGroupId] = useState('')
+  const [newGroupName, setNewGroupName] = useState('')
+  const [newGroupAsk, setNewGroupAsk] = useState('')
+  const [tab, setTab] = useState('existing') // 'existing' | 'new'
+  const [feedback, setFeedback] = useState('')
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
+
+  const objectiveData = {
+    key: objectiveRef,
+    controlId,
+    objId: obj.id,
+    objText: obj.text,
+    standard: dibcacStd?.standard ?? 'unknown',
+  }
+
+  const handleAddToExisting = () => {
+    if (!selectedGroupId) return
+    const grp = groups.find((g) => g.id === selectedGroupId)
+    const alreadyIn = grp?.objectives.some((o) => (o.key ?? o.objectiveRef) === objectiveRef)
+    if (alreadyIn) {
+      setFeedback('This objective is already in that review group.')
+      return
+    }
+    addObjectiveToGroup(selectedGroupId, objectiveData)
+    onGroupsChanged()
+    onClose()
+  }
+
+  const handleCreateNew = () => {
+    if (!newGroupName.trim()) return
+    createReviewGroup({
+      id: crypto.randomUUID(),
+      name: newGroupName.trim(),
+      plannedAsk: newGroupAsk.trim(),
+      objectives: [objectiveData],
+      createdAt: new Date().toISOString(),
+    })
+    onGroupsChanged()
+    onClose()
+  }
+
+  return (
+    <div
+      className="cd-edit-modal-overlay"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Add Objective to Review Group"
+    >
+      <div className="cd-edit-modal cd-rg-modal" ref={modalRef}>
+        {/* Header */}
+        <div className="cd-edit-modal-header">
+          <span className="cd-edit-modal-title">Add to Review Group</span>
+          <button type="button" className="cd-edit-modal-close" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+
+        {/* Objective reference card */}
+        <div className="cd-rg-modal-obj-card">
+          <span className="cd-rg-modal-obj-ref mono">{objectiveRef}</span>
+          <span className="cd-rg-modal-obj-text">{obj.text}</span>
+          {dibcacStd && (
+            <span className={`cd-dibcac-chip cd-dibcac-chip--${dibcacStd.standard} cd-rg-modal-std`}>{dibcacStd.label}</span>
+          )}
+        </div>
+
+        {/* Tab bar */}
+        <div className="cd-rg-modal-tabs">
+          <button
+            type="button"
+            className={`cd-rg-modal-tab${tab === 'existing' ? ' cd-rg-modal-tab--active' : ''}`}
+            onClick={() => { setTab('existing'); setFeedback('') }}
+          >Add to Existing Group</button>
+          <button
+            type="button"
+            className={`cd-rg-modal-tab${tab === 'new' ? ' cd-rg-modal-tab--active' : ''}`}
+            onClick={() => { setTab('new'); setFeedback('') }}
+          >Create New Group</button>
+        </div>
+
+        <div className="cd-edit-modal-body">
+          {tab === 'existing' ? (
+            groups.length === 0 ? (
+              <p className="cd-rg-modal-empty">No review groups yet. Switch to the Create New Group tab.</p>
+            ) : (
+              <div className="cd-rg-modal-group-list">
+                {groups.map((g) => {
+                  const alreadyIn = g.objectives.some((o) => (o.key ?? o.objectiveRef) === objectiveRef)
+                  return (
+                    <label
+                      key={g.id}
+                      className={`cd-rg-modal-group-row${selectedGroupId === g.id ? ' cd-rg-modal-group-row--selected' : ''}${alreadyIn ? ' cd-rg-modal-group-row--in' : ''}`}
+                    >
+                      <input
+                        type="radio"
+                        name="rg-select"
+                        value={g.id}
+                        checked={selectedGroupId === g.id}
+                        onChange={() => { setSelectedGroupId(g.id); setFeedback('') }}
+                        disabled={alreadyIn}
+                        className="cd-rg-modal-radio"
+                      />
+                      <div className="cd-rg-modal-group-info">
+                        <span className="cd-rg-modal-group-name">{g.name}</span>
+                        <span className="cd-rg-modal-group-meta">
+                          {g.objectives.length} objective{g.objectives.length !== 1 ? 's' : ''}
+                          {alreadyIn ? ' · Already in this group' : ''}
+                        </span>
+                        {g.plannedAsk && (
+                          <span className="cd-rg-modal-group-ask">{g.plannedAsk.slice(0, 80)}{g.plannedAsk.length > 80 ? '…' : ''}</span>
+                        )}
+                      </div>
+                    </label>
+                  )
+                })}
+                {feedback && <p className="cd-rg-modal-feedback">{feedback}</p>}
+              </div>
+            )
+          ) : (
+            <div className="cd-rg-modal-new-form">
+              <label className="cd-rg-modal-field-label" htmlFor="rg-new-name">Group Name</label>
+              <input
+                id="rg-new-name"
+                type="text"
+                className="cd-edit-input"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                placeholder="e.g. Screen Share Review — AC Family"
+                autoFocus
+              />
+              <label className="cd-rg-modal-field-label" htmlFor="rg-new-ask">Planned Ask</label>
+              <textarea
+                id="rg-new-ask"
+                className="cd-edit-textarea"
+                value={newGroupAsk}
+                onChange={(e) => setNewGroupAsk(e.target.value)}
+                rows={3}
+                placeholder="Describe what you plan to ask or review during this session…"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="cd-edit-modal-footer">
+          <button type="button" className="cd-edit-btn-secondary" onClick={onClose}>Cancel</button>
+          {tab === 'existing' ? (
+            <button
+              type="button"
+              className="cd-edit-btn-primary"
+              onClick={handleAddToExisting}
+              disabled={!selectedGroupId}
+            >
+              Add to Selected Group
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="cd-edit-btn-primary"
+              onClick={handleCreateNew}
+              disabled={!newGroupName.trim()}
+            >
+              Create Group with Objective
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ── Edit Details modal ────────────────────────────────────────────────────────
@@ -280,6 +509,9 @@ function ControlDetailView() {
   const [selectedArtifact, setSelectedArtifact] = useState(null)
   // Bumped after tag saves so findByName() re-runs and untagged chip state updates.
   const [artifactTagVersion, setArtifactTagVersion] = useState(0)
+  // Review group modal state
+  const [showAddToGroupModal, setShowAddToGroupModal] = useState(false)
+  const [reviewGroupsVersion, setReviewGroupsVersion] = useState(0) // bump to recompute
 
   const globalArtifactNames = useMemo(() => buildArtifactIndex(controls).map((e) => e.artifact), [])
 
@@ -712,66 +944,91 @@ function ControlDetailView() {
           </div>
         </div>
 
-        {/* Evidence Pool */}
-        <div className="cd-header-pool">
-          <label htmlFor="pool-input">
-            <strong>Evidence Pool{pool.length > 0 ? ` (${pool.length})` : ''}</strong>
-          </label>
-          <p className="muted" style={{ fontSize: 'var(--text-xs)', margin: 'var(--space-1) 0 var(--space-2)' }}>
-            Artifact names only — no file contents, no sensitive data. Examples: SSP.pdf, RBAC Policy.docx
-          </p>
-          <div className="obj-artifact-input-wrap">
-            <input
-              id="pool-input"
-              type="text"
-              className="evidence-pool-input"
-              value={poolInput}
-              onChange={handlePoolInputChange}
-              onKeyDown={handlePoolKeyDown}
-              onFocus={() => setPoolFocused(true)}
-              onBlur={() => setPoolFocused(false)}
-              placeholder="Type an artifact name, press Enter or comma to add"
-              autoComplete="off"
-            />
-            {poolFocused && getPoolSuggestions().length > 0 && (
-              <ul className="artifact-suggestions">
-                {getPoolSuggestions().map((s) => (
-                  <li key={s} className="artifact-suggestion-item"
-                    onMouseDown={(e) => { e.preventDefault(); setPoolInput(s) }}>{s}</li>
-                ))}
-              </ul>
+        {/* Two-column top panel: Evidence Pool (left) + Assessment Guide Discussion (right) */}
+        <div className="cd-top-grid">
+
+          {/* LEFT: Evidence Pool + Expected Evidence Types */}
+          <div className="cd-header-pool">
+            <label htmlFor="pool-input">
+              <strong>Evidence Pool{pool.length > 0 ? ` (${pool.length})` : ''}</strong>
+            </label>
+            <p className="muted" style={{ fontSize: 'var(--text-xs)', margin: 'var(--space-1) 0 var(--space-2)' }}>
+              Artifact names only — no file contents, no sensitive data. Examples: SSP.pdf, RBAC Policy.docx
+            </p>
+            <div className="obj-artifact-input-wrap">
+              <input
+                id="pool-input"
+                type="text"
+                className="evidence-pool-input"
+                value={poolInput}
+                onChange={handlePoolInputChange}
+                onKeyDown={handlePoolKeyDown}
+                onFocus={() => setPoolFocused(true)}
+                onBlur={() => setPoolFocused(false)}
+                placeholder="Type an artifact name, press Enter or comma to add"
+                autoComplete="off"
+              />
+              {poolFocused && getPoolSuggestions().length > 0 && (
+                <ul className="artifact-suggestions">
+                  {getPoolSuggestions().map((s) => (
+                    <li key={s} className="artifact-suggestion-item"
+                      onMouseDown={(e) => { e.preventDefault(); setPoolInput(s) }}>{s}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            {pool.length > 0 && (
+              <div className="evidence-chips" data-tag-version={artifactTagVersion}>
+                {pool.map((item) => {
+                  const rec = findByName(item)
+                  const untagged = !rec || !Array.isArray(rec.tags) || rec.tags.length === 0
+                  return (
+                    <span key={item}
+                      className={`evidence-chip${untagged ? ' evidence-chip--untagged' : ''}`}
+                      title={untagged ? 'No evidence tags yet — click to add tags.' : undefined}
+                    >
+                      <button type="button" className="evidence-chip-name evidence-chip-name--button" title={item}
+                        onClick={() => setSelectedArtifact(findOrCreate(item))}
+                        aria-label={`Edit evidence tags for ${item}`}>{item}</button>
+                      <button type="button" className="evidence-chip-remove"
+                        onClick={(e) => { e.stopPropagation(); handleRemovePoolItem(item) }}
+                        aria-label={`Remove ${item} from Evidence Pool`}>×</button>
+                    </span>
+                  )
+                })}
+              </div>
+            )}
+            {/* Expected Evidence Types — shown near Evidence Pool for artifact-action context */}
+            {selectedObj && (
+              <div className="cd-pool-expected-tags">
+                <ExpectedEvidenceTypes
+                  expectedTags={selectedObj.expectedTags}
+                  note={selectedObj.expectedTagsNote}
+                />
+              </div>
             )}
           </div>
-          {pool.length > 0 && (
-            <div className="evidence-chips" data-tag-version={artifactTagVersion}>
-              {pool.map((item) => {
-                const rec = findByName(item)
-                const untagged = !rec || !Array.isArray(rec.tags) || rec.tags.length === 0
-                return (
-                  <span key={item}
-                    className={`evidence-chip${untagged ? ' evidence-chip--untagged' : ''}`}
-                    title={untagged ? 'No evidence tags yet — click to add tags.' : undefined}
-                  >
-                    <button type="button" className="evidence-chip-name evidence-chip-name--button" title={item}
-                      onClick={() => setSelectedArtifact(findOrCreate(item))}
-                      aria-label={`Edit evidence tags for ${item}`}>{item}</button>
-                    <button type="button" className="evidence-chip-remove"
-                      onClick={(e) => { e.stopPropagation(); handleRemovePoolItem(item) }}
-                      aria-label={`Remove ${item} from Evidence Pool`}>×</button>
-                  </span>
-                )
-              })}
-            </div>
-          )}
-          {/* Expected Evidence Types — shown near Evidence Pool for artifact-action context */}
-          {selectedObj && (
-            <div className="cd-pool-expected-tags">
-              <ExpectedEvidenceTypes
-                expectedTags={selectedObj.expectedTags}
-                note={selectedObj.expectedTagsNote}
-              />
-            </div>
-          )}
+
+          {/* RIGHT: Assessment Guide Discussion */}
+          {(() => {
+            const disc = controlDiscussions[control.id]
+            return (
+              <div className="cd-discussion-panel">
+                <div className="cd-discussion-title">Assessment Guide Discussion</div>
+                {disc ? (
+                  <>
+                    <p className="cd-discussion-text">{disc.discussion}</p>
+                    <p className="cd-discussion-source">Source: {disc.source}</p>
+                  </>
+                ) : (
+                  <p className="cd-discussion-empty">
+                    No assessment guide discussion is mapped for this control yet.
+                  </p>
+                )}
+              </div>
+            )
+          })()}
+
         </div>
       </div>
 
@@ -844,6 +1101,26 @@ function ControlDetailView() {
                       })()}
                     </div>
                   </div>
+
+                  {/* DIBCAC Assessment Standard chip */}
+                  {(() => {
+                    const std = getDibcacStandard(control.id, selectedObj.id)
+                    if (!std) return null
+                    return (
+                      <div className="cd-obj-pills-group">
+                        <span className="cd-obj-pills-label">DIBCAC Standard</span>
+                        <span className={`cd-dibcac-chip cd-dibcac-chip--${std.standard}`}>{std.label}</span>
+                      </div>
+                    )
+                  })()}
+
+                  {/* Review Group membership — computed from reviewGroupsVersion bump */}
+                  <ReviewGroupRow
+                    controlId={control.id}
+                    objId={selectedObj.id}
+                    reviewGroupsVersion={reviewGroupsVersion}
+                    onAddClick={() => setShowAddToGroupModal(true)}
+                  />
 
                   {/* Objective-level inheritance — only when control has sources or obj already has some */}
                   {(inheritanceSources.length > 0 || (objectiveInheritance[selectedObj.id] ?? []).length > 0) && (
@@ -1050,6 +1327,19 @@ function ControlDetailView() {
         onClose={() => setSelectedArtifact(null)}
         onTagsUpdated={() => setArtifactTagVersion((v) => v + 1)}
       />
+
+      {showAddToGroupModal && selectedObj && (
+        <AddToGroupModal
+          controlId={control.id}
+          obj={selectedObj}
+          dibcacStd={getDibcacStandard(control.id, selectedObj.id)}
+          onClose={() => setShowAddToGroupModal(false)}
+          onGroupsChanged={() => {
+            setShowAddToGroupModal(false)
+            setReviewGroupsVersion((v) => v + 1)
+          }}
+        />
+      )}
 
       {showDetailsModal && (
         <EditDetailsModal

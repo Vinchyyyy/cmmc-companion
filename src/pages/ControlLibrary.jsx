@@ -285,6 +285,7 @@ function FilterModal({
               </div>
             </section>
           )}
+
         </div>
 
         <div className="cl-filter-modal-footer">
@@ -318,7 +319,6 @@ function ControlLibrary() {
   const warningsSet    = parseMultiFilter(searchParams.get('warnings'))
   const inheritanceSourceSet = parseMultiFilter(searchParams.get('inheritanceSource'))
   const assignedToSet  = parseMultiFilter(searchParams.get('assignedTo'))
-
   const location = useLocation()
 
   const [searchInput, setSearchInput]   = useState(urlSearch)

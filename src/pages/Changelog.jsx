@@ -9,8 +9,83 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v3.0.0 — current release, open by default */}
+      {/* v3.1.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.1.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span>DIBCAC Mode &amp; Assessment Planning</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 23, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
+
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Adds the DIBCAC Mode assessment planning workspace, objective-level DIBCAC assessment standard metadata, review group workflows, a redesigned evidence tag picker, and Assessment Guide Discussion on Control Detail.
+          </p>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>DIBCAC Mode</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added a new DIBCAC Mode workspace for objective-level assessment planning</li>
+              <li>Added objective grouping by DIBCAC assessment standard: Document, Screen Share, Artifact, Physical Review, Artifact + Screen Share, and Unmapped</li>
+              <li>Added method, family, and search filters for assessment objective planning</li>
+              <li>Added collapsible method, family, and control groupings for compact review</li>
+              <li>Added review group creation, editing, objective selection, planned ask notes, and saved local review groups</li>
+              <li>Added objective preview behavior inside DIBCAC Mode without navigating away</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Objective-Level DIBCAC Assessment Standards</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added supplemental objective-level DIBCAC assessment standard metadata</li>
+              <li>Added DIBCAC Standard chips to Control Detail objectives</li>
+              <li>Preserved current control/objective data as the source of truth</li>
+              <li>Unmapped objectives remain visible where the source data does not provide a standard</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Control Detail — Review Group Integration</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added Review Group display to the Control Detail objective header</li>
+              <li>Added centered modal workflow to add an objective to an existing review group or create a new review group from Control Detail</li>
+              <li>Review groups remain local browser planning data and are not included in project exports yet</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Guide Discussion</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Added Assessment Guide Discussion content to the Control Detail top summary area</li>
+              <li>Split the upper Control Detail area so Evidence Pool / Expected Evidence Types and Assessment Guide Discussion are visible together</li>
+              <li>Extended the Assessment Guide Discussion panel for visual balance</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Evidence Tag Picker</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>Redesigned the evidence tag picker into a modern categorized chip/pill selector</li>
+              <li>Added selected tag chips, clearer category segmentation, and improved search</li>
+              <li>Added related-word / alias matching so searches like VPN, MFA, Entra, firewall, logs, risk, visitor, and training surface more intuitive controlled tags</li>
+              <li>Preserved controlled tag taxonomy — free-form tags are not supported</li>
+            </ul>
+          </section>
+
+          <section style={{ marginBottom: 'var(--space-2)' }}>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+              <li>No scoring, POA&amp;M, or Sheet2 DIBCAC scoring logic was added in this release</li>
+              <li>Project import/export behavior was not changed</li>
+            </ul>
+          </section>
+
+        </div>
+      </details>
+
+      {/* v3.0.0 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.0.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>

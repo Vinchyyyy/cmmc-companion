@@ -1,4 +1,43 @@
 
+## Version 3.1.0 — DIBCAC Mode & Assessment Planning
+Date: June 23, 2026
+
+### DIBCAC Mode
+- Added a new DIBCAC Mode workspace for objective-level assessment planning.
+- Added objective grouping by DIBCAC assessment standard: Document, Screen Share, Artifact, Physical Review, Artifact + Screen Share, and Unmapped.
+- Added method, family, and search filters for assessment objective planning.
+- Added collapsible method, family, and control groupings for compact review.
+- Added review group creation, editing, objective selection, planned ask notes, and saved local review groups.
+- Added objective preview behavior inside DIBCAC Mode without navigating away.
+
+### Objective-Level DIBCAC Assessment Standards
+- Added supplemental objective-level DIBCAC assessment standard metadata.
+- Added DIBCAC Standard chips to Control Detail objectives.
+- Preserved current control/objective data as the source of truth.
+- Unmapped objectives remain visible where the source data does not provide a standard.
+
+### Control Detail Review Group Integration
+- Added Review Group display to the Control Detail objective header.
+- Added centered modal workflow to add an objective to an existing review group or create a new review group from Control Detail.
+- Review groups remain local browser planning data and are not included in project exports yet.
+
+### Assessment Guide Discussion
+- Added Assessment Guide Discussion content to the Control Detail top summary area.
+- Split the upper Control Detail area so Evidence Pool / Expected Evidence Types and Assessment Guide Discussion are visible together.
+- Extended the Assessment Guide Discussion panel for visual balance.
+
+### Evidence Tag Picker
+- Redesigned the evidence tag picker into a modern categorized chip/pill selector.
+- Added selected tag chips, clearer category segmentation, and improved search.
+- Added related-word / alias matching so searches like VPN, MFA, Entra, firewall, logs, risk, visitor, and training surface more intuitive controlled tags.
+- Preserved controlled tag taxonomy and avoided free-form tags.
+
+### Validation
+- No scoring, POA&M, or Sheet2 DIBCAC scoring logic was added in this release.
+- Project import/export behavior was not changed.
+
+---
+
 ## Version 3.0.0 — UI Workspace Overhaul
 Date: June 23, 2026
 
