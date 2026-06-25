@@ -19,13 +19,32 @@ import {
 } from '../utils/projectState'
 import { readExportMeta, writeExportMeta, buildExportFilename, readLastBackup, writeLastBackup, formatLastBackup } from '../utils/exportMeta'
 import { buildCmmcTemplateWorkbook, downloadCmmcTemplate, formatWarningSummary } from '../utils/exportCmmcTemplate'
+import { parseAssessmentWorkbook, applyWorkbookImport } from '../utils/importAssessmentWorkbook'
 import { THEME_LIGHT, THEME_DARK, readTheme, writeTheme, applyTheme } from '../utils/theme'
+import { PALETTES, readPalette, writePalette, applyPalette } from '../utils/themePalette'
 import { APP_VERSION, APP_DEPLOYMENT } from '../utils/version'
 import { listArtifacts } from '../utils/artifactRegistry'
 import { readObjectiveStatus, OBJECTIVE_STATUS_NOT_MET } from '../utils/objectiveStatus'
 import { hasObjectiveArtifacts } from '../utils/objectiveArtifacts'
 
 const KNOWN_CONTROL_IDS = new Set(controls.map((c) => c.id))
+
+// Fallback option lists shown in the workbook import reconciliation dropdowns
+// when the current project has no prior assigned-to/inheritance-source values.
+// These are display-only convenience options — nothing is written to app state
+// until the user confirms the import with a specific choice selected.
+const DEFAULT_ASSIGNEE_OPTIONS = ['Alex', 'Morgan', 'Priya', 'Vince']
+
+const DEFAULT_INHERITANCE_SOURCE_OPTIONS = [
+  'CrowdStrike Falcon',
+  'Jamf Pro',
+  'Microsoft 365 GCC High',
+  'Microsoft Entra ID',
+  'Microsoft Intune',
+  'Palo Alto Networks',
+  'Tenable.sc',
+  'Veeam Backup & Replication',
+]
 
 function getInheritanceSources(allControls) {
   const counts = new Map()
@@ -202,10 +221,15 @@ function libraryUrlForStatus(status, family) {
 function Home() {
   const csvFileRef = useRef(null)
   const jsonFileRef = useRef(null)
+  const workbookFileRef = useRef(null)
   const [refreshKey, setRefreshKey] = useState(0)
   // eslint-disable-next-line no-unused-vars
   const [csvResult, setCsvResult] = useState(null)
   const [jsonResult, setJsonResult] = useState(null)
+  const [workbookImportResult, setWorkbookImportResult] = useState(null)
+  const [pendingWorkbookImport, setPendingWorkbookImport] = useState(null)
+  const [workbookImportParsing, setWorkbookImportParsing] = useState(false)
+  const [reconciliationChoices, setReconciliationChoices] = useState({ assignedTo: {}, inheritanceSources: {} })
   const [searchTerm, setSearchTerm] = useState('')
   // exportDialog: null (closed) | { mode: 'xlsx'|'json', osc: string, assessment: string }
   const [exportDialog, setExportDialog] = useState(null)
@@ -218,6 +242,7 @@ function Home() {
   const [wipeSuccess, setWipeSuccess] = useState(false)
   const [lastBackup, setLastBackup] = useState(() => readLastBackup())
   const [theme, setTheme] = useState(() => readTheme())
+  const [palette, setPalette] = useState(() => readPalette())
   const [sourceLimit, setSourceLimit] = useState('5')
 
   const toggleTheme = () => {
@@ -225,6 +250,13 @@ function Home() {
     writeTheme(next)
     applyTheme(next)
     setTheme(next)
+  }
+
+  const handlePaletteChange = (e) => {
+    const next = e.target.value
+    writePalette(next)
+    applyPalette(next)
+    setPalette(next)
   }
 
   const openExportDialog = (mode) => {
@@ -526,6 +558,94 @@ function Home() {
   }
 
   const cancelJsonRestore = () => setPendingJsonImport(null)
+
+  // -----------------------------------------------------------------------
+  // Assessment workbook import handlers
+  // -----------------------------------------------------------------------
+
+  const handleWorkbookImportClick = () => workbookFileRef.current?.click()
+
+  const WORKBOOK_MAX_BYTES = 10 * 1024 * 1024  // 10 MB
+
+  const handleWorkbookFileChange = (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+
+    if (!file.name.toLowerCase().endsWith('.xlsx')) {
+      setWorkbookImportResult({ ok: false, message: 'Invalid file. Please select a .xlsx workbook file.' })
+      return
+    }
+    if (file.size > WORKBOOK_MAX_BYTES) {
+      setWorkbookImportResult({ ok: false, message: 'File too large. Workbook imports must be under 10 MB.' })
+      return
+    }
+
+    setWorkbookImportResult(null)
+    setWorkbookImportParsing(true)
+
+    const reader = new FileReader()
+    reader.onload = async () => {
+      try {
+        const parsed = await parseAssessmentWorkbook(reader.result, controls)
+        if (!parsed.ok) {
+          setWorkbookImportResult({ ok: false, message: parsed.error })
+        } else {
+          // Initialize reconciliation choices with conservative defaults:
+          // unmatched assignees default to add-as-new (raw value),
+          // unmatched sources default to alias suggestion or add-as-new (raw value).
+          const initialChoices = { assignedTo: {}, inheritanceSources: {} }
+          for (const { raw } of parsed.reconciliation?.assignedTo?.unmatched ?? []) {
+            initialChoices.assignedTo[raw] = raw
+          }
+          for (const { raw, suggestion } of parsed.reconciliation?.inheritanceSources?.unmatched ?? []) {
+            initialChoices.inheritanceSources[raw] = suggestion ?? raw
+          }
+          setReconciliationChoices(initialChoices)
+          setPendingWorkbookImport(parsed)
+        }
+      } catch (err) {
+        setWorkbookImportResult({ ok: false, message: `Import failed: ${err.message}` })
+      } finally {
+        setWorkbookImportParsing(false)
+      }
+    }
+    reader.onerror = () => {
+      setWorkbookImportResult({ ok: false, message: 'Could not read file.' })
+      setWorkbookImportParsing(false)
+    }
+    reader.readAsArrayBuffer(file)
+  }
+
+  const confirmWorkbookImport = (mode) => {
+    if (!pendingWorkbookImport) return
+    try {
+      const result = applyWorkbookImport(pendingWorkbookImport, controls, mode, reconciliationChoices)
+      setPendingWorkbookImport(null)
+      const p = (n, singular, plural) => n > 0 ? `${n} ${n === 1 ? singular : plural}` : null
+      const parts = [
+        p(result.objectivesApplied,   'objective processed',    'objectives processed'),
+        p(result.statusesWritten,     'status',                 'statuses'),
+        p(result.resultsWritten,      'result set',             'result sets'),
+        p(result.findingsWritten,     'finding',                'findings'),
+        p(result.artifactSetsWritten, 'artifact set',           'artifact sets'),
+      ].filter(Boolean)
+      const modeLabel = mode === 'new' ? 'Imported as new project' : 'Merged into project'
+      setWorkbookImportResult({
+        ok: true,
+        message: `${modeLabel} — ${parts.length > 0 ? parts.join(', ') : 'no data applied'}.`,
+      })
+      setRefreshKey((k) => k + 1)
+    } catch (err) {
+      setWorkbookImportResult({ ok: false, message: `Import failed: ${err.message}` })
+      setPendingWorkbookImport(null)
+    }
+  }
+
+  const cancelWorkbookImport = () => {
+    setPendingWorkbookImport(null)
+    setReconciliationChoices({ assignedTo: {}, inheritanceSources: {} })
+  }
 
   // -----------------------------------------------------------------------
   // Wipe project state handlers
@@ -926,6 +1046,22 @@ function Home() {
             <li>
               <button className="home-action-btn" onClick={() => openExportDialog('xlsx')}>Export Assessment Workbook</button>
             </li>
+            <li>
+              <button
+                className="home-action-btn"
+                onClick={handleWorkbookImportClick}
+                disabled={workbookImportParsing}
+              >
+                {workbookImportParsing ? 'Parsing…' : 'Import Assessment Workbook'}
+              </button>
+              <input
+                ref={workbookFileRef}
+                type="file"
+                accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                onChange={handleWorkbookFileChange}
+                style={{ display: 'none' }}
+              />
+            </li>
           </ul>
           {/* hidden — CSV import kept for consulting workflow, not exposed here */}
           <input ref={csvFileRef} type="file" accept=".csv,text/csv" onChange={handleCsvFileChange} style={{ display: 'none' }} />
@@ -937,6 +1073,11 @@ function Home() {
           {jsonResult && (
             <div className="home-actions-feedback">
               <p className={`feedback ${jsonResult.ok ? 'feedback--ok' : 'feedback--error'}`}>{jsonResult.message}</p>
+            </div>
+          )}
+          {workbookImportResult && (
+            <div className="home-actions-feedback">
+              <p className={`feedback ${workbookImportResult.ok ? 'feedback--ok' : 'feedback--error'}`}>{workbookImportResult.message}</p>
             </div>
           )}
           {wipeSuccess && (
@@ -965,7 +1106,8 @@ function Home() {
             <p className="home-actions-instructions-text">
               <strong>Export Project JSON</strong> creates a portable backup of your current local project state.{' '}
               <strong>Import Project JSON</strong> restores a previously exported project file into this browser.{' '}
-              <strong>Export Assessment Workbook</strong> populates the official CMMC Level 2 Assessment Results Template with current project data.
+              <strong>Export Assessment Workbook</strong> populates the official CMMC Level 2 Assessment Results Template with current project data.{' '}
+              <strong>Import Assessment Workbook</strong> imports an existing official CMMC Assessment Results Template workbook into this local project.
             </p>
             <p className="home-actions-instructions-note muted">
               Use Project JSON for backup and restore. Use the workbook export when preparing assessment documentation.
@@ -973,6 +1115,29 @@ function Home() {
           </div>
           <div className="home-actions-meta-row">
             <p className="home-actions-meta muted">Last backup: <strong style={{ fontWeight: 500 }}>{formatLastBackup(lastBackup)}</strong></p>
+          </div>
+
+          <div className="home-actions-divider" />
+          <div className="home-appearance">
+            <p className="home-appearance-label">Appearance</p>
+            <p className="home-appearance-helper">Choose a muted color palette for the local workspace. Applies in dark mode only.</p>
+            <div className="home-appearance-row">
+              <select
+                className="home-appearance-select"
+                value={palette}
+                onChange={handlePaletteChange}
+                aria-label="Theme palette"
+              >
+                {PALETTES.map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+              <span className="home-appearance-swatches" aria-hidden="true">
+                {(PALETTES.find((p) => p.value === palette)?.swatches ?? []).map((hex, i) => (
+                  <span key={i} className="home-appearance-swatch" style={{ background: hex }} />
+                ))}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -1081,6 +1246,229 @@ function Home() {
           </div>
         </div>
       )}
+
+      {pendingWorkbookImport && (() => {
+        const { counts, warnings, derivedStatusCounts, reconciliation } = pendingWorkbookImport
+        const recon = reconciliation ?? { assignedTo: { matched: [], unmatched: [] }, inheritanceSources: { matched: [], unmatched: [] }, existingAssignees: [], existingSources: [] }
+        const hasAssignedTo = recon.assignedTo.matched.length > 0 || recon.assignedTo.unmatched.length > 0
+        const hasSources    = recon.inheritanceSources.matched.length > 0 || recon.inheritanceSources.unmatched.length > 0
+        const hasRecon      = hasAssignedTo || hasSources
+
+        // Build augmented option pools for the "Use Existing" optgroup.
+        // Layer order (all de-duplicated, sorted):
+        //  1. Default fallback lists — always visible even on a fresh project
+        //  2. Current project localStorage values
+        //  3. Workbook matched resolvedTo values
+        //  4. Workbook unmatched raw values + canonical suggestions
+        const dedupe = (arr) => [...new Set(arr.filter(Boolean))].sort()
+        const assigneePool = dedupe([
+          ...DEFAULT_ASSIGNEE_OPTIONS,
+          ...recon.existingAssignees,
+          ...recon.assignedTo.matched.map((m) => m.resolvedTo),
+          ...recon.assignedTo.unmatched.map((m) => m.raw),
+        ])
+        const sourcePool = dedupe([
+          ...DEFAULT_INHERITANCE_SOURCE_OPTIONS,
+          ...recon.existingSources,
+          ...recon.inheritanceSources.matched.map((m) => m.resolvedTo),
+          ...recon.inheritanceSources.unmatched.flatMap((m) =>
+            m.suggestion && m.suggestion !== m.raw ? [m.raw, m.suggestion] : [m.raw]
+          ),
+        ])
+
+        return (
+          <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="workbook-import-dialog-title">
+            <div className="confirm-dialog confirm-dialog--wide">
+              <h2 id="workbook-import-dialog-title">Import Assessment Workbook</h2>
+              <p>Review the parsed workbook summary and reconcile any unrecognized values before importing.</p>
+
+              <div className="workbook-import-summary">
+                <p><strong>Workbook Summary</strong></p>
+                <ul>
+                  <li>Controls found: {counts.controlsFound}</li>
+                  <li>Objectives found: {counts.objectivesFound}</li>
+                  <li>Objective statuses (MET / NOT MET): {counts.objectiveStatusesFound}</li>
+                  <li>Findings statements: {counts.findingsFound}</li>
+                  <li>Artifact references: {counts.artifactRefsFound}</li>
+                  <li>Interview notes: {counts.interviewNotesFound}</li>
+                  <li>Examine notes: {counts.examineNotesFound}</li>
+                  <li>Test notes: {counts.testNotesFound}</li>
+                  <li>Overall comments: {counts.overallCommentsFound}</li>
+                </ul>
+              </div>
+
+              {derivedStatusCounts && (
+                <div className="workbook-import-summary">
+                  <p><strong>Status Derivation</strong></p>
+                  <ul>
+                    <li>Objectives with explicit workbook status: {derivedStatusCounts.fromWorkbook}</li>
+                    <li>Objectives with imported content, no explicit status: {derivedStatusCounts.fromContent}</li>
+                    <li>Objectives with no imported data: {derivedStatusCounts.noData}</li>
+                  </ul>
+                  {derivedStatusCounts.fromContent > 0 && (
+                    <p className="muted">
+                      Objectives with content but no explicit status are left as Unreviewed. Their notes, findings, and artifacts are still imported.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {hasRecon && (
+                <div className="workbook-import-summary">
+                  <p><strong>Reconciliation</strong></p>
+
+                  {hasAssignedTo && (
+                    <div className="workbook-recon-section">
+                      <p className="muted"><strong>Assigned To</strong></p>
+                      <p className="workbook-recon-helper">
+                        Choose whether each workbook assignee should be ignored, added as new, or mapped to an existing app value.
+                      </p>
+                      {recon.assignedTo.matched.length > 0 && (
+                        <>
+                          <p className="muted">Matched to existing:</p>
+                          <ul>
+                            {recon.assignedTo.matched.map(({ raw, resolvedTo }) => (
+                              <li key={raw}>
+                                <code>{raw}</code>{raw !== resolvedTo ? <> → <em>{resolvedTo}</em></> : null}
+                              </li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                      {recon.assignedTo.unmatched.length > 0 && (
+                        <>
+                          <p className="workbook-recon-needs-review">Needs review</p>
+                          {recon.assignedTo.unmatched.map(({ raw }) => {
+                            const pool = assigneePool.filter((a) => a !== raw)
+                            return (
+                              <div key={raw} className="workbook-recon-card">
+                                <div>
+                                  <p className="workbook-recon-card-label">Workbook value</p>
+                                  <p className="workbook-recon-card-value">{raw}</p>
+                                </div>
+                                <div className="workbook-recon-card-action">
+                                  <p className="workbook-recon-card-label">Choose import action</p>
+                                  <select
+                                    className="workbook-recon-select"
+                                    value={reconciliationChoices.assignedTo[raw] ?? raw}
+                                    onChange={(e) => setReconciliationChoices((prev) => ({
+                                      ...prev,
+                                      assignedTo: { ...prev.assignedTo, [raw]: e.target.value },
+                                    }))}
+                                  >
+                                    <option value="">Ignore — do not import</option>
+                                    <option value={raw}>Add as New: {raw}</option>
+                                    {pool.length > 0 && (
+                                      <optgroup label="Use Existing">
+                                        {pool.map((a) => (
+                                          <option key={a} value={a}>Use Existing: {a}</option>
+                                        ))}
+                                      </optgroup>
+                                    )}
+                                  </select>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {hasSources && (
+                    <div className="workbook-recon-section">
+                      <p className="muted"><strong>Inheritance Sources</strong></p>
+                      <p className="workbook-recon-helper">
+                        Choose whether each workbook inheritance source should be ignored, added as new, or mapped to an existing source.
+                      </p>
+                      {recon.inheritanceSources.matched.length > 0 && (
+                        <>
+                          <p className="muted">Matched to existing:</p>
+                          <ul>
+                            {recon.inheritanceSources.matched.map(({ raw, resolvedTo }) => (
+                              <li key={raw}>
+                                <code>{raw}</code>{raw !== resolvedTo ? <> → <em>{resolvedTo}</em></> : null}
+                              </li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                      {recon.inheritanceSources.unmatched.length > 0 && (
+                        <>
+                          <p className="workbook-recon-needs-review">Needs review</p>
+                          {recon.inheritanceSources.unmatched.map(({ raw, suggestion }) => {
+                            const pool = sourcePool.filter((s) => s !== raw && s !== suggestion)
+                            const defaultVal = reconciliationChoices.inheritanceSources[raw] ?? (suggestion ?? raw)
+                            return (
+                              <div key={raw} className="workbook-recon-card">
+                                <div>
+                                  <p className="workbook-recon-card-label">Workbook value</p>
+                                  <p className="workbook-recon-card-value">{raw}</p>
+                                </div>
+                                <div className="workbook-recon-card-action">
+                                  <p className="workbook-recon-card-label">Choose import action</p>
+                                  <select
+                                    className="workbook-recon-select"
+                                    value={defaultVal}
+                                    onChange={(e) => setReconciliationChoices((prev) => ({
+                                      ...prev,
+                                      inheritanceSources: { ...prev.inheritanceSources, [raw]: e.target.value },
+                                    }))}
+                                  >
+                                    <option value="">Ignore — do not import</option>
+                                    <option value={raw}>Add as New: {raw}</option>
+                                    {suggestion && suggestion !== raw && (
+                                      <option value={suggestion}>Add as Canonical: {suggestion}</option>
+                                    )}
+                                    {pool.length > 0 && (
+                                      <optgroup label="Use Existing">
+                                        {pool.map((s) => (
+                                          <option key={s} value={s}>Use Existing: {s}</option>
+                                        ))}
+                                      </optgroup>
+                                    )}
+                                  </select>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {!hasRecon && (
+                    <p className="muted">No reconciliation needed.</p>
+                  )}
+                </div>
+              )}
+
+              {warnings.length > 0 && (
+                <div className="workbook-import-warnings">
+                  <p><strong>Warnings</strong></p>
+                  <ul>
+                    {warnings.map((w, i) => <li key={i}>{w}</li>)}
+                  </ul>
+                </div>
+              )}
+
+              <p className="muted">
+                Artifact references will be mapped to objectives but may need evidence tags added manually.
+              </p>
+
+              <div className="confirm-dialog-buttons">
+                <button onClick={cancelWorkbookImport}>Cancel</button>
+                <button onClick={() => confirmWorkbookImport('merge')}>
+                  Merge Into Current Project
+                </button>
+                <button className="bulk-toolbar-danger" onClick={() => confirmWorkbookImport('new')}>
+                  Import as New Project
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {pendingJsonImport && (() => {
         const noCategoriesSelected = !Object.values(importOptions.categories).some(Boolean)

@@ -9,8 +9,102 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v3.2.0 — current release, open by default */}
+      {/* v3.3.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.3.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span>Assessment Workbook Import, Guide-Aware Reuse Refinement, and Workspace Personalization</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 24, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
+
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Adds official CMMC Level 2 Assessment Results Template workbook import with reconciliation, guide-aware reuse refinements, DIBCAC Variable standard grouping, and muted theme palettes for workspace personalization.
+          </p>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Official Assessment Workbook Import</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Added direct <code>.xlsx</code> import for existing official CMMC Level 2 Assessment Results Template workbooks.</li>
+            <li>Added an Import Assessment Workbook action in Project Actions.</li>
+            <li>Added a staged import preview so workbook data is parsed and summarized before being applied.</li>
+            <li>Added Import as New Project and Merge Into Current Project workflows.</li>
+            <li>Imported objective notes, artifact references, findings, objective statuses, assigned-to values, and inheritance metadata where available.</li>
+            <li>Preserved current project data during merge by using conservative non-destructive merge behavior.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Workbook Import Reconciliation</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Added reconciliation handling for unrecognized Assigned To values.</li>
+            <li>Added reconciliation handling for unrecognized Inheritance Source values.</li>
+            <li>Allowed unmatched workbook values to be ignored, added as new, or mapped to existing app/workbook values.</li>
+            <li>Added clearer reconciliation dropdown labels and a wider import preview modal.</li>
+            <li>Added conservative fuzzy matching and aliases for common inheritance source names such as Entra, M365 GCC High, and related source labels.</li>
+            <li>Improved import warnings for workbook values that need user review.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Artifact and Finding Import Integrity</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Fixed workbook artifact/evidence import so semicolon-delimited and line-delimited evidence references become mapped artifacts.</li>
+            <li>Preserved imported artifact references in Documented Artifacts.</li>
+            <li>Imported workbook findings into objective-level finding final text.</li>
+            <li>Preserved Interview, Examine, Test, and Overall Comments notes during workbook import.</li>
+            <li>Prevented numeric/time columns from being incorrectly imported into note fields.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Project JSON Integrity</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Fixed Project JSON export/import so artifact evidence tags are preserved and restored correctly.</li>
+            <li>Ensured artifact mappings and artifact tags survive wipe/export/import round trips.</li>
+            <li>Preserved compatibility with older project JSON files that do not contain artifact tag data.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Guide-Aware Artifact Reuse</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Added Assessment Guide evidence-object context to artifact reuse scoring.</li>
+            <li>Added guide-derived assessment profile metadata for all 110 Level 2 practices.</li>
+            <li>Improved suggested artifact matching using expected tags, evidence tags, guide evidence objects, compound tag combinations, existing mappings, and relationship context.</li>
+            <li>Tightened Strong Suggestions so Tier 1 remains high-confidence.</li>
+            <li>Kept broad, weak, relationship-only, or below-threshold candidates hidden from assessor-facing suggestion lists.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Suggested Reuse UX</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Added Strong Suggestions and Related Candidates sections for reuse recommendations.</li>
+            <li>Collapsed Related Candidates by default.</li>
+            <li>Added per-tier pagination with five candidates at a time.</li>
+            <li>Added visible caps so suggested reuse remains focused and assessor-friendly.</li>
+            <li>Preserved assignment behavior while improving recommendation clarity.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>DIBCAC Mode</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Replaced the user-facing Unmapped DIBCAC label with Variable.</li>
+            <li>Added Variable to the main DIBCAC grouped objective list.</li>
+            <li>Preserved the meaning that Variable objectives do not have a single fixed assessment method.</li>
+            <li>Kept Variable filter and grouping behavior consistent with other DIBCAC methods.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Theme Palettes</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Added controlled muted theme palettes for local workspace personalization.</li>
+            <li>Added palette options including Midnight, Pure Black, Slate Blue, Sage, Warm Neutral, and Soft Mauve.</li>
+            <li>Preserved semantic assessment colors such as MET, NOT MET, In Progress, warning, and danger colors.</li>
+            <li>Kept theme preference local-only and separate from project assessment data.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Validation</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>No AI/ML, embeddings, server-side matching, scoring automation, POA&amp;M, or compliance outcome automation was added.</li>
+            <li>Official Assessment Results Template export remains separate from workbook import.</li>
+            <li>Project data remains local-first and browser-based.</li>
+          </ul>
+
+        </div>
+      </details>
+
+      {/* v3.2.0 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.2.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>

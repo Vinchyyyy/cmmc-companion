@@ -11,6 +11,11 @@
           document.documentElement.dataset.theme = 'dark'
         }
       } catch (e) {}
+      try {
+        var _p = localStorage.getItem('cmmc-theme-palette')
+        var _valid = ['midnight','pure-black','slate-blue','sage','warm-neutral','soft-mauve']
+        document.documentElement.dataset.themePalette = (_valid.indexOf(_p) !== -1) ? _p : 'midnight'
+      } catch (e) {}
     </script>
   </head>
   <body>

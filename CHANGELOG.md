@@ -1,4 +1,66 @@
 
+## Version 3.3.0 — Assessment Workbook Import, Guide-Aware Reuse Refinement, and Workspace Personalization
+Date: June 24, 2026
+
+### Official Assessment Workbook Import
+- Added direct `.xlsx` import for existing official CMMC Level 2 Assessment Results Template workbooks.
+- Added an Import Assessment Workbook action in Project Actions.
+- Added a staged import preview so workbook data is parsed and summarized before being applied.
+- Added Import as New Project and Merge Into Current Project workflows.
+- Imported objective notes, artifact references, findings, objective statuses, assigned-to values, and inheritance metadata where available.
+- Preserved current project data during merge by using conservative non-destructive merge behavior.
+
+### Workbook Import Reconciliation
+- Added reconciliation handling for unrecognized Assigned To values.
+- Added reconciliation handling for unrecognized Inheritance Source values.
+- Allowed unmatched workbook values to be ignored, added as new, or mapped to existing app/workbook values.
+- Added clearer reconciliation dropdown labels and a wider import preview modal.
+- Added conservative fuzzy matching and aliases for common inheritance source names such as Entra, M365 GCC High, and related source labels.
+- Improved import warnings for workbook values that need user review.
+
+### Artifact and Finding Import Integrity
+- Fixed workbook artifact/evidence import so semicolon-delimited and line-delimited evidence references become mapped artifacts.
+- Preserved imported artifact references in Documented Artifacts.
+- Imported workbook findings into objective-level finding final text.
+- Preserved Interview, Examine, Test, and Overall Comments notes during workbook import.
+- Prevented numeric/time columns from being incorrectly imported into note fields.
+
+### Project JSON Integrity
+- Fixed Project JSON export/import so artifact evidence tags are preserved and restored correctly.
+- Ensured artifact mappings and artifact tags survive wipe/export/import round trips.
+- Preserved compatibility with older project JSON files that do not contain artifact tag data.
+
+### Guide-Aware Artifact Reuse
+- Added Assessment Guide evidence-object context to artifact reuse scoring.
+- Added guide-derived assessment profile metadata for all 110 Level 2 practices.
+- Improved suggested artifact matching using expected tags, evidence tags, guide evidence objects, compound tag combinations, existing mappings, and relationship context.
+- Tightened Strong Suggestions so Tier 1 remains high-confidence.
+- Kept broad, weak, relationship-only, or below-threshold candidates hidden from assessor-facing suggestion lists.
+
+### Suggested Reuse UX
+- Added Strong Suggestions and Related Candidates sections for reuse recommendations.
+- Collapsed Related Candidates by default.
+- Added per-tier pagination with five candidates at a time.
+- Added visible caps so suggested reuse remains focused and assessor-friendly.
+- Preserved assignment behavior while improving recommendation clarity.
+
+### DIBCAC Mode
+- Replaced the user-facing Unmapped DIBCAC label with Variable.
+- Added Variable to the main DIBCAC grouped objective list.
+- Preserved the meaning that Variable objectives do not have a single fixed assessment method.
+- Kept Variable filter and grouping behavior consistent with other DIBCAC methods.
+
+### Theme Palettes
+- Added controlled muted theme palettes for local workspace personalization.
+- Added palette options including Midnight, Pure Black, Slate Blue, Sage, Warm Neutral, and Soft Mauve.
+- Preserved semantic assessment colors such as MET, NOT MET, In Progress, warning, and danger colors.
+- Kept theme preference local-only and separate from project assessment data.
+
+### Validation
+- No AI/ML, embeddings, server-side matching, scoring automation, POA&M, or compliance outcome automation was added.
+- Official Assessment Results Template export remains separate from workbook import.
+- Project data remains local-first and browser-based.
+
 ## Version 3.2.0 — Findings Builder, Guide-Aware Reuse, and Export Integrity
 Date: June 24, 2026
 

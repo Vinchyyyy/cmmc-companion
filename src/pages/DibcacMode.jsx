@@ -27,7 +27,7 @@ const METHOD_META = {
   artifact:                  { label: 'Artifact',               className: 'dibcac-chip--artifact' },
   physical_review:           { label: 'Physical Review',        className: 'dibcac-chip--physical_review' },
   artifact_and_screen_share: { label: 'Artifact + Screen Share', className: 'dibcac-chip--artifact_and_screen_share' },
-  unknown:                   { label: 'Unmapped',               className: 'dibcac-chip--unknown' },
+  unknown:                   { label: 'Variable',               className: 'dibcac-chip--unknown' },
 }
 
 const ALL_FAMILIES = [...new Set(controls.map((c) => c.family))]
@@ -263,7 +263,7 @@ function GroupedBrowser({ flatObjs, builderMode, checkedKeys, onCheck, onPreview
         const totalObjs = [...byFamily.values()].flatMap((bf) => [...bf.values()]).flatMap((c) => c.objs).length
 
         return (
-          <section key={method} className={`dibcac-method-section${method === 'unknown' ? ' dibcac-method-section--unmapped' : ''}`}>
+          <section key={method} className={`dibcac-method-section${method === 'unknown' ? ' dibcac-method-section--variable' : ''}`}>
             <button
               type="button"
               className="dibcac-method-header"
@@ -503,7 +503,7 @@ function SavedGroupCard({ group, onDelete, onEditRequest, onPreview }) {
 
   const methodSummary = useMemo(() => {
     const seen = new Set(group.objectives.map((o) => o.standard))
-    return [...seen].map((s) => METHOD_META[s]?.label ?? 'Unmapped').join(' · ')
+    return [...seen].map((s) => METHOD_META[s]?.label ?? 'Variable').join(' · ')
   }, [group.objectives])
 
   return (
@@ -644,7 +644,7 @@ function DibcacMode() {
           objId: obj.id,
           objText: obj.text,
           standard: std?.standard ?? null,
-          standardLabel: std?.label ?? 'Unmapped',
+          standardLabel: std?.label ?? 'Variable',
         })
       }
     }
@@ -656,7 +656,6 @@ function DibcacMode() {
   const filteredObjs = useMemo(() => {
     const q = search.toLowerCase().trim()
     return allObjs.filter((o) => {
-      if (methodFilter === 'all' && o.standard === null) return false
       if (methodFilter !== 'all') {
         if (methodFilter === 'unknown' && o.standard !== null) return false
         if (methodFilter !== 'unknown' && o.standard !== methodFilter) return false
@@ -801,7 +800,7 @@ function DibcacMode() {
               onClick={() => setMethodFilter('unknown')}
               title="Objectives not yet covered by DIBCAC standard metadata"
             >
-              Unmapped
+              Variable
               <span className="dibcac-method-filter-count">{unmappedCount}</span>
             </button>
           )}
@@ -809,8 +808,8 @@ function DibcacMode() {
 
         {unmappedCount > 0 && methodFilter === 'all' && (
           <p className="dibcac-unmapped-note">
-            {unmappedCount} objective{unmappedCount !== 1 ? 's do' : ' does'} not have DIBCAC standard metadata yet.{' '}
-            <button type="button" className="dibcac-unmapped-link" onClick={() => setMethodFilter('unknown')}>View unmapped</button>
+            {unmappedCount} objective{unmappedCount !== 1 ? 's have' : ' has'} a Variable assessment standard — no single method is fixed.{' '}
+            <button type="button" className="dibcac-unmapped-link" onClick={() => setMethodFilter('unknown')}>View variable</button>
           </p>
         )}
       </div>
