@@ -36,7 +36,9 @@ import {
   OBJECTIVE_STATUS_UNREVIEWED,
   readObjectiveStatus,
   writeObjectiveStatus,
+  getTrendingStatusFromStorage,
 } from './objectiveStatus'
+import { readStatus, writeStatus, DEFAULT_STATUS } from './status'
 import { readObjectiveResult, writeObjectiveResult } from './objectiveResults'
 import { readObjectiveFinding, writeObjectiveFinding } from './objectiveFindings'
 import { readObjectiveArtifactIds, writeObjectiveArtifactIds } from './objectiveArtifacts'
@@ -942,6 +944,8 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
     if (!control) continue
     const knownObjectiveIds = new Set((control.objectives ?? []).map((o) => o.id))
 
+    let contentAppliedThisControl = false
+
     for (const [objId, objEntry] of Object.entries(objMap)) {
       if (!knownObjectiveIds.has(objId)) continue
       summary.objectivesApplied++
@@ -951,6 +955,7 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
         if (isNew || readObjectiveStatus(controlId, objId) === OBJECTIVE_STATUS_UNREVIEWED) {
           writeObjectiveStatus(controlId, objId, objEntry.status)
           summary.statusesWritten++
+          contentAppliedThisControl = true
         }
       }
 
@@ -968,6 +973,7 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
             overallComments: objEntry.overallComments,
           })
           summary.resultsWritten++
+          contentAppliedThisControl = true
         }
       }
 
@@ -984,6 +990,7 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
             differencesText:      '',
           })
           summary.findingsWritten++
+          contentAppliedThisControl = true
         }
       }
 
@@ -996,9 +1003,17 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
           if (ids.length > 0) {
             writeObjectiveArtifactIds(controlId, objId, ids)
             summary.artifactSetsWritten++
+            contentAppliedThisControl = true
           }
         }
       }
+    }
+
+    // Derive and write control-level status so dashboard shows In Progress
+    // immediately after import rather than leaving the control as Not Started.
+    if (contentAppliedThisControl && (isNew || readStatus(controlId) === DEFAULT_STATUS)) {
+      const trending = getTrendingStatusFromStorage(control)
+      writeStatus(controlId, trending !== 'Not Started' ? trending : 'In Progress')
     }
   }
 

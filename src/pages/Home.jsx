@@ -20,6 +20,7 @@ import {
 import { readExportMeta, writeExportMeta, buildExportFilename, readLastBackup, writeLastBackup, formatLastBackup } from '../utils/exportMeta'
 import { buildCmmcTemplateWorkbook, downloadCmmcTemplate, formatWarningSummary } from '../utils/exportCmmcTemplate'
 import { parseAssessmentWorkbook, applyWorkbookImport } from '../utils/importAssessmentWorkbook'
+import { PROVIDERS } from '../data/providers'
 import { THEME_LIGHT, THEME_DARK, readTheme, writeTheme, applyTheme } from '../utils/theme'
 import { PALETTES, readPalette, writePalette, applyPalette } from '../utils/themePalette'
 import { APP_VERSION, APP_DEPLOYMENT } from '../utils/version'
@@ -29,22 +30,10 @@ import { hasObjectiveArtifacts } from '../utils/objectiveArtifacts'
 
 const KNOWN_CONTROL_IDS = new Set(controls.map((c) => c.id))
 
-// Fallback option lists shown in the workbook import reconciliation dropdowns
-// when the current project has no prior assigned-to/inheritance-source values.
-// These are display-only convenience options — nothing is written to app state
-// until the user confirms the import with a specific choice selected.
-const DEFAULT_ASSIGNEE_OPTIONS = ['Alex', 'Morgan', 'Priya', 'Vince']
-
-const DEFAULT_INHERITANCE_SOURCE_OPTIONS = [
-  'CrowdStrike Falcon',
-  'Jamf Pro',
-  'Microsoft 365 GCC High',
-  'Microsoft Entra ID',
-  'Microsoft Intune',
-  'Palo Alto Networks',
-  'Tenable.sc',
-  'Veeam Backup & Replication',
-]
+// Provider names from the app's real provider registry — used as fallback
+// options in the inheritance source reconciliation dropdown when the project
+// has no existing sources yet.
+const PROVIDER_NAMES = PROVIDERS.map((p) => p.name)
 
 function getInheritanceSources(allControls) {
   const counts = new Map()
@@ -257,6 +246,12 @@ function Home() {
     writePalette(next)
     applyPalette(next)
     setPalette(next)
+    // Palette selection always activates dark mode — palettes only apply in dark context
+    if (theme !== THEME_DARK) {
+      writeTheme(THEME_DARK)
+      applyTheme(THEME_DARK)
+      setTheme(THEME_DARK)
+    }
   }
 
   const openExportDialog = (mode) => {
@@ -1256,19 +1251,15 @@ function Home() {
 
         // Build augmented option pools for the "Use Existing" optgroup.
         // Layer order (all de-duplicated, sorted):
-        //  1. Default fallback lists — always visible even on a fresh project
-        //  2. Current project localStorage values
-        //  3. Workbook matched resolvedTo values
-        //  4. Workbook unmatched raw values + canonical suggestions
+        // Pool sources: current project values + workbook values + real provider list (sources only)
         const dedupe = (arr) => [...new Set(arr.filter(Boolean))].sort()
         const assigneePool = dedupe([
-          ...DEFAULT_ASSIGNEE_OPTIONS,
           ...recon.existingAssignees,
           ...recon.assignedTo.matched.map((m) => m.resolvedTo),
           ...recon.assignedTo.unmatched.map((m) => m.raw),
         ])
         const sourcePool = dedupe([
-          ...DEFAULT_INHERITANCE_SOURCE_OPTIONS,
+          ...PROVIDER_NAMES,
           ...recon.existingSources,
           ...recon.inheritanceSources.matched.map((m) => m.resolvedTo),
           ...recon.inheritanceSources.unmatched.flatMap((m) =>

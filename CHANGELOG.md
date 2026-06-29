@@ -1,6 +1,6 @@
 
-## Version 3.3.0 — Assessment Workbook Import, Guide-Aware Reuse Refinement, and Workspace Personalization
-Date: June 24, 2026
+## Version 3.3.0 — Assessment Workbook Import, DIBCAC Workflow, Guide-Aware Reuse, and Workspace Personalization
+Date: June 28, 2026
 
 ### Official Assessment Workbook Import
 - Added direct `.xlsx` import for existing official CMMC Level 2 Assessment Results Template workbooks.
@@ -14,16 +14,18 @@ Date: June 24, 2026
 - Added reconciliation handling for unrecognized Assigned To values.
 - Added reconciliation handling for unrecognized Inheritance Source values.
 - Allowed unmatched workbook values to be ignored, added as new, or mapped to existing app/workbook values.
-- Added clearer reconciliation dropdown labels and a wider import preview modal.
-- Added conservative fuzzy matching and aliases for common inheritance source names such as Entra, M365 GCC High, and related source labels.
-- Improved import warnings for workbook values that need user review.
+- Improved reconciliation controls so dropdown actions are visually clear and easier to review.
+- Removed hardcoded test assignee names from reconciliation options.
+- Improved inheritance/provider reconciliation to use real project, workbook, and provider-source values.
+- Added conservative fuzzy matching and aliases for common inheritance source names such as Entra, M365 GCC High, and related provider labels.
 
-### Artifact and Finding Import Integrity
+### Artifact, Notes, and Finding Import Integrity
 - Fixed workbook artifact/evidence import so semicolon-delimited and line-delimited evidence references become mapped artifacts.
 - Preserved imported artifact references in Documented Artifacts.
 - Imported workbook findings into objective-level finding final text.
 - Preserved Interview, Examine, Test, and Overall Comments notes during workbook import.
 - Prevented numeric/time columns from being incorrectly imported into note fields.
+- Improved workbook import progress handling so imported notes, artifacts, and findings immediately reflect in assessment progress.
 
 ### Project JSON Integrity
 - Fixed Project JSON export/import so artifact evidence tags are preserved and restored correctly.
@@ -48,12 +50,23 @@ Date: June 24, 2026
 - Replaced the user-facing Unmapped DIBCAC label with Variable.
 - Added Variable to the main DIBCAC grouped objective list.
 - Preserved the meaning that Variable objectives do not have a single fixed assessment method.
-- Kept Variable filter and grouping behavior consistent with other DIBCAC methods.
+- Added objective status controls inside saved DIBCAC review groups.
+- Added Overall Comments editing from saved DIBCAC review group objectives.
+- Added saved review group sorting by name and recently created.
+- Improved Planned Ask textarea behavior.
+- Improved objective row selection behavior when building review groups.
+- Fixed DIBCAC Mode scrolling and cut-off issues when many groups are expanded.
+
+### Control Library
+- Fixed Control Library ordering so controls sort by true numeric CMMC practice order instead of L1/L2 prefix or string order.
+- Corrected ordering for cases such as MP.L2-3.8.1 before MP.L1-3.8.3 and SC.L2-3.13.9 before SC.L2-3.13.10.
+- Cleaned up Control Library lint issues for a clean release baseline.
 
 ### Theme Palettes
 - Added controlled muted theme palettes for local workspace personalization.
 - Added palette options including Midnight, Pure Black, Slate Blue, Sage, Warm Neutral, and Soft Mauve.
 - Preserved semantic assessment colors such as MET, NOT MET, In Progress, warning, and danger colors.
+- Made theme palette selection automatically switch to dark mode so palettes visibly apply immediately.
 - Kept theme preference local-only and separate from project assessment data.
 
 ### Validation

@@ -114,6 +114,25 @@ const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheri
 const CHIP_FILTER_KEYS = ['status', 'trending', 'warnings', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'inheritanceSource', 'assignedTo']
 const SEARCH_DEBOUNCE_MS = 500
 
+function parsePracticeNumber(controlId) {
+  const m = String(controlId).match(/-(\d+(?:\.\d+)+)/)
+  if (!m) return []
+  return m[1].split('.').map(Number)
+}
+
+function comparePracticeIds(a, b) {
+  const aId = typeof a === 'string' ? a : (a.id ?? '')
+  const bId = typeof b === 'string' ? b : (b.id ?? '')
+  const aParts = parsePracticeNumber(aId)
+  const bParts = parsePracticeNumber(bId)
+  const len = Math.max(aParts.length, bParts.length)
+  for (let i = 0; i < len; i++) {
+    const diff = (aParts[i] ?? 0) - (bParts[i] ?? 0)
+    if (diff !== 0) return diff
+  }
+  return String(aId).localeCompare(String(bId))
+}
+
 function getProviderSuggestions(value) {
   if (!value.trim()) return []
   if (PROVIDERS.some((p) => p.name === value)) return []
@@ -337,11 +356,11 @@ function ControlLibrary() {
   const forceUpdate = () => setUpdateKey((k) => k + 1)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     forceUpdate()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.key])
 
-  useEffect(() => { setCopyAttrsResult(null) }, [selected])
+  useEffect(() => { setCopyAttrsResult(null) }, [selected]) // eslint-disable-line react-hooks/set-state-in-effect
 
   // Default to Access Control on initial page load if no filters are active
   useEffect(() => {
@@ -366,7 +385,14 @@ function ControlLibrary() {
     return next
   })
 
-  useEffect(() => { setSearchInput(urlSearch) }, [urlSearch])
+  useEffect(() => { setSearchInput(urlSearch) }, [urlSearch]) // eslint-disable-line react-hooks/set-state-in-effect
+
+  const writeFilter = (key, value) => {
+    const next = new URLSearchParams(searchParams)
+    if (value === DEFAULTS[key] || value === '') next.delete(key)
+    else next.set(key, value)
+    setSearchParams(next)
+  }
 
   const debounceRef = useRef(null)
   useEffect(() => {
@@ -376,13 +402,6 @@ function ControlLibrary() {
     return () => clearTimeout(debounceRef.current)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchInput])
-
-  const writeFilter = (key, value) => {
-    const next = new URLSearchParams(searchParams)
-    if (value === DEFAULTS[key] || value === '') next.delete(key)
-    else next.set(key, value)
-    setSearchParams(next)
-  }
 
   const toggleMultiFilter = (key, value) => {
     const current = parseMultiFilter(searchParams.get(key))
@@ -530,7 +549,7 @@ function ControlLibrary() {
   }
   const groups = FAMILY_ORDER
     .filter((f) => byFamily.has(f))
-    .map((f) => ({ family: f, controls: byFamily.get(f) }))
+    .map((f) => ({ family: f, controls: [...byFamily.get(f)].sort(comparePracticeIds) }))
 
   const queryString = searchParams.toString()
   const currentLibraryUrl = queryString ? `/controls?${queryString}` : '/controls'
@@ -627,6 +646,7 @@ function ControlLibrary() {
     () => rightPanelFamily ? (localStorage.getItem(`cmmc-family-note-${rightPanelFamily}`) ?? '') : ''
   )
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFamilyNote(rightPanelFamily ? (localStorage.getItem(`cmmc-family-note-${rightPanelFamily}`) ?? '') : '')
   }, [rightPanelFamily])
 

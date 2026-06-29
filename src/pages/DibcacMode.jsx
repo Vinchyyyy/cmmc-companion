@@ -1,9 +1,15 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import controls from '../data/controls/index'
 import { getDibcacStandard, DIBCAC_STANDARDS } from '../data/dibcacAssessmentStandards'
-import { readObjectiveStatus, OBJECTIVE_STATUS_MET, OBJECTIVE_STATUS_NOT_MET } from '../utils/objectiveStatus'
-import { readObjectiveResult } from '../utils/objectiveResults'
+import {
+  readObjectiveStatus,
+  writeObjectiveStatus,
+  OBJECTIVE_STATUS_MET,
+  OBJECTIVE_STATUS_NOT_MET,
+  OBJECTIVE_STATUS_UNREVIEWED,
+} from '../utils/objectiveStatus'
+import { readObjectiveResult, writeObjectiveResult } from '../utils/objectiveResults'
 import { readObjectiveArtifacts } from '../utils/objectiveArtifacts'
 import { readObjectiveInheritance } from '../utils/inheritance'
 import {
@@ -188,8 +194,21 @@ function ObjectivePreview({ previewKey, onClose }) {
 
 function ObjectiveRow({ obj, builderMode, checked, onCheck, onPreview }) {
   const std = obj.standard ?? 'unknown'
+  const handleRowClick = builderMode
+    ? (e) => {
+        // Don't toggle if the click was on the ref button or checkbox itself
+        if (e.target.closest('.dibcac-obj-ref-btn') || e.target.closest('.dibcac-obj-checkbox')) return
+        onCheck(obj.key)
+      }
+    : undefined
+
   return (
-    <div className={`dibcac-obj-row${checked ? ' dibcac-obj-row--selected' : ''}`}>
+    <div
+      className={`dibcac-obj-row${checked ? ' dibcac-obj-row--selected' : ''}${builderMode ? ' dibcac-obj-row--selectable' : ''}`}
+      onClick={handleRowClick}
+      role={builderMode ? 'checkbox' : undefined}
+      aria-checked={builderMode ? checked : undefined}
+    >
       {builderMode && (
         <input
           type="checkbox"
@@ -197,6 +216,7 @@ function ObjectiveRow({ obj, builderMode, checked, onCheck, onPreview }) {
           checked={checked}
           onChange={() => onCheck(obj.key)}
           aria-label={`Select ${obj.controlId}[${obj.objId}]`}
+          onClick={(e) => e.stopPropagation()}
         />
       )}
       <div className="dibcac-obj-body">
@@ -204,7 +224,7 @@ function ObjectiveRow({ obj, builderMode, checked, onCheck, onPreview }) {
           <button
             type="button"
             className="dibcac-obj-ref-btn mono"
-            onClick={() => onPreview(obj.key)}
+            onClick={(e) => { e.stopPropagation(); onPreview(obj.key) }}
             title="Click to preview objective"
           >
             {obj.controlId}[{obj.objId}]
@@ -348,6 +368,27 @@ function GroupedBrowser({ flatObjs, builderMode, checkedKeys, onCheck, onPreview
 
 // ── Builder panel (new group OR editing existing) ─────────────────────────────
 
+function AutoExpandTextarea({ value, onChange, id, className, placeholder, rows }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    if (!ref.current) return
+    ref.current.style.height = 'auto'
+    ref.current.style.height = `${ref.current.scrollHeight}px`
+  }, [value])
+  return (
+    <textarea
+      ref={ref}
+      id={id}
+      className={className}
+      value={value}
+      onChange={onChange}
+      rows={rows}
+      placeholder={placeholder}
+      style={{ resize: 'none', overflow: 'hidden' }}
+    />
+  )
+}
+
 function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup }) {
   const isEditing = !!editingGroup
 
@@ -468,7 +509,7 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
 
         <div className="dibcac-builder-field">
           <label className="dibcac-builder-label" htmlFor="planned-ask">Planned Ask</label>
-          <textarea
+          <AutoExpandTextarea
             id="planned-ask"
             className="dibcac-builder-textarea"
             value={plannedAsk}
@@ -496,18 +537,91 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
   )
 }
 
+// ── Overall Comments popover ──────────────────────────────────────────────────
+
+function OverallCommentsPopover({ controlId, objId, onClose }) {
+  const existing = useMemo(() => readObjectiveResult(controlId, objId), [controlId, objId])
+  const [text, setText] = useState(existing.overallComments ?? '')
+  const textareaRef = useRef(null)
+
+  useEffect(() => {
+    textareaRef.current?.focus()
+  }, [])
+
+  const handleSave = useCallback(() => {
+    writeObjectiveResult(controlId, objId, { ...existing, overallComments: text })
+    onClose()
+  }, [controlId, objId, existing, text, onClose])
+
+  return (
+    <div
+      className="dibcac-comments-overlay"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Overall Comments"
+    >
+      <div className="dibcac-comments-panel">
+        <div className="dibcac-comments-header">
+          <span className="dibcac-comments-title">Overall Comments</span>
+          <span className="dibcac-comments-id mono">{controlId}[{objId}]</span>
+          <button type="button" className="dibcac-preview-close" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+        <textarea
+          ref={textareaRef}
+          className="dibcac-comments-textarea"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={6}
+          placeholder="Add overall assessment comments for this objective…"
+        />
+        <div className="dibcac-comments-footer">
+          <button type="button" className="dibcac-builder-save" onClick={handleSave}>Save</button>
+          <button type="button" className="dibcac-builder-cancel" onClick={onClose}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Saved group card ──────────────────────────────────────────────────────────
 
 function SavedGroupCard({ group, onDelete, onEditRequest, onPreview }) {
   const [expanded, setExpanded] = useState(false)
+  const [commentsKey, setCommentsKey] = useState(null) // `${controlId}[${objId}]`
+  const [, forceUpdate] = useState(0)
 
   const methodSummary = useMemo(() => {
     const seen = new Set(group.objectives.map((o) => o.standard))
     return [...seen].map((s) => METHOD_META[s]?.label ?? 'Variable').join(' · ')
   }, [group.objectives])
 
+  const cycleStatus = useCallback((controlId, objId) => {
+    const current = readObjectiveStatus(controlId, objId)
+    const next =
+      current === OBJECTIVE_STATUS_UNREVIEWED ? OBJECTIVE_STATUS_MET
+      : current === OBJECTIVE_STATUS_MET      ? OBJECTIVE_STATUS_NOT_MET
+      :                                          OBJECTIVE_STATUS_UNREVIEWED
+    writeObjectiveStatus(controlId, objId, next)
+    forceUpdate((n) => n + 1)
+  }, [])
+
+  const [commentsObjId, commentsControlId] = useMemo(() => {
+    if (!commentsKey) return [null, null]
+    const m = commentsKey.match(/^(.+)\[([a-z0-9]+)\]$/)
+    return m ? [m[2], m[1]] : [null, null]
+  }, [commentsKey])
+
   return (
     <div className="dibcac-group-card">
+      {commentsKey && commentsObjId && (
+        <OverallCommentsPopover
+          controlId={commentsControlId}
+          objId={commentsObjId}
+          onClose={() => { setCommentsKey(null); forceUpdate((n) => n + 1) }}
+        />
+      )}
+
       <div className="dibcac-group-card-header">
         <button
           type="button"
@@ -553,6 +667,8 @@ function SavedGroupCard({ group, onDelete, onEditRequest, onPreview }) {
             {group.objectives.map((o) => {
               const key = o.key ?? o.objectiveRef
               const objId = o.objId ?? o.objectiveKey
+              const status = readObjectiveStatus(o.controlId, objId)
+              const hasComments = !!readObjectiveResult(o.controlId, objId).overallComments
               return (
                 <div key={key} className="dibcac-group-card-obj-row">
                   <div className="dibcac-group-card-obj-left">
@@ -566,7 +682,25 @@ function SavedGroupCard({ group, onDelete, onEditRequest, onPreview }) {
                     </button>
                     <span className="dibcac-group-card-obj-text">{o.objText ?? o.objectiveText}</span>
                   </div>
-                  <MethodChip standard={o.standard} />
+                  <div className="dibcac-group-card-obj-actions">
+                    <MethodChip standard={o.standard} />
+                    <button
+                      type="button"
+                      className={`dibcac-status-cycle-btn dibcac-status-cycle-btn--${status === OBJECTIVE_STATUS_MET ? 'met' : status === OBJECTIVE_STATUS_NOT_MET ? 'not-met' : 'unreviewed'}`}
+                      onClick={() => cycleStatus(o.controlId, objId)}
+                      title="Click to cycle: Unreviewed → MET → NOT MET"
+                    >
+                      {status === OBJECTIVE_STATUS_MET ? 'MET' : status === OBJECTIVE_STATUS_NOT_MET ? 'NOT MET' : '—'}
+                    </button>
+                    <button
+                      type="button"
+                      className={`dibcac-comments-btn${hasComments ? ' dibcac-comments-btn--has-content' : ''}`}
+                      onClick={() => setCommentsKey(key)}
+                      title="Add/edit overall comments"
+                    >
+                      {hasComments ? '💬' : '○'}
+                    </button>
+                  </div>
                 </div>
               )
             })}
@@ -577,9 +711,31 @@ function SavedGroupCard({ group, onDelete, onEditRequest, onPreview }) {
   )
 }
 
+function parseGroupSortKey(name) {
+  return String(name ?? '').toLowerCase().replace(/(\d+)/g, (n) => n.padStart(10, '0'))
+}
+
 // ── Saved groups panel (right rail) ───────────────────────────────────────────
 
 function SavedGroupsPanel({ savedGroups, onDelete, onEditRequest, onPreview, onEnterBuilder }) {
+  const [groupSort, setGroupSort] = useState('name') // 'name' | 'created'
+
+  const sortedGroups = useMemo(() => {
+    const copy = [...savedGroups]
+    if (groupSort === 'name') {
+      copy.sort((a, b) => parseGroupSortKey(a.name).localeCompare(parseGroupSortKey(b.name)))
+    } else {
+      // newest first — fall back to array order for groups without createdAt
+      copy.sort((a, b) => {
+        if (!a.createdAt && !b.createdAt) return 0
+        if (!a.createdAt) return 1
+        if (!b.createdAt) return -1
+        return b.createdAt.localeCompare(a.createdAt)
+      })
+    }
+    return copy
+  }, [savedGroups, groupSort])
+
   return (
     <div className="dibcac-rail-panel">
       <div className="dibcac-rail-header">
@@ -600,9 +756,22 @@ function SavedGroupsPanel({ savedGroups, onDelete, onEditRequest, onPreview, onE
         </p>
       ) : (
         <>
+          <div className="dibcac-sort-row">
+            <span className="dibcac-sort-label">Sort:</span>
+            <button
+              type="button"
+              className={`dibcac-sort-btn${groupSort === 'name' ? ' dibcac-sort-btn--active' : ''}`}
+              onClick={() => setGroupSort('name')}
+            >Name</button>
+            <button
+              type="button"
+              className={`dibcac-sort-btn${groupSort === 'created' ? ' dibcac-sort-btn--active' : ''}`}
+              onClick={() => setGroupSort('created')}
+            >Recently Created</button>
+          </div>
           <p className="dibcac-saved-hint">Saved locally · not included in project exports.</p>
           <div className="dibcac-saved-list">
-            {savedGroups.map((group) => (
+            {sortedGroups.map((group) => (
               <SavedGroupCard
                 key={group.id}
                 group={group}

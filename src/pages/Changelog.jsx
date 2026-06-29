@@ -14,13 +14,13 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.3.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Assessment Workbook Import, Guide-Aware Reuse Refinement, and Workspace Personalization</span>
-          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 24, 2026</span>
+          <span>Assessment Workbook Import, DIBCAC Workflow, Guide-Aware Reuse, and Workspace Personalization</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 28, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
 
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
-            Adds official CMMC Level 2 Assessment Results Template workbook import with reconciliation, guide-aware reuse refinements, DIBCAC Variable standard grouping, and muted theme palettes for workspace personalization.
+            Adds official CMMC Level 2 Assessment Results Template workbook import with reconciliation, expanded DIBCAC workflow controls, guide-aware reuse refinements, Control Library numeric sorting, and muted theme palettes for workspace personalization.
           </p>
 
           <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Official Assessment Workbook Import</h3>
@@ -38,18 +38,20 @@ function Changelog() {
             <li>Added reconciliation handling for unrecognized Assigned To values.</li>
             <li>Added reconciliation handling for unrecognized Inheritance Source values.</li>
             <li>Allowed unmatched workbook values to be ignored, added as new, or mapped to existing app/workbook values.</li>
-            <li>Added clearer reconciliation dropdown labels and a wider import preview modal.</li>
-            <li>Added conservative fuzzy matching and aliases for common inheritance source names such as Entra, M365 GCC High, and related source labels.</li>
-            <li>Improved import warnings for workbook values that need user review.</li>
+            <li>Improved reconciliation controls so dropdown actions are visually clear and easier to review.</li>
+            <li>Removed hardcoded test assignee names from reconciliation options.</li>
+            <li>Improved inheritance/provider reconciliation to use real project, workbook, and provider-source values.</li>
+            <li>Added conservative fuzzy matching and aliases for common inheritance source names such as Entra, M365 GCC High, and related provider labels.</li>
           </ul>
 
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Artifact and Finding Import Integrity</h3>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Artifact, Notes, and Finding Import Integrity</h3>
           <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
             <li>Fixed workbook artifact/evidence import so semicolon-delimited and line-delimited evidence references become mapped artifacts.</li>
             <li>Preserved imported artifact references in Documented Artifacts.</li>
             <li>Imported workbook findings into objective-level finding final text.</li>
             <li>Preserved Interview, Examine, Test, and Overall Comments notes during workbook import.</li>
             <li>Prevented numeric/time columns from being incorrectly imported into note fields.</li>
+            <li>Improved workbook import progress handling so imported notes, artifacts, and findings immediately reflect in assessment progress.</li>
           </ul>
 
           <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Project JSON Integrity</h3>
@@ -82,7 +84,19 @@ function Changelog() {
             <li>Replaced the user-facing Unmapped DIBCAC label with Variable.</li>
             <li>Added Variable to the main DIBCAC grouped objective list.</li>
             <li>Preserved the meaning that Variable objectives do not have a single fixed assessment method.</li>
-            <li>Kept Variable filter and grouping behavior consistent with other DIBCAC methods.</li>
+            <li>Added objective status controls inside saved DIBCAC review groups.</li>
+            <li>Added Overall Comments editing from saved DIBCAC review group objectives.</li>
+            <li>Added saved review group sorting by name and recently created.</li>
+            <li>Improved Planned Ask textarea behavior.</li>
+            <li>Improved objective row selection behavior when building review groups.</li>
+            <li>Fixed DIBCAC Mode scrolling and cut-off issues when many groups are expanded.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Control Library</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Fixed Control Library ordering so controls sort by true numeric CMMC practice order instead of L1/L2 prefix or string order.</li>
+            <li>Corrected ordering for cases such as MP.L2-3.8.1 before MP.L1-3.8.3 and SC.L2-3.13.9 before SC.L2-3.13.10.</li>
+            <li>Cleaned up Control Library lint issues for a clean release baseline.</li>
           </ul>
 
           <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Theme Palettes</h3>
@@ -90,6 +104,7 @@ function Changelog() {
             <li>Added controlled muted theme palettes for local workspace personalization.</li>
             <li>Added palette options including Midnight, Pure Black, Slate Blue, Sage, Warm Neutral, and Soft Mauve.</li>
             <li>Preserved semantic assessment colors such as MET, NOT MET, In Progress, warning, and danger colors.</li>
+            <li>Made theme palette selection automatically switch to dark mode so palettes visibly apply immediately.</li>
             <li>Kept theme preference local-only and separate from project assessment data.</li>
           </ul>
 
