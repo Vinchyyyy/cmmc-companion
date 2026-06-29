@@ -52,6 +52,7 @@ function Changelog() {
             <li>Preserved Interview, Examine, Test, and Overall Comments notes during workbook import.</li>
             <li>Prevented numeric/time columns from being incorrectly imported into note fields.</li>
             <li>Improved workbook import progress handling so imported notes, artifacts, and findings immediately reflect in assessment progress.</li>
+            <li>Added a progress reconciliation sweep that repairs older imported or restored project states when stored work exists but control progress still appears Not Started.</li>
           </ul>
 
           <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Project JSON Integrity</h3>
@@ -59,6 +60,7 @@ function Changelog() {
             <li>Fixed Project JSON export/import so artifact evidence tags are preserved and restored correctly.</li>
             <li>Ensured artifact mappings and artifact tags survive wipe/export/import round trips.</li>
             <li>Preserved compatibility with older project JSON files that do not contain artifact tag data.</li>
+            <li>Added progress reconciliation after Project JSON import so restored notes, artifacts, and findings correctly reflect assessment progress.</li>
           </ul>
 
           <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Guide-Aware Artifact Reuse</h3>

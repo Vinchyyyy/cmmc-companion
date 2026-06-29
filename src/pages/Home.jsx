@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo } from 'react'
+import { useRef, useState, useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import controls from '../data/controls/index.js'
 import evidenceTypes from '../data/evidence/index.js'
@@ -27,6 +27,7 @@ import { APP_VERSION, APP_DEPLOYMENT } from '../utils/version'
 import { listArtifacts } from '../utils/artifactRegistry'
 import { readObjectiveStatus, OBJECTIVE_STATUS_NOT_MET } from '../utils/objectiveStatus'
 import { hasObjectiveArtifacts } from '../utils/objectiveArtifacts'
+import { reconcileProgressFromStoredWork } from '../utils/progressReconciliation'
 
 const KNOWN_CONTROL_IDS = new Set(controls.map((c) => c.id))
 
@@ -233,6 +234,13 @@ function Home() {
   const [theme, setTheme] = useState(() => readTheme())
   const [palette, setPalette] = useState(() => readPalette())
   const [sourceLimit, setSourceLimit] = useState('5')
+
+  // On mount: repair any controls that have stored work but are still "Not Started".
+  // Covers older imports and any project state written before this reconciliation existed.
+  useEffect(() => {
+    reconcileProgressFromStoredWork(controls)
+    setRefreshKey((k) => k + 1) // eslint-disable-line react-hooks/set-state-in-effect
+  }, [])
 
   const toggleTheme = () => {
     const next = theme === THEME_LIGHT ? THEME_DARK : THEME_LIGHT
@@ -516,6 +524,7 @@ function Home() {
     try {
       const summary = importProjectState(pendingJsonImport, controls, importOptions)
       if (!summary.ok) { setJsonResult({ ok: false, message: summary.error }); return }
+      reconcileProgressFromStoredWork(controls)
       const p = (n, singular, plural) => n > 0 ? `${n} ${n === 1 ? singular : plural}` : null
       const parts = [
         p(summary.statusesWritten,          'status',               'statuses'),
@@ -616,6 +625,7 @@ function Home() {
     if (!pendingWorkbookImport) return
     try {
       const result = applyWorkbookImport(pendingWorkbookImport, controls, mode, reconciliationChoices)
+      reconcileProgressFromStoredWork(controls)
       setPendingWorkbookImport(null)
       const p = (n, singular, plural) => n > 0 ? `${n} ${n === 1 ? singular : plural}` : null
       const parts = [

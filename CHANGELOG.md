@@ -26,11 +26,13 @@ Date: June 28, 2026
 - Preserved Interview, Examine, Test, and Overall Comments notes during workbook import.
 - Prevented numeric/time columns from being incorrectly imported into note fields.
 - Improved workbook import progress handling so imported notes, artifacts, and findings immediately reflect in assessment progress.
+- Added a progress reconciliation sweep that repairs older imported or restored project states when stored work exists but control progress still appears Not Started.
 
 ### Project JSON Integrity
 - Fixed Project JSON export/import so artifact evidence tags are preserved and restored correctly.
 - Ensured artifact mappings and artifact tags survive wipe/export/import round trips.
 - Preserved compatibility with older project JSON files that do not contain artifact tag data.
+- Added progress reconciliation after Project JSON import so restored notes, artifacts, and findings correctly reflect assessment progress.
 
 ### Guide-Aware Artifact Reuse
 - Added Assessment Guide evidence-object context to artifact reuse scoring.
