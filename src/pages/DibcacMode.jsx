@@ -17,7 +17,14 @@ import {
   createReviewGroup,
   updateReviewGroup,
   deleteReviewGroup,
+  getReviewFolders,
+  createReviewFolder,
+  deleteReviewFolder,
+  assignGroupToFolder,
 } from '../utils/reviewGroups'
+import { readObjectiveFinding, writeObjectiveFinding } from '../utils/objectiveFindings'
+import { readObjectiveInterviewedRoles, writeObjectiveInterviewedRoles } from '../utils/objectiveInterviewedRoles'
+import InterviewRolePickerModal from '../components/InterviewRolePickerModal'
 
 const METHOD_ORDER = [
   'document',
@@ -584,11 +591,292 @@ function OverallCommentsPopover({ controlId, objId, onClose }) {
   )
 }
 
+// ── Bulk group findings helpers ───────────────────────────────────────────────
+
+function buildGroupFindingText({ artifacts, objectiveRef, roles }) {
+  const valid = (artifacts ?? []).filter((a) => a && a.trim())
+  const artifactsText = valid.length > 0 ? valid.map((a) => `${a.trim()};`).join(' ') : null
+  const lines = []
+  if (roles && roles.length > 0) {
+    lines.push(`Interviewed: ${roles.join('; ')}`)
+    lines.push('')
+  }
+  lines.push(`A) Reviewed ${artifactsText ?? '[no artifact references entered]'}`)
+  lines.push(`B) Validation is described in the corresponding ${objectiveRef} section of the SSP.`)
+  lines.push('C) No noted findings or differences.')
+  lines.push('D) Assessment team confirmed in interview, testing, and documentation that this objective is implemented.')
+  return lines.join('\n')
+}
+
+function FixInterviewDetailsModal({ controlId, objId, objKey, objText, onSave, onClose }) {
+  const [roles, setRoles] = useState(() => readObjectiveInterviewedRoles(controlId, objId))
+  const [interviewText, setInterviewText] = useState(() => readObjectiveResult(controlId, objId).interviews)
+  const [showRolePicker, setShowRolePicker] = useState(false)
+  const textareaRef = useRef(null)
+
+  useEffect(() => {
+    textareaRef.current?.focus()
+  }, [])
+
+  useEffect(() => {
+    if (!textareaRef.current) return
+    textareaRef.current.style.height = 'auto'
+    textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+  }, [interviewText])
+
+  const handleSave = () => {
+    writeObjectiveInterviewedRoles(controlId, objId, roles)
+    const existing = readObjectiveResult(controlId, objId)
+    writeObjectiveResult(controlId, objId, { ...existing, interviews: interviewText })
+    onSave()
+  }
+
+  return (
+    <>
+      <div
+        className="dibcac-comments-overlay dibcac-fix-overlay"
+        onClick={(e) => { if (e.target === e.currentTarget && !showRolePicker) onClose() }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Fix Interview Details"
+      >
+        <div className="dibcac-comments-panel dibcac-fix-panel">
+          <div className="dibcac-comments-header">
+            <span className="dibcac-comments-title">Fix Interview Details</span>
+            <span className="dibcac-comments-id mono">{objKey}</span>
+            <button type="button" className="dibcac-preview-close" onClick={onClose} aria-label="Close">✕</button>
+          </div>
+
+          {objText && <p className="dibcac-fix-obj-text">{objText}</p>}
+
+          <div className="dibcac-fix-body">
+            <div className="dibcac-fix-field">
+              <div className="dibcac-fix-field-header">
+                <span className="dibcac-fix-label">Interviewed Roles / Titles</span>
+                <button
+                  type="button"
+                  className="dibcac-action-btn"
+                  onClick={() => setShowRolePicker(true)}
+                >
+                  {roles.length > 0 ? 'Manage Roles' : '+ Add Roles'}
+                </button>
+              </div>
+              {roles.length > 0 ? (
+                <div className="dibcac-fix-role-chips">
+                  {roles.map((r) => (
+                    <span key={r} className="dibcac-fix-role-chip">
+                      {r}
+                      <button
+                        type="button"
+                        className="dibcac-fix-role-chip-remove"
+                        onClick={() => setRoles((prev) => prev.filter((x) => x !== r))}
+                        aria-label={`Remove ${r}`}
+                      >×</button>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="dibcac-fix-empty">No roles selected. Click + Add Roles to pick from the role list.</p>
+              )}
+            </div>
+
+            <div className="dibcac-fix-field">
+              <label className="dibcac-fix-label" htmlFor="fix-interview-text">Interview Notes / Comments</label>
+              <textarea
+                ref={textareaRef}
+                id="fix-interview-text"
+                className="dibcac-comments-textarea"
+                value={interviewText}
+                onChange={(e) => setInterviewText(e.target.value)}
+                rows={4}
+                placeholder="Describe what was discussed or confirmed in the interview…"
+                style={{ resize: 'none', overflow: 'hidden' }}
+              />
+            </div>
+          </div>
+
+          <div className="dibcac-comments-footer">
+            <button type="button" className="dibcac-builder-save" onClick={handleSave}>Save</button>
+            <button type="button" className="dibcac-builder-cancel" onClick={onClose}>Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      {showRolePicker && (
+        <InterviewRolePickerModal
+          currentRoles={roles}
+          onSave={(newRoles) => { setRoles(newRoles); setShowRolePicker(false) }}
+          onClose={() => setShowRolePicker(false)}
+        />
+      )}
+    </>
+  )
+}
+
+function GroupFindingsModal({ group, onClose }) {
+  const [overwrite, setOverwrite] = useState(false)
+  const [done, setDone] = useState(null)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [fixTarget, setFixTarget] = useState(null) // { controlId, objId, key, text }
+
+  const rows = useMemo(() => group.objectives.map((o) => {
+    const objId     = o.objId ?? o.objectiveKey
+    const key       = o.key  ?? o.objectiveRef
+    const status    = readObjectiveStatus(o.controlId, objId)
+    const existing  = readObjectiveFinding(o.controlId, objId)
+    const artifacts = readObjectiveArtifacts(o.controlId, objId)
+    const result    = readObjectiveResult(o.controlId, objId)
+    const roles     = readObjectiveInterviewedRoles(o.controlId, objId)
+    const isMet         = status === OBJECTIVE_STATUS_MET
+    const hasExisting   = existing !== null
+    const missingRoles  = roles.length === 0
+    const missingInterviewComments = !result.interviews.trim()
+    const warnings = []
+    if (artifacts.length === 0)       warnings.push({ key: 'artifacts', text: 'No assigned artifacts.' })
+    if (missingRoles)                 warnings.push({ key: 'roles', text: 'Missing interviewed role.', fixable: true })
+    if (missingInterviewComments)     warnings.push({ key: 'interview', text: 'Missing interview comments.', fixable: true })
+    return { o, objId, key, status, hasExisting, artifacts, roles, isMet, warnings, objText: o.objText ?? o.objectiveText }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [group.objectives, refreshKey])
+
+  const eligibleRows = useMemo(
+    () => rows.filter((r) => r.isMet && (!r.hasExisting || overwrite)),
+    [rows, overwrite]
+  )
+
+  const handleGenerate = () => {
+    for (const row of eligibleRows) {
+      writeObjectiveFinding(row.o.controlId, row.objId, {
+        includedArtifacts: row.artifacts,
+        hasDifferences: false,
+        differencesText: '',
+        finalText: buildGroupFindingText({ artifacts: row.artifacts, objectiveRef: row.key, roles: row.roles }),
+        updatedAt: new Date().toISOString(),
+      })
+    }
+    setDone(eligibleRows.length)
+  }
+
+  const handleFixSave = () => {
+    setFixTarget(null)
+    setRefreshKey((k) => k + 1)
+  }
+
+  // When a fix target is active, replace this modal entirely with FixInterviewDetailsModal.
+  // This prevents two overlays from stacking on screen at the same time.
+  if (fixTarget) {
+    return (
+      <FixInterviewDetailsModal
+        controlId={fixTarget.controlId}
+        objId={fixTarget.objId}
+        objKey={fixTarget.key}
+        objText={fixTarget.text}
+        onSave={handleFixSave}
+        onClose={() => setFixTarget(null)}
+      />
+    )
+  }
+
+  return (
+    <div
+      className="dibcac-comments-overlay"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Create Group Findings"
+    >
+      <div className="dibcac-group-findings-panel">
+        <div className="dibcac-comments-header">
+          <span className="dibcac-comments-title">Create Group Findings</span>
+          <span className="dibcac-comments-id">{group.name}</span>
+          <button type="button" className="dibcac-preview-close" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+
+        {done !== null ? (
+          <>
+            <div className="dibcac-group-findings-body">
+              <p className="dibcac-group-findings-done">
+                {done} finding{done !== 1 ? 's' : ''} generated. Open each objective in Control Detail to review or refine.
+              </p>
+            </div>
+            <div className="dibcac-comments-footer">
+              <button type="button" className="dibcac-builder-save" onClick={onClose}>Close</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="dibcac-group-findings-body">
+              <label className="dibcac-group-findings-overwrite">
+                <input
+                  type="checkbox"
+                  checked={overwrite}
+                  onChange={(e) => setOverwrite(e.target.checked)}
+                />
+                Overwrite existing findings
+              </label>
+              <div className="dibcac-group-findings-list">
+                {rows.map((row) => {
+                  const eligible = row.isMet && (!row.hasExisting || overwrite)
+                  let skipReason = null
+                  if (!row.isMet) {
+                    skipReason = row.status === OBJECTIVE_STATUS_NOT_MET ? 'NOT MET — skipped' : 'not MET — skipped'
+                  } else if (row.hasExisting && !overwrite) {
+                    skipReason = 'existing finding preserved'
+                  }
+                  return (
+                    <div key={row.key} className={`dibcac-group-findings-row${eligible ? '' : ' dibcac-group-findings-row--skip'}`}>
+                      <div className="dibcac-group-findings-row-header">
+                        <span className="mono dibcac-group-findings-ref">{row.key}</span>
+                        {skipReason
+                          ? <span className="dibcac-group-findings-skip">{skipReason}</span>
+                          : <span className="dibcac-group-findings-generate">will generate</span>
+                        }
+                      </div>
+                      {eligible && row.warnings.length > 0 && (
+                        <div className="dibcac-group-findings-warnings">
+                          {row.warnings.map((w) => (
+                            <span key={w.key} className="dibcac-group-findings-warning">
+                              ⚠ {w.text}
+                              {w.fixable && (
+                                <button
+                                  type="button"
+                                  className="dibcac-fix-btn"
+                                  onClick={() => setFixTarget({ controlId: row.o.controlId, objId: row.objId, key: row.key, text: row.objText })}
+                                >Fix</button>
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+            <div className="dibcac-comments-footer">
+              <button
+                type="button"
+                className="dibcac-builder-save"
+                onClick={handleGenerate}
+                disabled={eligibleRows.length === 0}
+              >
+                Generate {eligibleRows.length > 0 ? `${eligibleRows.length} finding${eligibleRows.length !== 1 ? 's' : ''}` : '0 findings'}
+              </button>
+              <button type="button" className="dibcac-builder-cancel" onClick={onClose}>Cancel</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Saved group card ──────────────────────────────────────────────────────────
 
-function SavedGroupCard({ group, onDelete, onEditRequest, onPreview }) {
+function SavedGroupCard({ group, savedFolders, onDelete, onEditRequest, onPreview, onMoveToFolder, selectionMode, isSelected, onToggleSelect }) {
   const [expanded, setExpanded] = useState(false)
   const [commentsKey, setCommentsKey] = useState(null) // `${controlId}[${objId}]`
+  const [showFindingsModal, setShowFindingsModal] = useState(false)
   const [, forceUpdate] = useState(0)
 
   const methodSummary = useMemo(() => {
@@ -613,7 +901,7 @@ function SavedGroupCard({ group, onDelete, onEditRequest, onPreview }) {
   }, [commentsKey])
 
   return (
-    <div className="dibcac-group-card">
+    <div className={`dibcac-group-card${isSelected ? ' dibcac-group-card--selected' : ''}`}>
       {commentsKey && commentsObjId && (
         <OverallCommentsPopover
           controlId={commentsControlId}
@@ -621,8 +909,24 @@ function SavedGroupCard({ group, onDelete, onEditRequest, onPreview }) {
           onClose={() => { setCommentsKey(null); forceUpdate((n) => n + 1) }}
         />
       )}
+      {showFindingsModal && (
+        <GroupFindingsModal
+          group={group}
+          onClose={() => setShowFindingsModal(false)}
+        />
+      )}
 
       <div className="dibcac-group-card-header">
+        {selectionMode && (
+          <input
+            type="checkbox"
+            className="dibcac-group-select-checkbox"
+            checked={!!isSelected}
+            onChange={() => onToggleSelect?.(group.id)}
+            onClick={(e) => e.stopPropagation()}
+            aria-label={`Select ${group.name}`}
+          />
+        )}
         <button
           type="button"
           className="dibcac-group-card-toggle"
@@ -647,9 +951,30 @@ function SavedGroupCard({ group, onDelete, onEditRequest, onPreview }) {
           >Edit</button>
           <button
             type="button"
+            className="dibcac-action-btn"
+            onClick={() => setShowFindingsModal(true)}
+            title="Generate findings for MET objectives in this group"
+          >Findings</button>
+          <button
+            type="button"
             className="dibcac-action-btn dibcac-action-btn--delete"
             onClick={() => onDelete(group.id)}
           >Delete</button>
+          {savedFolders && savedFolders.length > 0 && onMoveToFolder && (
+            <select
+              className="dibcac-folder-select"
+              value={group.folderId ?? ''}
+              onChange={(e) => onMoveToFolder(group.id, e.target.value || null)}
+              onClick={(e) => e.stopPropagation()}
+              title="Move to folder"
+              aria-label="Move to folder"
+            >
+              <option value="">No folder</option>
+              {savedFolders.map((f) => (
+                <option key={f.id} value={f.id}>{f.name}</option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
 
@@ -668,39 +993,46 @@ function SavedGroupCard({ group, onDelete, onEditRequest, onPreview }) {
               const key = o.key ?? o.objectiveRef
               const objId = o.objId ?? o.objectiveKey
               const status = readObjectiveStatus(o.controlId, objId)
-              const hasComments = !!readObjectiveResult(o.controlId, objId).overallComments
+              const result = readObjectiveResult(o.controlId, objId)
+              const hasComments = !!result.overallComments
+              const commentPreview = result.overallComments?.trim() ?? ''
               return (
                 <div key={key} className="dibcac-group-card-obj-row">
-                  <div className="dibcac-group-card-obj-left">
-                    <button
-                      type="button"
-                      className="dibcac-obj-ref-btn mono"
-                      onClick={() => onPreview(key)}
-                      title="Click to preview objective"
-                    >
-                      {o.controlId}[{objId}]
-                    </button>
-                    <span className="dibcac-group-card-obj-text">{o.objText ?? o.objectiveText}</span>
+                  <div className="dibcac-group-card-obj-main-row">
+                    <div className="dibcac-group-card-obj-left">
+                      <button
+                        type="button"
+                        className="dibcac-obj-ref-btn mono"
+                        onClick={() => onPreview(key)}
+                        title="Click to preview objective"
+                      >
+                        {o.controlId}[{objId}]
+                      </button>
+                      <span className="dibcac-group-card-obj-text">{o.objText ?? o.objectiveText}</span>
+                    </div>
+                    <div className="dibcac-group-card-obj-actions">
+                      <MethodChip standard={o.standard} />
+                      <button
+                        type="button"
+                        className={`dibcac-status-cycle-btn dibcac-status-cycle-btn--${status === OBJECTIVE_STATUS_MET ? 'met' : status === OBJECTIVE_STATUS_NOT_MET ? 'not-met' : 'unreviewed'}`}
+                        onClick={() => cycleStatus(o.controlId, objId)}
+                        title="Click to cycle: Unreviewed → MET → NOT MET"
+                      >
+                        {status === OBJECTIVE_STATUS_MET ? 'MET' : status === OBJECTIVE_STATUS_NOT_MET ? 'NOT MET' : '—'}
+                      </button>
+                      <button
+                        type="button"
+                        className={`dibcac-comments-btn${hasComments ? ' dibcac-comments-btn--has-content' : ''}`}
+                        onClick={() => setCommentsKey(key)}
+                        title="Add/edit overall comments"
+                      >
+                        {hasComments ? '💬' : '○'}
+                      </button>
+                    </div>
                   </div>
-                  <div className="dibcac-group-card-obj-actions">
-                    <MethodChip standard={o.standard} />
-                    <button
-                      type="button"
-                      className={`dibcac-status-cycle-btn dibcac-status-cycle-btn--${status === OBJECTIVE_STATUS_MET ? 'met' : status === OBJECTIVE_STATUS_NOT_MET ? 'not-met' : 'unreviewed'}`}
-                      onClick={() => cycleStatus(o.controlId, objId)}
-                      title="Click to cycle: Unreviewed → MET → NOT MET"
-                    >
-                      {status === OBJECTIVE_STATUS_MET ? 'MET' : status === OBJECTIVE_STATUS_NOT_MET ? 'NOT MET' : '—'}
-                    </button>
-                    <button
-                      type="button"
-                      className={`dibcac-comments-btn${hasComments ? ' dibcac-comments-btn--has-content' : ''}`}
-                      onClick={() => setCommentsKey(key)}
-                      title="Add/edit overall comments"
-                    >
-                      {hasComments ? '💬' : '○'}
-                    </button>
-                  </div>
+                  {commentPreview && (
+                    <p className="dibcac-group-card-obj-comment">{commentPreview}</p>
+                  )}
                 </div>
               )
             })}
@@ -715,26 +1047,146 @@ function parseGroupSortKey(name) {
   return String(name ?? '').toLowerCase().replace(/(\d+)/g, (n) => n.padStart(10, '0'))
 }
 
+// ── Folder section ────────────────────────────────────────────────────────────
+
+function FolderSection({ folder, groups, savedFolders, onDelete, onEditRequest, onPreview, onMoveToFolder, onDeleteFolder, selectionMode, selectedIds, onToggleSelect }) {
+  const [open, setOpen] = useState(true)
+  const [confirming, setConfirming] = useState(false)
+
+  return (
+    <div className="dibcac-folder-section">
+      <div className="dibcac-folder-header">
+        <button type="button" className="dibcac-folder-toggle" onClick={() => setOpen((v) => !v)}>
+          <span className="dibcac-collapse-icon">{open ? '▼' : '▶'}</span>
+          <span className="dibcac-folder-icon">📁</span>
+          <span className="dibcac-folder-name">{folder.name}</span>
+          <span className="dibcac-folder-count">{groups.length}</span>
+        </button>
+        {confirming ? (
+          <div className="dibcac-folder-delete-confirm">
+            <span>Delete folder?</span>
+            <button type="button" className="dibcac-action-btn dibcac-action-btn--delete" onClick={() => { onDeleteFolder(folder.id); setConfirming(false) }}>Yes</button>
+            <button type="button" className="dibcac-action-btn" onClick={() => setConfirming(false)}>No</button>
+          </div>
+        ) : (
+          <button type="button" className="dibcac-action-btn dibcac-action-btn--delete" onClick={() => setConfirming(true)}>Delete</button>
+        )}
+      </div>
+      {open && (
+        <div className="dibcac-folder-body">
+          {groups.length === 0 ? (
+            <p className="dibcac-folder-empty">No groups in this folder.</p>
+          ) : (
+            groups.map((group) => (
+              <SavedGroupCard
+                key={group.id}
+                group={group}
+                savedFolders={savedFolders}
+                onDelete={onDelete}
+                onEditRequest={onEditRequest}
+                onPreview={onPreview}
+                onMoveToFolder={onMoveToFolder}
+                selectionMode={selectionMode}
+                isSelected={selectedIds?.has(group.id)}
+                onToggleSelect={onToggleSelect}
+              />
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Saved groups panel (right rail) ───────────────────────────────────────────
 
-function SavedGroupsPanel({ savedGroups, onDelete, onEditRequest, onPreview, onEnterBuilder }) {
+function SavedGroupsPanel({ savedGroups, savedFolders, onDelete, onEditRequest, onPreview, onEnterBuilder, onCreateFolder, onDeleteFolder, onMoveGroupToFolder, onBatchMove }) {
   const [groupSort, setGroupSort] = useState('name') // 'name' | 'created'
+  const [sortDir,   setSortDir]   = useState('asc')  // 'asc' | 'desc'
+  const [creatingFolder, setCreatingFolder] = useState(false)
+  const [newFolderName,  setNewFolderName]  = useState('')
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedIds,   setSelectedIds]   = useState(() => new Set())
+  const [showMoveMenu,  setShowMoveMenu]  = useState(false)
+
+  const handleSortClick = (sortType) => {
+    if (sortType === groupSort) {
+      setSortDir((d) => d === 'asc' ? 'desc' : 'asc')
+    } else {
+      setGroupSort(sortType)
+      setSortDir(sortType === 'name' ? 'asc' : 'desc')
+    }
+  }
+
+  const toggleGroupSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const enterSelectionMode = () => {
+    setSelectionMode(true)
+    setSelectedIds(new Set())
+    setShowMoveMenu(false)
+  }
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false)
+    setSelectedIds(new Set())
+    setShowMoveMenu(false)
+  }
+
+  const applyBatchMove = (folderId) => {
+    if (selectedIds.size > 0) onBatchMove([...selectedIds], folderId)
+    setShowMoveMenu(false)
+    exitSelectionMode()
+  }
 
   const sortedGroups = useMemo(() => {
     const copy = [...savedGroups]
     if (groupSort === 'name') {
-      copy.sort((a, b) => parseGroupSortKey(a.name).localeCompare(parseGroupSortKey(b.name)))
+      copy.sort((a, b) => {
+        const cmp = parseGroupSortKey(a.name).localeCompare(parseGroupSortKey(b.name))
+        return sortDir === 'asc' ? cmp : -cmp
+      })
     } else {
-      // newest first — fall back to array order for groups without createdAt
       copy.sort((a, b) => {
         if (!a.createdAt && !b.createdAt) return 0
-        if (!a.createdAt) return 1
-        if (!b.createdAt) return -1
-        return b.createdAt.localeCompare(a.createdAt)
+        if (!a.createdAt) return sortDir === 'asc' ? 1 : -1
+        if (!b.createdAt) return sortDir === 'asc' ? -1 : 1
+        const cmp = a.createdAt.localeCompare(b.createdAt)
+        return sortDir === 'asc' ? cmp : -cmp
       })
     }
     return copy
-  }, [savedGroups, groupSort])
+  }, [savedGroups, groupSort, sortDir])
+
+  const submitNewFolder = () => {
+    if (!newFolderName.trim()) return
+    onCreateFolder(newFolderName.trim())
+    setNewFolderName('')
+    setCreatingFolder(false)
+  }
+
+  // Partition groups into folder buckets
+  const groupsByFolder = useMemo(() => {
+    const map = new Map()
+    map.set(null, [])
+    for (const f of savedFolders) map.set(f.id, [])
+    for (const g of sortedGroups) {
+      const fid = g.folderId ?? null
+      if (map.has(fid)) map.get(fid).push(g)
+      else map.get(null).push(g) // folder deleted — treat as ungrouped
+    }
+    return map
+  }, [savedFolders, sortedGroups])
+
+  const hasFolders = savedFolders.length > 0
+  const ungrouped  = groupsByFolder.get(null) ?? []
+
+  const sortDirArrow = (type) => groupSort === type ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ''
 
   return (
     <div className="dibcac-rail-panel">
@@ -745,10 +1197,31 @@ function SavedGroupsPanel({ savedGroups, onDelete, onEditRequest, onPreview, onE
             <span className="dibcac-saved-count">{savedGroups.length}</span>
           )}
         </h2>
-        <button type="button" className="dibcac-create-btn" onClick={onEnterBuilder}>
-          + Create
-        </button>
+        <div className="dibcac-rail-header-actions">
+          <button type="button" className="dibcac-create-btn" onClick={onEnterBuilder}>
+            + Create
+          </button>
+          <button type="button" className="dibcac-create-folder-btn" onClick={() => setCreatingFolder((v) => !v)} title="Create a group folder">
+            📁 Folder
+          </button>
+        </div>
       </div>
+
+      {creatingFolder && (
+        <div className="dibcac-create-folder-form">
+          <input
+            type="text"
+            className="dibcac-builder-input"
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && submitNewFolder()}
+            placeholder="Folder name…"
+            autoFocus
+          />
+          <button type="button" className="dibcac-builder-save" onClick={submitNewFolder} disabled={!newFolderName.trim()}>Create</button>
+          <button type="button" className="dibcac-builder-cancel" onClick={() => { setCreatingFolder(false); setNewFolderName('') }}>Cancel</button>
+        </div>
+      )}
 
       {savedGroups.length === 0 ? (
         <p className="dibcac-rail-empty">
@@ -761,26 +1234,123 @@ function SavedGroupsPanel({ savedGroups, onDelete, onEditRequest, onPreview, onE
             <button
               type="button"
               className={`dibcac-sort-btn${groupSort === 'name' ? ' dibcac-sort-btn--active' : ''}`}
-              onClick={() => setGroupSort('name')}
-            >Name</button>
+              onClick={() => handleSortClick('name')}
+            >Name{sortDirArrow('name')}</button>
             <button
               type="button"
               className={`dibcac-sort-btn${groupSort === 'created' ? ' dibcac-sort-btn--active' : ''}`}
-              onClick={() => setGroupSort('created')}
-            >Recently Created</button>
+              onClick={() => handleSortClick('created')}
+            >Date Created{sortDirArrow('created')}</button>
+            <div className="dibcac-sort-spacer" />
+            {!selectionMode ? (
+              <button type="button" className="dibcac-select-groups-btn" onClick={enterSelectionMode}>
+                Select
+              </button>
+            ) : (
+              <button type="button" className="dibcac-sort-btn" onClick={exitSelectionMode}>
+                Cancel
+              </button>
+            )}
           </div>
+
+          {selectionMode && (
+            <div className="dibcac-selection-bar">
+              <span className="dibcac-selection-count">
+                {selectedIds.size} group{selectedIds.size !== 1 ? 's' : ''} selected
+              </span>
+              <div className="dibcac-selection-actions">
+                <div className="dibcac-move-menu-wrapper">
+                  <button
+                    type="button"
+                    className="dibcac-builder-save dibcac-move-btn"
+                    disabled={selectedIds.size === 0}
+                    onClick={() => setShowMoveMenu((v) => !v)}
+                  >
+                    Move to Folder ▾
+                  </button>
+                  {showMoveMenu && (
+                    <div className="dibcac-move-menu">
+                      <button type="button" className="dibcac-move-menu-item" onClick={() => applyBatchMove(null)}>
+                        No Folder / Ungrouped
+                      </button>
+                      {savedFolders.length === 0 && (
+                        <p className="dibcac-move-menu-hint">Create a folder first to organize selected groups.</p>
+                      )}
+                      {savedFolders.map((f) => (
+                        <button key={f.id} type="button" className="dibcac-move-menu-item" onClick={() => applyBatchMove(f.id)}>
+                          📁 {f.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           <p className="dibcac-saved-hint">Saved locally · not included in project exports.</p>
-          <div className="dibcac-saved-list">
-            {sortedGroups.map((group) => (
-              <SavedGroupCard
-                key={group.id}
-                group={group}
-                onDelete={onDelete}
-                onEditRequest={onEditRequest}
-                onPreview={onPreview}
-              />
-            ))}
-          </div>
+
+          {hasFolders ? (
+            <>
+              {savedFolders.map((folder) => (
+                <FolderSection
+                  key={folder.id}
+                  folder={folder}
+                  groups={groupsByFolder.get(folder.id) ?? []}
+                  savedFolders={savedFolders}
+                  onDelete={onDelete}
+                  onEditRequest={onEditRequest}
+                  onPreview={onPreview}
+                  onMoveToFolder={onMoveGroupToFolder}
+                  onDeleteFolder={onDeleteFolder}
+                  selectionMode={selectionMode}
+                  selectedIds={selectedIds}
+                  onToggleSelect={toggleGroupSelect}
+                />
+              ))}
+              {ungrouped.length > 0 && (
+                <div className="dibcac-folder-section dibcac-folder-section--ungrouped">
+                  <div className="dibcac-folder-header dibcac-folder-header--ungrouped">
+                    <span className="dibcac-folder-name">Ungrouped</span>
+                    <span className="dibcac-folder-count">{ungrouped.length}</span>
+                  </div>
+                  <div className="dibcac-folder-body">
+                    {ungrouped.map((group) => (
+                      <SavedGroupCard
+                        key={group.id}
+                        group={group}
+                        savedFolders={savedFolders}
+                        onDelete={onDelete}
+                        onEditRequest={onEditRequest}
+                        onPreview={onPreview}
+                        onMoveToFolder={onMoveGroupToFolder}
+                        selectionMode={selectionMode}
+                        isSelected={selectedIds.has(group.id)}
+                        onToggleSelect={toggleGroupSelect}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="dibcac-saved-list">
+              {sortedGroups.map((group) => (
+                <SavedGroupCard
+                  key={group.id}
+                  group={group}
+                  savedFolders={savedFolders}
+                  onDelete={onDelete}
+                  onEditRequest={onEditRequest}
+                  onPreview={onPreview}
+                  onMoveToFolder={onMoveGroupToFolder}
+                  selectionMode={selectionMode}
+                  isSelected={selectedIds.has(group.id)}
+                  onToggleSelect={toggleGroupSelect}
+                />
+              ))}
+            </div>
+          )}
         </>
       )}
     </div>
@@ -796,7 +1366,8 @@ function DibcacMode() {
   const [familyFilter, setFamilyFilter] = useState('All')
   const [methodFilter, setMethodFilter] = useState('all')
   const [checkedKeys, setCheckedKeys] = useState(new Set())
-  const [savedGroups, setSavedGroups] = useState(getReviewGroups)
+  const [savedGroups,  setSavedGroups]  = useState(getReviewGroups)
+  const [savedFolders, setSavedFolders] = useState(getReviewFolders)
   const [previewKey, setPreviewKey] = useState(null)
   const searchRef = useRef(null)
 
@@ -902,8 +1473,32 @@ function DibcacMode() {
     setSavedGroups(next)
   }
 
-  // Sync if another tab/page changes localStorage (e.g. Control Detail adds objective)
-  const refreshGroups = () => setSavedGroups(getReviewGroups())
+  const handleCreateFolder = (name) => {
+    const next = createReviewFolder(name)
+    setSavedFolders(next)
+  }
+
+  const handleDeleteFolder = (folderId) => {
+    // Unassign all groups in the deleted folder
+    const groups = getReviewGroups()
+    for (const g of groups) {
+      if (g.folderId === folderId) assignGroupToFolder(g.id, null)
+    }
+    const nextFolders = deleteReviewFolder(folderId)
+    setSavedFolders(nextFolders)
+    setSavedGroups(getReviewGroups())
+  }
+
+  const handleMoveGroupToFolder = (groupId, folderId) => {
+    const next = assignGroupToFolder(groupId, folderId)
+    setSavedGroups(next)
+  }
+
+  const handleBatchMoveGroups = (groupIds, folderId) => {
+    for (const id of groupIds) assignGroupToFolder(id, folderId)
+    setSavedGroups(getReviewGroups())
+  }
+
 
   return (
     <div className="dibcac-page">
@@ -1036,11 +1631,15 @@ function DibcacMode() {
           ) : (
             <SavedGroupsPanel
               savedGroups={savedGroups}
+              savedFolders={savedFolders}
               onDelete={handleDeleteGroup}
               onEditRequest={handleEditRequest}
               onPreview={setPreviewKey}
               onEnterBuilder={enterBuilder}
-              onRefresh={refreshGroups}
+              onCreateFolder={handleCreateFolder}
+              onDeleteFolder={handleDeleteFolder}
+              onMoveGroupToFolder={handleMoveGroupToFolder}
+              onBatchMove={handleBatchMoveGroups}
             />
           )}
         </div>

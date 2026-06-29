@@ -10128,9 +10128,8 @@ button.evidence-type-chip:focus-visible {
 
 .dibcac-group-card-obj-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
+  flex-direction: column;
+  gap: 0;
   padding: var(--space-2) var(--space-3);
   background: var(--color-surface);
   border-radius: var(--radius-sm);
@@ -10374,6 +10373,442 @@ button.evidence-type-chip:focus-visible {
 .dibcac-comments-footer {
   display: flex;
   gap: var(--space-3);
+}
+
+/* ── Inline overall comment preview under objective rows ────────────────── */
+
+.dibcac-group-card-obj-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.dibcac-group-card-obj-comment {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin: 4px 0 0 0;
+  padding: 0 2px;
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+/* ── Group Findings modal ────────────────────────────────────────────────── */
+
+.dibcac-group-findings-panel {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  width: 540px;
+  max-width: 95vw;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+.dibcac-group-findings-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.dibcac-group-findings-overwrite {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.dibcac-group-findings-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dibcac-group-findings-row {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+}
+
+.dibcac-group-findings-row--skip {
+  opacity: 0.55;
+}
+
+.dibcac-group-findings-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.dibcac-group-findings-ref {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.dibcac-group-findings-skip {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.dibcac-group-findings-generate {
+  font-size: var(--text-xs);
+  color: var(--color-met);
+  font-weight: 600;
+}
+
+.dibcac-group-findings-warnings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.dibcac-group-findings-warning {
+  font-size: var(--text-xs);
+  color: var(--color-caution, #d97706);
+}
+
+.dibcac-group-findings-done {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* ── Group folders ───────────────────────────────────────────────────────── */
+
+.dibcac-rail-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dibcac-create-folder-btn {
+  font-size: var(--text-sm);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.dibcac-create-folder-btn:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+.dibcac-create-folder-form {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-alt);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dibcac-folder-section {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
+}
+
+.dibcac-folder-section--ungrouped .dibcac-folder-header--ungrouped {
+  opacity: 0.7;
+}
+
+.dibcac-folder-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-alt);
+}
+
+.dibcac-folder-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  padding: 0;
+}
+
+.dibcac-folder-icon {
+  font-size: 14px;
+}
+
+.dibcac-folder-name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.dibcac-folder-count {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1px 6px;
+}
+
+.dibcac-folder-delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.dibcac-folder-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.dibcac-folder-empty {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-3) var(--space-4);
+  margin: 0;
+}
+
+/* ── Folder select on group card ─────────────────────────────────────────── */
+
+.dibcac-folder-select {
+  font-size: var(--text-xs);
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  max-width: 110px;
+}
+
+/* ── Multi-select groups ─────────────────────────────────────────────────── */
+
+.dibcac-group-card--selected {
+  border-color: var(--color-accent, #3b82f6);
+  background: color-mix(in srgb, var(--color-accent, #3b82f6) 6%, var(--color-surface));
+}
+
+.dibcac-group-select-checkbox {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: var(--color-accent, #3b82f6);
+}
+
+.dibcac-sort-spacer {
+  flex: 1;
+}
+
+.dibcac-select-groups-btn {
+  font-size: var(--text-xs);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dibcac-select-groups-btn:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+.dibcac-selection-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  background: color-mix(in srgb, var(--color-accent, #3b82f6) 8%, var(--color-surface));
+  border-bottom: 1px solid color-mix(in srgb, var(--color-accent, #3b82f6) 30%, transparent);
+}
+
+.dibcac-selection-count {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  font-weight: 600;
+  flex: 1;
+}
+
+.dibcac-selection-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dibcac-move-menu-wrapper {
+  position: relative;
+}
+
+.dibcac-move-btn {
+  font-size: var(--text-sm);
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+
+.dibcac-move-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  min-width: 200px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dibcac-move-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 40%, transparent);
+}
+.dibcac-move-menu-item:last-child { border-bottom: none; }
+.dibcac-move-menu-item:hover { background: var(--color-surface-alt); }
+
+.dibcac-move-menu-hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  padding: var(--space-2) var(--space-3);
+  margin: 0;
+  font-style: italic;
+}
+
+/* ── Fix Interview Details modal ─────────────────────────────────────────── */
+
+.dibcac-fix-overlay {
+  z-index: 310;
+}
+
+.dibcac-fix-panel {
+  width: 480px;
+  max-width: 95vw;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.dibcac-fix-obj-text {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-2) var(--space-4) 0;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.dibcac-fix-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.dibcac-fix-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dibcac-fix-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dibcac-fix-label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.dibcac-fix-role-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.dibcac-fix-role-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  color: var(--color-text);
+}
+
+.dibcac-fix-role-chip-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  padding: 0;
+  line-height: 1;
+}
+.dibcac-fix-role-chip-remove:hover { color: var(--color-danger, #ef4444); }
+
+.dibcac-fix-empty {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+  font-style: italic;
+}
+
+/* ── Fix button in group findings warnings ───────────────────────────────── */
+
+.dibcac-fix-btn {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 1px 7px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  margin-left: var(--space-2);
+  white-space: nowrap;
+}
+.dibcac-fix-btn:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
 }
 
 /* ── Full-row selectable objective ──────────────────────────────────────── */

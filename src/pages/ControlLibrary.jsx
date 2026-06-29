@@ -6,6 +6,8 @@ import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/
 import { readNote, writeNote } from '../utils/notes'
 import { hasObjectiveNotes, writeObjectiveNote } from '../utils/objectiveNotes'
 import { hasObjectiveArtifacts, writeObjectiveArtifacts } from '../utils/objectiveArtifacts'
+import { writeObjectiveResult } from '../utils/objectiveResults'
+import { clearObjectiveFinding } from '../utils/objectiveFindings'
 import { readPool, writePool } from '../utils/evidencePool'
 import {
   getTrendingStatusFromStorage,
@@ -599,6 +601,8 @@ function ControlLibrary() {
         writeObjectiveNote(ctrl.id, obj.id, '')
         writeObjectiveStatus(ctrl.id, obj.id, OBJECTIVE_STATUS_UNREVIEWED)
         writeObjectiveArtifacts(ctrl.id, obj.id, [])
+        writeObjectiveResult(ctrl.id, obj.id, { interviews: '', examine: '', test: '', overallComments: '' })
+        clearObjectiveFinding(ctrl.id, obj.id)
       }
     }
     forceUpdate()

@@ -1,4 +1,5 @@
-const STORAGE_KEY = 'cmmc-companion-dibcac-review-groups'
+const STORAGE_KEY  = 'cmmc-companion-dibcac-review-groups'
+const FOLDERS_KEY  = 'cmmc-companion-dibcac-review-folders'
 
 export function getReviewGroups() {
   try {
@@ -74,4 +75,46 @@ export function findGroupsForObjective(ref) {
   return getReviewGroups().filter((g) =>
     g.objectives.some((o) => objRef(o) === ref)
   )
+}
+
+// ── Folder storage ─────────────────────────────────────────────────────────────
+
+export function getReviewFolders() {
+  try {
+    const raw = localStorage.getItem(FOLDERS_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
+export function saveReviewFolders(folders) {
+  try { localStorage.setItem(FOLDERS_KEY, JSON.stringify(folders)) } catch { /* storage unavailable */ }
+}
+
+export function createReviewFolder(name) {
+  const folders = getReviewFolders()
+  const folder = { id: crypto.randomUUID(), name: name.trim(), createdAt: new Date().toISOString() }
+  const next = [...folders, folder]
+  saveReviewFolders(next)
+  return next
+}
+
+export function updateReviewFolder(folderId, updates) {
+  const folders = getReviewFolders()
+  const next = folders.map((f) => f.id === folderId ? { ...f, ...updates } : f)
+  saveReviewFolders(next)
+  return next
+}
+
+export function deleteReviewFolder(folderId) {
+  const folders = getReviewFolders()
+  const next = folders.filter((f) => f.id !== folderId)
+  saveReviewFolders(next)
+  return next
+}
+
+// Moves a group into a folder (or clears its folder when folderId is null).
+export function assignGroupToFolder(groupId, folderId) {
+  return updateReviewGroup(groupId, { folderId: folderId ?? null })
 }

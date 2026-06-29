@@ -9,8 +9,50 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v3.3.0 — current release, open by default */}
+      {/* v3.3.1 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.3.1</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span>DIBCAC Assessment Workflow Patch</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 29, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
+
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Patch release with DIBCAC Mode workflow improvements for live assessments: inline comment previews, group folders with multi-select move, bulk Create Group Findings with Fix Interview Details, sort direction toggles, progress reconciliation fixes, and Control Library data clear improvements.
+          </p>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>DIBCAC Review Groups</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Added inline Overall Comments previews under saved review group objectives so assessor notes can be read without opening the comment editor.</li>
+            <li>Added saved review group folder organization for assessment days, families, sessions, and follow-up groupings.</li>
+            <li>Added multi-select group movement so multiple saved review groups can be moved into a folder or back to Ungrouped at once.</li>
+            <li>Added sort direction toggles for saved review groups, including name and created-date ordering.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>DIBCAC Group Findings</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Added Create Group Findings for saved review groups, generating separate objective-level finding statements.</li>
+            <li>Group findings skip non-MET objectives by default; existing findings are preserved unless overwrite is selected.</li>
+            <li>Added warning review for missing artifacts, interviewed roles, interview comments, skipped objectives, and existing findings.</li>
+            <li>Added Fix Interview Details workflow from the findings preview so missing roles and interview comments can be corrected without leaving DIBCAC Mode.</li>
+            <li>Fixed Fix Interview Details modal layering so it replaces the findings modal instead of stacking behind it.</li>
+            <li>Generated group findings now include Interviewed roles when objective-level interviewed roles are available.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Progress and Data Hygiene</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Improved progress reconciliation so controls with all objectives marked MET derive to MET status.</li>
+            <li>Improved progress reconciliation so controls with any NOT MET objective derive to NOT MET consistently.</li>
+            <li>Updated Control Library bulk clear so Findings Builder data is cleared along with objective notes and results.</li>
+          </ul>
+
+        </div>
+      </details>
+
+      {/* v3.3.0 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.3.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>

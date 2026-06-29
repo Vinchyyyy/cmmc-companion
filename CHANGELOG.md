@@ -1,4 +1,34 @@
 
+## Version 3.3.1 — DIBCAC Assessment Workflow Patch
+Date: June 29, 2026
+
+### DIBCAC Review Groups
+- Added inline Overall Comments previews under saved review group objectives so assessor notes can be read without opening the comment editor.
+- Added saved review group folder organization for assessment days, families, sessions, and follow-up groupings.
+- Added multi-select group movement so multiple saved review groups can be moved into a folder or back to Ungrouped at once.
+- Added sort direction toggles for saved review groups, including name and created-date ordering.
+
+### DIBCAC Group Findings
+- Added Create Group Findings for saved review groups.
+- Group findings generate separate objective-level finding statements instead of one shared group finding.
+- Group findings skip non-MET objectives by default.
+- Existing findings are preserved unless overwrite is explicitly selected.
+- Added warning review for missing artifacts, missing interviewed roles, missing interview comments, skipped objectives, and existing findings.
+- Added Fix Interview Details workflow from the findings preview so missing roles and interview comments can be corrected without leaving DIBCAC Mode.
+- Fixed Fix Interview Details modal layering so it replaces the findings modal instead of stacking behind it.
+- Generated group findings now include Interviewed roles when objective-level interviewed roles are available.
+
+### Progress and Data Hygiene
+- Improved progress reconciliation so controls with all objectives marked MET derive to MET.
+- Improved progress reconciliation so controls with any NOT MET objective derive consistently to NOT MET behavior.
+- Preserved In Progress behavior for controls with imported notes, artifacts, or findings that are not fully MET.
+- Updated Control Library bulk clear behavior so Findings Builder data is cleared along with objective notes/results.
+
+### Validation
+- No AI automation, automatic DIBCAC grouping, scoring automation, evidence tag changes, Assessment Guide profile changes, or DIBCAC metadata changes were added.
+- Existing official Excel export path continues to use saved objective finding statements.
+- Project data remains local-first and browser-based.
+
 ## Version 3.3.0 — Assessment Workbook Import, DIBCAC Workflow, Guide-Aware Reuse, and Workspace Personalization
 Date: June 28, 2026
 
