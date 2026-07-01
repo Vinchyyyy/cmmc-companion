@@ -14,31 +14,52 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.3.1</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>DIBCAC Assessment Workflow Patch</span>
-          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 29, 2026</span>
+          <span>Findings and DIBCAC Workflow Patch</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>July 1, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
 
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
-            Patch release with DIBCAC Mode workflow improvements for live assessments: inline comment previews, group folders with multi-select move, bulk Create Group Findings with Fix Interview Details, sort direction toggles, progress reconciliation fixes, and Control Library data clear improvements.
+            Patch release covering method-aware finding statements, bulk findings generation, a refined interview details/Apply Same Interviewer workflow, and DIBCAC Mode workflow improvements for live assessments.
           </p>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Method-Aware Finding Statements</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Added DIBCAC-method-aware validation language to generated finding statements.</li>
+            <li>Finding statements now include objective-specific validation language based on Document, Screen Share, Artifact, Physical Review, Artifact + Screen Share, or Variable assessment methods.</li>
+            <li>Normal Findings Builder, DIBCAC group findings, and bulk findings now use the shared statement builder.</li>
+            <li>Preserved deterministic template-based generation with no AI automation or external APIs.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Bulk Findings</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Added Create Findings for All Objectives from Project Actions.</li>
+            <li>Added Create Findings for This Control from Control Detail.</li>
+            <li>Added bulk readiness review with Ready, Needs Attention, Skipped, and Existing Finding counts.</li>
+            <li>Bulk findings generate separate objective-level finding statements; MET objectives are eligible by default.</li>
+            <li>NOT MET, In Progress, Unreviewed, and discrepancy/difference objectives are skipped by default.</li>
+            <li>Existing findings are preserved unless overwrite is explicitly selected.</li>
+            <li>Generated findings continue to export through the existing official Excel export path.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Interview Details Workflow</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Extracted Fix Interview Details into a reusable modal with Fix actions for missing interviewed roles and missing interview comments.</li>
+            <li>Added custom interviewed role support with a locally persisted Custom role category.</li>
+            <li>Added Apply Same Interviewer workflow for bulk applying interviewed roles across selected objectives.</li>
+            <li>Simplified Apply Same Interviewer so interview comments remain objective-specific.</li>
+            <li>Apply Same Interviewer now preloads existing interviewed roles from the current scope.</li>
+            <li>Added Apply to All and Clear Selection behavior for faster role application.</li>
+            <li>Fixed modal layering so Fix Interview Details and Apply Same Interviewer replace the parent modal step instead of stacking behind it.</li>
+          </ul>
 
           <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>DIBCAC Review Groups</h3>
           <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
             <li>Added inline Overall Comments previews under saved review group objectives so assessor notes can be read without opening the comment editor.</li>
-            <li>Added saved review group folder organization for assessment days, families, sessions, and follow-up groupings.</li>
+            <li>Added saved review group folder organization for assessment days, families, sessions, and follow-up groupings; folders now collapse by default.</li>
             <li>Added multi-select group movement so multiple saved review groups can be moved into a folder or back to Ungrouped at once.</li>
             <li>Added sort direction toggles for saved review groups, including name and created-date ordering.</li>
-          </ul>
-
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>DIBCAC Group Findings</h3>
-          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>Added Create Group Findings for saved review groups, generating separate objective-level finding statements.</li>
-            <li>Group findings skip non-MET objectives by default; existing findings are preserved unless overwrite is selected.</li>
-            <li>Added warning review for missing artifacts, interviewed roles, interview comments, skipped objectives, and existing findings.</li>
-            <li>Added Fix Interview Details workflow from the findings preview so missing roles and interview comments can be corrected without leaving DIBCAC Mode.</li>
-            <li>Fixed Fix Interview Details modal layering so it replaces the findings modal instead of stacking behind it.</li>
-            <li>Generated group findings now include Interviewed roles when objective-level interviewed roles are available.</li>
+            <li>Added Create Group Findings for saved review groups; group findings skip non-MET objectives by default and preserve existing findings unless overwrite is selected.</li>
           </ul>
 
           <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Progress and Data Hygiene</h3>

@@ -1,23 +1,41 @@
 
-## Version 3.3.1 — DIBCAC Assessment Workflow Patch
-Date: June 29, 2026
+## Version 3.3.1 — Findings and DIBCAC Workflow Patch
+Date: July 1, 2026
+
+### Method-Aware Finding Statements
+- Added DIBCAC-method-aware validation language to generated finding statements.
+- Finding statements now include objective-specific validation language based on Document, Screen Share, Artifact, Physical Review, Artifact + Screen Share, or Variable assessment methods.
+- Normal Findings Builder, DIBCAC group findings, and bulk findings now use the shared statement builder.
+- Preserved deterministic template-based generation with no AI automation or external APIs.
+
+### Bulk Findings
+- Added Create Findings for All Objectives from Project Actions.
+- Added Create Findings for This Control from Control Detail.
+- Added bulk readiness review with Ready, Needs Attention, Skipped, and Existing Finding counts.
+- Bulk findings generate separate objective-level finding statements.
+- MET objectives are eligible by default.
+- NOT MET, In Progress, Unreviewed, and discrepancy/difference objectives are skipped by default.
+- Existing findings are preserved unless overwrite is explicitly selected.
+- Generated findings continue to export through the existing official Excel export path.
+
+### Interview Details Workflow
+- Extracted Fix Interview Details into a reusable modal.
+- Added Fix actions for missing interviewed roles and missing interview comments.
+- Added custom interviewed role support with locally persisted Custom role category.
+- Added Apply Same Interviewer workflow for bulk applying interviewed roles across selected objectives.
+- Simplified Apply Same Interviewer so interview comments remain objective-specific.
+- Apply Same Interviewer now preloads existing interviewed roles from the current scope.
+- Added Apply to All and Clear Selection behavior for faster role application.
+- Fixed modal layering so Fix Interview Details and Apply Same Interviewer replace the parent modal step instead of stacking behind it.
 
 ### DIBCAC Review Groups
 - Added inline Overall Comments previews under saved review group objectives so assessor notes can be read without opening the comment editor.
 - Added saved review group folder organization for assessment days, families, sessions, and follow-up groupings.
+- Saved group folders now collapse by default, reducing clutter when organizing groups by day, family, or session.
 - Added multi-select group movement so multiple saved review groups can be moved into a folder or back to Ungrouped at once.
 - Added sort direction toggles for saved review groups, including name and created-date ordering.
-- Changed saved group folders to remain collapsed by default, reducing clutter when organizing groups by day, family, or session.
-
-### DIBCAC Group Findings
-- Added Create Group Findings for saved review groups.
-- Group findings generate separate objective-level finding statements instead of one shared group finding.
-- Group findings skip non-MET objectives by default.
-- Existing findings are preserved unless overwrite is explicitly selected.
-- Added warning review for missing artifacts, missing interviewed roles, missing interview comments, skipped objectives, and existing findings.
-- Added Fix Interview Details workflow from the findings preview so missing roles and interview comments can be corrected without leaving DIBCAC Mode.
-- Fixed Fix Interview Details modal layering so it replaces the findings modal instead of stacking behind it.
-- Generated group findings now include Interviewed roles when objective-level interviewed roles are available.
+- Added Create Group Findings for saved DIBCAC review groups.
+- Group findings skip non-MET objectives by default and preserve existing findings unless overwrite is selected.
 
 ### Progress and Data Hygiene
 - Improved progress reconciliation so controls with all objectives marked MET derive to MET.

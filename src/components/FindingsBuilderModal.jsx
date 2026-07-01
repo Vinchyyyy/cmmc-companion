@@ -1,40 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import useFocusTrap from './useFocusTrap'
 import InterviewRolePickerModal from './InterviewRolePickerModal'
+import { buildFinalText, buildObjectiveValidationStatement } from '../utils/findingStatementBuilder'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function buildArtifactsText(artifacts) {
-  const valid = (artifacts ?? []).filter((a) => a && a.trim())
-  if (valid.length === 0) return null
-  return valid.map((a) => `${a.trim()};`).join(' ')
-}
-
-function buildFinalText({ roles, includedArtifacts, objectiveRef, hasDifferences, differencesText }) {
-  const lines = []
-
-  if (roles.length > 0) {
-    lines.push(`Interviewed: ${roles.join('; ')}`)
-    lines.push('')
-  }
-
-  const artifactsText = buildArtifactsText(includedArtifacts)
-  lines.push(`A) Reviewed ${artifactsText ?? '[no artifact references entered]'}`)
-  lines.push(`B) Validation is described in the corresponding ${objectiveRef} section of the SSP.`)
-
-  if (hasDifferences) {
-    lines.push(`C) Differences: ${differencesText.trim()}`)
-  } else {
-    lines.push('C) No noted findings or differences.')
-  }
-
-  const implemented = !hasDifferences
-  lines.push(
-    `D) Assessment team confirmed in interview, testing, and documentation that this objective is ${implemented ? '' : 'not '}implemented.`
-  )
-
-  return lines.join('\n')
-}
 
 // Derive the initial included-artifacts list from an existing finding or default to all assigned.
 function resolveInitialIncluded(existingFinding, assignedArtifacts) {
@@ -97,9 +66,16 @@ export default function FindingsBuilderModal({
     roles,
     includedArtifacts,
     objectiveRef,
+    objectiveText: obj.text,
+    dibcacMethod: dibcacStd?.standard,
     hasDifferences,
     differencesText,
-  }), [roles, includedArtifacts, objectiveRef, hasDifferences, differencesText])
+  }), [roles, includedArtifacts, objectiveRef, obj.text, dibcacStd, hasDifferences, differencesText])
+
+  const validationSentence = useMemo(
+    () => buildObjectiveValidationStatement({ objectiveRef, objectiveText: obj.text, dibcacMethod: dibcacStd?.standard }),
+    [objectiveRef, obj.text, dibcacStd]
+  )
 
   const toggleArtifact = (name) => {
     setIncludedArtifacts((prev) =>
@@ -251,9 +227,7 @@ export default function FindingsBuilderModal({
             {/* ── 3. SSP Validation Reference (generated) ── */}
             <div className="cd-findings-field">
               <span className="cd-findings-field-label">B) SSP Validation Reference</span>
-              <div className="cd-findings-generated-line">
-                Validation is described in the corresponding <span className="mono">{objectiveRef}</span> section of the SSP.
-              </div>
+              <div className="cd-findings-generated-line">{validationSentence}</div>
             </div>
 
             {/* ── 4. Findings / Differences ── */}

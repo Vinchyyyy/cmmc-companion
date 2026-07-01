@@ -31,6 +31,7 @@ import { evidenceTags } from '../data/evidenceTags.js'
 import { readObjectiveResult, writeObjectiveResult } from '../utils/objectiveResults'
 import FindingsBuilderModal from '../components/FindingsBuilderModal'
 import InterviewRolePickerModal from '../components/InterviewRolePickerModal'
+import BulkFindingsModal from '../components/BulkFindingsModal'
 import {
   readObjectiveFinding,
   writeObjectiveFinding,
@@ -891,6 +892,7 @@ function ControlDetailView() {
   const [showSuggestedModal, setShowSuggestedModal] = useState(false)
   // Findings Builder modal
   const [showFindingsModal, setShowFindingsModal] = useState(false)
+  const [showBulkFindingsModal, setShowBulkFindingsModal] = useState(false)
   const [objectiveFindings, setObjectiveFindings] = useState(() => loadObjectiveFindings(id, control))
   // Per-objective interviewed roles (separate from finding and from interview notes)
   const [objectiveInterviewedRoles, setObjectiveInterviewedRoles] = useState(() => loadObjectiveInterviewedRolesMap(id, control))
@@ -1213,6 +1215,7 @@ function ControlDetailView() {
             </button>
             <Link to={`/relationships?control=${control.id}`}><button type="button">View Relationships</button></Link>
             <Link to={`/evidence?search=${encodeURIComponent(control.id)}`}><button type="button">Search Related Evidence</button></Link>
+            <button type="button" onClick={() => setShowBulkFindingsModal(true)}>Create Findings for This Control</button>
           </div>
         </div>
 
@@ -1710,6 +1713,17 @@ function ControlDetailView() {
           currentRoles={objectiveInterviewedRoles[selectedObj.id] ?? []}
           onSave={(roles) => handleRolesSaved(selectedObj.id, roles)}
           onClose={() => setShowRolePickerModal(false)}
+        />
+      )}
+
+      {showBulkFindingsModal && (
+        <BulkFindingsModal
+          title={`Create Findings for ${control.id}`}
+          controlsInScope={[control]}
+          onClose={() => {
+            setShowBulkFindingsModal(false)
+            setObjectiveFindings(loadObjectiveFindings(id, control))
+          }}
         />
       )}
 

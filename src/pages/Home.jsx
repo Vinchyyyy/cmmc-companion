@@ -28,6 +28,7 @@ import { listArtifacts } from '../utils/artifactRegistry'
 import { readObjectiveStatus, OBJECTIVE_STATUS_NOT_MET } from '../utils/objectiveStatus'
 import { hasObjectiveArtifacts } from '../utils/objectiveArtifacts'
 import { reconcileProgressFromStoredWork } from '../utils/progressReconciliation'
+import BulkFindingsModal from '../components/BulkFindingsModal'
 
 const KNOWN_CONTROL_IDS = new Set(controls.map((c) => c.id))
 
@@ -228,6 +229,7 @@ function Home() {
   const [importOptions, setImportOptions] = useState(DEFAULT_IMPORT_OPTIONS)
   // wipeStage: null | 'confirm1' | 'confirm2'
   const [wipeStage, setWipeStage] = useState(null)
+  const [showBulkFindingsModal, setShowBulkFindingsModal] = useState(false)
   const [wipeInput, setWipeInput] = useState('')
   const [wipeSuccess, setWipeSuccess] = useState(false)
   const [lastBackup, setLastBackup] = useState(() => readLastBackup())
@@ -1067,6 +1069,11 @@ function Home() {
                 style={{ display: 'none' }}
               />
             </li>
+            <li>
+              <button className="home-action-btn" onClick={() => setShowBulkFindingsModal(true)}>
+                Create Findings for All Objectives
+              </button>
+            </li>
           </ul>
           {/* hidden — CSV import kept for consulting workflow, not exposed here */}
           <input ref={csvFileRef} type="file" accept=".csv,text/csv" onChange={handleCsvFileChange} style={{ display: 'none' }} />
@@ -1561,6 +1568,14 @@ function Home() {
           </div>
         )
       })()}
+
+      {showBulkFindingsModal && (
+        <BulkFindingsModal
+          title="Create Findings for All Objectives"
+          controlsInScope={controls}
+          onClose={() => setShowBulkFindingsModal(false)}
+        />
+      )}
     </div>
   )
 }

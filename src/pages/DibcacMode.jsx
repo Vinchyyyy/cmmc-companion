@@ -23,8 +23,10 @@ import {
   assignGroupToFolder,
 } from '../utils/reviewGroups'
 import { readObjectiveFinding, writeObjectiveFinding } from '../utils/objectiveFindings'
-import { readObjectiveInterviewedRoles, writeObjectiveInterviewedRoles } from '../utils/objectiveInterviewedRoles'
-import InterviewRolePickerModal from '../components/InterviewRolePickerModal'
+import { readObjectiveInterviewedRoles } from '../utils/objectiveInterviewedRoles'
+import FixInterviewDetailsModal from '../components/FixInterviewDetailsModal'
+import ApplySameInterviewerModal from '../components/ApplySameInterviewerModal'
+import { buildFinalText } from '../utils/findingStatementBuilder'
 
 const METHOD_ORDER = [
   'document',
@@ -593,131 +595,12 @@ function OverallCommentsPopover({ controlId, objId, onClose }) {
 
 // ── Bulk group findings helpers ───────────────────────────────────────────────
 
-function buildGroupFindingText({ artifacts, objectiveRef, roles }) {
-  const valid = (artifacts ?? []).filter((a) => a && a.trim())
-  const artifactsText = valid.length > 0 ? valid.map((a) => `${a.trim()};`).join(' ') : null
-  const lines = []
-  if (roles && roles.length > 0) {
-    lines.push(`Interviewed: ${roles.join('; ')}`)
-    lines.push('')
-  }
-  lines.push(`A) Reviewed ${artifactsText ?? '[no artifact references entered]'}`)
-  lines.push(`B) Validation is described in the corresponding ${objectiveRef} section of the SSP.`)
-  lines.push('C) No noted findings or differences.')
-  lines.push('D) Assessment team confirmed in interview, testing, and documentation that this objective is implemented.')
-  return lines.join('\n')
-}
-
-function FixInterviewDetailsModal({ controlId, objId, objKey, objText, onSave, onClose }) {
-  const [roles, setRoles] = useState(() => readObjectiveInterviewedRoles(controlId, objId))
-  const [interviewText, setInterviewText] = useState(() => readObjectiveResult(controlId, objId).interviews)
-  const [showRolePicker, setShowRolePicker] = useState(false)
-  const textareaRef = useRef(null)
-
-  useEffect(() => {
-    textareaRef.current?.focus()
-  }, [])
-
-  useEffect(() => {
-    if (!textareaRef.current) return
-    textareaRef.current.style.height = 'auto'
-    textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
-  }, [interviewText])
-
-  const handleSave = () => {
-    writeObjectiveInterviewedRoles(controlId, objId, roles)
-    const existing = readObjectiveResult(controlId, objId)
-    writeObjectiveResult(controlId, objId, { ...existing, interviews: interviewText })
-    onSave()
-  }
-
-  return (
-    <>
-      <div
-        className="dibcac-comments-overlay dibcac-fix-overlay"
-        onClick={(e) => { if (e.target === e.currentTarget && !showRolePicker) onClose() }}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Fix Interview Details"
-      >
-        <div className="dibcac-comments-panel dibcac-fix-panel">
-          <div className="dibcac-comments-header">
-            <span className="dibcac-comments-title">Fix Interview Details</span>
-            <span className="dibcac-comments-id mono">{objKey}</span>
-            <button type="button" className="dibcac-preview-close" onClick={onClose} aria-label="Close">✕</button>
-          </div>
-
-          {objText && <p className="dibcac-fix-obj-text">{objText}</p>}
-
-          <div className="dibcac-fix-body">
-            <div className="dibcac-fix-field">
-              <div className="dibcac-fix-field-header">
-                <span className="dibcac-fix-label">Interviewed Roles / Titles</span>
-                <button
-                  type="button"
-                  className="dibcac-action-btn"
-                  onClick={() => setShowRolePicker(true)}
-                >
-                  {roles.length > 0 ? 'Manage Roles' : '+ Add Roles'}
-                </button>
-              </div>
-              {roles.length > 0 ? (
-                <div className="dibcac-fix-role-chips">
-                  {roles.map((r) => (
-                    <span key={r} className="dibcac-fix-role-chip">
-                      {r}
-                      <button
-                        type="button"
-                        className="dibcac-fix-role-chip-remove"
-                        onClick={() => setRoles((prev) => prev.filter((x) => x !== r))}
-                        aria-label={`Remove ${r}`}
-                      >×</button>
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="dibcac-fix-empty">No roles selected. Click + Add Roles to pick from the role list.</p>
-              )}
-            </div>
-
-            <div className="dibcac-fix-field">
-              <label className="dibcac-fix-label" htmlFor="fix-interview-text">Interview Notes / Comments</label>
-              <textarea
-                ref={textareaRef}
-                id="fix-interview-text"
-                className="dibcac-comments-textarea"
-                value={interviewText}
-                onChange={(e) => setInterviewText(e.target.value)}
-                rows={4}
-                placeholder="Describe what was discussed or confirmed in the interview…"
-                style={{ resize: 'none', overflow: 'hidden' }}
-              />
-            </div>
-          </div>
-
-          <div className="dibcac-comments-footer">
-            <button type="button" className="dibcac-builder-save" onClick={handleSave}>Save</button>
-            <button type="button" className="dibcac-builder-cancel" onClick={onClose}>Cancel</button>
-          </div>
-        </div>
-      </div>
-
-      {showRolePicker && (
-        <InterviewRolePickerModal
-          currentRoles={roles}
-          onSave={(newRoles) => { setRoles(newRoles); setShowRolePicker(false) }}
-          onClose={() => setShowRolePicker(false)}
-        />
-      )}
-    </>
-  )
-}
-
 function GroupFindingsModal({ group, onClose }) {
   const [overwrite, setOverwrite] = useState(false)
   const [done, setDone] = useState(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const [fixTarget, setFixTarget] = useState(null) // { controlId, objId, key, text }
+  const [showApplyInterviewerModal, setShowApplyInterviewerModal] = useState(false)
 
   const rows = useMemo(() => group.objectives.map((o) => {
     const objId     = o.objId ?? o.objectiveKey
@@ -735,7 +618,7 @@ function GroupFindingsModal({ group, onClose }) {
     if (artifacts.length === 0)       warnings.push({ key: 'artifacts', text: 'No assigned artifacts.' })
     if (missingRoles)                 warnings.push({ key: 'roles', text: 'Missing interviewed role.', fixable: true })
     if (missingInterviewComments)     warnings.push({ key: 'interview', text: 'Missing interview comments.', fixable: true })
-    return { o, objId, key, status, hasExisting, artifacts, roles, isMet, warnings, objText: o.objText ?? o.objectiveText }
+    return { o, objId, key, status, hasExisting, artifacts, roles, isMet, warnings, objText: o.objText ?? o.objectiveText, standard: o.standard }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [group.objectives, refreshKey])
 
@@ -750,7 +633,15 @@ function GroupFindingsModal({ group, onClose }) {
         includedArtifacts: row.artifacts,
         hasDifferences: false,
         differencesText: '',
-        finalText: buildGroupFindingText({ artifacts: row.artifacts, objectiveRef: row.key, roles: row.roles }),
+        finalText: buildFinalText({
+          roles: row.roles,
+          includedArtifacts: row.artifacts,
+          objectiveRef: row.key,
+          objectiveText: row.objText,
+          dibcacMethod: row.standard,
+          hasDifferences: false,
+          differencesText: '',
+        }),
         updatedAt: new Date().toISOString(),
       })
     }
@@ -762,6 +653,23 @@ function GroupFindingsModal({ group, onClose }) {
     setRefreshKey((k) => k + 1)
   }
 
+  const handleApplyInterviewerApplied = () => {
+    setShowApplyInterviewerModal(false)
+    setRefreshKey((k) => k + 1)
+  }
+
+  const scopeObjectives = useMemo(
+    () => rows.map((r) => ({
+      controlId: r.o.controlId,
+      objId: r.objId,
+      objText: r.objText,
+      status: r.status,
+      key: r.key,
+      eligible: r.isMet,
+    })),
+    [rows]
+  )
+
   // When a fix target is active, replace this modal entirely with FixInterviewDetailsModal.
   // This prevents two overlays from stacking on screen at the same time.
   if (fixTarget) {
@@ -771,8 +679,21 @@ function GroupFindingsModal({ group, onClose }) {
         objId={fixTarget.objId}
         objKey={fixTarget.key}
         objText={fixTarget.text}
+        scopeObjectives={scopeObjectives}
         onSave={handleFixSave}
         onClose={() => setFixTarget(null)}
+      />
+    )
+  }
+
+  // While Apply Same Interviewer is active, it is the only rendered modal
+  // step — the Group Findings surface is not kept mounted underneath it.
+  if (showApplyInterviewerModal) {
+    return (
+      <ApplySameInterviewerModal
+        scopeObjectives={scopeObjectives}
+        onClose={() => setShowApplyInterviewerModal(false)}
+        onApplied={handleApplyInterviewerApplied}
       />
     )
   }
@@ -806,14 +727,23 @@ function GroupFindingsModal({ group, onClose }) {
         ) : (
           <>
             <div className="dibcac-group-findings-body">
-              <label className="dibcac-group-findings-overwrite">
-                <input
-                  type="checkbox"
-                  checked={overwrite}
-                  onChange={(e) => setOverwrite(e.target.checked)}
-                />
-                Overwrite existing findings
-              </label>
+              <div className="bulk-findings-filters-row">
+                <label className="dibcac-group-findings-overwrite">
+                  <input
+                    type="checkbox"
+                    checked={overwrite}
+                    onChange={(e) => setOverwrite(e.target.checked)}
+                  />
+                  Overwrite existing findings
+                </label>
+                <button
+                  type="button"
+                  className="dibcac-action-btn bulk-findings-apply-interviewer-btn"
+                  onClick={() => setShowApplyInterviewerModal(true)}
+                >
+                  Apply Same Interviewer
+                </button>
+              </div>
               <div className="dibcac-group-findings-list">
                 {rows.map((row) => {
                   const eligible = row.isMet && (!row.hasExisting || overwrite)
