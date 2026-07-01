@@ -1050,7 +1050,7 @@ function parseGroupSortKey(name) {
 // ── Folder section ────────────────────────────────────────────────────────────
 
 function FolderSection({ folder, groups, savedFolders, onDelete, onEditRequest, onPreview, onMoveToFolder, onDeleteFolder, selectionMode, selectedIds, onToggleSelect }) {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
   const [confirming, setConfirming] = useState(false)
 
   return (

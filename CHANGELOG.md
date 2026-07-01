@@ -7,6 +7,7 @@ Date: June 29, 2026
 - Added saved review group folder organization for assessment days, families, sessions, and follow-up groupings.
 - Added multi-select group movement so multiple saved review groups can be moved into a folder or back to Ungrouped at once.
 - Added sort direction toggles for saved review groups, including name and created-date ordering.
+- Changed saved group folders to remain collapsed by default, reducing clutter when organizing groups by day, family, or session.
 
 ### DIBCAC Group Findings
 - Added Create Group Findings for saved review groups.
