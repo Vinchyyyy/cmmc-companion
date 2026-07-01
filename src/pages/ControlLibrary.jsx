@@ -36,6 +36,7 @@ import {
 } from '../utils/scoring'
 import { IconNotes, IconPaperclip, IconTrendingUp, IconTrendingDown } from '../components/icons'
 import { readAssignedTo, writeAssignedTo, normalizeAssignee } from '../utils/assignment'
+import BulkFindingsModal from '../components/BulkFindingsModal'
 
 const TRENDING_INDICATOR = {
   'MET':         { color: 'var(--color-met)',         title: 'Trending: MET' },
@@ -355,6 +356,7 @@ function ControlLibrary() {
   const [openQuickLook, setOpenQuickLook] = useState(null)
   const [multiSelectMode, setMultiSelectMode] = useState(false)
   const [openWarning, setOpenWarning] = useState(null)
+  const [showBulkFindingsModal, setShowBulkFindingsModal] = useState(false)
   const forceUpdate = () => setUpdateKey((k) => k + 1)
 
   useEffect(() => {
@@ -857,6 +859,12 @@ function ControlLibrary() {
               }}
             >
               Copy From Control
+            </button>
+            <button
+              onClick={() => setShowBulkFindingsModal(true)}
+              title="Open Bulk Findings for the selected controls"
+            >
+              Create Bulk Findings
             </button>
             <button className="bulk-toolbar-danger" onClick={() => setConfirmClear(true)}
               title="Reset status, inheritance, and all notes for selected controls">
@@ -1619,6 +1627,14 @@ function ControlLibrary() {
             </div>
           </div>
         </div>
+      )}
+
+      {showBulkFindingsModal && (
+        <BulkFindingsModal
+          title="Create Findings for Selected Controls"
+          controlsInScope={selectedControls}
+          onClose={() => setShowBulkFindingsModal(false)}
+        />
       )}
     </div>
   )

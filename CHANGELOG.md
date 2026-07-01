@@ -11,10 +11,14 @@ Date: July 1, 2026
 ### Bulk Findings
 - Added Create Findings for All Objectives from Project Actions.
 - Added Create Findings for This Control from Control Detail.
+- Added Create Bulk Findings from Control Library multi-select.
 - Added bulk readiness review with Ready, Needs Attention, Skipped, and Existing Finding counts.
+- Added compact target scope summaries by family, including selected control and objective counts.
+- Added collapsed family sections for objective review so large scopes no longer open as one flat objective list.
+- Added family-level warning summaries for missing roles, missing comments, missing artifacts, skipped statuses, and existing findings.
+- Added advanced generation options for explicitly including In Progress, Unreviewed / Not Started, and NOT MET objectives.
+- Preserved safe default behavior: MET objectives are eligible by default, while NOT MET, In Progress, Unreviewed, and discrepancy/difference objectives are skipped unless explicitly included.
 - Bulk findings generate separate objective-level finding statements.
-- MET objectives are eligible by default.
-- NOT MET, In Progress, Unreviewed, and discrepancy/difference objectives are skipped by default.
 - Existing findings are preserved unless overwrite is explicitly selected.
 - Generated findings continue to export through the existing official Excel export path.
 

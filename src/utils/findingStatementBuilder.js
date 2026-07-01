@@ -50,6 +50,25 @@ function buildArtifactsText(artifacts) {
   return valid.map((a) => `${a.trim()};`).join(' ')
 }
 
+// D-line confirmation language. Differences always take priority (existing
+// behavior — "not implemented"). Otherwise the language is chosen by
+// statusContext so non-MET/override-generated findings never falsely claim
+// the objective is implemented.
+//
+// statusContext: 'MET' (default) | 'NOT_MET' | 'IN_PROGRESS' | 'UNREVIEWED'
+function buildConfirmationLine({ hasDifferences, statusContext }) {
+  if (hasDifferences) {
+    return 'D) Assessment team confirmed in interview, testing, and documentation that this objective is not implemented.'
+  }
+  if (statusContext === 'NOT_MET') {
+    return 'D) Assessment team did not confirm full implementation of this objective based on the reviewed evidence.'
+  }
+  if (statusContext === 'IN_PROGRESS' || statusContext === 'UNREVIEWED') {
+    return 'D) Assessment team has not confirmed full implementation of this objective at the time of this finding statement.'
+  }
+  return 'D) Assessment team confirmed in interview, testing, and documentation that this objective is implemented.'
+}
+
 // Full finding statement text (Interviewed / A / B / C / D), shared across
 // FindingsBuilderModal, DIBCAC group findings, and bulk findings generation.
 export function buildFinalText({
@@ -60,6 +79,7 @@ export function buildFinalText({
   dibcacMethod,
   hasDifferences,
   differencesText,
+  statusContext = 'MET',
 }) {
   const lines = []
 
@@ -78,10 +98,7 @@ export function buildFinalText({
     lines.push('C) No noted findings or differences.')
   }
 
-  const implemented = !hasDifferences
-  lines.push(
-    `D) Assessment team confirmed in interview, testing, and documentation that this objective is ${implemented ? '' : 'not '}implemented.`
-  )
+  lines.push(buildConfirmationLine({ hasDifferences, statusContext }))
 
   return lines.join('\n')
 }

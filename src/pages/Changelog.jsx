@@ -35,9 +35,14 @@ function Changelog() {
           <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
             <li>Added Create Findings for All Objectives from Project Actions.</li>
             <li>Added Create Findings for This Control from Control Detail.</li>
+            <li>Added Create Bulk Findings from Control Library multi-select.</li>
             <li>Added bulk readiness review with Ready, Needs Attention, Skipped, and Existing Finding counts.</li>
-            <li>Bulk findings generate separate objective-level finding statements; MET objectives are eligible by default.</li>
-            <li>NOT MET, In Progress, Unreviewed, and discrepancy/difference objectives are skipped by default.</li>
+            <li>Added compact target scope summaries by family, including selected control and objective counts.</li>
+            <li>Added collapsed family sections for objective review so large scopes no longer open as one flat objective list.</li>
+            <li>Added family-level warning summaries for missing roles, missing comments, missing artifacts, skipped statuses, and existing findings.</li>
+            <li>Added advanced generation options for explicitly including In Progress, Unreviewed / Not Started, and NOT MET objectives.</li>
+            <li>Preserved safe default behavior: MET objectives are eligible by default, while NOT MET, In Progress, Unreviewed, and discrepancy/difference objectives are skipped unless explicitly included.</li>
+            <li>Bulk findings generate separate objective-level finding statements.</li>
             <li>Existing findings are preserved unless overwrite is explicitly selected.</li>
             <li>Generated findings continue to export through the existing official Excel export path.</li>
           </ul>
