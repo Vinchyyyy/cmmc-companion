@@ -11,6 +11,7 @@ function Navigation() {
       <NavLink to="/artifact-map">Documented Artifacts</NavLink>
       <NavLink to="/about">About</NavLink>
       <NavLink to="/changelog">Changelog</NavLink>
+      <NavLink to="/settings">Settings</NavLink>
     </nav>
   )
 }

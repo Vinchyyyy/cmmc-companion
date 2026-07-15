@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { Search, ChevronDown, ArrowRight, X } from 'lucide-react'
+import DashSidebar from '../components/DashSidebar.jsx'
 import controls from '../data/controls/index.js'
 import relationships from '../data/relationships/index.js'
 import evidenceTypes from '../data/evidence/index.js'
@@ -97,12 +99,12 @@ function ControlTile({ control, allRelationships, allEvidence, onClick }) {
 
 const getControl = (id) => controls.find((c) => c.id === id)
 
-const PREVIEW_LEN = 180
+// ── Flow diagram — real flowchart with connector lines ────────────────────────
 
-// ── Relationship card modal ───────────────────────────────────────────────────
+const REL_TONE = { Prerequisite: '#A78BFA', 'Supported By': '#22D3EE', Supports: '#3FC98A' }
 
-function RelModal({ entry, onClose }) {
-  const dialogRef = useRef(null)
+function RelPopover({ data, onClose, onExplore }) {
+  const popRef = useRef(null)
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose() }
@@ -110,127 +112,188 @@ function RelModal({ entry, onClose }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  useEffect(() => {
-    dialogRef.current?.focus()
-  }, [])
-
-  const { rel, idKey, groupLabel } = entry
-  const otherId = rel[idKey]
-  const other   = getControl(otherId)
+  if (!data) return null
+  const { item, x, y } = data
 
   return (
     <div
-      className="rel-modal-overlay"
+      ref={popRef}
+      className="rel-popover"
+      style={{ left: x, top: y }}
+      onClick={(e) => e.stopPropagation()}
       role="dialog"
       aria-modal="true"
-      aria-label={`Relationship detail: ${otherId}`}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      aria-label={`Relationship detail: ${item.id}`}
     >
-      <div className="rel-modal" ref={dialogRef} tabIndex={-1}>
-        <div className="rel-modal-header">
-          <span className="rel-modal-group-label">{groupLabel}</span>
-          <button className="rel-modal-close" onClick={onClose} aria-label="Close">✕</button>
-        </div>
-        <div className="rel-modal-id mono">
-          <ControlLink id={otherId} />
-        </div>
-        <div className="rel-modal-title">{other ? other.title : otherId}</div>
-        {other?.family && (
-          <div className="rel-modal-family muted">{other.family}</div>
-        )}
-        {rel.reasoning && (
-          <div className="rel-modal-body">
-            <div className="rel-modal-body-label">Relationship context</div>
-            <p className="rel-modal-reasoning">{rel.reasoning}</p>
-          </div>
-        )}
-        <div className="rel-modal-actions">
-          <Link
-            to={`/controls/${encodeURIComponent(otherId)}`}
-            className="rel-modal-action-link"
-            onClick={onClose}
-          >
-            View control detail →
-          </Link>
-          <Link
-            to={`/relationships?control=${encodeURIComponent(otherId)}`}
-            className="rel-modal-action-link"
-            onClick={onClose}
-          >
-            Explore relationships →
-          </Link>
-        </div>
+      <div className="rel-popover-header">
+        <span className="rel-popover-type" style={{ color: REL_TONE[item.type] || 'var(--dash-accent2)' }}>{item.type || 'Relationship'}</span>
+        <button onClick={onClose} aria-label="Close"><X size={14} /></button>
       </div>
-    </div>
-  )
-}
-
-// ── Relationship card ─────────────────────────────────────────────────────────
-
-function RelCard({ rel, idKey, groupLabel, onReadMore }) {
-  const otherId = rel[idKey]
-  const other   = getControl(otherId)
-  const preview = rel.reasoning
-    ? rel.reasoning.length > PREVIEW_LEN
-      ? rel.reasoning.slice(0, PREVIEW_LEN).trimEnd() + '…'
-      : rel.reasoning
-    : null
-  const hasMore = rel.reasoning && rel.reasoning.length > PREVIEW_LEN
-
-  return (
-    <div className="rel-board-card">
-      <div className="rel-board-card-id">
-        <ControlLink id={otherId} />
-      </div>
-      <div className="rel-board-card-title">{other ? other.title : otherId}</div>
-      {preview && (
-        <p className="rel-board-card-reason">{preview}</p>
+      <div className="rel-popover-id mono"><ControlLink id={item.id} className="rel-popover-id-link" /></div>
+      <div className="rel-popover-title">{item.title}</div>
+      {item.reason && (
+        <div className="rel-popover-body">
+          <div className="rel-popover-body-label">Relationship Context</div>
+          <p className="rel-popover-reasoning">{item.reason}</p>
+        </div>
       )}
-      <div className="rel-board-card-actions">
-        {hasMore && (
-          <button
-            className="rel-board-card-readmore"
-            onClick={() => onReadMore({ rel, idKey, groupLabel })}
-          >
-            Read more
-          </button>
-        )}
-        <Link
-          to={`/relationships?control=${encodeURIComponent(otherId)}`}
-          className="rel-board-card-link"
-        >
-          Explore →
+      <div className="rel-popover-actions">
+        <Link to={`/controls/${encodeURIComponent(item.id)}`} className="rel-popover-action" onClick={onClose}>
+          View control detail <ArrowRight size={11} />
         </Link>
+        <button className="rel-popover-action" onClick={() => { onExplore(item.id); onClose() }}>
+          Explore relationships <ArrowRight size={11} />
+        </button>
       </div>
     </div>
   )
 }
 
-// ── Relationship column ───────────────────────────────────────────────────────
-
-function RelColumn({ heading, subtitle, items, idKey, onReadMore }) {
+function FlowNode({ item, tone, style, onClick }) {
   return (
-    <div className="rel-board-col">
-      <div className="rel-board-col-header">
-        <h2 className="rel-board-col-heading">{heading}</h2>
-        <span className="rel-board-col-count">{items.length}</span>
+    <button type="button" className="rel-flow-node" style={{ ...style, borderLeftColor: tone }} onClick={onClick}>
+      <div className="rel-flow-node-top">
+        <span className="mono rel-flow-node-id">{item.id}</span>
+        {item.type && <span className="rel-flow-node-type" style={{ color: tone }}>{item.type}</span>}
       </div>
-      <p className="rel-board-col-sub muted">{subtitle}</p>
-      <div className="rel-board-col-cards">
-        {items.length === 0 ? (
-          <p className="muted rel-board-empty">None documented.</p>
-        ) : (
-          items.map((r, i) => (
-            <RelCard
-              key={i}
-              rel={r}
-              idKey={idKey}
-              groupLabel={heading}
-              onReadMore={onReadMore}
-            />
-          ))
+      <div className="rel-flow-node-title">{item.title}</div>
+    </button>
+  )
+}
+
+function FlowSideLabel({ label, style }) {
+  return <div className="rel-flow-side-label" style={style}>{label}</div>
+}
+
+const CARD_W = 420, CARD_H = 100, GAP_Y = 28, PITCH = CARD_H + GAP_Y
+const CENTER_W = 480, CENTER_H = 260
+const GAP_X = 160, TRUNK_LEN = 60
+// Floor width so the layout never crushes columns into each other on narrow
+// screens — below this, the diagram scrolls horizontally instead of shrinking.
+const MIN_CANVAS_W = CARD_W * 2 + CENTER_W + GAP_X * 2
+
+// Measures the live rendered width of the diagram's wrapping container via
+// ResizeObserver, same pattern used for the Home dashboard's waffle grid and
+// inheritance heatmap — the diagram's horizontal layout is derived from this
+// instead of a hardcoded pixel constant, so it stretches with the browser.
+function useContainerWidth() {
+  const ref = useRef(null)
+  const [width, setWidth] = useState(0)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) setWidth(entry.contentRect.width)
+    })
+    observer.observe(el)
+    setWidth(el.getBoundingClientRect().width)
+    return () => observer.disconnect()
+  }, [])
+  return [ref, width]
+}
+
+function FlowDiagram({ selectedControl, leftItems, rightItems, onExplore }) {
+  const [popover, setPopover] = useState(null)
+  const [wrapRef, measuredWidth] = useContainerWidth()
+
+  const canvasW = Math.max(measuredWidth, MIN_CANVAS_W)
+  const leftX = 0
+  const rightX = canvasW - CARD_W
+  const centerX = (canvasW - CENTER_W) / 2
+
+  const leftCount = leftItems.length
+  const rightCount = rightItems.length
+  const leftStackH = leftCount > 0 ? leftCount * PITCH - GAP_Y : 0
+  const rightStackH = rightCount > 0 ? rightCount * PITCH - GAP_Y : 0
+  const canvasH = Math.max(leftStackH, rightStackH, CENTER_H) + 60
+
+  const leftStartY = (canvasH - leftStackH) / 2
+  const rightStartY = (canvasH - rightStackH) / 2
+  const centerY = (canvasH - CENTER_H) / 2
+  const mergeY = centerY + CENTER_H / 2
+
+  const leftPositions = leftItems.map((item, i) => ({ item, y: leftStartY + i * PITCH }))
+  const rightPositions = rightItems.map((item, i) => ({ item, y: rightStartY + i * PITCH }))
+
+  return (
+    <div ref={wrapRef} className="rel-flow-measure">
+    <div className="rel-flow-canvas" style={{ width: canvasW, height: canvasH }} onClick={() => setPopover(null)}>
+      <svg width={canvasW} height={canvasH} className="rel-flow-svg">
+        <defs>
+          <marker id="relArrow" markerWidth="11" markerHeight="11" refX="8" refY="5.5" orient="auto">
+            <path d="M1,1 Q3.7,5.5 1,10 L10,5.5 Z" fill="#8B7CF6" />
+          </marker>
+        </defs>
+
+        {leftCount > 0 && leftPositions.map(({ item, y }) => {
+          const x1 = leftX + CARD_W, y1 = y + CARD_H / 2
+          const x2 = centerX - TRUNK_LEN, y2 = mergeY
+          const midX = (x1 + x2) / 2
+          return (
+            <path key={item.id + item.type} d={`M ${x1},${y1} C ${midX},${y1} ${midX},${y2} ${x2},${y2}`}
+              fill="none" stroke="#6B5FBF" strokeOpacity="0.4" strokeWidth="4" strokeLinecap="round" />
+          )
+        })}
+        {leftCount > 0 && (
+          <path d={`M ${centerX - TRUNK_LEN},${mergeY} L ${centerX - 8},${mergeY}`}
+            fill="none" stroke="#8B7CF6" strokeWidth="7" strokeLinecap="round" markerEnd="url(#relArrow)" />
+        )}
+
+        {rightCount > 0 && (
+          <path d={`M ${centerX + CENTER_W},${mergeY} L ${centerX + CENTER_W + TRUNK_LEN},${mergeY}`}
+            fill="none" stroke="#8B7CF6" strokeWidth="7" strokeLinecap="round" />
+        )}
+        {rightCount > 0 && rightPositions.map(({ item, y }) => {
+          const x1 = centerX + CENTER_W + TRUNK_LEN, y1 = mergeY
+          const x2 = rightX, y2 = y + CARD_H / 2
+          const midX = (x1 + x2) / 2
+          return (
+            <path key={item.id} d={`M ${x1},${y1} C ${midX},${y1} ${midX},${y2} ${x2 - 8},${y2}`}
+              fill="none" stroke="#6B5FBF" strokeOpacity="0.4" strokeWidth="4" strokeLinecap="round" markerEnd="url(#relArrow)" />
+          )
+        })}
+      </svg>
+
+      {leftPositions.map(({ item, y }) => (
+        <FlowNode
+          key={item.id + item.type}
+          item={item}
+          tone={REL_TONE[item.type] || 'var(--dash-accent2)'}
+          style={{ left: leftX, top: y, width: CARD_W, height: CARD_H }}
+          onClick={(e) => { e.stopPropagation(); setPopover({ item, x: leftX + CARD_W + 16, y }) }}
+        />
+      ))}
+      {leftCount === 0 && (
+        <p className="muted rel-flow-empty" style={{ left: leftX, top: centerY, width: CARD_W }}>None documented.</p>
+      )}
+
+      <div className="rel-flow-center" style={{ left: centerX, top: centerY, width: CENTER_W, height: CENTER_H }}>
+        <span className="mono rel-flow-center-id">{selectedControl.id}</span>
+        <div className="rel-flow-center-title">{selectedControl.title}</div>
+        <div className="rel-flow-center-family">{selectedControl.family}</div>
+        {selectedControl.plainEnglish && (
+          <div className="rel-flow-center-desc">{selectedControl.plainEnglish}</div>
         )}
       </div>
+
+      {rightPositions.map(({ item, y }) => (
+        <FlowNode
+          key={item.id}
+          item={item}
+          tone={REL_TONE[item.type] || '#3FC98A'}
+          style={{ left: rightX, top: y, width: CARD_W, height: CARD_H }}
+          onClick={(e) => { e.stopPropagation(); setPopover({ item, x: rightX - 316, y }) }}
+        />
+      ))}
+      {rightCount === 0 && (
+        <p className="muted rel-flow-empty" style={{ left: rightX, top: centerY, width: CARD_W }}>None documented.</p>
+      )}
+
+      {leftCount > 0 && <FlowSideLabel label="Feeds Into This Control" style={{ left: leftX, top: leftStartY - 26 }} />}
+      {rightCount > 0 && <FlowSideLabel label="This Control Enables" style={{ left: rightX, top: rightStartY - 26 }} />}
+
+      <RelPopover data={popover} onClose={() => setPopover(null)} onExplore={onExplore} />
+    </div>
     </div>
   )
 }
@@ -244,7 +307,6 @@ function RelationshipExplorer() {
   const [search, setSearch]             = useState('')
   const [familyFilter, setFamilyFilter] = useState('All')
   const [launcherFamily, setLauncherFamily] = useState(null)   // launcher nav state
-  const [modalEntry, setModalEntry]     = useState(null)
 
   // Pre-computed family stats for the tile launcher (stable — control/rel data is static)
   const familyStats = useMemo(() => buildFamilyStats(controls, relationships), [])
@@ -340,31 +402,52 @@ function RelationshipExplorer() {
 
   const totalRelationships = prerequisites.length + supports.length + supportedBy.length
 
+  // Flow diagram data: left side is everything that feeds into the selected
+  // control (prerequisites + supported-by), right side is what it enables.
+  const flowLeftItems = [
+    ...prerequisites.map((r) => ({ id: r.sourceControl, title: getControl(r.sourceControl)?.title ?? r.sourceControl, type: 'Prerequisite', reason: r.reasoning })),
+    ...supportedBy.map((r) => ({ id: r.sourceControl, title: getControl(r.sourceControl)?.title ?? r.sourceControl, type: 'Supported By', reason: r.reasoning })),
+  ]
+  const flowRightItems = supports.map((r) => ({ id: r.targetControl, title: getControl(r.targetControl)?.title ?? r.targetControl, type: 'Supports', reason: r.reasoning }))
+
+  const handleExplore = (controlId) => setSearchParams({ control: controlId })
+
   return (
-    <div className="rel-explorer">
+    <div className="dash-root">
+      <DashSidebar />
+      <div className="rel-explorer dash-main">
 
       {/* ── Filters / header ───────────────────────────────────────────────── */}
       <div className="rel-explorer-header">
-        <h1 className="rel-explorer-title">Relationship Explorer</h1>
+        <div>
+          <h1 className="rel-explorer-title">Relationship Explorer</h1>
+          <p className="rel-explorer-subtitle muted">Start with a family, choose a control, then trace how it connects to everything else.</p>
+        </div>
         <div className="rel-explorer-controls">
-          <input
-            className="rel-explorer-search"
-            type="text"
-            placeholder="Search by ID, title, or description…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Search controls"
-          />
-          <select
-            className="rel-explorer-family"
-            value={familyFilter}
-            onChange={(e) => setFamilyFilter(e.target.value)}
-            aria-label="Filter by family"
-          >
-            {FAMILIES.map((f) => (
-              <option key={f} value={f}>{f === 'All' ? 'All Families' : f}</option>
-            ))}
-          </select>
+          <div className="rel-explorer-search-wrap">
+            <Search size={14} className="rel-explorer-search-icon" />
+            <input
+              className="rel-explorer-search"
+              type="text"
+              placeholder="Search by ID, title, or description…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search controls"
+            />
+          </div>
+          <div className="rel-explorer-family-wrap">
+            <select
+              className="rel-explorer-family"
+              value={familyFilter}
+              onChange={(e) => setFamilyFilter(e.target.value)}
+              aria-label="Filter by family"
+            >
+              {FAMILIES.map((f) => (
+                <option key={f} value={f}>{f === 'All' ? 'All Families' : f}</option>
+              ))}
+            </select>
+            <ChevronDown size={13} className="rel-explorer-family-icon" />
+          </div>
           <select
             className="rel-explorer-picker"
             value={selectedId}
@@ -379,13 +462,38 @@ function RelationshipExplorer() {
         </div>
       </div>
 
+      {/* ── Breadcrumb ───────────────────────────────────────────────────── */}
+      <div className="rel-breadcrumb">
+        <button
+          type="button"
+          className="rel-breadcrumb-item"
+          onClick={() => { setSearchParams({}); setLauncherFamily(null) }}
+        >
+          All Families
+        </button>
+        {(launcherFamily || selectedControl) && (
+          <>
+            <ArrowRight size={11} className="rel-breadcrumb-sep" />
+            <button
+              type="button"
+              className="rel-breadcrumb-item"
+              onClick={() => { setSearchParams({}); setLauncherFamily(selectedControl?.family ?? launcherFamily) }}
+            >
+              {selectedControl?.family ?? launcherFamily}
+            </button>
+          </>
+        )}
+        {selectedControl && (
+          <>
+            <ArrowRight size={11} className="rel-breadcrumb-sep" />
+            <span className="rel-breadcrumb-current mono">{selectedControl.id}</span>
+          </>
+        )}
+      </div>
+
       {/* ── Tile launcher (no control selected) ───────────────────────────── */}
       {!selectedId ? (
         <div className="rel-launcher">
-          <p className="rel-launcher-subtitle muted">
-            Start with a family, choose a control, then review how related controls and evidence connect.
-          </p>
-
           {/* Step 1 — family grid */}
           <div className="rel-launcher-step">
             <div className="rel-launcher-step-label">
@@ -441,85 +549,43 @@ function RelationshipExplorer() {
         </div>
       ) : (
         <>
-          {/* ── Selected-control summary band ──────────────────────────────── */}
-          <div className="rel-control-summary">
-            <div className="rel-control-summary-main">
-              <div className="rel-control-summary-id mono">
-                <ControlLink id={selectedId} />
-              </div>
-              <div className="rel-control-summary-title">{selectedControl?.title}</div>
-              {selectedControl?.family && (
-                <div className="rel-control-summary-family muted">{selectedControl.family}</div>
-              )}
-              {selectedControl?.plainEnglish && (
-                <p className="rel-control-summary-plain">{selectedControl.plainEnglish}</p>
-              )}
-            </div>
-            <div className="rel-control-summary-meta">
-              <div className="rel-control-summary-counts">
-                <span className="rel-control-summary-stat">
-                  <span className="rel-control-summary-stat-val">{totalRelationships}</span>
-                  <span className="rel-control-summary-stat-label">Relationships</span>
-                </span>
-                <span className="rel-control-summary-divider" aria-hidden="true">·</span>
-                <span className="rel-control-summary-stat">
-                  <span className="rel-control-summary-stat-val">{prerequisites.length}</span>
-                  <span className="rel-control-summary-stat-label">Prerequisites</span>
-                </span>
-                <span className="rel-control-summary-divider" aria-hidden="true">·</span>
-                <span className="rel-control-summary-stat">
-                  <span className="rel-control-summary-stat-val">{supports.length}</span>
-                  <span className="rel-control-summary-stat-label">Supports</span>
-                </span>
-                <span className="rel-control-summary-divider" aria-hidden="true">·</span>
-                <span className="rel-control-summary-stat">
-                  <span className="rel-control-summary-stat-val">{supportedBy.length}</span>
-                  <span className="rel-control-summary-stat-label">Supported By</span>
-                </span>
-                <span className="rel-control-summary-divider" aria-hidden="true">·</span>
-                <span className="rel-control-summary-stat">
-                  <span className="rel-control-summary-stat-val">{supportingEvidence.length}</span>
-                  <span className="rel-control-summary-stat-label">Evidence</span>
-                </span>
-              </div>
-              <Link
-                to={`/controls/${encodeURIComponent(selectedId)}`}
-                className="rel-control-summary-link"
-              >
-                View control detail →
-              </Link>
-              <button
-                type="button"
-                className="rel-browse-btn"
-                onClick={() => setSearchParams({})}
-              >
-                ← Browse controls
-              </button>
-            </div>
+          {/* ── Compact stat strip — counts + quick links, no box ────────────── */}
+          <div className="rel-stat-strip">
+            <span className="rel-stat-strip-item">
+              <span className="rel-stat-strip-val">{totalRelationships}</span> Relationships
+            </span>
+            <span className="rel-stat-strip-sep" aria-hidden="true">·</span>
+            <span className="rel-stat-strip-item">
+              <span className="rel-stat-strip-val">{prerequisites.length}</span> Prerequisites
+            </span>
+            <span className="rel-stat-strip-sep" aria-hidden="true">·</span>
+            <span className="rel-stat-strip-item">
+              <span className="rel-stat-strip-val">{supports.length}</span> Supports
+            </span>
+            <span className="rel-stat-strip-sep" aria-hidden="true">·</span>
+            <span className="rel-stat-strip-item">
+              <span className="rel-stat-strip-val">{supportedBy.length}</span> Supported By
+            </span>
+            <span className="rel-stat-strip-sep" aria-hidden="true">·</span>
+            <span className="rel-stat-strip-item">
+              <span className="rel-stat-strip-val">{supportingEvidence.length}</span> Evidence
+            </span>
+            <span className="rel-stat-strip-sep" aria-hidden="true">·</span>
+            <Link to={`/controls/${encodeURIComponent(selectedId)}`} className="rel-stat-strip-link">
+              View control detail →
+            </Link>
+            <button type="button" className="rel-stat-strip-link" onClick={() => setSearchParams({})}>
+              ← Browse controls
+            </button>
           </div>
 
-          {/* ── Relationship columns board ─────────────────────────────────── */}
-          <div className="rel-board">
-            <RelColumn
-              heading="Prerequisites"
-              subtitle="Controls that must be in place first."
-              items={prerequisites}
-              idKey="sourceControl"
-              onReadMore={setModalEntry}
-            />
-            <RelColumn
-              heading="Supports"
-              subtitle="Controls this one helps enable."
-              items={supports}
-              idKey="targetControl"
-              onReadMore={setModalEntry}
-            />
-            <RelColumn
-              heading="Supported By"
-              subtitle="Controls that strengthen this one."
-              items={supportedBy}
-              idKey="sourceControl"
-              onReadMore={setModalEntry}
+          {/* ── Relationship flow diagram ─────────────────────────────────── */}
+          <div className="rel-flow-wrap">
+            <FlowDiagram
+              selectedControl={selectedControl}
+              leftItems={flowLeftItems}
+              rightItems={flowRightItems}
+              onExplore={handleExplore}
             />
           </div>
 
@@ -565,11 +631,7 @@ function RelationshipExplorer() {
         </>
       )}
 
-      {/* ── Modal ──────────────────────────────────────────────────────────── */}
-      {modalEntry && (
-        <RelModal entry={modalEntry} onClose={() => setModalEntry(null)} />
-      )}
-
+      </div>
     </div>
   )
 }

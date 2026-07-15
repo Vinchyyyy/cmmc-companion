@@ -1,5 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
+import { FolderPlus, Folder } from 'lucide-react'
+import DashSidebar from '../components/DashSidebar.jsx'
 import controls from '../data/controls/index'
 import { getDibcacStandard, DIBCAC_STANDARDS } from '../data/dibcacAssessmentStandards'
 import {
@@ -37,12 +39,12 @@ const METHOD_ORDER = [
 ]
 
 const METHOD_META = {
-  document:                  { label: 'Document',               className: 'dibcac-chip--document' },
-  screen_share:              { label: 'Screen Share',           className: 'dibcac-chip--screen_share' },
-  artifact:                  { label: 'Artifact',               className: 'dibcac-chip--artifact' },
-  physical_review:           { label: 'Physical Review',        className: 'dibcac-chip--physical_review' },
-  artifact_and_screen_share: { label: 'Artifact + Screen Share', className: 'dibcac-chip--artifact_and_screen_share' },
-  unknown:                   { label: 'Variable',               className: 'dibcac-chip--unknown' },
+  document:                  { label: 'Document',               className: 'dibcac-chip--document',                  dot: '#A78BFA' },
+  screen_share:              { label: 'Screen Share',           className: 'dibcac-chip--screen_share',              dot: '#22D3EE' },
+  artifact:                  { label: 'Artifact',               className: 'dibcac-chip--artifact',                  dot: '#3FC98A' },
+  physical_review:           { label: 'Physical Review',        className: 'dibcac-chip--physical_review',           dot: '#E3A83B' },
+  artifact_and_screen_share: { label: 'Artifact + Screen Share', className: 'dibcac-chip--artifact_and_screen_share', dot: '#EC4899' },
+  unknown:                   { label: 'Variable',               className: 'dibcac-chip--unknown',                   dot: '#8A8A93' },
 }
 
 const ALL_FAMILIES = [...new Set(controls.map((c) => c.family))]
@@ -299,7 +301,8 @@ function GroupedBrowser({ flatObjs, builderMode, checkedKeys, onCheck, onPreview
               onClick={() => toggleMethod(method)}
               aria-expanded={isOpen}
             >
-              <span className={`dibcac-chip ${meta.className}`}>{meta.label}</span>
+              <span className="dibcac-method-dot" style={{ background: meta.dot }} />
+              <span className="dibcac-method-label">{meta.label}</span>
               <span className="dibcac-method-count">{totalObjs} objective{totalObjs !== 1 ? 's' : ''}</span>
               <span className="dibcac-collapse-icon">{isOpen ? '▼' : '▶'}</span>
             </button>
@@ -988,7 +991,7 @@ function FolderSection({ folder, groups, savedFolders, onDelete, onEditRequest, 
       <div className="dibcac-folder-header">
         <button type="button" className="dibcac-folder-toggle" onClick={() => setOpen((v) => !v)}>
           <span className="dibcac-collapse-icon">{open ? '▼' : '▶'}</span>
-          <span className="dibcac-folder-icon">📁</span>
+          <Folder size={13} className="dibcac-folder-icon" />
           <span className="dibcac-folder-name">{folder.name}</span>
           <span className="dibcac-folder-count">{groups.length}</span>
         </button>
@@ -1132,7 +1135,7 @@ function SavedGroupsPanel({ savedGroups, savedFolders, onDelete, onEditRequest, 
             + Create
           </button>
           <button type="button" className="dibcac-create-folder-btn" onClick={() => setCreatingFolder((v) => !v)} title="Create a group folder">
-            📁 Folder
+            <FolderPlus size={13} /> Folder
           </button>
         </div>
       </div>
@@ -1153,7 +1156,7 @@ function SavedGroupsPanel({ savedGroups, savedFolders, onDelete, onEditRequest, 
         </div>
       )}
 
-      {savedGroups.length === 0 ? (
+      {savedGroups.length === 0 && savedFolders.length === 0 ? (
         <p className="dibcac-rail-empty">
           No review groups yet. Create one to plan your assessment sessions.
         </p>
@@ -1208,7 +1211,7 @@ function SavedGroupsPanel({ savedGroups, savedFolders, onDelete, onEditRequest, 
                       )}
                       {savedFolders.map((f) => (
                         <button key={f.id} type="button" className="dibcac-move-menu-item" onClick={() => applyBatchMove(f.id)}>
-                          📁 {f.name}
+                          <Folder size={12} /> {f.name}
                         </button>
                       ))}
                     </div>
@@ -1431,7 +1434,10 @@ function DibcacMode() {
 
 
   return (
-    <div className="dibcac-page">
+    <div className="dash-root">
+      <DashSidebar />
+
+      <main className="dash-main dibcac-page">
 
       {previewKey && (
         <ObjectivePreview previewKey={previewKey} onClose={() => setPreviewKey(null)} />
@@ -1574,6 +1580,7 @@ function DibcacMode() {
           )}
         </div>
       </div>
+      </main>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import DashSidebar from '../components/DashSidebar.jsx'
 import { APP_VERSION, APP_DEPLOYMENT } from '../utils/version.js'
 
 // ── FAQ data ──────────────────────────────────────────────────────────────────
@@ -67,7 +68,7 @@ function FaqItem({ item, open, onToggle }) {
         aria-expanded={open}
       >
         <span>{item.q}</span>
-        <span className="about-faq-caret" aria-hidden="true">{open ? '▾' : '▸'}</span>
+        <span className={`about-faq-caret${open ? ' about-faq-caret--open' : ''}`} aria-hidden="true">▶</span>
       </button>
       {open && (
         <div className="about-faq-answer">
@@ -86,7 +87,9 @@ function About() {
   const toggleFaq = (i) => setOpenFaq((prev) => (prev === i ? null : i))
 
   return (
-    <div className="about-page">
+    <div className="dash-root">
+      <DashSidebar />
+      <main className="dash-main about-page">
 
       {/* ── Hero ── */}
       <div className="about-hero">
@@ -286,6 +289,7 @@ function About() {
         </div>
       </section>
 
+      </main>
     </div>
   )
 }

@@ -1,16 +1,61 @@
 import { APP_VERSION } from '../utils/version'
+import DashSidebar from '../components/DashSidebar.jsx'
 
 function Changelog() {
   return (
-    <div className="page">
+    <div className="dash-root">
+      <DashSidebar />
+      <main className="dash-main page">
       <h1>Version History</h1>
       <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-6)' }}>
         A curated release history for CMMC Companion, focused on major milestones rather than every internal development note.
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v3.3.1 — current release, open by default */}
+      {/* v4.0.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.0.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span>Workspace Redesign: DIBCAC Mode, Documented Artifacts, Settings &amp; Accent Color</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>July 14, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-accent)' }}>
+
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Completes the visual redesign pass across the entire application — every page now shares the same violet-accented dark workspace shell, sidebar navigation, and typography. Adds a real Accent Color picker, and closes out a batch of pre-production cleanup fixes.
+          </p>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Full Workspace Shell Rollout</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>DIBCAC Mode, Documented Artifacts, Settings, About, and Changelog all moved onto the shared redesigned shell (sidebar navigation, dark surface tokens, Plus Jakarta Sans / Inter / JetBrains Mono type system) — previously only Home, Control Library, Control Detail, Evidence Library, and Relationship Explorer had it.</li>
+            <li>Every page in the app is now on one consistent visual system; the legacy top-nav shell is no longer used anywhere.</li>
+            <li>DIBCAC Mode's objective browser gained a proper three-level accordion (method → family → control → objective) with colored method indicators and flat, borderless rows.</li>
+            <li>Documented Artifacts' expanded row and table columns were rebalanced for readability, with capped evidence-tag chips and a trimmed Suggested Reuse panel.</li>
+            <li>Settings' Project Actions were reorganized into labeled Backup &amp; Restore / Official Templates groups with per-action icons and descriptions; Danger Zone copy now sits directly under the action it describes.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Accent Color</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Added an Accent Color picker in Settings with six presets (Violet, Blue, Emerald, Rose, Gold, Cyan).</li>
+            <li>Selecting a color updates the app's accent tokens globally and persists locally, so the whole workspace — nav, buttons, highlights, charts — re-themes instantly and stays that way across sessions.</li>
+            <li>Removed the Theme (light/dark) toggle and Background Palette control from Settings — every page now runs on the single redesigned dark shell, so the old light-mode system no longer applied to anything and the toggle had stopped doing anything visible.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Pre-Production Cleanup</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Fixed several hardcoded accent colors (sidebar logo, active nav pill, dashboard section labels, the inheritance-source heatmap gradient) that were silently ignoring the new Accent Color picker.</li>
+            <li>Removed leftover debug logging from the Control Library bulk copy-attributes flow.</li>
+            <li>Fixed a React key warning in Documented Artifacts' table rows.</li>
+            <li>Restored a visible keyboard-focus indicator on the Home dashboard's Controls/Objectives toggle, and made the global button focus ring accent-aware instead of a fixed blue.</li>
+            <li>Confirmed shared modals (Interview Role Picker, Apply Same Interviewer, Fix Interview Details) remain single, reused components with no drifted duplicates.</li>
+          </ul>
+
+        </div>
+      </details>
+
+      {/* v3.3.1 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.3.1</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
@@ -1448,6 +1493,7 @@ function Changelog() {
           </ul>
         </div>
       </details>
+      </main>
     </div>
   )
 }

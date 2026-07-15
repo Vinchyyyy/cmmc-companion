@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import DashSidebar from '../components/DashSidebar.jsx'
 import AutoResizeTextarea from '../components/AutoResizeTextarea'
 import ExpectedEvidenceTypes from '../components/ExpectedEvidenceTypes'
 import useFocusTrap from '../components/useFocusTrap'
@@ -1124,7 +1125,9 @@ function ControlDetailView() {
   const nextControl = controlIndex < controls.length - 1 ? controls[controlIndex + 1] : null
 
   return (
-    <div className="cd-workspace">
+    <div className="dash-root">
+      <DashSidebar />
+      <div className="cd-workspace dash-main">
 
       {/* ── Top header ──────────────────────────────────────────────────── */}
       <div className="cd-header">
@@ -1744,6 +1747,7 @@ function ControlDetailView() {
           onAssignedToSelect={handleAssignedToSelect}
         />
       )}
+      </div>
     </div>
   )
 }

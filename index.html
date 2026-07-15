@@ -16,6 +16,20 @@
         var _valid = ['midnight','pure-black','slate-blue','sage','warm-neutral','soft-mauve']
         document.documentElement.dataset.themePalette = (_valid.indexOf(_p) !== -1) ? _p : 'midnight'
       } catch (e) {}
+      try {
+        var _accents = {
+          violet:  ['#7C5CFC', '#A78BFA', '#221D3D'],
+          blue:    ['#4C8DFF', '#7FB0FF', '#182740'],
+          emerald: ['#10B981', '#5EEAD4', '#0F2A24'],
+          rose:    ['#F43F5E', '#FB7185', '#3A1620'],
+          gold:    ['#D4A017', '#F0C55E', '#332708'],
+          cyan:    ['#22D3EE', '#67E8F9', '#0F2C33'],
+        }
+        var _a = _accents[localStorage.getItem('cmmc-accent-color')] || _accents.violet
+        document.documentElement.style.setProperty('--user-accent', _a[0])
+        document.documentElement.style.setProperty('--user-accent2', _a[1])
+        document.documentElement.style.setProperty('--user-accent-soft', _a[2])
+      } catch (e) {}
     </script>
   </head>
   <body>

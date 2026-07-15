@@ -1,1581 +1,814 @@
-import { useRef, useState, useMemo, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useRef, useEffect, useMemo, useLayoutEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import {
+  Search, FileWarning, FileX, Tag, LayoutGrid, LayoutList, LayoutPanelTop, Clock, AlertTriangle, History,
+} from 'lucide-react'
+import DashSidebar from '../components/DashSidebar.jsx'
 import controls from '../data/controls/index.js'
 import evidenceTypes from '../data/evidence/index.js'
 import relationships from '../data/relationships/index.js'
-import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
-import { readInheritanceSource, readInheritance, DEFAULT_INHERITANCE } from '../utils/inheritance'
-// readAssignedTo removed — assignment coverage not rendered in dashboard view
-import { writeNote } from '../utils/notes'
-import { getScoringSearchTerms } from '../utils/scoring'
-import {
-  exportProjectState,
-  importProjectState,
-  downloadProjectJson,
-  wipeProjectState,
-  DEFAULT_IMPORT_OPTIONS,
-  SCHEMA_VERSION,
-  ACCEPTED_SCHEMA_VERSIONS,
-} from '../utils/projectState'
-import { readExportMeta, writeExportMeta, buildExportFilename, readLastBackup, writeLastBackup, formatLastBackup } from '../utils/exportMeta'
-import { buildCmmcTemplateWorkbook, downloadCmmcTemplate, formatWarningSummary } from '../utils/exportCmmcTemplate'
-import { parseAssessmentWorkbook, applyWorkbookImport } from '../utils/importAssessmentWorkbook'
-import { PROVIDERS } from '../data/providers'
-import { THEME_LIGHT, THEME_DARK, readTheme, writeTheme, applyTheme } from '../utils/theme'
-import { PALETTES, readPalette, writePalette, applyPalette } from '../utils/themePalette'
-import { APP_VERSION, APP_DEPLOYMENT } from '../utils/version'
-import { listArtifacts } from '../utils/artifactRegistry'
+import { readStatus } from '../utils/status'
+import { readInheritanceSource } from '../utils/inheritance'
 import { readObjectiveStatus, OBJECTIVE_STATUS_NOT_MET } from '../utils/objectiveStatus'
 import { hasObjectiveArtifacts } from '../utils/objectiveArtifacts'
-import { reconcileProgressFromStoredWork } from '../utils/progressReconciliation'
-import BulkFindingsModal from '../components/BulkFindingsModal'
-
-const KNOWN_CONTROL_IDS = new Set(controls.map((c) => c.id))
-
-// Provider names from the app's real provider registry — used as fallback
-// options in the inheritance source reconciliation dropdown when the project
-// has no existing sources yet.
-const PROVIDER_NAMES = PROVIDERS.map((p) => p.name)
-
-function getInheritanceSources(allControls) {
-  const counts = new Map()
-  for (const c of allControls) {
-    const src = readInheritanceSource(c.id).trim()
-    if (src) counts.set(src, (counts.get(src) ?? 0) + 1)
-  }
-  return [...counts.entries()]
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-}
-
-const STATUS_NORMALIZER = STATUSES.reduce((acc, s) => {
-  acc[s.toLowerCase()] = s
-  return acc
-}, {})
-
-function normalizeStatus(raw) {
-  const key = String(raw ?? '').trim().toLowerCase()
-  return STATUS_NORMALIZER[key] ?? null
-}
+import { listArtifacts } from '../utils/artifactRegistry'
+import { getScoringSearchTerms } from '../utils/scoring'
 
 // =========================================================================
-// Family definitions — order matches family dropdown
+// Family definitions — order matches the real Control Library family filter.
+// `code` is the 2-letter prefix of control IDs in that family (see utils/sort.js).
 // =========================================================================
-
 const FAMILIES = [
-  { value: 'All', label: 'All Families' },
-  { value: 'Access Control', label: 'Access Control' },
-  { value: 'Awareness and Training', label: 'Awareness and Training' },
-  { value: 'Audit and Accountability', label: 'Audit & Accountability' },
-  { value: 'Configuration Management', label: 'Configuration Management' },
-  { value: 'Identification and Authentication', label: 'Identification & Authentication' },
-  { value: 'Incident Response', label: 'Incident Response' },
-  { value: 'Maintenance', label: 'Maintenance' },
-  { value: 'Media Protection', label: 'Media Protection' },
-  { value: 'Personnel Security', label: 'Personnel Security' },
-  { value: 'Physical Protection', label: 'Physical Protection' },
-  { value: 'Risk Assessment', label: 'Risk Assessment' },
-  { value: 'Security Assessment', label: 'Security Assessment' },
-  { value: 'System and Communications Protection', label: 'System & Communications Protection' },
-  { value: 'System and Information Integrity', label: 'System and Information Integrity' },
+  { code: 'AC', value: 'Access Control' },
+  { code: 'AT', value: 'Awareness and Training' },
+  { code: 'AU', value: 'Audit and Accountability' },
+  { code: 'CM', value: 'Configuration Management' },
+  { code: 'IA', value: 'Identification and Authentication' },
+  { code: 'IR', value: 'Incident Response' },
+  { code: 'MA', value: 'Maintenance' },
+  { code: 'MP', value: 'Media Protection' },
+  { code: 'PS', value: 'Personnel Security' },
+  { code: 'PE', value: 'Physical Protection' },
+  { code: 'RA', value: 'Risk Assessment' },
+  { code: 'CA', value: 'Security Assessment' },
+  { code: 'SC', value: 'System and Communications Protection' },
+  { code: 'SI', value: 'System and Information Integrity' },
 ]
 
-// Maps STATUSES values → segment CSS modifier classes
-const STATUS_SEGMENT_CLASS = {
-  'MET': 'progress-bar-segment--met',
-  'NOT MET': 'progress-bar-segment--not-met',
-  'In Progress': 'progress-bar-segment--in-progress',
-  'Not Started': 'progress-bar-segment--not-started',
+const statusMeta = [
+  { key: 'met', label: 'Met', color: '#3FC98A', libraryStatus: 'MET' },
+  { key: 'inProgress', label: 'In Progress', color: '#E3A83B', libraryStatus: 'In Progress' },
+  { key: 'notMet', label: 'Not Met', color: '#E2665A', libraryStatus: 'NOT MET' },
+  { key: 'notStarted', label: 'Not Started', color: '#5A5A62', libraryStatus: 'Not Started' },
+]
+
+function statusToKey(status) {
+  if (status === 'MET') return 'met'
+  if (status === 'In Progress') return 'inProgress'
+  if (status === 'NOT MET') return 'notMet'
+  return 'notStarted'
+}
+
+function objectiveStatusToKey(status) {
+  if (status === 'MET') return 'met'
+  if (status === OBJECTIVE_STATUS_NOT_MET) return 'notMet'
+  return 'notStarted' // "Unreviewed" — objectives have no in-progress state
 }
 
 // =========================================================================
-// Quick Search helpers
+// Real per-family / per-status aggregation (controls + objectives), and
+// per-family x per-inheritance-source matrix. Computed fresh on each render
+// from real localStorage-backed status/inheritance data — no mock arrays.
+// =========================================================================
+function computeFamilyStats() {
+  return FAMILIES.map((f) => {
+    const fc = controls.filter((c) => c.family === f.value)
+    const controlCounts = { met: 0, inProgress: 0, notMet: 0, notStarted: 0 }
+    const objectiveCounts = { met: 0, inProgress: 0, notMet: 0, notStarted: 0 }
+    let objTotal = 0
+    for (const c of fc) {
+      controlCounts[statusToKey(readStatus(c.id))]++
+      for (const obj of c.objectives ?? []) {
+        objTotal++
+        objectiveCounts[objectiveStatusToKey(readObjectiveStatus(c.id, obj.id))]++
+      }
+    }
+    return { ...f, total: fc.length, objTotal, controlCounts, objectiveCounts }
+  })
+}
+
+function aggregateFamilyStats(familyStats, unit) {
+  const countsKey = unit === 'objectives' ? 'objectiveCounts' : 'controlCounts'
+  return statusMeta.reduce((acc, s) => {
+    acc[s.key] = familyStats.reduce((sum, f) => sum + f[countsKey][s.key], 0)
+    return acc
+  }, {})
+}
+
+function computeInheritanceMatrix() {
+  const sourceCounts = new Map() // source -> Map(familyCode -> count)
+  for (const c of controls) {
+    const src = readInheritanceSource(c.id).trim()
+    if (!src) continue
+    const code = c.id.slice(0, 2)
+    if (!sourceCounts.has(src)) sourceCounts.set(src, new Map())
+    const byFamily = sourceCounts.get(src)
+    byFamily.set(code, (byFamily.get(code) ?? 0) + 1)
+  }
+  const rows = [...sourceCounts.entries()]
+    .map(([name, byFamily]) => {
+      const values = FAMILIES.map((f) => byFamily.get(f.code) ?? 0)
+      const total = values.reduce((a, b) => a + b, 0)
+      return { name, values, total }
+    })
+    .sort((a, b) => b.total - a.total)
+  const max = Math.max(1, ...rows.flatMap((r) => r.values))
+  return { rows, max }
+}
+
+// Reads the live accent2 color (set by the Settings accent picker, or its
+// default) so the heatmap gradient tracks the chosen accent instead of a
+// baked-in violet.
+function getAccent2Rgb() {
+  if (typeof document === 'undefined') return [167, 139, 250]
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--user-accent2').trim()
+  const m = raw.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)
+  return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [167, 139, 250]
+}
+
+function heatColor(t) {
+  const lo = [26, 24, 34]
+  const hi = getAccent2Rgb()
+  const r = Math.round(lo[0] + (hi[0] - lo[0]) * t)
+  const g = Math.round(lo[1] + (hi[1] - lo[1]) * t)
+  const b = Math.round(lo[2] + (hi[2] - lo[2]) * t)
+  return `rgb(${r},${g},${b})`
+}
+
+function pctColor(pct) {
+  const stops = [
+    { p: 0, c: [226, 102, 90] },
+    { p: 50, c: [227, 168, 59] },
+    { p: 100, c: [63, 201, 138] },
+  ]
+  let lo = stops[0], hi = stops[stops.length - 1]
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (pct >= stops[i].p && pct <= stops[i + 1].p) { lo = stops[i]; hi = stops[i + 1]; break }
+  }
+  const t = hi.p === lo.p ? 0 : (pct - lo.p) / (hi.p - lo.p)
+  const r = Math.round(lo.c[0] + (hi.c[0] - lo.c[0]) * t)
+  const g = Math.round(lo.c[1] + (hi.c[1] - lo.c[1]) * t)
+  const b = Math.round(lo.c[2] + (hi.c[2] - lo.c[2]) * t)
+  return `rgb(${r},${g},${b})`
+}
+
+function bestColumns(total, maxCols) {
+  if (total <= maxCols) return total
+  const baseRows = Math.ceil(total / maxCols)
+  let best = maxCols
+  let bestWaste = maxCols - (total - (baseRows - 1) * maxCols)
+  const floor = Math.max(maxCols - 8, 1)
+  for (let c = maxCols; c >= floor; c--) {
+    const rows = Math.ceil(total / c)
+    if (rows > baseRows + 1) continue
+    const lastRow = total - (rows - 1) * c
+    const waste = c - lastRow
+    if (waste < bestWaste) { bestWaste = waste; best = c; if (waste === 0) break }
+  }
+  return best
+}
+
+function solveGrid(total, containerWidth, gap, maxCellCap, targetMaxRows) {
+  if (containerWidth <= 0) return { cellSize: maxCellCap, columns: Math.max(1, total) }
+  for (let cellSize = maxCellCap; cellSize >= 10; cellSize--) {
+    const maxCols = Math.floor(containerWidth / (cellSize + gap))
+    if (maxCols < 1) continue
+    const rows = Math.ceil(total / maxCols)
+    if (rows <= targetMaxRows) return { cellSize, columns: bestColumns(total, maxCols) }
+  }
+  const maxCols = Math.max(1, Math.floor(containerWidth / (10 + gap)))
+  return { cellSize: 10, columns: bestColumns(total, maxCols) }
+}
+
+// Measures the live rendered width of a container via ResizeObserver so grid
+// layouts never rely on a hardcoded pixel constant (this was a real bug in
+// the original prototype — overlap on window resize).
+function useContainerWidth() {
+  const ref = useRef(null)
+  const [width, setWidth] = useState(0)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) setWidth(entry.contentRect.width)
+    })
+    observer.observe(el)
+    setWidth(el.getBoundingClientRect().width)
+    return () => observer.disconnect()
+  }, [])
+  return [ref, width]
+}
+
+function libraryUrl(params) {
+  const clean = Object.fromEntries(Object.entries(params).filter(([, v]) => v))
+  return `/controls?${new URLSearchParams(clean).toString()}`
+}
+
+// =========================================================================
+// Global search — real data, debounced
 // =========================================================================
 
-const MIN_TERM_LENGTH = 2
 const MAX_RESULTS_PER_GROUP = 5
 
 function includes(str, term) {
   return typeof str === 'string' && str.toLowerCase().includes(term)
 }
 
-function searchControls(term) {
-  const results = []
+function runSearch(term) {
+  const controlResults = []
   for (const c of controls) {
-    if (results.length >= MAX_RESULTS_PER_GROUP) break
+    if (controlResults.length >= MAX_RESULTS_PER_GROUP) break
     const hit =
-      includes(c.id, term) ||
-      includes(c.title, term) ||
-      includes(c.family, term) ||
-      includes(c.controlText, term) ||
-      includes(c.plainEnglish, term) ||
+      includes(c.id, term) || includes(c.title, term) || includes(c.family, term) ||
+      includes(c.controlText, term) || includes(c.plainEnglish, term) ||
       c.commonArtifacts?.some((a) => includes(a, term)) ||
       c.commonGaps?.some((g) => includes(g, term)) ||
-      c.objectives?.some(
-        (o) =>
-          includes(o.text, term) ||
-          includes(o.whatToLookFor, term) ||
-          o.commonEvidence?.some((e) => includes(e, term))
-      ) ||
+      c.objectives?.some((o) => includes(o.text, term) || includes(o.whatToLookFor, term) || o.commonEvidence?.some((e) => includes(e, term))) ||
       getScoringSearchTerms(c.id).some((t) => t.includes(term))
-    if (hit) results.push(c)
+    if (hit) controlResults.push(c)
   }
-  return results
-}
-
-function searchEvidence(term) {
-  const results = []
+  const evidenceResults = []
   for (const ev of evidenceTypes) {
-    if (results.length >= MAX_RESULTS_PER_GROUP) break
-    const hit =
-      includes(ev.name, term) ||
-      includes(ev.description, term) ||
-      includes(ev.reasoning, term) ||
-      ev.likelyControls?.some((id) => includes(id, term))
-    if (hit) results.push(ev)
+    if (evidenceResults.length >= MAX_RESULTS_PER_GROUP) break
+    if (includes(ev.name, term) || includes(ev.description, term) || includes(ev.reasoning, term) || ev.likelyControls?.some((id) => includes(id, term))) {
+      evidenceResults.push(ev)
+    }
   }
-  return results
-}
-
-function searchRelationships(term) {
-  const results = []
+  const relResults = []
   for (const r of relationships) {
-    if (results.length >= MAX_RESULTS_PER_GROUP) break
-    const hit =
-      includes(r.sourceControl, term) ||
-      includes(r.targetControl, term) ||
-      includes(r.relationshipType, term) ||
-      includes(r.reasoning, term)
-    if (hit) results.push(r)
-  }
-  return results
-}
-
-// =========================================================================
-// CSV import helpers
-// =========================================================================
-
-function parseCsv(text) {
-  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1)
-  const rows = []
-  let row = [], field = '', inQuotes = false
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i]
-    if (inQuotes) {
-      if (ch === '"') {
-        if (text[i + 1] === '"') { field += '"'; i++ } else inQuotes = false
-      } else field += ch
-    } else {
-      if (ch === '"') inQuotes = true
-      else if (ch === ',') { row.push(field); field = '' }
-      else if (ch === '\r') {
-        row.push(field); rows.push(row); row = []; field = ''
-        if (text[i + 1] === '\n') i++
-      } else if (ch === '\n') {
-        row.push(field); rows.push(row); row = []; field = ''
-      } else field += ch
+    if (relResults.length >= MAX_RESULTS_PER_GROUP) break
+    if (includes(r.sourceControl, term) || includes(r.targetControl, term) || includes(r.relationshipType, term) || includes(r.reasoning, term)) {
+      relResults.push(r)
     }
   }
-  if (field !== '' || row.length > 0) { row.push(field); rows.push(row) }
-  return rows
+  return { controlResults, evidenceResults, relResults }
 }
 
-function buildColumnMap(headerRow) {
-  const norm = (s) => String(s ?? '').trim().toLowerCase()
-  const idx = { controlId: -1, status: -1, notes: -1 }
-  headerRow.forEach((h, i) => {
-    const n = norm(h)
-    if (n === 'control id') idx.controlId = i
-    else if (n === 'status') idx.status = i
-    else if (n === 'notes') idx.notes = i
-  })
-  if (idx.controlId === -1 || idx.status === -1) return null
-  return idx
+function StatusPill({ status }) {
+  const map = {
+    'In Progress': { bg: 'var(--dash-warn-bg)', fg: 'var(--dash-warn)' },
+    'NOT MET': { bg: 'var(--dash-danger-bg)', fg: 'var(--dash-danger)' },
+    'Not Started': { bg: '#1C1C20', fg: 'var(--dash-text-tertiary)' },
+    'MET': { bg: 'var(--dash-success-bg)', fg: 'var(--dash-success)' },
+  }
+  const s = map[status] || map['Not Started']
+  const label = status === 'MET' ? 'Met' : status === 'NOT MET' ? 'Not Met' : status
+  return (
+    <span className="dash-status-pill" style={{ background: s.bg, color: s.fg }}>{label}</span>
+  )
 }
 
-function stripFormulaGuard(value) {
-  if (typeof value === 'string' && /^'[=+\-@]/.test(value)) return value.slice(1)
-  return value
+function StatusIcon({ status }) {
+  if (status === 'In Progress') return <Clock size={14} style={{ color: 'var(--dash-warn)' }} />
+  return <AlertTriangle size={14} style={{ color: status === 'NOT MET' ? 'var(--dash-danger)' : 'var(--dash-text-tertiary)' }} />
+}
+
+function SectionLabel({ children, accent }) {
+  return (
+    <div className="dash-section-label">
+      <span className="dash-section-bar" style={{ background: accent || 'var(--dash-accent)' }} />
+      <span className="dash-section-text">{children}</span>
+    </div>
+  )
 }
 
 // =========================================================================
-// Home component
+// Header search — debounced, real data, capped width
 // =========================================================================
 
-// Build a library URL for a given status, optionally scoped to a family.
-function libraryUrlForStatus(status, family) {
-  const params = { status }
-  if (family && family !== 'All') params.family = family
-  return `/controls?${new URLSearchParams(params).toString()}`
-}
+function HeaderSearch() {
+  const [hover, setHover] = useState(false)
+  const [locked, setLocked] = useState(false)
+  const [query, setQuery] = useState('')
+  const [debounced, setDebounced] = useState('')
+  const inputRef = useRef(null)
+  const wrapRef = useRef(null)
+  const navigate = useNavigate()
+  const open = hover || locked
 
-function Home() {
-  const csvFileRef = useRef(null)
-  const jsonFileRef = useRef(null)
-  const workbookFileRef = useRef(null)
-  const [refreshKey, setRefreshKey] = useState(0)
-  // eslint-disable-next-line no-unused-vars
-  const [csvResult, setCsvResult] = useState(null)
-  const [jsonResult, setJsonResult] = useState(null)
-  const [workbookImportResult, setWorkbookImportResult] = useState(null)
-  const [pendingWorkbookImport, setPendingWorkbookImport] = useState(null)
-  const [workbookImportParsing, setWorkbookImportParsing] = useState(false)
-  const [reconciliationChoices, setReconciliationChoices] = useState({ assignedTo: {}, inheritanceSources: {} })
-  const [searchTerm, setSearchTerm] = useState('')
-  // exportDialog: null (closed) | { mode: 'xlsx'|'json', osc: string, assessment: string }
-  const [exportDialog, setExportDialog] = useState(null)
-  const [xlsxResult, setXlsxResult] = useState(null)
-  const [pendingJsonImport, setPendingJsonImport] = useState(null)
-  const [importOptions, setImportOptions] = useState(DEFAULT_IMPORT_OPTIONS)
-  // wipeStage: null | 'confirm1' | 'confirm2'
-  const [wipeStage, setWipeStage] = useState(null)
-  const [showBulkFindingsModal, setShowBulkFindingsModal] = useState(false)
-  const [wipeInput, setWipeInput] = useState('')
-  const [wipeSuccess, setWipeSuccess] = useState(false)
-  const [lastBackup, setLastBackup] = useState(() => readLastBackup())
-  const [theme, setTheme] = useState(() => readTheme())
-  const [palette, setPalette] = useState(() => readPalette())
-  const [sourceLimit, setSourceLimit] = useState('5')
+  useEffect(() => { if (locked) inputRef.current?.focus() }, [locked])
 
-  // On mount: repair any controls that have stored work but are still "Not Started".
-  // Covers older imports and any project state written before this reconciliation existed.
   useEffect(() => {
-    reconcileProgressFromStoredWork(controls)
-    setRefreshKey((k) => k + 1) // eslint-disable-line react-hooks/set-state-in-effect
-  }, [])
-
-  const toggleTheme = () => {
-    const next = theme === THEME_LIGHT ? THEME_DARK : THEME_LIGHT
-    writeTheme(next)
-    applyTheme(next)
-    setTheme(next)
-  }
-
-  const handlePaletteChange = (e) => {
-    const next = e.target.value
-    writePalette(next)
-    applyPalette(next)
-    setPalette(next)
-    // Palette selection always activates dark mode — palettes only apply in dark context
-    if (theme !== THEME_DARK) {
-      writeTheme(THEME_DARK)
-      applyTheme(THEME_DARK)
-      setTheme(THEME_DARK)
+    function onClickOutside(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) { setLocked(false); setQuery('') }
     }
-  }
+    if (locked) document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [locked])
 
-  const openExportDialog = (mode) => {
-    const meta = readExportMeta()
-    setExportDialog({ mode, osc: meta.osc, assessment: meta.assessment })
-  }
-  const closeExportDialog = () => setExportDialog(null)
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(query.trim().toLowerCase()), 150)
+    return () => clearTimeout(t)
+  }, [query])
 
-  // -----------------------------------------------------------------------
-  // Dashboard metrics — objectives, artifacts, family progress, attention
-  // -----------------------------------------------------------------------
+  const q = debounced
+  const { controlResults, evidenceResults, relResults } = q ? runSearch(q) : { controlResults: [], evidenceResults: [], relResults: [] }
+  const noResults = q && controlResults.length === 0 && evidenceResults.length === 0 && relResults.length === 0
 
-  const dashMetrics = useMemo(() => {
-    // Objective counts across all controls
-    let totalObjectives = 0
-    let objMet = 0, objNotMet = 0, objUnreviewed = 0
-    for (const c of controls) {
-      for (const obj of c.objectives ?? []) {
-        totalObjectives++
-        const s = readObjectiveStatus(c.id, obj.id)
-        if (s === 'MET') objMet++
-        else if (s === OBJECTIVE_STATUS_NOT_MET) objNotMet++
-        else objUnreviewed++
-      }
-    }
-
-    // Artifact health
-    const allArtifacts = listArtifacts()
-    const totalArtifacts = allArtifacts.length
-    const taggedArtifacts = allArtifacts.filter((a) => a.tags.length > 0).length
-    const untaggedArtifacts = totalArtifacts - taggedArtifacts
-
-    // Control-level status counts (all controls, not family-filtered)
-    const allCounts = { 'MET': 0, 'NOT MET': 0, 'In Progress': 0, 'Not Started': 0 }
-    for (const c of controls) allCounts[readStatus(c.id)] += 1
-
-    // Needs attention
-    const controlsWithNotMet = controls.filter((c) =>
-      c.objectives?.some((obj) => readObjectiveStatus(c.id, obj.id) === OBJECTIVE_STATUS_NOT_MET)
-    )
-    const controlsNoArtifacts = controls.filter((c) => !hasObjectiveArtifacts(c))
-
-    // Family progress (all controls, status-segmented)
-    const familyProgress = FAMILIES.slice(1).map((f) => {
-      const fc = controls.filter((c) => c.family === f.value)
-      const fc_counts = { 'MET': 0, 'NOT MET': 0, 'In Progress': 0, 'Not Started': 0 }
-      for (const c of fc) fc_counts[readStatus(c.id)] += 1
-      const pct = fc.length === 0 ? 0 : Math.round((fc_counts['MET'] / fc.length) * 100)
-      return { label: f.label, value: f.value, total: fc.length, counts: fc_counts, pct }
-    })
-
-    // Continue Assessment — readiness score for non-MET controls.
-    // Score is informational only; not a compliance indicator.
-    const continueItems = controls
-      .filter((c) => readStatus(c.id) !== 'MET')
-      .map((c) => {
-        let score = 0
-        const hints = []
-        // Inheritance set
-        if (readInheritance(c.id) !== DEFAULT_INHERITANCE) { score += 10; hints.push('inheritance set') }
-        // Artifacts assigned
-        const hasArt = hasObjectiveArtifacts(c)
-        if (hasArt) { score += 30; hints.push('artifacts assigned') }
-        // Any objective reviewed
-        let reviewed = 0
-        for (const obj of c.objectives ?? []) {
-          if (readObjectiveStatus(c.id, obj.id) !== 'Unreviewed') reviewed++
-        }
-        if (reviewed > 0) { score += 20; hints.push(`${reviewed} obj reviewed`) }
-        // Control already in-progress or not-met bumped over not-started
-        const st = readStatus(c.id)
-        if (st === 'In Progress') score += 25
-        else if (st === 'NOT MET') score += 15
-        return { control: c, score, hints: hints.slice(0, 2) }
-      })
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 6)
-
-    return {
-      totalObjectives, objMet, objNotMet, objUnreviewed,
-      totalArtifacts, taggedArtifacts, untaggedArtifacts,
-      controlsWithNotMet, controlsNoArtifacts,
-      allCounts,
-      familyProgress, continueItems,
-    }
-  // refreshKey forces recomputation after import
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey])
-
-  // -----------------------------------------------------------------------
-  // Quick Search
-  // -----------------------------------------------------------------------
-
-  const term = searchTerm.trim().toLowerCase()
-  const hasResults = term.length >= MIN_TERM_LENGTH
-  const controlResults = hasResults ? searchControls(term) : []
-  const evidenceResults = hasResults ? searchEvidence(term) : []
-  const relResults = hasResults ? searchRelationships(term) : []
-  const anyResults = controlResults.length > 0 || evidenceResults.length > 0 || relResults.length > 0
-
-  // -----------------------------------------------------------------------
-  // Export handlers
-  // -----------------------------------------------------------------------
-
-  const confirmExport = async () => {
-    const { mode, osc, assessment } = exportDialog
-    writeExportMeta(osc, assessment)
-    closeExportDialog()
-
-    if (mode === 'xlsx') {
-      setXlsxResult(null)
-      try {
-        const res = await fetch('/templates/CMMC_Level2_AssessmentResults_Template.xlsx')
-        if (!res.ok) throw new Error(`Failed to fetch bundled template (HTTP ${res.status}).`)
-        const buffer = await res.arrayBuffer()
-        const { workbook, warnings } = await buildCmmcTemplateWorkbook(buffer, controls)
-        const sanitize = (s) => (s ?? '').trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '_')
-        const parts = ['CMMC_Companion']
-        const cleanOsc = sanitize(osc)
-        const cleanAssessment = sanitize(assessment)
-        if (cleanOsc) parts.push(cleanOsc)
-        if (cleanAssessment) parts.push(cleanAssessment)
-        parts.push('Assessment_Results')
-        const filename = parts.join('_') + '.xlsx'
-        await downloadCmmcTemplate(workbook, filename)
-        const summary = formatWarningSummary(warnings)
-        setXlsxResult({ ok: true, message: `Assessment Workbook exported: ${filename}`, detail: summary })
-      } catch (err) {
-        setXlsxResult({ ok: false, message: `Export failed: ${err.message}`, detail: '' })
-      }
-    } else {
-      const filename = buildExportFilename(osc, assessment, 'ProjectBackup', 'json')
-      const state = exportProjectState(controls)
-      downloadProjectJson(state, filename)
-      writeLastBackup()
-      setLastBackup(readLastBackup())
-      setJsonResult({ ok: true, message: `Project exported — ${controls.length} controls, schema v${SCHEMA_VERSION}.` })
-    }
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  const handleCsvImportClick = () => csvFileRef.current?.click()
-
-  const CSV_MAX_BYTES = 1 * 1024 * 1024  // 1 MB
-  const CSV_ALLOWED_TYPES = new Set(['text/csv', 'application/csv', 'application/vnd.ms-excel', 'text/plain', ''])
-
-  const handleCsvFileChange = (e) => {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    if (!file) return
-
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      setCsvResult({ ok: false, message: 'Invalid file. Please select a .csv file.' })
-      return
-    }
-    if (!CSV_ALLOWED_TYPES.has(file.type)) {
-      setCsvResult({ ok: false, message: `Unexpected file type "${file.type}". Please select a valid CSV file.` })
-      return
-    }
-    if (file.size > CSV_MAX_BYTES) {
-      setCsvResult({ ok: false, message: 'File too large. CSV imports must be under 1 MB.' })
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onload = () => {
-      try { processCsv(String(reader.result ?? '')) }
-      catch (err) { setCsvResult({ ok: false, message: `Import failed: ${err.message}` }) }
-    }
-    reader.onerror = () => setCsvResult({ ok: false, message: 'Could not read file.' })
-    reader.readAsText(file)
-  }
-
-  const processCsv = (text) => {
-    const rows = parseCsv(text)
-    if (rows.length === 0) { setCsvResult({ ok: false, message: 'CSV is empty.' }); return }
-    const cols = buildColumnMap(rows[0])
-    if (!cols) {
-      setCsvResult({ ok: false, message: 'CSV is missing required columns ("Control ID" and "Status").' })
-      return
-    }
-    let imported = 0, skippedId = 0, skippedStatus = 0, notesWritten = 0
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i]
-      if (row.every((cell) => String(cell ?? '').trim() === '')) continue
-      const id = String(row[cols.controlId] ?? '').trim()
-      if (!id || !KNOWN_CONTROL_IDS.has(id)) { skippedId++; continue }
-      const status = normalizeStatus(row[cols.status])
-      if (!status) { skippedStatus++; continue }
-      writeStatus(id, status)
-      imported++
-      if (cols.notes !== -1 && row[cols.notes] !== undefined) {
-        const note = stripFormulaGuard(String(row[cols.notes] ?? ''))
-        writeNote(id, note)
-        if (note.trim() !== '') notesWritten++
-      }
-    }
-    setCsvResult({
-      ok: true,
-      message: `Imported ${imported} status update${imported === 1 ? '' : 's'}` +
-        (notesWritten > 0 ? ` (${notesWritten} with notes)` : '') +
-        (skippedId > 0 ? `, skipped ${skippedId} unknown ID${skippedId === 1 ? '' : 's'}` : '') +
-        (skippedStatus > 0 ? `, skipped ${skippedStatus} invalid status${skippedStatus === 1 ? '' : 'es'}` : '') + '.',
-    })
-    setRefreshKey((k) => k + 1)
-  }
-
-  // -----------------------------------------------------------------------
-  // JSON project state handlers
-  // -----------------------------------------------------------------------
-
-  const handleJsonImportClick = () => jsonFileRef.current?.click()
-
-  const JSON_MAX_BYTES = 2 * 1024 * 1024  // 2 MB
-  const JSON_ALLOWED_TYPES = new Set(['application/json', 'text/plain', ''])
-
-  const handleJsonFileChange = (e) => {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    if (!file) return
-
-    if (!file.name.toLowerCase().endsWith('.json')) {
-      setJsonResult({ ok: false, message: 'Invalid file. Please select a .json file.' })
-      return
-    }
-    if (!JSON_ALLOWED_TYPES.has(file.type)) {
-      setJsonResult({ ok: false, message: `Unexpected file type "${file.type}". Please select a valid JSON file.` })
-      return
-    }
-    if (file.size > JSON_MAX_BYTES) {
-      setJsonResult({ ok: false, message: 'File too large. JSON imports must be under 2 MB.' })
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onload = () => {
-      try {
-        const parsed = JSON.parse(String(reader.result ?? ''))
-        // Pre-validate structure before showing the confirm dialog so errors
-        // surface immediately rather than after the user clicks Restore Backup
-        if (!parsed || typeof parsed !== 'object') {
-          setJsonResult({ ok: false, message: 'Invalid JSON: expected an object.' }); return
-        }
-        if (!ACCEPTED_SCHEMA_VERSIONS.includes(parsed.schemaVersion)) {
-          setJsonResult({ ok: false, message: `Unsupported schema version ${parsed.schemaVersion}. Expected version 1, 2, 3, or 4.` }); return
-        }
-        if (!Array.isArray(parsed.controls)) {
-          setJsonResult({ ok: false, message: 'Invalid JSON: "controls" must be an array.' }); return
-        }
-        setImportOptions(DEFAULT_IMPORT_OPTIONS)
-        setPendingJsonImport(parsed)
-      } catch {
-        setJsonResult({ ok: false, message: 'Could not parse file — is it a valid CMMC Companion project JSON?' })
-      }
-    }
-    reader.onerror = () => setJsonResult({ ok: false, message: 'Could not read file.' })
-    reader.readAsText(file)
-  }
-
-  const confirmJsonRestore = () => {
-    if (!pendingJsonImport) return
-    try {
-      const summary = importProjectState(pendingJsonImport, controls, importOptions)
-      if (!summary.ok) { setJsonResult({ ok: false, message: summary.error }); return }
-      reconcileProgressFromStoredWork(controls)
-      const p = (n, singular, plural) => n > 0 ? `${n} ${n === 1 ? singular : plural}` : null
-      const parts = [
-        p(summary.statusesWritten,          'status',               'statuses'),
-        p(summary.notesWritten,             'note',                 'notes'),
-        p(summary.objectiveNotesWritten,    'objective note',       'objective notes'),
-        p(summary.objectiveStatusesWritten, 'objective status',     'objective statuses'),
-        p(summary.inheritanceWritten,       'inheritance value',    'inheritance values'),
-        p(summary.inheritanceSourcesWritten,'inheritance source',   'inheritance sources'),
-        p(summary.assignmentsWritten,       'assignment',           'assignments'),
-        p(summary.evidencePoolsWritten,     'evidence pool',        'evidence pools'),
-        p(summary.objectiveArtifactsWritten,'objective artifact set','objective artifact sets'),
-        p(summary.objectiveResultsWritten,  'objective result',     'objective results'),
-      ].filter(Boolean)
-      const skipSuffix = summary.skippedBecauseExisting > 0
-        ? ` Skipped ${summary.skippedBecauseExisting} existing field${summary.skippedBecauseExisting === 1 ? '' : 's'} — Fill Empty Only mode.`
-        : ''
-      const unknownSuffix = summary.skippedUnknownId > 0
-        ? ` (${summary.skippedUnknownId} unknown ID${summary.skippedUnknownId === 1 ? '' : 's'} skipped)`
-        : ''
-      let message
-      if (summary.controlsProcessed === 0) {
-        message = 'No matching controls found in the backup file.'
-      } else if (parts.length === 0) {
-        message = `Backup processed${unknownSuffix}. No selected categories contained restorable values.${skipSuffix}`
-      } else {
-        message = `Restored ${summary.controlsProcessed} control${summary.controlsProcessed === 1 ? '' : 's'} — ${parts.join(', ')}${unknownSuffix}.${skipSuffix}`
-      }
-      setJsonResult({ ok: true, message })
-      setRefreshKey((k) => k + 1)
-    } catch {
-      setJsonResult({ ok: false, message: 'Restore failed — unexpected error.' })
-    } finally {
-      setPendingJsonImport(null)
-    }
-  }
-
-  const cancelJsonRestore = () => setPendingJsonImport(null)
-
-  // -----------------------------------------------------------------------
-  // Assessment workbook import handlers
-  // -----------------------------------------------------------------------
-
-  const handleWorkbookImportClick = () => workbookFileRef.current?.click()
-
-  const WORKBOOK_MAX_BYTES = 10 * 1024 * 1024  // 10 MB
-
-  const handleWorkbookFileChange = (e) => {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    if (!file) return
-
-    if (!file.name.toLowerCase().endsWith('.xlsx')) {
-      setWorkbookImportResult({ ok: false, message: 'Invalid file. Please select a .xlsx workbook file.' })
-      return
-    }
-    if (file.size > WORKBOOK_MAX_BYTES) {
-      setWorkbookImportResult({ ok: false, message: 'File too large. Workbook imports must be under 10 MB.' })
-      return
-    }
-
-    setWorkbookImportResult(null)
-    setWorkbookImportParsing(true)
-
-    const reader = new FileReader()
-    reader.onload = async () => {
-      try {
-        const parsed = await parseAssessmentWorkbook(reader.result, controls)
-        if (!parsed.ok) {
-          setWorkbookImportResult({ ok: false, message: parsed.error })
-        } else {
-          // Initialize reconciliation choices with conservative defaults:
-          // unmatched assignees default to add-as-new (raw value),
-          // unmatched sources default to alias suggestion or add-as-new (raw value).
-          const initialChoices = { assignedTo: {}, inheritanceSources: {} }
-          for (const { raw } of parsed.reconciliation?.assignedTo?.unmatched ?? []) {
-            initialChoices.assignedTo[raw] = raw
-          }
-          for (const { raw, suggestion } of parsed.reconciliation?.inheritanceSources?.unmatched ?? []) {
-            initialChoices.inheritanceSources[raw] = suggestion ?? raw
-          }
-          setReconciliationChoices(initialChoices)
-          setPendingWorkbookImport(parsed)
-        }
-      } catch (err) {
-        setWorkbookImportResult({ ok: false, message: `Import failed: ${err.message}` })
-      } finally {
-        setWorkbookImportParsing(false)
-      }
-    }
-    reader.onerror = () => {
-      setWorkbookImportResult({ ok: false, message: 'Could not read file.' })
-      setWorkbookImportParsing(false)
-    }
-    reader.readAsArrayBuffer(file)
-  }
-
-  const confirmWorkbookImport = (mode) => {
-    if (!pendingWorkbookImport) return
-    try {
-      const result = applyWorkbookImport(pendingWorkbookImport, controls, mode, reconciliationChoices)
-      reconcileProgressFromStoredWork(controls)
-      setPendingWorkbookImport(null)
-      const p = (n, singular, plural) => n > 0 ? `${n} ${n === 1 ? singular : plural}` : null
-      const parts = [
-        p(result.objectivesApplied,   'objective processed',    'objectives processed'),
-        p(result.statusesWritten,     'status',                 'statuses'),
-        p(result.resultsWritten,      'result set',             'result sets'),
-        p(result.findingsWritten,     'finding',                'findings'),
-        p(result.artifactSetsWritten, 'artifact set',           'artifact sets'),
-      ].filter(Boolean)
-      const modeLabel = mode === 'new' ? 'Imported as new project' : 'Merged into project'
-      setWorkbookImportResult({
-        ok: true,
-        message: `${modeLabel} — ${parts.length > 0 ? parts.join(', ') : 'no data applied'}.`,
-      })
-      setRefreshKey((k) => k + 1)
-    } catch (err) {
-      setWorkbookImportResult({ ok: false, message: `Import failed: ${err.message}` })
-      setPendingWorkbookImport(null)
-    }
-  }
-
-  const cancelWorkbookImport = () => {
-    setPendingWorkbookImport(null)
-    setReconciliationChoices({ assignedTo: {}, inheritanceSources: {} })
-  }
-
-  // -----------------------------------------------------------------------
-  // Wipe project state handlers
-  // -----------------------------------------------------------------------
-
-  const handleWipeConfirmed = () => {
-    wipeProjectState()
-    setWipeStage(null)
-    setWipeInput('')
-    setWipeSuccess(true)
-    setRefreshKey((k) => k + 1)
-    setLastBackup(null)
-    setJsonResult(null)
-    setTimeout(() => setWipeSuccess(false), 5000)
-  }
-
-  // -----------------------------------------------------------------------
-  // Render
-  // -----------------------------------------------------------------------
-
-  const {
-    totalObjectives, objMet, objNotMet, objUnreviewed,
-    totalArtifacts, taggedArtifacts, untaggedArtifacts,
-    controlsWithNotMet, controlsNoArtifacts,
-    allCounts,
-    familyProgress, continueItems,
-  } = dashMetrics
-
-  const allTotal = controls.length
+  const closeSearch = () => { setLocked(false); setQuery('') }
 
   return (
-    <div className="home-dash">
-
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="home-dash-header">
-        <div>
-          <h1 className="home-dash-title">Assessment Dashboard</h1>
-          <p className="muted home-dash-subtitle">CMMC Companion — local assessment workspace</p>
+    <div ref={wrapRef} className="dash-search" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+      <div
+        className="dash-search-bar"
+        style={{
+          background: locked ? 'var(--dash-surface)' : 'transparent',
+          border: `1px solid ${locked ? 'var(--dash-accent)' : open ? 'var(--dash-border)' : 'transparent'}`,
+          boxShadow: locked ? '0 0 0 3px rgba(124,92,252,0.15)' : 'none',
+          width: locked ? 320 : open ? 160 : 40,
+        }}
+        onClick={() => setLocked(true)}
+      >
+        <div className="dash-search-icon" style={{ color: locked ? 'var(--dash-accent2)' : 'var(--dash-text-secondary)' }}>
+          <Search size={16} />
         </div>
-        <div className="home-dash-header-actions">
+        {locked ? (
           <input
-            type="text"
-            className="home-search-input"
-            placeholder="Quick search controls, evidence, relationships…"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            aria-label="Quick search"
+            ref={inputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search controls, evidence, relationships…"
+            className="dash-search-input"
+            onClick={(e) => e.stopPropagation()}
           />
-          <button
-            className="theme-toggle"
-            onClick={toggleTheme}
-            aria-label={theme === THEME_LIGHT ? 'Switch to dark mode' : 'Switch to light mode'}
-          >
-            {theme === THEME_LIGHT ? 'Dark' : 'Light'}
-          </button>
-        </div>
+        ) : (
+          <span className="dash-search-hint" style={{ opacity: open ? 1 : 0 }}>Search</span>
+        )}
       </div>
 
-      {/* ── Quick Search Results (drops below header when active) ─────────── */}
-      {hasResults && (
-        <div className="home-search-results-wrap">
-          {!anyResults && (
-            <p className="muted">No results for &ldquo;{searchTerm.trim()}&rdquo;.</p>
-          )}
-          {anyResults && (
-            <div className="quick-search-results">
-              {controlResults.length > 0 && (
-                <div className="quick-search-group">
-                  <p className="quick-search-group-label">Controls</p>
-                  <ul className="control-list">
-                    {controlResults.map((c) => {
-                      const s = readStatus(c.id)
-                      return (
-                        <li key={c.id}>
-                          <Link to={`/controls/${encodeURIComponent(c.id)}`} className="control-list-link">
-                            <span className="mono">{c.id}</span>
-                            <span>— {c.title}</span>
-                            <span className="muted">({c.family})</span>
-                            <span className={`status-badge ${STATUS_BADGE_CLASS[s]}`}>{s}</span>
-                          </Link>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </div>
-              )}
-              {evidenceResults.length > 0 && (
-                <div className="quick-search-group">
-                  <p className="quick-search-group-label">Evidence</p>
-                  <ul className="control-list">
-                    {evidenceResults.map((ev) => (
-                      <li key={ev.name}>
-                        <Link to={`/evidence?search=${encodeURIComponent(ev.name)}`} className="control-list-link">
-                          <span>{ev.name}</span>
-                          <span className="muted">— {ev.likelyControls?.length ?? 0} control{ev.likelyControls?.length === 1 ? '' : 's'}</span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {relResults.length > 0 && (
-                <div className="quick-search-group">
-                  <p className="quick-search-group-label">Relationships</p>
-                  <ul className="control-list">
-                    {relResults.map((r, i) => (
-                      <li key={i}>
-                        <Link to={`/relationships?control=${encodeURIComponent(r.sourceControl)}`} className="control-list-link">
-                          <span className="mono">{r.sourceControl}</span>
-                          <span className="muted">→</span>
-                          <span className="mono">{r.targetControl}</span>
-                          <span className="muted">({r.relationshipType})</span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      {locked && q && (
+        <div className="dash-search-results">
+          <div className="dash-search-results-inner">
+            {noResults && <div className="dash-search-empty">No results for &ldquo;{query}&rdquo;</div>}
 
-      {/* ── Top metric cards ───────────────────────────────────────────────── */}
-      <div className="home-metric-row">
-        {/* Controls */}
-        <div className="home-metric-card">
-          <div className="home-metric-card-title">Controls <span className="home-metric-card-total">/ {controls.length}</span></div>
-          <div className="home-metric-stat-list">
-            <Link to={libraryUrlForStatus('MET', 'All')} className="home-metric-stat home-metric-stat--met">
-              <span className="home-metric-stat-val">{allCounts['MET']}</span>
-              <span className="home-metric-stat-label">Met</span>
-            </Link>
-            <Link to={libraryUrlForStatus('In Progress', 'All')} className="home-metric-stat home-metric-stat--ip">
-              <span className="home-metric-stat-val">{allCounts['In Progress']}</span>
-              <span className="home-metric-stat-label">In Progress</span>
-            </Link>
-            <Link to={libraryUrlForStatus('NOT MET', 'All')} className="home-metric-stat home-metric-stat--nm">
-              <span className="home-metric-stat-val">{allCounts['NOT MET']}</span>
-              <span className="home-metric-stat-label">Not Met</span>
-            </Link>
-            <Link to={libraryUrlForStatus('Not Started', 'All')} className="home-metric-stat home-metric-stat--ns">
-              <span className="home-metric-stat-val">{allCounts['Not Started']}</span>
-              <span className="home-metric-stat-label">Not Started</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Objectives */}
-        <div className="home-metric-card">
-          <div className="home-metric-card-title">Objectives <span className="home-metric-card-total">/ {totalObjectives}</span></div>
-          <div className="home-metric-stat-list">
-            <span className="home-metric-stat home-metric-stat--met">
-              <span className="home-metric-stat-val">{objMet}</span>
-              <span className="home-metric-stat-label">Met</span>
-            </span>
-            <span className="home-metric-stat home-metric-stat--nm">
-              <span className="home-metric-stat-val">{objNotMet}</span>
-              <span className="home-metric-stat-label">Not Met</span>
-            </span>
-            <span className="home-metric-stat home-metric-stat--ns">
-              <span className="home-metric-stat-val">{objUnreviewed}</span>
-              <span className="home-metric-stat-label">Unreviewed</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Artifacts */}
-        <div className="home-metric-card">
-          <div className="home-metric-card-title">Artifacts <span className="home-metric-card-total">/ {totalArtifacts}</span></div>
-          <div className="home-metric-stat-list">
-            <span className="home-metric-stat home-metric-stat--met">
-              <span className="home-metric-stat-val">{taggedArtifacts}</span>
-              <span className="home-metric-stat-label">Tagged</span>
-            </span>
-            <span className={`home-metric-stat${untaggedArtifacts > 0 ? ' home-metric-stat--warn' : ' home-metric-stat--ns'}`}>
-              <span className="home-metric-stat-val">{untaggedArtifacts}</span>
-              <span className="home-metric-stat-label">Untagged</span>
-            </span>
-          </div>
-          {totalArtifacts === 0 && (
-            <p className="home-metric-card-hint muted">Add artifacts via Control Detail pages.</p>
-          )}
-        </div>
-
-      </div>
-
-      {/* ── Dashboard body ─────────────────────────────────────────────────── */}
-      <div className="home-dash-body">
-
-        {/* Row 1: Overall Assessment Progress + Family Progress */}
-        <div className="home-twin-row home-twin-row--progress">
-
-          {/* Overall Assessment Progress — conic-gradient donut + legend */}
-          {(() => {
-            const metPct = allTotal === 0 ? 0 : (allCounts['MET'] / allTotal) * 100
-            const ipPct  = allTotal === 0 ? 0 : (allCounts['In Progress'] / allTotal) * 100
-            const nmPct  = allTotal === 0 ? 0 : (allCounts['NOT MET'] / allTotal) * 100
-            const s1 = metPct, s2 = s1 + ipPct, s3 = s2 + nmPct
-            const donutBg = allTotal === 0
-              ? 'conic-gradient(var(--color-border) 0% 100%)'
-              : `conic-gradient(var(--color-met) 0% ${s1}%, var(--color-in-progress) ${s1}% ${s2}%, var(--color-not-met) ${s2}% ${s3}%, var(--color-border) ${s3}% 100%)`
-            const metPctRound = Math.round(metPct)
-            return (
-              <div className="home-dash-card home-dash-card--stretch">
-                <h2 className="home-dash-card-heading">Overall Assessment Progress</h2>
-                <div className="home-progress-inner">
-                  <div className="home-donut-wrap" aria-hidden="true">
-                    <div className="home-donut" style={{ background: donutBg }} />
-                    <div className="home-donut-center">
-                      <span className="home-donut-pct">{metPctRound}%</span>
-                      <span className="home-donut-label">Met</span>
+            {controlResults.length > 0 && (
+              <div>
+                <div className="dash-search-group-label"><span className="dash-search-group-dot" style={{ background: 'var(--dash-accent2)' }} />Controls</div>
+                <div className="dash-search-rows">
+                  {controlResults.map((c) => (
+                    <div key={c.id} className="dash-search-row" onClick={() => { navigate(`/controls/${encodeURIComponent(c.id)}`); closeSearch() }}>
+                      <span className="dash-mono dash-search-row-id">{c.id}</span>
+                      <span>{c.title}</span>
+                      <span className="dash-muted">({c.family})</span>
+                      <span className="dash-search-row-status"><StatusPill status={readStatus(c.id)} /></span>
                     </div>
-                  </div>
-                  <div className="home-progress-legend">
-                    {[
-                      ['MET',         'Met',         'home-legend-dot--met'],
-                      ['In Progress', 'In Progress', 'home-legend-dot--ip'],
-                      ['NOT MET',     'Not Met',     'home-legend-dot--nm'],
-                      ['Not Started', 'Not Started', 'home-legend-dot--ns'],
-                    ].map(([key, label, dotClass]) => {
-                      const count = allCounts[key] ?? 0
-                      const pct   = allTotal === 0 ? 0 : Math.round((count / allTotal) * 100)
-                      return (
-                        <Link key={key} to={libraryUrlForStatus(key, 'All')} className="home-legend-row">
-                          <span className={`home-legend-dot ${dotClass}`} />
-                          <span className="home-legend-label">{label}</span>
-                          <span className="home-legend-count">{count}</span>
-                          <span className="home-legend-pct">{pct}%</span>
-                        </Link>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
-            )
-          })()}
-
-          {/* Family Progress — segmented bars, order: Met → In Progress → Not Met → Not Started */}
-          <div className="home-dash-card">
-            <div className="home-dash-card-header">
-              <h2 className="home-dash-card-heading">Family Progress</h2>
-              <Link to="/controls" className="home-dash-card-link">View all →</Link>
-            </div>
-            <div className="home-family-list">
-              {familyProgress.map((f) => (
-                <div key={f.value} className="home-family-row">
-                  <Link to={`/controls?family=${encodeURIComponent(f.value)}`} className="home-family-name" title={f.label}>
-                    {f.label}
-                  </Link>
-                  <div className="home-family-bar-wrap" aria-hidden="true">
-                    {f.total > 0 && ['MET', 'In Progress', 'NOT MET', 'Not Started'].map((st) => {
-                      const pct = (f.counts[st] / f.total) * 100
-                      if (pct === 0) return null
-                      return (
-                        <div
-                          key={st}
-                          className={`home-family-seg home-family-seg--${STATUS_SEGMENT_CLASS[st]?.replace('progress-bar-segment--', '') ?? 'not-started'}`}
-                          style={{ width: `${pct}%` }}
-                          title={`${st}: ${f.counts[st]}`}
-                        />
-                      )
-                    })}
-                  </div>
-                  <span className="home-family-pct">{f.pct}%</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </div>{/* /Row 1 */}
-
-        {/* Row 2: Needs Attention + Inheritance Sources */}
-        <div className="home-twin-row home-twin-row--secondary">
-
-          {/* Needs Attention */}
-          <div className="home-dash-card">
-            <h2 className="home-dash-card-heading">Needs Attention</h2>
-            <ul className="home-attention-list">
-              <li className="home-attention-item">
-                <span className="home-attention-label">Controls not started</span>
-                <Link
-                  to={libraryUrlForStatus('Not Started', 'All')}
-                  className={`home-attention-count${allCounts['Not Started'] > 0 ? ' home-attention-count--warn' : ''}`}
-                >
-                  {allCounts['Not Started']}
-                </Link>
-              </li>
-              <li className="home-attention-item">
-                <span className="home-attention-label">Controls with any Not Met objective</span>
-                <Link
-                  to={libraryUrlForStatus('NOT MET', 'All')}
-                  className={`home-attention-count${controlsWithNotMet.length > 0 ? ' home-attention-count--alert' : ''}`}
-                >
-                  {controlsWithNotMet.length}
-                </Link>
-              </li>
-              <li className="home-attention-item">
-                <span className="home-attention-label">Controls with no artifacts</span>
-                <Link
-                  to="/controls"
-                  className={`home-attention-count${controlsNoArtifacts.length > 20 ? ' home-attention-count--alert' : ''}`}
-                >
-                  {controlsNoArtifacts.length}
-                </Link>
-              </li>
-              <li className="home-attention-item">
-                <span className="home-attention-label">Untagged artifacts</span>
-                <Link
-                  to="/artifact-map"
-                  className={`home-attention-count${untaggedArtifacts > 0 ? ' home-attention-count--warn' : ''}`}
-                >
-                  {untaggedArtifacts}
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Inheritance Sources */}
-          {(() => {
-            const allSources = getInheritanceSources(controls)
-            if (allSources.length === 0) return (
-              <div className="home-dash-card home-dash-card--empty-state">
-                <h2 className="home-dash-card-heading">Inheritance Sources</h2>
-                <p className="muted home-empty-state-text">No inheritance sources labeled.</p>
-              </div>
-            )
-            const displayed = sourceLimit === 'All' ? allSources : allSources.slice(0, Number(sourceLimit))
-            const max = allSources[0]?.count ?? 1
-            return (
-              <div className="home-dash-card">
-                <div className="home-dash-card-header">
-                  <h2 className="home-dash-card-heading">Inheritance Sources</h2>
-                  <select value={sourceLimit} onChange={(e) => setSourceLimit(e.target.value)} aria-label="Show top N inheritance sources">
-                    <option value="5">Top 5</option>
-                    <option value="10">Top 10</option>
-                    <option value="All">All</option>
-                  </select>
-                </div>
-                <div className="inh-source-list">
-                  {displayed.map(({ name, count }) => (
-                    <Link key={name} to={`/controls?inheritanceSource=${encodeURIComponent(name)}`} className="inh-source-row" title={`View controls inherited from ${name}`}>
-                      <span className="inh-source-name">{name}</span>
-                      <div className="inh-source-bar-wrap" aria-hidden="true">
-                        <div className="inh-source-bar" style={{ width: `${Math.round((count / max) * 100)}%` }} />
-                      </div>
-                      <span className="inh-source-count">{count}</span>
-                    </Link>
                   ))}
                 </div>
               </div>
-            )
-          })()}
+            )}
 
-        </div>{/* /Row 2 */}
+            {evidenceResults.length > 0 && (
+              <div>
+                <div className="dash-search-group-label"><span className="dash-search-group-dot" style={{ background: '#22D3EE' }} />Evidence</div>
+                <div className="dash-search-rows">
+                  {evidenceResults.map((ev) => (
+                    <div key={ev.name} className="dash-search-row" onClick={() => { navigate(`/artifact-map?search=${encodeURIComponent(ev.name)}`); closeSearch() }}>
+                      <span>{ev.name}</span>
+                      <span className="dash-muted">— {ev.likelyControls?.length ?? 0} control{ev.likelyControls?.length === 1 ? '' : 's'}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {/* Row 3: Continue Review */}
-        <div className="home-dash-card">
-          <div className="home-dash-card-header">
-            <h2 className="home-dash-card-heading">Continue Review</h2>
-            <Link to="/controls" className="home-dash-card-link">Open Library →</Link>
-          </div>
-          <p className="muted home-continue-hint">Controls with review work already started, ordered by progress.</p>
-          {continueItems.length === 0 ? (
-            <p className="muted">All controls are Met or no work has been started.</p>
-          ) : (
-            <ul className="home-continue-list">
-              {continueItems.map(({ control: c, hints }) => {
-                const s = readStatus(c.id)
-                return (
-                  <li key={c.id} className="home-continue-item">
-                    <Link to={`/controls/${encodeURIComponent(c.id)}`} className="home-continue-link">
-                      <span className="mono home-continue-id">{c.id}</span>
-                      <span className="home-continue-title">{c.title}</span>
-                      <span className={`status-badge ${STATUS_BADGE_CLASS[s]}`}>{s}</span>
-                    </Link>
-                    {hints.length > 0 && (
-                      <p className="home-continue-hints muted">{hints.join(' · ')}</p>
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </div>
-
-        {/* Row 4: Project Actions */}
-        <div className="home-dash-card">
-          <h2 className="home-dash-card-heading">Project Actions</h2>
-          <ul className="home-actions-list home-actions-list--inline">
-            <li>
-              <button className="home-action-btn" onClick={() => openExportDialog('json')}>Export Project JSON</button>
-            </li>
-            <li>
-              <button className="home-action-btn" onClick={handleJsonImportClick}>Import Project JSON</button>
-              <input ref={jsonFileRef} type="file" accept=".json,application/json" onChange={handleJsonFileChange} style={{ display: 'none' }} />
-            </li>
-            <li>
-              <button className="home-action-btn" onClick={() => openExportDialog('xlsx')}>Export Assessment Workbook</button>
-            </li>
-            <li>
-              <button
-                className="home-action-btn"
-                onClick={handleWorkbookImportClick}
-                disabled={workbookImportParsing}
-              >
-                {workbookImportParsing ? 'Parsing…' : 'Import Assessment Workbook'}
-              </button>
-              <input
-                ref={workbookFileRef}
-                type="file"
-                accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                onChange={handleWorkbookFileChange}
-                style={{ display: 'none' }}
-              />
-            </li>
-            <li>
-              <button className="home-action-btn" onClick={() => setShowBulkFindingsModal(true)}>
-                Create Findings for All Objectives
-              </button>
-            </li>
-          </ul>
-          {/* hidden — CSV import kept for consulting workflow, not exposed here */}
-          <input ref={csvFileRef} type="file" accept=".csv,text/csv" onChange={handleCsvFileChange} style={{ display: 'none' }} />
-          {xlsxResult && (
-            <div className="home-actions-feedback">
-              <p className={`feedback ${xlsxResult.ok ? 'feedback--ok' : 'feedback--error'}`}>{xlsxResult.message}</p>
-            </div>
-          )}
-          {jsonResult && (
-            <div className="home-actions-feedback">
-              <p className={`feedback ${jsonResult.ok ? 'feedback--ok' : 'feedback--error'}`}>{jsonResult.message}</p>
-            </div>
-          )}
-          {workbookImportResult && (
-            <div className="home-actions-feedback">
-              <p className={`feedback ${workbookImportResult.ok ? 'feedback--ok' : 'feedback--error'}`}>{workbookImportResult.message}</p>
-            </div>
-          )}
-          {wipeSuccess && (
-            <div className="home-actions-feedback">
-              <p className="feedback feedback--ok">Project wiped. All local assessment data has been cleared.</p>
-            </div>
-          )}
-
-          <div className="home-actions-divider home-actions-divider--danger" />
-          <div className="home-actions-danger-zone">
-            <p className="home-actions-danger-label">Danger Zone</p>
-            <ul className="home-actions-list home-actions-list--inline">
-              <li>
-                <button
-                  className="home-action-btn home-action-btn--danger"
-                  onClick={() => { setWipeStage('confirm1'); setWipeInput('') }}
-                >
-                  Wipe Entire Project
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          <div className="home-actions-divider" />
-          <div className="home-actions-instructions">
-            <p className="home-actions-instructions-text">
-              <strong>Export Project JSON</strong> creates a portable backup of your current local project state.{' '}
-              <strong>Import Project JSON</strong> restores a previously exported project file into this browser.{' '}
-              <strong>Export Assessment Workbook</strong> populates the official CMMC Level 2 Assessment Results Template with current project data.{' '}
-              <strong>Import Assessment Workbook</strong> imports an existing official CMMC Assessment Results Template workbook into this local project.
-            </p>
-            <p className="home-actions-instructions-note muted">
-              Use Project JSON for backup and restore. Use the workbook export when preparing assessment documentation.
-            </p>
-          </div>
-          <div className="home-actions-meta-row">
-            <p className="home-actions-meta muted">Last backup: <strong style={{ fontWeight: 500 }}>{formatLastBackup(lastBackup)}</strong></p>
-          </div>
-
-          <div className="home-actions-divider" />
-          <div className="home-appearance">
-            <p className="home-appearance-label">Appearance</p>
-            <p className="home-appearance-helper">Choose a muted color palette for the local workspace. Applies in dark mode only.</p>
-            <div className="home-appearance-row">
-              <select
-                className="home-appearance-select"
-                value={palette}
-                onChange={handlePaletteChange}
-                aria-label="Theme palette"
-              >
-                {PALETTES.map((p) => (
-                  <option key={p.value} value={p.value}>{p.label}</option>
-                ))}
-              </select>
-              <span className="home-appearance-swatches" aria-hidden="true">
-                {(PALETTES.find((p) => p.value === palette)?.swatches ?? []).map((hex, i) => (
-                  <span key={i} className="home-appearance-swatch" style={{ background: hex }} />
-                ))}
-              </span>
-            </div>
+            {relResults.length > 0 && (
+              <div>
+                <div className="dash-search-group-label"><span className="dash-search-group-dot" style={{ background: '#E3A83B' }} />Relationships</div>
+                <div className="dash-search-rows">
+                  {relResults.map((r, i) => (
+                    <div key={i} className="dash-search-row" onClick={() => { navigate(`/relationships?control=${encodeURIComponent(r.sourceControl)}`); closeSearch() }}>
+                      <span className="dash-mono">{r.sourceControl}</span>
+                      <span className="dash-muted">→</span>
+                      <span className="dash-mono">{r.targetControl}</span>
+                      <span className="dash-muted">({r.relationshipType})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
+      )}
+    </div>
+  )
+}
 
-      </div>{/* /home-dash-body */}
+// =========================================================================
+// Family & Status Breakdown — waffle grid with legend, ResizeObserver-driven
+// =========================================================================
 
-      {/* ── Footer ─────────────────────────────────────────────────────────── */}
-      <div className="home-dash-footer">
-        <p className="muted">Version {APP_VERSION} — {APP_DEPLOYMENT}</p>
-        <p className="muted">Copyright &copy; 2026 Vincent Azada. Independent project. All rights reserved.</p>
+function FamilyStatusWaffle({ familyStats }) {
+  const [selected, setSelected] = useState('All')
+  const [unit, setUnit] = useState('controls')
+  const [hoverKey, setHoverKey] = useState(null)
+  const [containerRef, containerWidth] = useContainerWidth()
+  const navigate = useNavigate()
+
+  const active = selected === 'All' ? null : familyStats.find((f) => f.code === selected)
+  const currentCounts = active ? active[unit === 'objectives' ? 'objectiveCounts' : 'controlCounts'] : aggregateFamilyStats(familyStats, unit)
+  const currentTotal = active ? (unit === 'objectives' ? active.objTotal : active.total) : familyStats.reduce((a, f) => a + (unit === 'objectives' ? f.objTotal : f.total), 0)
+  const metPct = currentTotal === 0 ? 0 : Math.round((currentCounts.met / currentTotal) * 100)
+
+  const cells = []
+  statusMeta.forEach((s) => { for (let i = 0; i < currentCounts[s.key]; i++) cells.push({ key: s.key, color: s.color }) })
+
+  const gap = 8
+  const { cellSize, columns } = solveGrid(cells.length, containerWidth, gap, 28, 8)
+  const radius = Math.max(2, Math.round(cellSize * 0.22))
+
+  const goToLibrary = (statusKey) => {
+    const s = statusMeta.find((sm) => sm.key === statusKey)
+    navigate(libraryUrl({ status: s.libraryStatus, family: active ? active.value : undefined }))
+  }
+
+  return (
+    <div ref={containerRef}>
+      <div className="dash-panel-header">
+        <SectionLabel accent="var(--dash-accent2)">Family &amp; Status Breakdown</SectionLabel>
+        <div className="dash-toggle-group">
+          <div className="dash-toggle-indicator" style={{ transform: `translateX(${unit === 'objectives' ? '100%' : '0'})` }} />
+          <button onClick={() => setUnit('controls')} className="dash-toggle-btn" style={{ color: unit === 'controls' ? '#fff' : undefined }}>Controls</button>
+          <button onClick={() => setUnit('objectives')} className="dash-toggle-btn" style={{ color: unit === 'objectives' ? '#fff' : undefined }}>Objectives</button>
+        </div>
       </div>
 
-      {/* ── Dialogs ────────────────────────────────────────────────────────── */}
-      {exportDialog && (
-        <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="export-dialog-title">
-          <div className="confirm-dialog">
-            <h2 id="export-dialog-title">
-              {exportDialog.mode === 'xlsx' ? 'Export Assessment Workbook' : 'Create Project Backup'}
-            </h2>
-            <p>These fields are optional. If left blank, a generic filename will be used.</p>
-            <div className="export-dialog-fields">
-              <label className="export-dialog-label">
-                OSC / Client Name
-                <input
-                  type="text"
-                  className="export-dialog-input"
-                  placeholder="e.g. Acme Corp"
-                  value={exportDialog.osc}
-                  onChange={(e) => setExportDialog((d) => ({ ...d, osc: e.target.value }))}
-                  autoFocus
-                />
-              </label>
-              <label className="export-dialog-label">
-                Assessment Name <span className="muted">(optional)</span>
-                <input
-                  type="text"
-                  className="export-dialog-input"
-                  placeholder="e.g. Q2 2026"
-                  value={exportDialog.assessment}
-                  onChange={(e) => setExportDialog((d) => ({ ...d, assessment: e.target.value }))}
-                />
-              </label>
-            </div>
-            <div className="confirm-dialog-buttons">
-              <button onClick={closeExportDialog}>Cancel</button>
-              <button onClick={confirmExport}>
-                {exportDialog.mode === 'xlsx' ? 'Export Assessment Workbook' : 'Create Backup'}
-              </button>
-            </div>
-          </div>
+      <div className="dash-waffle-title-row">
+        <div className="dash-waffle-title">
+          <span className="dash-waffle-title-main">{active ? active.value : 'All Families'}</span>
+          <span className="dash-muted">{currentTotal} {unit}</span>
         </div>
-      )}
+        <span className="dash-waffle-pct" style={{ color: pctColor(metPct) }}>{metPct}%</span>
+      </div>
 
-      {/* ── Wipe Stage 1 ─────────────────────────────────────────────────── */}
-      {wipeStage === 'confirm1' && (
-        <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="wipe-dialog-title">
-          <div className="confirm-dialog confirm-dialog--danger">
-            <h2 id="wipe-dialog-title" className="confirm-dialog-title--danger">Wipe Entire Project?</h2>
-            <p>This will permanently remove all local assessment progress from this browser, including:</p>
-            <ul>
-              <li>Control and objective statuses</li>
-              <li>Assessment notes and objective results (interviews, examine, test, overall comments)</li>
-              <li>Assigned artifacts and evidence pool entries</li>
-              <li>Evidence tags on artifacts</li>
-              <li>Inheritance settings and inheritance sources</li>
-              <li>Control assignments</li>
-              <li>Review groups and group memberships</li>
-              <li>Environment profile</li>
-            </ul>
-            <p><strong>This action cannot be undone.</strong> Export a project backup first if you want to preserve your work.</p>
-            <div className="confirm-dialog-buttons">
-              <button onClick={() => setWipeStage(null)}>Cancel</button>
-              <button className="bulk-toolbar-danger" onClick={() => { setWipeStage('confirm2'); setWipeInput('') }}>
-                Continue
-              </button>
-            </div>
-          </div>
+      <div key={selected + unit} className="dash-waffle-grid" style={{ gridTemplateColumns: `repeat(${columns}, ${cellSize}px)`, gap: `${gap}px` }}>
+        {cells.map((c, i) => (
+          <div
+            key={i}
+            className="dash-waffle-cell"
+            style={{ width: cellSize, height: cellSize, background: c.color, borderRadius: radius, opacity: hoverKey && hoverKey !== c.key ? 0.18 : 1, animationDelay: `${i * 3}ms` }}
+          />
+        ))}
+      </div>
+
+      <div className="dash-legend-row">
+        {statusMeta.map((s) => {
+          const dimmed = hoverKey && hoverKey !== s.key
+          return (
+            <button
+              key={s.key}
+              className="dash-legend-item"
+              style={{ opacity: dimmed ? 0.35 : 1 }}
+              onMouseEnter={() => setHoverKey(s.key)}
+              onMouseLeave={() => setHoverKey(null)}
+              onClick={() => goToLibrary(s.key)}
+            >
+              <span className="dash-legend-label-row"><span className="dash-legend-dot" style={{ background: s.color }} />{s.label}</span>
+              <span className="dash-legend-val">{currentCounts[s.key]}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="dash-family-chips">
+        <button onClick={() => setSelected('All')} className="dash-chip" style={selected === 'All' ? { background: 'var(--dash-accent)', color: '#fff' } : {}}>All</button>
+        {familyStats.map((f) => (
+          <button key={f.code} onClick={() => setSelected(f.code)} className="dash-chip dash-mono" style={selected === f.code ? { background: 'var(--dash-accent)', color: '#fff' } : {}}>{f.code}</button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// =========================================================================
+// Inheritance Sources heatmap
+// =========================================================================
+
+function InheritanceHeatmapPanel({ matrix }) {
+  const navigate = useNavigate()
+  const { rows, max } = matrix
+  const [hoveredKey, setHoveredKey] = useState(null)
+
+  if (rows.length === 0) {
+    return (
+      <div className="dash-panel-empty">
+        <SectionLabel accent="var(--dash-accent2)">Inheritance Sources</SectionLabel>
+        <p className="dash-muted">No inheritance sources labeled yet.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="dash-heatmap-wrap">
+      <SectionLabel accent="var(--dash-accent2)">Inheritance Sources</SectionLabel>
+      <div className="dash-muted dash-heatmap-subtitle">Controls covered per family, by inheritance source</div>
+
+      <div className="dash-heatmap-grid" style={{ gridTemplateColumns: `190px repeat(${FAMILIES.length}, minmax(0, 1fr)) 34px` }}>
+        <div />
+        {FAMILIES.map((f) => <div key={f.code} className="dash-mono dash-heatmap-colhead">{f.code}</div>)}
+        <div className="dash-heatmap-colhead">Σ</div>
+
+        {rows.map((row, rowIndex) => (
+          <FragmentRow
+            key={row.name}
+            row={row}
+            rowIndex={rowIndex}
+            max={max}
+            hoveredKey={hoveredKey}
+            onHover={setHoveredKey}
+            onCellClick={(code) => navigate(libraryUrl({ family: FAMILIES.find((f) => f.code === code)?.value, inheritanceSource: row.name }))}
+            onRowClick={() => navigate(libraryUrl({ inheritanceSource: row.name }))}
+          />
+        ))}
+      </div>
+
+      <div className="dash-heatmap-legend">
+        <span className="dash-muted">Fewer</span>
+        <div className="dash-heatmap-scale">
+          {Array.from({ length: 16 }).map((_, i) => <div key={i} style={{ flex: 1, background: heatColor(i / 15) }} />)}
         </div>
-      )}
+        <span className="dash-muted">More controls</span>
+      </div>
+    </div>
+  )
+}
 
-      {/* ── Wipe Stage 2 ─────────────────────────────────────────────────── */}
-      {wipeStage === 'confirm2' && (
-        <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="wipe-final-title">
-          <div className="confirm-dialog confirm-dialog--danger">
-            <h2 id="wipe-final-title" className="confirm-dialog-title--danger">Final Confirmation</h2>
-            <p>Type <strong>WIPE</strong> to confirm. This cannot be undone.</p>
-            <input
-              type="text"
-              className="export-dialog-input"
-              placeholder="Type WIPE here"
-              value={wipeInput}
-              onChange={(e) => setWipeInput(e.target.value)}
-              autoFocus
-              autoComplete="off"
-              spellCheck={false}
-            />
-            <div className="confirm-dialog-buttons">
-              <button onClick={() => setWipeStage(null)}>Cancel</button>
-              <button
-                className="bulk-toolbar-danger"
-                disabled={wipeInput !== 'WIPE'}
-                onClick={handleWipeConfirmed}
-              >
-                Wipe Project
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {pendingWorkbookImport && (() => {
-        const { counts, warnings, derivedStatusCounts, reconciliation } = pendingWorkbookImport
-        const recon = reconciliation ?? { assignedTo: { matched: [], unmatched: [] }, inheritanceSources: { matched: [], unmatched: [] }, existingAssignees: [], existingSources: [] }
-        const hasAssignedTo = recon.assignedTo.matched.length > 0 || recon.assignedTo.unmatched.length > 0
-        const hasSources    = recon.inheritanceSources.matched.length > 0 || recon.inheritanceSources.unmatched.length > 0
-        const hasRecon      = hasAssignedTo || hasSources
-
-        // Build augmented option pools for the "Use Existing" optgroup.
-        // Layer order (all de-duplicated, sorted):
-        // Pool sources: current project values + workbook values + real provider list (sources only)
-        const dedupe = (arr) => [...new Set(arr.filter(Boolean))].sort()
-        const assigneePool = dedupe([
-          ...recon.existingAssignees,
-          ...recon.assignedTo.matched.map((m) => m.resolvedTo),
-          ...recon.assignedTo.unmatched.map((m) => m.raw),
-        ])
-        const sourcePool = dedupe([
-          ...PROVIDER_NAMES,
-          ...recon.existingSources,
-          ...recon.inheritanceSources.matched.map((m) => m.resolvedTo),
-          ...recon.inheritanceSources.unmatched.flatMap((m) =>
-            m.suggestion && m.suggestion !== m.raw ? [m.raw, m.suggestion] : [m.raw]
-          ),
-        ])
-
+function FragmentRow({ row, rowIndex, max, hoveredKey, onHover, onCellClick, onRowClick }) {
+  return (
+    <>
+      <div className="dash-heatmap-rowlabel" onClick={onRowClick} title={`View controls inherited from ${row.name}`}>{row.name}</div>
+      {row.values.map((v, i) => {
+        const t = v === 0 ? 0 : 0.3 + 0.7 * (v / max)
+        const key = `${rowIndex}-${i}`
+        const hovered = hoveredKey === key
+        // Hover brightens the cell toward the top of the scale (or gives an
+        // empty cell a faint glow) so the grid reads as live/responsive.
+        const background = hovered
+          ? (v === 0 ? '#2A2836' : heatColor(Math.min(1, t + 0.3)))
+          : (v === 0 ? '#1A1822' : heatColor(t))
         return (
-          <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="workbook-import-dialog-title">
-            <div className="confirm-dialog confirm-dialog--wide">
-              <h2 id="workbook-import-dialog-title">Import Assessment Workbook</h2>
-              <p>Review the parsed workbook summary and reconcile any unrecognized values before importing.</p>
-
-              <div className="workbook-import-summary">
-                <p><strong>Workbook Summary</strong></p>
-                <ul>
-                  <li>Controls found: {counts.controlsFound}</li>
-                  <li>Objectives found: {counts.objectivesFound}</li>
-                  <li>Objective statuses (MET / NOT MET): {counts.objectiveStatusesFound}</li>
-                  <li>Findings statements: {counts.findingsFound}</li>
-                  <li>Artifact references: {counts.artifactRefsFound}</li>
-                  <li>Interview notes: {counts.interviewNotesFound}</li>
-                  <li>Examine notes: {counts.examineNotesFound}</li>
-                  <li>Test notes: {counts.testNotesFound}</li>
-                  <li>Overall comments: {counts.overallCommentsFound}</li>
-                </ul>
-              </div>
-
-              {derivedStatusCounts && (
-                <div className="workbook-import-summary">
-                  <p><strong>Status Derivation</strong></p>
-                  <ul>
-                    <li>Objectives with explicit workbook status: {derivedStatusCounts.fromWorkbook}</li>
-                    <li>Objectives with imported content, no explicit status: {derivedStatusCounts.fromContent}</li>
-                    <li>Objectives with no imported data: {derivedStatusCounts.noData}</li>
-                  </ul>
-                  {derivedStatusCounts.fromContent > 0 && (
-                    <p className="muted">
-                      Objectives with content but no explicit status are left as Unreviewed. Their notes, findings, and artifacts are still imported.
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {hasRecon && (
-                <div className="workbook-import-summary">
-                  <p><strong>Reconciliation</strong></p>
-
-                  {hasAssignedTo && (
-                    <div className="workbook-recon-section">
-                      <p className="muted"><strong>Assigned To</strong></p>
-                      <p className="workbook-recon-helper">
-                        Choose whether each workbook assignee should be ignored, added as new, or mapped to an existing app value.
-                      </p>
-                      {recon.assignedTo.matched.length > 0 && (
-                        <>
-                          <p className="muted">Matched to existing:</p>
-                          <ul>
-                            {recon.assignedTo.matched.map(({ raw, resolvedTo }) => (
-                              <li key={raw}>
-                                <code>{raw}</code>{raw !== resolvedTo ? <> → <em>{resolvedTo}</em></> : null}
-                              </li>
-                            ))}
-                          </ul>
-                        </>
-                      )}
-                      {recon.assignedTo.unmatched.length > 0 && (
-                        <>
-                          <p className="workbook-recon-needs-review">Needs review</p>
-                          {recon.assignedTo.unmatched.map(({ raw }) => {
-                            const pool = assigneePool.filter((a) => a !== raw)
-                            return (
-                              <div key={raw} className="workbook-recon-card">
-                                <div>
-                                  <p className="workbook-recon-card-label">Workbook value</p>
-                                  <p className="workbook-recon-card-value">{raw}</p>
-                                </div>
-                                <div className="workbook-recon-card-action">
-                                  <p className="workbook-recon-card-label">Choose import action</p>
-                                  <select
-                                    className="workbook-recon-select"
-                                    value={reconciliationChoices.assignedTo[raw] ?? raw}
-                                    onChange={(e) => setReconciliationChoices((prev) => ({
-                                      ...prev,
-                                      assignedTo: { ...prev.assignedTo, [raw]: e.target.value },
-                                    }))}
-                                  >
-                                    <option value="">Ignore — do not import</option>
-                                    <option value={raw}>Add as New: {raw}</option>
-                                    {pool.length > 0 && (
-                                      <optgroup label="Use Existing">
-                                        {pool.map((a) => (
-                                          <option key={a} value={a}>Use Existing: {a}</option>
-                                        ))}
-                                      </optgroup>
-                                    )}
-                                  </select>
-                                </div>
-                              </div>
-                            )
-                          })}
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                  {hasSources && (
-                    <div className="workbook-recon-section">
-                      <p className="muted"><strong>Inheritance Sources</strong></p>
-                      <p className="workbook-recon-helper">
-                        Choose whether each workbook inheritance source should be ignored, added as new, or mapped to an existing source.
-                      </p>
-                      {recon.inheritanceSources.matched.length > 0 && (
-                        <>
-                          <p className="muted">Matched to existing:</p>
-                          <ul>
-                            {recon.inheritanceSources.matched.map(({ raw, resolvedTo }) => (
-                              <li key={raw}>
-                                <code>{raw}</code>{raw !== resolvedTo ? <> → <em>{resolvedTo}</em></> : null}
-                              </li>
-                            ))}
-                          </ul>
-                        </>
-                      )}
-                      {recon.inheritanceSources.unmatched.length > 0 && (
-                        <>
-                          <p className="workbook-recon-needs-review">Needs review</p>
-                          {recon.inheritanceSources.unmatched.map(({ raw, suggestion }) => {
-                            const pool = sourcePool.filter((s) => s !== raw && s !== suggestion)
-                            const defaultVal = reconciliationChoices.inheritanceSources[raw] ?? (suggestion ?? raw)
-                            return (
-                              <div key={raw} className="workbook-recon-card">
-                                <div>
-                                  <p className="workbook-recon-card-label">Workbook value</p>
-                                  <p className="workbook-recon-card-value">{raw}</p>
-                                </div>
-                                <div className="workbook-recon-card-action">
-                                  <p className="workbook-recon-card-label">Choose import action</p>
-                                  <select
-                                    className="workbook-recon-select"
-                                    value={defaultVal}
-                                    onChange={(e) => setReconciliationChoices((prev) => ({
-                                      ...prev,
-                                      inheritanceSources: { ...prev.inheritanceSources, [raw]: e.target.value },
-                                    }))}
-                                  >
-                                    <option value="">Ignore — do not import</option>
-                                    <option value={raw}>Add as New: {raw}</option>
-                                    {suggestion && suggestion !== raw && (
-                                      <option value={suggestion}>Add as Canonical: {suggestion}</option>
-                                    )}
-                                    {pool.length > 0 && (
-                                      <optgroup label="Use Existing">
-                                        {pool.map((s) => (
-                                          <option key={s} value={s}>Use Existing: {s}</option>
-                                        ))}
-                                      </optgroup>
-                                    )}
-                                  </select>
-                                </div>
-                              </div>
-                            )
-                          })}
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                  {!hasRecon && (
-                    <p className="muted">No reconciliation needed.</p>
-                  )}
-                </div>
-              )}
-
-              {warnings.length > 0 && (
-                <div className="workbook-import-warnings">
-                  <p><strong>Warnings</strong></p>
-                  <ul>
-                    {warnings.map((w, i) => <li key={i}>{w}</li>)}
-                  </ul>
-                </div>
-              )}
-
-              <p className="muted">
-                Artifact references will be mapped to objectives but may need evidence tags added manually.
-              </p>
-
-              <div className="confirm-dialog-buttons">
-                <button onClick={cancelWorkbookImport}>Cancel</button>
-                <button onClick={() => confirmWorkbookImport('merge')}>
-                  Merge Into Current Project
-                </button>
-                <button className="bulk-toolbar-danger" onClick={() => confirmWorkbookImport('new')}>
-                  Import as New Project
-                </button>
-              </div>
-            </div>
+          <div
+            key={i}
+            className="dash-mono dash-heatmap-cell"
+            style={{
+              background,
+              color: t > 0.55 || hovered ? '#0A0A0B' : 'var(--dash-text-tertiary)',
+              cursor: v > 0 ? 'pointer' : 'default',
+              transform: hovered ? 'scale(1.08)' : 'scale(1)',
+              boxShadow: hovered ? '0 0 0 1px rgba(167,139,250,0.5), 0 4px 12px rgba(124,92,252,0.35)' : 'none',
+            }}
+            onMouseEnter={() => onHover(key)}
+            onMouseLeave={() => onHover(null)}
+            onClick={() => v > 0 && onCellClick(FAMILIES[i].code)}
+          >
+            {v > 0 ? v : ''}
           </div>
         )
-      })()}
+      })}
+      <div className="dash-heatmap-total" onClick={onRowClick} style={{ cursor: 'pointer' }}>{row.total}</div>
+    </>
+  )
+}
 
-      {pendingJsonImport && (() => {
-        const noCategoriesSelected = !Object.values(importOptions.categories).some(Boolean)
-        return (
-          <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="restore-dialog-title">
-            <div className="confirm-dialog">
-              <h2 id="restore-dialog-title">Restore Project Backup?</h2>
-              <p>This will restore your project data from the selected backup file.</p>
-              <p>This does not modify:</p>
-              <ul>
-                <li>Control definitions</li>
-                <li>Scoring metadata</li>
-                <li>Evidence mappings</li>
-                <li>Relationships</li>
-              </ul>
-              <p>Files are processed locally in your browser and are not uploaded to a server.</p>
+// =========================================================================
+// Needs Attention + Continue Review, with Table/Cards toggle + pagination
+// =========================================================================
 
-              <details className="advanced-options-panel">
-                <summary className="advanced-options-toggle">Advanced Options</summary>
-                <div className="advanced-options-body">
-                  <p className="advanced-options-hint">
-                    Use advanced options to control which project data is restored and whether existing local work should be overwritten.
-                  </p>
-                  <div className="import-mode-group">
-                    <p className="import-options-label">Import Mode</p>
-                    <label className="import-option-row">
-                      <input type="radio" name="importMode" value="replace"
-                        checked={importOptions.mode === 'replace'}
-                        onChange={() => setImportOptions((o) => ({ ...o, mode: 'replace' }))} />
-                      <span>
-                        <strong>Replace existing data</strong>
-                        <span className="import-option-desc"> — Imported values overwrite existing local values for the selected categories.</span>
-                      </span>
-                    </label>
-                    <label className="import-option-row">
-                      <input type="radio" name="importMode" value="fill-empty"
-                        checked={importOptions.mode === 'fill-empty'}
-                        onChange={() => setImportOptions((o) => ({ ...o, mode: 'fill-empty' }))} />
-                      <span>
-                        <strong>Fill empty fields only</strong>
-                        <span className="import-option-desc"> — Imported values are only written when the current local field is blank or default.</span>
-                      </span>
-                    </label>
-                  </div>
-                  <div className="import-category-section">
-                    <p className="import-options-label">Import Categories</p>
-                    <div className="import-category-grid">
-                      {[
-                        ['statuses',          'Assessment statuses'],
-                        ['notes',             'Assessment notes'],
-                        ['objectiveNotes',    'Objective notes'],
-                        ['objectiveStatuses', 'Objective statuses'],
-                        ['inheritance',       'Inheritance status'],
-                        ['inheritanceSource', 'Inheritance source'],
-                        ['assignments',       'Assignments'],
-                        ['evidencePool',      'Evidence Pool'],
-                        ['objectiveArtifacts','Objective Artifacts'],
-                        ['objectiveResults',  'Objective Results'],
-                      ].map(([key, label]) => (
-                        <label key={key} className="import-option-row">
-                          <input
-                            type="checkbox"
-                            checked={importOptions.categories[key]}
-                            onChange={(e) => setImportOptions((o) => ({
-                              ...o,
-                              categories: { ...o.categories, [key]: e.target.checked },
-                            }))}
-                          />
-                          <span>{label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </details>
+const PAGE_SIZE = 12
 
-              {noCategoriesSelected && (
-                <p className="import-zero-categories-warning">
-                  Select at least one data category to restore.
-                </p>
-              )}
-              <div className="confirm-dialog-buttons">
-                <button onClick={cancelJsonRestore}>Cancel</button>
-                <button className="bulk-toolbar-danger" onClick={confirmJsonRestore} disabled={noCategoriesSelected}>
-                  Restore Backup
-                </button>
-              </div>
-            </div>
+function reviewScore(c) {
+  let score = 0
+  const st = readStatus(c.id)
+  if (hasObjectiveArtifacts(c)) score += 30
+  let reviewed = 0
+  for (const obj of c.objectives ?? []) if (readObjectiveStatus(c.id, obj.id) !== 'Unreviewed') reviewed++
+  if (reviewed > 0) score += 20
+  if (st === 'In Progress') score += 25
+  else if (st === 'NOT MET') score += 15
+  return score
+}
+
+function controlProgress(c) {
+  const objs = c.objectives ?? []
+  if (objs.length === 0) return 0
+  const reviewed = objs.filter((obj) => readObjectiveStatus(c.id, obj.id) !== 'Unreviewed').length
+  return Math.round((reviewed / objs.length) * 100)
+}
+
+function ControlCard({ c }) {
+  const status = readStatus(c.id)
+  const progress = controlProgress(c)
+  return (
+    <Link to={`/controls/${encodeURIComponent(c.id)}`} className="dash-card">
+      <div className="dash-card-top">
+        <span className="dash-card-id-group">
+          <StatusIcon status={status} />
+          <span className="dash-mono dash-card-id">{c.id}</span>
+        </span>
+        <span className="dash-card-family">{c.id.slice(0, 2)}</span>
+      </div>
+      <div className="dash-card-title">{c.title}</div>
+      <div className="dash-card-bottom">
+        <StatusPill status={status} />
+        <span className="dash-muted">{progress}%</span>
+      </div>
+      <div className="dash-progress-track"><div className="dash-progress-fill" style={{ width: `${progress}%` }} /></div>
+    </Link>
+  )
+}
+
+function FocusReviewPanel({ controlsWithNotMet, controlsNoArtifacts, untaggedArtifacts }) {
+  const [selected, setSelected] = useState('all')
+  const [view, setView] = useState('table')
+  const [page, setPage] = useState(1)
+
+  const notStartedControls = useMemo(() => controls.filter((c) => readStatus(c.id) === 'Not Started'), [])
+  const allReviewControls = useMemo(
+    () => controls.filter((c) => readStatus(c.id) !== 'MET').sort((a, b) => reviewScore(b) - reviewScore(a)),
+    []
+  )
+
+  const focusAreas = [
+    { key: 'all', label: 'Continue Review', count: allReviewControls.length, color: 'var(--dash-accent2)' },
+    { key: 'notStarted', label: 'Not Started', count: notStartedControls.length, color: '#E3A83B' },
+    { key: 'notMetObjective', label: 'Not Met Objective', count: controlsWithNotMet.length, color: '#E2665A' },
+    { key: 'noArtifacts', label: 'No Artifacts', count: controlsNoArtifacts.length, color: '#E3A83B' },
+    { key: 'untagged', label: 'Untagged Evidence', count: untaggedArtifacts.length, color: '#8B90F0' },
+  ]
+  const activeArea = focusAreas.find((f) => f.key === selected)
+  const isEvidence = selected === 'untagged'
+
+  const filteredControls =
+    selected === 'all' ? allReviewControls :
+    selected === 'notStarted' ? notStartedControls :
+    selected === 'notMetObjective' ? controlsWithNotMet :
+    selected === 'noArtifacts' ? controlsNoArtifacts : []
+
+  const items = isEvidence ? untaggedArtifacts : filteredControls
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE))
+  const pageSafe = Math.min(page, totalPages)
+  const pageItems = items.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE)
+
+  const selectArea = (key) => { setSelected(key); setPage(1) }
+
+  return (
+    <div className="dash-focus-grid">
+      <div className="dash-focus-sidebar">
+        <SectionLabel accent="#E2665A">Needs Attention</SectionLabel>
+        <div className="dash-focus-list">
+          {focusAreas.map((f) => {
+            const active = selected === f.key
+            const Icon = focusAreaIcons[f.key]
+            return (
+              <button key={f.key} onClick={() => selectArea(f.key)} className="dash-focus-item" style={active ? { background: `color-mix(in srgb, ${f.color} 14%, transparent)` } : {}}>
+                <Icon size={15} style={{ color: f.color, flexShrink: 0 }} />
+                <span className="dash-focus-item-label" style={{ color: active ? 'var(--dash-text-primary)' : 'var(--dash-text-secondary)' }}>{f.label}</span>
+                <span className="dash-focus-item-count" style={{ background: active ? `color-mix(in srgb, ${f.color} 20%, transparent)` : '#1C1C20', color: active ? f.color : 'var(--dash-text-tertiary)' }}>{f.count}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="dash-review-panel">
+        <div className="dash-review-header">
+          <SectionLabel accent={activeArea.color}>{activeArea.label}</SectionLabel>
+          <span className="dash-muted">{items.length} of {isEvidence ? untaggedArtifacts.length : controls.length} {isEvidence ? 'artifacts' : 'controls'}</span>
+        </div>
+
+        {!isEvidence && (
+          <div className="dash-view-toggle">
+            <button onClick={() => setView('table')} className="dash-view-btn" style={view === 'table' ? { background: '#1C1C20', color: 'var(--dash-text-primary)' } : {}}><LayoutList size={13} /> Table</button>
+            <button onClick={() => setView('cards')} className="dash-view-btn" style={view === 'cards' ? { background: '#1C1C20', color: 'var(--dash-text-primary)' } : {}}><LayoutPanelTop size={13} /> Cards</button>
           </div>
-        )
-      })()}
+        )}
 
-      {showBulkFindingsModal && (
-        <BulkFindingsModal
-          title="Create Findings for All Objectives"
-          controlsInScope={controls}
-          onClose={() => setShowBulkFindingsModal(false)}
+        {items.length === 0 ? (
+          <div className="dash-review-empty">No {isEvidence ? 'untagged evidence' : 'controls'} match this filter.</div>
+        ) : isEvidence ? (
+          <div className="dash-review-table-wrap">
+            <table className="dash-table">
+              <thead><tr><th>Evidence</th><th>Tags</th></tr></thead>
+              <tbody>
+                {pageItems.map((a) => (
+                  <tr key={a.id} onClick={() => window.location.assign(`/artifact-map?search=${encodeURIComponent(a.name)}`)} style={{ cursor: 'pointer' }}>
+                    <td>{a.name}</td>
+                    <td className="dash-muted">Untagged</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : view === 'cards' ? (
+          <div className="dash-cards-grid">
+            {pageItems.map((c) => <ControlCard key={c.id} c={c} />)}
+          </div>
+        ) : (
+          <div className="dash-review-table-wrap">
+            <table className="dash-table">
+              <thead><tr><th>Control</th><th>Title</th><th>Family</th><th>Status</th><th>Progress</th></tr></thead>
+              <tbody>
+                {pageItems.map((c) => {
+                  const status = readStatus(c.id)
+                  const progress = controlProgress(c)
+                  return (
+                    <tr key={c.id} onClick={() => window.location.assign(`/controls/${encodeURIComponent(c.id)}`)} style={{ cursor: 'pointer' }}>
+                      <td className="dash-mono dash-table-id">
+                        <span className="dash-card-id-group"><StatusIcon status={status} />{c.id}</span>
+                      </td>
+                      <td>{c.title}</td>
+                      <td><span className="dash-family-badge">{c.id.slice(0, 2)}</span></td>
+                      <td><StatusPill status={status} /></td>
+                      <td>
+                        <div className="dash-table-progress">
+                          <div className="dash-progress-track dash-progress-track--sm"><div className="dash-progress-fill" style={{ width: `${progress}%` }} /></div>
+                          <span className="dash-muted">{progress}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="dash-pagination">
+            <button disabled={pageSafe <= 1} onClick={() => setPage(pageSafe - 1)}>Prev</button>
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <button key={i} className={i + 1 === pageSafe ? 'dash-page-active' : ''} onClick={() => setPage(i + 1)}>{i + 1}</button>
+            ))}
+            <button disabled={pageSafe >= totalPages} onClick={() => setPage(pageSafe + 1)}>Next</button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+const focusAreaIcons = {
+  all: LayoutGrid,
+  notStarted: History,
+  notMetObjective: FileX,
+  noArtifacts: FileWarning,
+  untagged: Tag,
+}
+
+function Home() {
+  const familyStats = useMemo(() => computeFamilyStats(), [])
+  const matrix = useMemo(() => computeInheritanceMatrix(), [])
+
+  const dashMetrics = useMemo(() => {
+    const controlAgg = aggregateFamilyStats(familyStats, 'controls')
+    const objAgg = aggregateFamilyStats(familyStats, 'objectives')
+    const controlsTotal = controls.length
+    const objTotal = familyStats.reduce((a, f) => a + f.objTotal, 0)
+    const allArtifacts = listArtifacts()
+    const untaggedArtifacts = allArtifacts.filter((a) => a.tags.length === 0)
+    const controlsWithNotMet = controls.filter((c) => c.objectives?.some((obj) => readObjectiveStatus(c.id, obj.id) === OBJECTIVE_STATUS_NOT_MET))
+    const controlsNoArtifacts = controls.filter((c) => !hasObjectiveArtifacts(c))
+    return { controlAgg, objAgg, controlsTotal, objTotal, allArtifacts, untaggedArtifacts, controlsWithNotMet, controlsNoArtifacts }
+  }, [familyStats])
+
+  const controlsMetPct = dashMetrics.controlsTotal === 0 ? 0 : Math.round((dashMetrics.controlAgg.met / dashMetrics.controlsTotal) * 100)
+  const objectivesMetPct = dashMetrics.objTotal === 0 ? 0 : Math.round((dashMetrics.objAgg.met / dashMetrics.objTotal) * 100)
+
+  const kpis = [
+    { label: 'Controls Assessed', value: dashMetrics.controlAgg.met, total: `/ ${dashMetrics.controlsTotal}`, pct: `${controlsMetPct}%`, color: '#3FC98A', caption: `${dashMetrics.controlAgg.inProgress} in progress · ${dashMetrics.controlAgg.notMet} not met`, to: libraryUrl({ status: 'MET' }) },
+    { label: 'Objectives Reviewed', value: dashMetrics.objAgg.met, total: `/ ${dashMetrics.objTotal}`, pct: `${objectivesMetPct}%`, color: 'var(--dash-accent2)', caption: `${dashMetrics.objAgg.notMet} not met · ${dashMetrics.objAgg.notStarted} unreviewed` },
+    { label: 'Evidence Artifacts', value: dashMetrics.allArtifacts.length, total: 'total', pct: dashMetrics.allArtifacts.length === 0 ? '0%' : `${Math.round(((dashMetrics.allArtifacts.length - dashMetrics.untaggedArtifacts.length) / dashMetrics.allArtifacts.length) * 100)}%`, color: '#E3A83B', caption: `${dashMetrics.allArtifacts.length - dashMetrics.untaggedArtifacts.length} tagged · ${dashMetrics.untaggedArtifacts.length} untagged` },
+  ]
+  // KPI strip is confirmed non-clickable (see dashboard handoff spec) — always
+  // rendered as a plain <div>, never a link, regardless of what data it summarizes.
+
+  return (
+    <div className="dash-root">
+      <DashSidebar />
+
+      <main className="dash-main">
+        <div className="dash-header">
+          <div>
+            <h1 className="dash-title">Assessment Dashboard</h1>
+            <p className="dash-muted dash-subtitle">CMMC Companion — local assessment workspace</p>
+          </div>
+          <HeaderSearch />
+        </div>
+
+        <div className="dash-kpi-row">
+          {kpis.map((k, i) => (
+            <div key={k.label} className="dash-kpi" style={{ borderLeft: i === 0 ? 'none' : '1px solid var(--dash-border)' }}>
+              <div className="dash-kpi-label">{k.label}</div>
+              <div className="dash-kpi-value-row">
+                <span className="dash-kpi-value" style={{ color: k.color }}>{k.value}</span>
+                <span className="dash-muted">{k.total}</span>
+                <span className="dash-kpi-pct" style={{ color: k.color }}>{k.pct}</span>
+              </div>
+              <div className="dash-muted dash-kpi-caption">{k.caption}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="dash-twin-panel">
+          <FamilyStatusWaffle familyStats={familyStats} />
+          <InheritanceHeatmapPanel matrix={matrix} />
+        </div>
+
+        <FocusReviewPanel
+          controlsWithNotMet={dashMetrics.controlsWithNotMet}
+          controlsNoArtifacts={dashMetrics.controlsNoArtifacts}
+          untaggedArtifacts={dashMetrics.untaggedArtifacts}
         />
-      )}
+      </main>
     </div>
   )
 }

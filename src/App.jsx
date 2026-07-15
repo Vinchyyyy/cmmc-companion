@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Navigation from './components/Navigation.jsx'
 import Home from './pages/Home.jsx'
 import ControlLibrary from './pages/ControlLibrary.jsx'
@@ -10,6 +10,7 @@ import About from './pages/About.jsx'
 import Changelog from './pages/Changelog.jsx'
 import ArtifactMap from './pages/ArtifactMap.jsx'
 import DibcacMode from './pages/DibcacMode.jsx'
+import Settings from './pages/Settings.jsx'
 
 const NOTICE_VERSION = 1
 const NOTICE_KEY = 'cmmc-notice-version'
@@ -69,10 +70,14 @@ function FirstRunNotice() {
 }
 
 function App() {
+  const location = useLocation()
+  // Redesigned pages render their own violet-themed <DashSidebar/> and hide the
+  // legacy shared <Navigation/>. Extend this list as more pages get redesigned.
+  const isRedesigned = location.pathname === '/' || location.pathname.startsWith('/controls') || location.pathname.startsWith('/evidence') || location.pathname.startsWith('/relationships') || location.pathname.startsWith('/dibcac-mode') || location.pathname.startsWith('/artifact-map') || location.pathname.startsWith('/settings') || location.pathname.startsWith('/about') || location.pathname.startsWith('/faq') || location.pathname.startsWith('/changelog')
   return (
     <div className="app">
       <FirstRunNotice />
-      <Navigation />
+      {!isRedesigned && <Navigation />}
       <main className="content">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -85,6 +90,7 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/faq" element={<About />} />
           <Route path="/changelog" element={<Changelog />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </main>

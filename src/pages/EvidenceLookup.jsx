@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { Search, ChevronDown } from 'lucide-react'
+import DashSidebar from '../components/DashSidebar.jsx'
 import evidenceTypes from '../data/evidence/index.js'
 import accessControlData from '../data/evidence/access-control.json'
 import identAuthData from '../data/evidence/identification-authentication.json'
@@ -119,7 +121,9 @@ function EvidenceLibrary() {
   const activeCategoryLabel = CATEGORIES.find((c) => c.id === activeCategory)?.label ?? 'All Evidence'
 
   return (
-    <div className="ev-lib">
+    <div className="dash-root">
+      <DashSidebar />
+      <div className="ev-lib dash-main">
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="ev-lib-header">
@@ -130,24 +134,30 @@ function EvidenceLibrary() {
           </p>
         </div>
         <div className="ev-lib-filters">
-          <input
-            className="ev-lib-search"
-            type="text"
-            placeholder="Search by name, control, or reasoning…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Search evidence types"
-          />
-          <select
-            className="ev-lib-family-select"
-            value={familyFilter}
-            onChange={(e) => setFamilyFilter(e.target.value)}
-            aria-label="Filter by CMMC family"
-          >
-            {FAMILIES.map((f) => (
-              <option key={f} value={f}>{f === 'All' ? 'All Families' : f}</option>
-            ))}
-          </select>
+          <div className="ev-lib-search-wrap">
+            <Search size={14} className="ev-lib-search-icon" />
+            <input
+              className="ev-lib-search"
+              type="text"
+              placeholder="Search by name, control, or reasoning…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search evidence types"
+            />
+          </div>
+          <div className="ev-lib-family-select-wrap">
+            <select
+              className="ev-lib-family-select"
+              value={familyFilter}
+              onChange={(e) => setFamilyFilter(e.target.value)}
+              aria-label="Filter by CMMC family"
+            >
+              {FAMILIES.map((f) => (
+                <option key={f} value={f}>{f === 'All' ? 'All Families' : f}</option>
+              ))}
+            </select>
+            <ChevronDown size={13} className="ev-lib-family-select-icon" />
+          </div>
         </div>
       </div>
 
@@ -182,8 +192,12 @@ function EvidenceLibrary() {
             <p className="muted ev-lib-empty">No matching evidence types found.</p>
           ) : (
             <ul className="ev-lib-card-list">
-              {results.map((ev) => (
-                <li key={ev.name} className="ev-lib-card">
+              {results.map((ev, i) => (
+                <li
+                  key={ev.name}
+                  className="ev-lib-card"
+                  style={{ borderBottom: i < results.length - 1 ? '1px solid var(--dash-border)' : 'none' }}
+                >
                   <h3 className="ev-lib-card-name">{ev.name}</h3>
                   <p className="ev-lib-card-desc">{ev.description}</p>
                   <div className="ev-lib-card-meta">
@@ -207,6 +221,7 @@ function EvidenceLibrary() {
         </div>
 
       </div>{/* /ev-lib-workspace */}
+      </div>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, Fragment } from 'react'
 import {
   buildArtifactEvidenceProfile,
   buildObjectiveEvidenceProfile,
@@ -9,6 +9,7 @@ import {
   RELATED_CAP,
 } from '../utils/evidenceTagMatch.js'
 import { Link, useSearchParams } from 'react-router-dom'
+import DashSidebar from '../components/DashSidebar.jsx'
 import controls from '../data/controls/index.js'
 import relationships from '../data/relationships/index.js'
 import { evidenceTags } from '../data/evidenceTags.js'
@@ -150,6 +151,25 @@ function getArtifactStatus(entry) {
 function SortIcon({ active, dir }) {
   if (!active) return <span className="am-sort-icon am-sort-icon--idle" aria-hidden="true">↕</span>
   return <span className="am-sort-icon am-sort-icon--active" aria-hidden="true">{dir === 'asc' ? '↑' : '↓'}</span>
+}
+
+// -------------------------------------------------------------------------
+// Capped tag chips — collapsed table row only (keeps row height consistent)
+// -------------------------------------------------------------------------
+const ROW_TAG_CHIP_CAP = 2
+
+function RowTagChips({ tagIds }) {
+  if (!Array.isArray(tagIds) || tagIds.length === 0) return <span className="am-no-tags">—</span>
+  const shown = tagIds.slice(0, ROW_TAG_CHIP_CAP)
+  const extra = tagIds.length - shown.length
+  return (
+    <div className="artifact-tag-chip-row">
+      {shown.map((id) => (
+        <span key={id} className="tag-chip">{TAG_LABEL[id] ?? id}</span>
+      ))}
+      {extra > 0 && <span className="tag-chip tag-chip--overflow">+{extra}</span>}
+    </div>
+  )
 }
 
 // -------------------------------------------------------------------------
@@ -395,17 +415,6 @@ function ArtifactExpandedRow({ entry, onOpenTagPicker, onAcceptSuggestion, refre
                       </>
                     )}
                   </>
-                )}
-
-                {tiered.excluded.cappedCount > 0 && (
-                  <p className="reuse-tag-excluded-note">
-                    Additional lower-ranked candidates were hidden to keep suggestions focused.
-                  </p>
-                )}
-                {excludedTotal > 0 && (
-                  <p className="reuse-tag-excluded-note">
-                    {excludedTotal} broad or untagged candidate{excludedTotal !== 1 ? 's' : ''} excluded from suggestions.
-                  </p>
                 )}
               </>
             )}
@@ -764,7 +773,10 @@ function ArtifactMap() {
   }
 
   return (
-    <div className="am-page">
+    <div className="dash-root">
+      <DashSidebar />
+
+      <main className="dash-main am-page">
       {/* Header */}
       <div className="am-header">
         <div className="am-header-title">
@@ -930,9 +942,8 @@ function ArtifactMap() {
                     const tagIds = rec?.tags ?? []
                     const reuseCount = reuseCountMap.get(entry.artifact) ?? 0
                     return (
-                      <>
+                      <Fragment key={entry.artifact}>
                         <tr
-                          key={entry.artifact}
                           className={[
                             'am-row',
                             isExpanded ? 'am-row--expanded' : '',
@@ -950,11 +961,7 @@ function ArtifactMap() {
                             </span>
                           </td>
                           <td className="am-td am-td-tags">
-                            {tagIds.length > 0 ? (
-                              <ArtifactTagChipList tagIds={tagIds} />
-                            ) : (
-                              <span className="am-no-tags">—</span>
-                            )}
+                            <RowTagChips tagIds={tagIds} />
                           </td>
                           <td className="am-td am-td-mappings">
                             <span className="am-mapping-count">{entry.usages.length}</span>
@@ -981,7 +988,7 @@ function ArtifactMap() {
                             refreshKey={refreshKey}
                           />
                         )}
-                      </>
+                      </Fragment>
                     )
                   })}
                 </tbody>
@@ -990,6 +997,7 @@ function ArtifactMap() {
           )}
         </div>
       </div>
+      </main>
 
       {filterModalOpen && (
         <ArtifactFilterModal

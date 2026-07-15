@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams, useLocation } from 'react-router-dom'
+import { SlidersHorizontal, CheckSquare, Square, X, ArrowUpRight, ArrowDownRight, Loader, CircleDashed } from 'lucide-react'
+import DashSidebar from '../components/DashSidebar.jsx'
 import controls from '../data/controls/index'
 import { PROVIDERS } from '../data/providers'
 import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
@@ -34,15 +36,15 @@ import {
   getScore,
   isPoamAllowed,
 } from '../utils/scoring'
-import { IconNotes, IconPaperclip, IconTrendingUp, IconTrendingDown } from '../components/icons'
+import { IconNotes, IconPaperclip } from '../components/icons'
 import { readAssignedTo, writeAssignedTo, normalizeAssignee } from '../utils/assignment'
 import BulkFindingsModal from '../components/BulkFindingsModal'
 
 const TRENDING_INDICATOR = {
-  'MET':         { color: 'var(--color-met)',         title: 'Trending: MET' },
-  'NOT MET':     { color: 'var(--color-not-met)',     title: 'Trending: NOT MET' },
-  'In Progress': { color: 'var(--color-in-progress)', title: 'Trending: In Progress', symbol: '◐' },
-  'Not Started': { color: 'var(--color-text-muted)',  title: 'Trending: Not Started', symbol: '○' },
+  'MET':         { color: 'var(--color-met)',         title: 'Trending: MET',          icon: ArrowUpRight },
+  'NOT MET':     { color: 'var(--color-not-met)',     title: 'Trending: NOT MET',       icon: ArrowDownRight },
+  'In Progress': { color: 'var(--color-in-progress)', title: 'Trending: In Progress',   icon: Loader },
+  'Not Started': { color: 'var(--color-text-muted)',  title: 'Trending: Not Started',   icon: CircleDashed },
 }
 
 function getControlWarnings(control) {
@@ -105,6 +107,13 @@ const FAMILY_ORDER = [
   'System and Information Integrity',
 ]
 
+// Family name -> 2-letter code (the prefix of every control ID in that family)
+const FAMILY_CODES = controls.reduce((acc, c) => {
+  const code = c.id.slice(0, 2)
+  if (!acc[c.family]) acc[c.family] = code
+  return acc
+}, {})
+
 const STATUS_DISPLAY_ORDER = ['MET', 'In Progress', 'NOT MET', 'Not Started']
 const STATUS_VAR_COLOR = {
   'MET':         'var(--color-met)',
@@ -159,6 +168,29 @@ function parseMultiFilter(raw) {
   return new Set(raw.split(',').map((v) => v.trim()).filter(Boolean))
 }
 
+// ── Saved filters — localStorage-backed, name a combination of the current
+// chip filters (CHIP_FILTER_KEYS) and reapply it later ────────────────────
+
+const SAVED_FILTERS_KEY = 'cmmc-saved-filters'
+
+function readSavedFilters() {
+  try {
+    const raw = localStorage.getItem(SAVED_FILTERS_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+function writeSavedFilters(list) {
+  try {
+    localStorage.setItem(SAVED_FILTERS_KEY, JSON.stringify(list))
+  } catch {
+    // localStorage unavailable — proceed silently
+  }
+}
+
 // ── Filter pill — module-level to avoid "component created during render" ─────
 
 function FilterPill({ filterKey, value, label, activeSet, onToggle }) {
@@ -191,7 +223,13 @@ function FilterModal({
   assignedToSet,
   usedInheritanceSources,
   usedAssignedTo,
+  activeChips,
+  savedFilters,
+  onApplySavedFilter,
+  onSaveFilter,
 }) {
+  const [filterName, setFilterName] = useState('')
+
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', onKey)
@@ -204,6 +242,11 @@ function FilterModal({
     return () => { document.body.style.overflow = prev }
   }, [])
 
+  const handleSave = () => {
+    onSaveFilter(filterName)
+    setFilterName('')
+  }
+
   return (
     <div
       className="cl-filter-modal-overlay"
@@ -212,10 +255,29 @@ function FilterModal({
       <div className="cl-filter-modal" role="dialog" aria-modal="true" aria-label="Filters">
         <div className="cl-filter-modal-header">
           <span className="cl-filter-modal-title">Filters</span>
-          <button className="cl-filter-modal-close" onClick={onClose} aria-label="Close filters">✕</button>
+          <button className="cl-filter-modal-close" onClick={onClose} aria-label="Close filters"><X size={18} /></button>
         </div>
 
         <div className="cl-filter-modal-body">
+          {savedFilters.length > 0 && (
+            <section className="cl-filter-modal-section">
+              <div className="cl-filter-modal-section-title cl-filter-modal-section-title--saved">Saved Filters</div>
+              <div className="cl-saved-filters-list">
+                {savedFilters.map((sf) => (
+                  <button
+                    key={sf.name}
+                    type="button"
+                    className="cl-saved-filter-chip"
+                    onClick={() => onApplySavedFilter(sf)}
+                  >
+                    <span className="cl-saved-filter-name">{sf.name}</span>
+                    <span className="cl-saved-filter-summary">{sf.summary}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
           <section className="cl-filter-modal-section">
             <div className="cl-filter-modal-section-title">Status</div>
             <div className="cl-filter-modal-pills">
@@ -310,6 +372,26 @@ function FilterModal({
 
         </div>
 
+        {activeChips.length > 0 && (
+          <div className="cl-save-filter-row">
+            <span className="cl-save-filter-label">Save this filter:</span>
+            <input
+              value={filterName}
+              onChange={(e) => setFilterName(e.target.value)}
+              placeholder="Enter filter name…"
+              className="cl-save-filter-input"
+            />
+            <button
+              type="button"
+              className="cl-save-filter-btn"
+              disabled={!filterName.trim()}
+              onClick={handleSave}
+            >
+              Save Filter
+            </button>
+          </div>
+        )}
+
         <div className="cl-filter-modal-footer">
           <button
             className="cl-filter-modal-clear"
@@ -357,6 +439,7 @@ function ControlLibrary() {
   const [multiSelectMode, setMultiSelectMode] = useState(false)
   const [openWarning, setOpenWarning] = useState(null)
   const [showBulkFindingsModal, setShowBulkFindingsModal] = useState(false)
+  const [savedFilters, setSavedFilters] = useState(() => readSavedFilters())
   const forceUpdate = () => setUpdateKey((k) => k + 1)
 
   useEffect(() => {
@@ -448,6 +531,30 @@ function ControlLibrary() {
     if (!raw || raw === 'All') return []
     return raw.split(',').map((v) => v.trim()).filter(Boolean).map((value) => ({ key, value }))
   })
+
+  const saveCurrentFilter = (name) => {
+    if (!name.trim() || activeChips.length === 0) return
+    const entry = {
+      name: name.trim(),
+      summary: activeChips.map((c) => chipLabel(c.key, c.value)).join(' · '),
+      criteria: activeChips,
+    }
+    const next = [...savedFilters, entry]
+    setSavedFilters(next)
+    writeSavedFilters(next)
+  }
+
+  const applySavedFilter = (sf) => {
+    const next = new URLSearchParams(searchParams)
+    for (const key of CHIP_FILTER_KEYS) next.delete(key)
+    const byKey = new Map()
+    for (const { key, value } of sf.criteria) {
+      if (!byKey.has(key)) byKey.set(key, [])
+      byKey.get(key).push(value)
+    }
+    for (const [key, values] of byKey) next.set(key, values.join(','))
+    setSearchParams(next)
+  }
 
   const term = urlSearch.trim().toLowerCase()
 
@@ -671,74 +778,18 @@ function ControlLibrary() {
     rightPanelStatusCounts[s] = (rightPanelStatusCounts[s] || 0) + 1
   }
 
+  const [hoverFamily, setHoverFamily] = useState(null)
+
   return (
-    <div className="control-library-workspace">
-
-      {/* ── Left family sidebar ─────────────────────────────────────────── */}
-      <aside className="cl-sidebar">
-        <div className="cl-sidebar-heading">CMMC Families</div>
-        <nav aria-label="CMMC Families">
-          {/* All-families option */}
-          <div className="cl-sidebar-row cl-sidebar-row--all">
-            <button
-              type="button"
-              className={`cl-sidebar-btn cl-sidebar-btn--all${familyFilter === 'All' ? ' cl-sidebar-btn--active' : ''}`}
-              onClick={() => writeFilter('family', 'All')}
-            >
-              All
-            </button>
-          </div>
-          <div className="cl-sidebar-all-divider" role="separator" />
-          {FAMILY_ORDER.map((fam) => {
-            const isActive     = familyFilter === fam
-            const fullyChk     = multiSelectMode && isFamilyFullySelected(fam)
-            const partialChk   = multiSelectMode && isFamilyPartiallySelected(fam)
-            const isChecked    = fullyChk
-            const someSelected = fullyChk || partialChk
-
-            return (
-              <div
-                key={fam}
-                className={[
-                  'cl-sidebar-row',
-                  isActive     ? 'cl-sidebar-row--active'   : '',
-                  someSelected ? 'cl-sidebar-row--selected' : '',
-                ].filter(Boolean).join(' ')}
-              >
-                {multiSelectMode && (
-                  <label
-                    className="cl-sidebar-chk-label"
-                    aria-label={`Select all ${fam} controls`}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      ref={(el) => { if (el) el.indeterminate = partialChk }}
-                      onChange={() => toggleFamilySelection(fam)}
-                      aria-label={`Select all ${fam} controls`}
-                    />
-                  </label>
-                )}
-                <button
-                  type="button"
-                  className={`cl-sidebar-btn${isActive ? ' cl-sidebar-btn--active' : ''}`}
-                  onClick={() => writeFilter('family', fam)}
-                >
-                  {fam}
-                </button>
-              </div>
-            )
-          })}
-        </nav>
-      </aside>
+    <div className="dash-root">
+      <DashSidebar />
 
       {/* ── Main content area ───────────────────────────────────────────── */}
-      <div className="cl-main">
-        <h1>Control Library</h1>
+      <div className="cl-main dash-main">
+        <h1 className="cl2-title">Control Library</h1>
 
         {/* ── Filter toolbar ──────────────────────────────────────────── */}
-        <div className="cl-filter-toolbar">
+        <div className="cl-filter-toolbar cl2-filter-toolbar">
           <input
             type="text"
             className="cl-filter-search"
@@ -757,11 +808,60 @@ function ControlLibrary() {
             onClick={() => setShowFilterModal(true)}
             aria-label={`Filters${activeChips.length > 0 ? `, ${activeChips.length} active` : ''}`}
           >
-            Filters
+            <SlidersHorizontal size={14} /> Filters
             {activeChips.length > 0 && (
               <span className="cl-filter-btn-badge">{activeChips.length}</span>
             )}
           </button>
+        </div>
+
+        {/* ── Family chip row (replaces the old left sidebar) ───────────── */}
+        <div className="cl2-family-chips" onMouseLeave={() => setHoverFamily(null)}>
+          <button
+            type="button"
+            onClick={() => writeFilter('family', 'All')}
+            onMouseEnter={() => setHoverFamily('All')}
+            className="cl2-chip"
+            style={{
+              background: familyFilter === 'All' ? 'var(--dash-accent)' : undefined,
+              color: familyFilter === 'All' ? '#fff' : undefined,
+              opacity: hoverFamily && hoverFamily !== 'All' ? 0.45 : 1,
+              transform: hoverFamily === 'All' ? 'scale(1.08)' : 'scale(1)',
+            }}
+          >
+            All
+          </button>
+          {FAMILY_ORDER.map((fam) => {
+            const isActive = familyFilter === fam
+            const fullyChk = multiSelectMode && isFamilyFullySelected(fam)
+            const partialChk = multiSelectMode && isFamilyPartiallySelected(fam)
+            return (
+              <button
+                key={fam}
+                type="button"
+                onClick={() => writeFilter('family', fam)}
+                onMouseEnter={() => setHoverFamily(fam)}
+                className={`cl2-chip${fullyChk || partialChk ? ' cl2-chip--selected' : ''}`}
+                title={fam}
+                style={{
+                  background: isActive ? 'var(--dash-accent)' : undefined,
+                  color: isActive ? '#fff' : undefined,
+                  opacity: hoverFamily && hoverFamily !== fam ? 0.45 : 1,
+                  transform: hoverFamily === fam ? 'scale(1.08)' : 'scale(1)',
+                }}
+              >
+                {multiSelectMode && (
+                  <span
+                    className="cl2-chip-check"
+                    onClick={(e) => { e.stopPropagation(); toggleFamilySelection(fam) }}
+                  >
+                    {fullyChk ? <CheckSquare size={13} /> : <Square size={13} />}
+                  </span>
+                )}
+                {FAMILY_CODES[fam] ?? fam}
+              </button>
+            )
+          })}
         </div>
 
         {/* ── Applied filter chips ─────────────────────────────────────── */}
@@ -791,10 +891,12 @@ function ControlLibrary() {
         )}
 
         <div className="control-utility-bar">
-          <label className="control-utility-toggle">
-            <input type="checkbox" checked={hideMet} onChange={toggleHideMet} />
+          <button type="button" className="control-utility-toggle" onClick={toggleHideMet} aria-pressed={hideMet}>
+            <span className="cl2-toggle-track" style={{ background: hideMet ? 'var(--dash-accent)' : '#1C1C20' }}>
+              <span className="cl2-toggle-thumb" style={{ transform: hideMet ? 'translateX(14px)' : 'translateX(0)' }} />
+            </span>
             Automatically hide MET controls
-          </label>
+          </button>
           <span className="control-utility-count">
             Showing {results.length} of {controls.length} controls
           </span>
@@ -810,12 +912,12 @@ function ControlLibrary() {
                 {allSelected ? 'Deselect all' : 'Select all visible'} ({allResultIds.length})
               </label>
               <button className="control-utility-exit-btn" onClick={exitMultiSelect}>
-                Exit Multi-Select
+                <X size={14} /> Exit Multi-Select
               </button>
             </div>
           ) : (
             <button className="control-utility-multiselect-btn" onClick={enterMultiSelect}>
-              Multi-Select
+              <CheckSquare size={14} /> Multi-Select
             </button>
           )}
         </div>
@@ -870,7 +972,7 @@ function ControlLibrary() {
               title="Reset status, inheritance, and all notes for selected controls">
               Clear Data
             </button>
-            <button className="bulk-toolbar-clear" onClick={exitMultiSelect}>Exit Multi-Select</button>
+            <button className="bulk-toolbar-clear" onClick={exitMultiSelect}><X size={14} /> Exit Multi-Select</button>
           </div>
         )}
         {copyAttrsResult && (
@@ -962,24 +1064,24 @@ function ControlLibrary() {
                         >
                           ({Math.abs(score)})
                         </span>
-                        {hasNote && (
-                          <span className="row-icon" style={{ color: 'var(--color-text-muted)' }} title="This control has assessment notes or objective notes">
-                            <IconNotes size="14px" />
-                          </span>
-                        )}
-                        {hasArtifacts && (
-                          <span className="row-icon" style={{ color: 'var(--color-text-muted)' }} title="This control has objective artifact references">
-                            <IconPaperclip size="14px" />
-                          </span>
-                        )}
-                        <span className="row-icon" style={{ color: trendInd.color }} title={trendInd.title}>
-                          {trending === 'MET'         && <IconTrendingUp size="14px" />}
-                          {trending === 'NOT MET'     && <IconTrendingDown size="14px" />}
-                          {trending !== 'MET' && trending !== 'NOT MET' && trendInd.symbol}
-                        </span>
                         {!poamOk && (
                           <span className="poam-badge" title="Cannot be placed on a POA&M">Non-POA&amp;M</span>
                         )}
+                        <span className="control-row-icons">
+                          {hasNote && (
+                            <span className="row-icon" style={{ color: 'var(--color-text-muted)' }} title="This control has assessment notes or objective notes">
+                              <IconNotes size="14px" />
+                            </span>
+                          )}
+                          {hasArtifacts && (
+                            <span className="row-icon" style={{ color: 'var(--color-text-muted)' }} title="This control has objective artifact references">
+                              <IconPaperclip size="14px" />
+                            </span>
+                          )}
+                          <span className="row-icon" style={{ color: trendInd.color }} title={trendInd.title}>
+                            <trendInd.icon size={14} />
+                          </span>
+                        </span>
                       </>
                     )
 
@@ -1127,7 +1229,7 @@ function ControlLibrary() {
       </div>
 
       {/* ── Right overview panel ────────────────────────────────────────── */}
-      <aside className="cl-right-panel">
+      <aside className="cl-right-panel cl2-right-panel">
         <div className="cl-right-panel-title">
           Selected Family Overview{rightPanelFamily ? ` — ${rightPanelFamily}` : familyFilter === 'All' ? ' — All Families' : ''}
         </div>
@@ -1184,19 +1286,19 @@ function ControlLibrary() {
                 <span>Objective artifact references</span>
               </div>
               <div className="cl-icon-guide-row">
-                <IconTrendingUp size="13px" style={{ flexShrink: 0, color: 'var(--color-met)' }} />
+                <ArrowUpRight size={13} style={{ flexShrink: 0, color: 'var(--color-met)' }} />
                 <span>Trending MET</span>
               </div>
               <div className="cl-icon-guide-row">
-                <IconTrendingDown size="13px" style={{ flexShrink: 0, color: 'var(--color-not-met)' }} />
+                <ArrowDownRight size={13} style={{ flexShrink: 0, color: 'var(--color-not-met)' }} />
                 <span>Trending NOT MET</span>
               </div>
               <div className="cl-icon-guide-row">
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', flexShrink: 0, width: '13px', textAlign: 'center' }}>◐</span>
+                <Loader size={13} style={{ flexShrink: 0, color: 'var(--color-in-progress)' }} />
                 <span>Trending In Progress</span>
               </div>
               <div className="cl-icon-guide-row">
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', flexShrink: 0, width: '13px', textAlign: 'center' }}>○</span>
+                <CircleDashed size={13} style={{ flexShrink: 0, color: 'var(--color-text-muted)' }} />
                 <span>Trending Not Started</span>
               </div>
               <div className="cl-icon-guide-row">
@@ -1252,7 +1354,7 @@ function ControlLibrary() {
           })()
         ) : (
           <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
-            Select a family from the sidebar to see its overview.
+            Select a family above to see its overview.
           </p>
         )}
       </aside>
@@ -1275,6 +1377,10 @@ function ControlLibrary() {
           assignedToSet={assignedToSet}
           usedInheritanceSources={usedInheritanceSources}
           usedAssignedTo={usedAssignedTo}
+          activeChips={activeChips}
+          savedFilters={savedFilters}
+          onApplySavedFilter={applySavedFilter}
+          onSaveFilter={saveCurrentFilter}
         />
       )}
 
@@ -1543,52 +1649,14 @@ function ControlLibrary() {
                 <button
                   disabled={!canApply}
                   onClick={() => {
-                    // TEMP DEBUG — remove before release
-                    console.group('[CopyAttrs] Apply clicked')
-                    console.log('sourceId:', sourceId)
-                    console.log('attrs snapshot:', JSON.stringify(attrs))
-                    console.log('selected:', [...selected])
-                    console.log('source status    :', readStatus(sourceId))
-                    console.log('source inherit   :', readInheritance(sourceId))
-                    console.log('source inheritSrc:', readInheritanceSource(sourceId))
-                    console.log('source pool      :', readPool(sourceId))
-
                     const targets = [...selected].filter((id) => id !== sourceId)
-                    console.log('targets (excl. source):', targets)
 
                     for (const targetId of targets) {
-                      console.group(`  target: ${targetId}`)
-                      if (attrs.status) {
-                        const v = readStatus(sourceId)
-                        console.log('  writeStatus ->', v)
-                        writeStatus(targetId, v)
-                        console.log('  localStorage[cmmc-status-' + targetId + '] after write:', localStorage.getItem('cmmc-status-' + targetId))
-                      } else { console.log('  writeStatus SKIPPED (attrs.status=false)') }
-
-                      if (attrs.inheritance) {
-                        const v = readInheritance(sourceId)
-                        console.log('  writeInheritance ->', v)
-                        writeInheritance(targetId, v)
-                        console.log('  localStorage[cmmc-inheritance-' + targetId + '] after write:', localStorage.getItem('cmmc-inheritance-' + targetId))
-                      } else { console.log('  writeInheritance SKIPPED (attrs.inheritance=false)') }
-
-                      if (attrs.inheritanceSource) {
-                        const v = readInheritanceSource(sourceId)
-                        console.log('  writeInheritanceSource ->', v)
-                        writeInheritanceSource(targetId, v)
-                        console.log('  localStorage[cmmc-inheritance-source-' + targetId + '] after write:', localStorage.getItem('cmmc-inheritance-source-' + targetId))
-                      } else { console.log('  writeInheritanceSource SKIPPED (attrs.inheritanceSource=false)') }
-
-                      if (attrs.evidencePool) {
-                        const v = readPool(sourceId)
-                        console.log('  writePool ->', v)
-                        writePool(targetId, v)
-                        console.log('  localStorage[cmmc-pool-' + targetId + '] after write:', localStorage.getItem('cmmc-pool-' + targetId))
-                      } else { console.log('  writePool SKIPPED (attrs.evidencePool=false)') }
-                      console.groupEnd()
+                      if (attrs.status) writeStatus(targetId, readStatus(sourceId))
+                      if (attrs.inheritance) writeInheritance(targetId, readInheritance(sourceId))
+                      if (attrs.inheritanceSource) writeInheritanceSource(targetId, readInheritanceSource(sourceId))
+                      if (attrs.evidencePool) writePool(targetId, readPool(sourceId))
                     }
-                    console.groupEnd()
-                    // END TEMP DEBUG
 
                     setCopyAttrsModal(null)
                     setCopyAttrsResult(`Copied selected attributes to ${targets.length} control${targets.length === 1 ? '' : 's'}.`)
