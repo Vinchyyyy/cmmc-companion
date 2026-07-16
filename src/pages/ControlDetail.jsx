@@ -5,6 +5,7 @@ import ExpectedEvidenceTypes from '../components/ExpectedEvidenceTypes'
 import useFocusTrap from '../components/useFocusTrap'
 import { useParams, Link, useSearchParams, useLocation } from 'react-router-dom'
 import controls from '../data/controls/index.js'
+import { sortControlsInAssessmentOrder } from '../utils/controlOrder'
 import { controlDiscussions } from '../data/controlDiscussions.js'
 import { PROVIDERS } from '../data/providers'
 import { getEnvironmentTechTags } from '../utils/environmentProfile'
@@ -56,6 +57,7 @@ import {
   readObjectiveStatus,
   writeObjectiveStatus,
   getTrendingStatus,
+  getStatusConsistencyWarning,
 } from '../utils/objectiveStatus'
 
 // scoring.js is intentionally NOT imported here — the Scoring & POA&M
@@ -64,6 +66,16 @@ import {
 
 // Evidence tag id → display label (for tag-aware reuse overlap chips).
 const EVIDENCE_TAG_LABEL = new Map(evidenceTags.map((t) => [t.id, t.label]))
+
+// eMASS import caps these free-text fields at 400 characters.
+const EMASS_CHAR_LIMIT = 400
+const EMASS_LIMITED_FIELDS = new Set(['interviews', 'examine', 'test'])
+
+// Prev/Next nav must walk controls in the same family → practice-number
+// order the Control Library displays them in (see controlOrder.js) — not
+// the raw JSON source order, which groups by level and can put e.g.
+// MP.L1-3.8.3 before MP.L2-3.8.1/3.8.2.
+const orderedControls = sortControlsInAssessmentOrder(controls)
 
 function resolveBackUrl(rawFrom) {
   if (!rawFrom) return '/controls'
@@ -506,7 +518,7 @@ function EditDetailsModal({
   status, onStatusSelect,
   inheritance, onInheritanceSelect,
   inheritanceSources, addInheritanceSource, removeInheritanceSource,
-  trendingStatus,
+  statusWarning,
   assignedTo, onAssignedToChange, onAssignedToBlur, onAssignedToSelect,
 }) {
   const modalRef = useRef(null)
@@ -563,6 +575,15 @@ function EditDetailsModal({
                 >{s}</button>
               ))}
             </div>
+            <p className="cd-edit-trending-note muted">
+              Status automatically follows objective MET/NOT MET progress. A manual pick here holds until the next
+              objective status change recalculates it.
+            </p>
+            {statusWarning && (
+              <p className={`cd-edit-status-warning cd-edit-status-warning--${statusWarning.severity}`}>
+                ⚠ {statusWarning.message}
+              </p>
+            )}
           </section>
 
           {/* Inheritance */}
@@ -637,15 +658,6 @@ function EditDetailsModal({
               </div>
             </section>
           )}
-
-          {/* Trending — read-only */}
-          <section className="cd-edit-section">
-            <div className="cd-edit-section-title">Trending Status</div>
-            <div className="cd-edit-trending">
-              <span className={`status-badge ${STATUS_BADGE_CLASS[trendingStatus]}`}>{trendingStatus}</span>
-              <span className="cd-edit-trending-note muted">Calculated from objective progress — not directly editable.</span>
-            </div>
-          </section>
 
           {/* Assigned To */}
           <section className="cd-edit-section">
@@ -900,7 +912,13 @@ function ControlDetailView() {
   // Role picker modal — can be opened from the Interviews section header
   const [showRolePickerModal, setShowRolePickerModal] = useState(false)
 
-  const globalArtifactNames = useMemo(() => buildArtifactIndex(controls).map((e) => e.artifact), [])
+  // Recomputed whenever this control's pool or objective artifacts change so
+  // newly-typed names show up in suggestion dropdowns immediately — previously
+  // memoized with an empty deps array, so it only reflected the artifact set
+  // as of the last full page load / control navigation.
+  const globalArtifactNames = useMemo(() => buildArtifactIndex(controls).map((e) => e.artifact),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [pool, objectiveArtifacts])
 
   // Per-control state is reset by remounting on `id` change (see the
   // ControlDetail wrapper's key={id}); every useState initializer above reads
@@ -941,6 +959,33 @@ function ControlDetailView() {
     [control, objectiveStatuses]
   )
 
+  // Whether an objective has any recorded work (results, artifacts, a saved
+  // finding, or interviewed roles) even if its MET/NOT MET status hasn't
+  // been explicitly set — drives the rail's "In Progress" indicator below.
+  const objectiveHasWork = (objId) => {
+    const result = objectiveResults[objId]
+    if (result && Object.values(result).some((v) => (v ?? '').trim())) return true
+    if ((objectiveArtifacts[objId] ?? []).length > 0) return true
+    if (objectiveFindings[objId]) return true
+    if ((objectiveInterviewedRoles[objId] ?? []).length > 0) return true
+    return false
+  }
+
+  // Status is a single field driven automatically by objective progress —
+  // there is no separate "Trending" indicator anymore. Every time an
+  // objective's MET/NOT MET call changes, Status is recomputed from scratch
+  // and always overwritten (all objectives MET → MET; any NOT MET → NOT MET;
+  // otherwise In Progress/Not Started). A manually-picked Status (via Edit
+  // Details) stands until the next objective-status change recomputes it —
+  // getStatusConsistencyWarning flags the gap in the meantime.
+  const syncStatusToTrending = (nextObjectiveStatuses) => {
+    const next = getTrendingStatus(control?.objectives ?? [], nextObjectiveStatuses)
+    setStatus(next)
+    writeStatus(id, next)
+  }
+
+  const statusWarning = getStatusConsistencyWarning(status, trendingStatus)
+
   const handleStatusSelect      = (v) => { setStatus(v); writeStatus(id, v) }
   const handleInheritanceSelect = (v) => { setInheritance(v); writeInheritance(id, v) }
   const addInheritanceSource = (name) => {
@@ -959,9 +1004,11 @@ function ControlDetailView() {
   const handleAssignedToBlur   = () => { const n = normalizeAssignee(assignedTo); setAssignedTo(n); writeAssignedTo(id, n) }
   const handleAssignedToSelect = (name) => { setAssignedTo(name); writeAssignedTo(id, name) }
   const handleObjectiveStatusChange = (objId, value) => {
-    setObjectiveStatuses((prev) => ({ ...prev, [objId]: value }))
+    const next = { ...objectiveStatuses, [objId]: value }
+    setObjectiveStatuses(next)
     writeObjectiveStatus(id, objId, value)
     if (value !== OBJECTIVE_STATUS_UNREVIEWED) promoteToInProgress(status, id, setStatus)
+    syncStatusToTrending(next)
   }
 
   const handleObjectiveInheritanceAdd = (objId, source) => {
@@ -976,6 +1023,24 @@ function ControlDetailView() {
     const next = (objectiveInheritance[objId] ?? []).filter((s) => s !== source)
     setObjectiveInheritance((prev) => ({ ...prev, [objId]: next }))
     writeObjectiveInheritance(id, objId, next)
+  }
+
+  // Applies every control-level inheritance source to every objective on this
+  // control in one action. Additive/union only — an objective's existing
+  // inheritance sources are preserved and sources already present are skipped,
+  // so this is always safe to click again after the control's sources change.
+  const handleApplyInheritanceToAllObjectives = () => {
+    if (inheritanceSources.length === 0 || !control?.objectives?.length) return
+    const nextObjInheritance = { ...objectiveInheritance }
+    for (const obj of control.objectives) {
+      const current = nextObjInheritance[obj.id] ?? []
+      const additions = inheritanceSources.filter((s) => !current.includes(s))
+      if (additions.length === 0) continue
+      const next = [...current, ...additions]
+      nextObjInheritance[obj.id] = next
+      writeObjectiveInheritance(id, obj.id, next)
+    }
+    setObjectiveInheritance(nextObjInheritance)
   }
 
   const handleObjectiveResultChange = (objId, field, value) => {
@@ -1040,6 +1105,25 @@ function ControlDetailView() {
       writeObjectiveArtifacts(id, objId, filtered)
     }
     setObjectiveArtifacts(nextObjArtifacts)
+  }
+
+  // Applies every current Evidence Pool artifact to every objective on this
+  // control in one action. Additive/union only — an objective's existing
+  // artifact list is preserved and pool items already assigned are skipped,
+  // so this is always safe to click again after the pool changes.
+  const handleApplyPoolToAllObjectives = () => {
+    if (pool.length === 0 || !control?.objectives?.length) return
+    const nextObjArtifacts = { ...objectiveArtifacts }
+    for (const obj of control.objectives) {
+      const current = nextObjArtifacts[obj.id] ?? []
+      const additions = pool.filter((item) => !current.includes(item))
+      if (additions.length === 0) continue
+      const next = [...current, ...additions]
+      nextObjArtifacts[obj.id] = next
+      writeObjectiveArtifacts(id, obj.id, next)
+    }
+    setObjectiveArtifacts(nextObjArtifacts)
+    promoteToInProgress(status, id, setStatus)
   }
 
   const getObjSuggestions = (objId) => {
@@ -1120,9 +1204,9 @@ function ControlDetailView() {
   const supportingEvidence = evidenceTypes.filter((e) => e.likelyControls.includes(control.id))
   const selectedObj = control.objectives.find((o) => o.id === selectedObjectiveId) ?? control.objectives[0] ?? null
 
-  const controlIndex = controls.findIndex((c) => c.id === id)
-  const prevControl = controlIndex > 0 ? controls[controlIndex - 1] : null
-  const nextControl = controlIndex < controls.length - 1 ? controls[controlIndex + 1] : null
+  const controlIndex = orderedControls.findIndex((c) => c.id === id)
+  const prevControl = controlIndex > 0 ? orderedControls[controlIndex - 1] : null
+  const nextControl = controlIndex < orderedControls.length - 1 ? orderedControls[controlIndex + 1] : null
 
   return (
     <div className="dash-root">
@@ -1168,7 +1252,17 @@ function ControlDetailView() {
         <div className="cd-header-meta">
           <div className="cd-meta-item">
             <span className="cd-meta-label">Status</span>
-            <span className={`status-badge ${STATUS_BADGE_CLASS[status]}`}>{status}</span>
+            <span className="cd-status-value-row">
+              <span className={`status-badge ${STATUS_BADGE_CLASS[status]}`}>{status}</span>
+              {statusWarning && (
+                <span
+                  className={`cd-status-warning cd-status-warning--${statusWarning.severity}`}
+                  title={`${statusWarning.message} ${statusWarning.note}`}
+                >
+                  ⚠
+                </span>
+              )}
+            </span>
           </div>
 
           <div className="cd-meta-item">
@@ -1196,11 +1290,6 @@ function ControlDetailView() {
           )}
 
           <div className="cd-meta-item">
-            <span className="cd-meta-label">Trending</span>
-            <span className={`status-badge ${STATUS_BADGE_CLASS[trendingStatus]}`}>{trendingStatus}</span>
-          </div>
-
-          <div className="cd-meta-item">
             <span className="cd-meta-label">Assigned To</span>
             {assignedTo
               ? <span className="cd-meta-value">{assignedTo}</span>
@@ -1219,6 +1308,15 @@ function ControlDetailView() {
             <Link to={`/relationships?control=${control.id}`}><button type="button">View Relationships</button></Link>
             <Link to={`/evidence?search=${encodeURIComponent(control.id)}`}><button type="button">Search Related Evidence</button></Link>
             <button type="button" onClick={() => setShowBulkFindingsModal(true)}>Create Findings for This Control</button>
+            {inheritanceSources.length > 0 && (
+              <button
+                type="button"
+                onClick={handleApplyInheritanceToAllObjectives}
+                title="Add every control-level inheritance source to every objective on this control. Existing per-objective sources are left as-is."
+              >
+                Apply Inheritance to All Objectives
+              </button>
+            )}
           </div>
         </div>
 
@@ -1227,9 +1325,21 @@ function ControlDetailView() {
 
           {/* LEFT: Evidence Pool + Expected Evidence Types */}
           <div className="cd-header-pool">
-            <label htmlFor="pool-input">
-              <strong>Evidence Pool{pool.length > 0 ? ` (${pool.length})` : ''}</strong>
-            </label>
+            <div className="cd-pool-header-row">
+              <label htmlFor="pool-input">
+                <strong>Evidence Pool{pool.length > 0 ? ` (${pool.length})` : ''}</strong>
+              </label>
+              {pool.length > 0 && (
+                <button
+                  type="button"
+                  className="cd-pool-apply-all-btn"
+                  onClick={handleApplyPoolToAllObjectives}
+                  title="Add every Evidence Pool artifact to every objective on this control. Existing assignments and overlaps are left as-is."
+                >
+                  Apply to All Objectives
+                </button>
+              )}
+            </div>
             <p className="muted" style={{ fontSize: 'var(--text-xs)', margin: 'var(--space-1) 0 var(--space-2)' }}>
               Artifact names only — no file contents, no sensitive data. Examples: SSP.pdf, RBAC Policy.docx
             </p>
@@ -1319,6 +1429,9 @@ function ControlDetailView() {
           {control.objectives.map((obj) => {
             const artCount = (objectiveArtifacts[obj.id] ?? []).length
             const objStatus = objectiveStatuses[obj.id] ?? OBJECTIVE_STATUS_UNREVIEWED
+            const railStatus = objStatus === OBJECTIVE_STATUS_UNREVIEWED && objectiveHasWork(obj.id)
+              ? 'In Progress'
+              : objStatus
             const isActive = selectedObj?.id === obj.id
             return (
               <button
@@ -1331,8 +1444,10 @@ function ControlDetailView() {
                 <span className="cd-rail-label mono">[{obj.id}]</span>
                 <span className="cd-rail-text">{obj.text}</span>
                 <span className="cd-rail-meta">
-                  {objStatus !== OBJECTIVE_STATUS_UNREVIEWED && (
-                    <span className={`cd-rail-status cd-rail-status--${objStatus === OBJECTIVE_STATUS_MET ? 'met' : 'not-met'}`}>{objStatus}</span>
+                  {railStatus !== OBJECTIVE_STATUS_UNREVIEWED && (
+                    <span className={`cd-rail-status cd-rail-status--${
+                      railStatus === OBJECTIVE_STATUS_MET ? 'met' : railStatus === OBJECTIVE_STATUS_NOT_MET ? 'not-met' : 'in-progress'
+                    }`}>{railStatus}</span>
                   )}
                   {artCount > 0 && (
                     <span className="cd-rail-count">{artCount} artifact{artCount !== 1 ? 's' : ''}</span>
@@ -1589,6 +1704,15 @@ function ControlDetailView() {
                         rows={3}
                         placeholder={placeholder}
                       />
+                      {EMASS_LIMITED_FIELDS.has(field) && (() => {
+                        const len = ((objectiveResults[selectedObj.id] ?? {})[field] ?? '').length
+                        const overLimit = len > EMASS_CHAR_LIMIT
+                        return (
+                          <div className={`cd-field-char-count${overLimit ? ' cd-field-char-count--over' : ''}`}>
+                            {len} / {EMASS_CHAR_LIMIT}{overLimit ? ' — exceeds eMASS import limit' : ''}
+                          </div>
+                        )
+                      })()}
                     </div>
                   )
                 })}
@@ -1740,7 +1864,7 @@ function ControlDetailView() {
           inheritanceSources={inheritanceSources}
           addInheritanceSource={addInheritanceSource}
           removeInheritanceSource={removeInheritanceSource}
-          trendingStatus={trendingStatus}
+          statusWarning={statusWarning}
           assignedTo={assignedTo}
           onAssignedToChange={handleAssignedToChange}
           onAssignedToBlur={handleAssignedToBlur}

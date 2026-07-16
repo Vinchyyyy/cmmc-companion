@@ -153,6 +153,8 @@ function Settings() {
         p(summary.evidencePoolsWritten,     'evidence pool',        'evidence pools'),
         p(summary.objectiveArtifactsWritten,'objective artifact set','objective artifact sets'),
         p(summary.objectiveResultsWritten,  'objective result',     'objective results'),
+        p(summary.reviewGroupsWritten,      'DIBCAC review group',  'DIBCAC review groups'),
+        p(summary.reviewFoldersWritten,     'DIBCAC review folder', 'DIBCAC review folders'),
       ].filter(Boolean)
       const skipSuffix = summary.skippedBecauseExisting > 0
         ? ` Skipped ${summary.skippedBecauseExisting} existing field${summary.skippedBecauseExisting === 1 ? '' : 's'} — Fill Empty Only mode.`

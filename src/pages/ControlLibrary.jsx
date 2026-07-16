@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams, useLocation } from 'react-router-dom'
-import { SlidersHorizontal, CheckSquare, Square, X, ArrowUpRight, ArrowDownRight, Loader, CircleDashed } from 'lucide-react'
+import { SlidersHorizontal, CheckSquare, Square, X } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
 import controls from '../data/controls/index'
 import { PROVIDERS } from '../data/providers'
+import { FAMILY_ORDER, comparePracticeIds } from '../utils/controlOrder'
 import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
 import { readNote, writeNote } from '../utils/notes'
 import { hasObjectiveNotes, writeObjectiveNote } from '../utils/objectiveNotes'
@@ -39,13 +40,6 @@ import {
 import { IconNotes, IconPaperclip } from '../components/icons'
 import { readAssignedTo, writeAssignedTo, normalizeAssignee } from '../utils/assignment'
 import BulkFindingsModal from '../components/BulkFindingsModal'
-
-const TRENDING_INDICATOR = {
-  'MET':         { color: 'var(--color-met)',         title: 'Trending: MET',          icon: ArrowUpRight },
-  'NOT MET':     { color: 'var(--color-not-met)',     title: 'Trending: NOT MET',       icon: ArrowDownRight },
-  'In Progress': { color: 'var(--color-in-progress)', title: 'Trending: In Progress',   icon: Loader },
-  'Not Started': { color: 'var(--color-text-muted)',  title: 'Trending: Not Started',   icon: CircleDashed },
-}
 
 function getControlWarnings(control) {
   const status      = readStatus(control.id)
@@ -83,29 +77,10 @@ const DEFAULTS = {
   inheritance: 'All',
   score: 'All',
   poam: 'All',
-  trending: 'All',
   warnings: 'All',
   inheritanceSource: 'All',
   assignedTo: 'All',
 }
-
-// Official CMMC assessment order per Assessment Guide TOC
-const FAMILY_ORDER = [
-  'Access Control',
-  'Awareness and Training',
-  'Audit and Accountability',
-  'Configuration Management',
-  'Identification and Authentication',
-  'Incident Response',
-  'Maintenance',
-  'Media Protection',
-  'Personnel Security',
-  'Physical Protection',
-  'Risk Assessment',
-  'Security Assessment',
-  'System and Communications Protection',
-  'System and Information Integrity',
-]
 
 // Family name -> 2-letter code (the prefix of every control ID in that family)
 const FAMILY_CODES = controls.reduce((acc, c) => {
@@ -122,28 +97,9 @@ const STATUS_VAR_COLOR = {
   'Not Started': 'var(--color-not-started)',
 }
 
-const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'trending', 'warnings', 'inheritanceSource', 'assignedTo']
-const CHIP_FILTER_KEYS = ['status', 'trending', 'warnings', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'inheritanceSource', 'assignedTo']
+const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'warnings', 'inheritanceSource', 'assignedTo']
+const CHIP_FILTER_KEYS = ['status', 'warnings', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'inheritanceSource', 'assignedTo']
 const SEARCH_DEBOUNCE_MS = 500
-
-function parsePracticeNumber(controlId) {
-  const m = String(controlId).match(/-(\d+(?:\.\d+)+)/)
-  if (!m) return []
-  return m[1].split('.').map(Number)
-}
-
-function comparePracticeIds(a, b) {
-  const aId = typeof a === 'string' ? a : (a.id ?? '')
-  const bId = typeof b === 'string' ? b : (b.id ?? '')
-  const aParts = parsePracticeNumber(aId)
-  const bParts = parsePracticeNumber(bId)
-  const len = Math.max(aParts.length, bParts.length)
-  for (let i = 0; i < len; i++) {
-    const diff = (aParts[i] ?? 0) - (bParts[i] ?? 0)
-    if (diff !== 0) return diff
-  }
-  return String(aId).localeCompare(String(bId))
-}
 
 function getProviderSuggestions(value) {
   if (!value.trim()) return []
@@ -155,7 +111,6 @@ function getProviderSuggestions(value) {
 }
 
 function chipLabel(key, value) {
-  if (key === 'trending')          return `Trending: ${value}`
   if (key === 'artifacts')         return value === 'Yes' ? 'Has artifacts' : 'No artifacts'
   if (key === 'score')             return `Score: (${Math.abs(Number(value))}) pts`
   if (key === 'poam')              return value === 'Allowed' ? 'POA&M Allowed' : 'Non-POA&Mable'
@@ -172,6 +127,26 @@ function parseMultiFilter(raw) {
 // chip filters (CHIP_FILTER_KEYS) and reapply it later ────────────────────
 
 const SAVED_FILTERS_KEY = 'cmmc-saved-filters'
+const FILTERS_STORAGE_KEY = 'cmmc-control-library-filters'
+const COLLAPSED_FAMILIES_KEY = 'cmmc-collapsed-families'
+
+function readCollapsedFamilies() {
+  try {
+    const raw = localStorage.getItem(COLLAPSED_FAMILIES_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    return new Set(Array.isArray(parsed) ? parsed : [])
+  } catch {
+    return new Set()
+  }
+}
+
+function writeCollapsedFamilies(set) {
+  try {
+    localStorage.setItem(COLLAPSED_FAMILIES_KEY, JSON.stringify([...set]))
+  } catch {
+    // localStorage may be unavailable (private browsing, quota, etc.)
+  }
+}
 
 function readSavedFilters() {
   try {
@@ -212,7 +187,6 @@ function FilterModal({
   toggleMultiFilter,
   handleClearFilters,
   statusSet,
-  trendingSet,
   warningsSet,
   notesSet,
   artifactsSet,
@@ -283,15 +257,6 @@ function FilterModal({
             <div className="cl-filter-modal-pills">
               {STATUSES.map((s) => (
                 <FilterPill key={s} filterKey="status" value={s} activeSet={statusSet} onToggle={toggleMultiFilter} />
-              ))}
-            </div>
-          </section>
-
-          <section className="cl-filter-modal-section">
-            <div className="cl-filter-modal-section-title">Trending</div>
-            <div className="cl-filter-modal-pills">
-              {['Not Started', 'In Progress', 'MET', 'NOT MET'].map((s) => (
-                <FilterPill key={s} filterKey="trending" value={s} label={`Trending: ${s}`} activeSet={trendingSet} onToggle={toggleMultiFilter} />
               ))}
             </div>
           </section>
@@ -419,7 +384,6 @@ function ControlLibrary() {
   const inheritSet     = parseMultiFilter(searchParams.get('inheritance'))
   const scoreSet       = parseMultiFilter(searchParams.get('score'))
   const poamSet        = parseMultiFilter(searchParams.get('poam'))
-  const trendingSet    = parseMultiFilter(searchParams.get('trending'))
   const warningsSet    = parseMultiFilter(searchParams.get('warnings'))
   const inheritanceSourceSet = parseMultiFilter(searchParams.get('inheritanceSource'))
   const assignedToSet  = parseMultiFilter(searchParams.get('assignedTo'))
@@ -440,7 +404,18 @@ function ControlLibrary() {
   const [openWarning, setOpenWarning] = useState(null)
   const [showBulkFindingsModal, setShowBulkFindingsModal] = useState(false)
   const [savedFilters, setSavedFilters] = useState(() => readSavedFilters())
+  const [collapsedFamilies, setCollapsedFamilies] = useState(() => readCollapsedFamilies())
   const forceUpdate = () => setUpdateKey((k) => k + 1)
+
+  const toggleFamilyCollapse = (family) => {
+    setCollapsedFamilies((prev) => {
+      const next = new Set(prev)
+      if (next.has(family)) next.delete(family)
+      else next.add(family)
+      writeCollapsedFamilies(next)
+      return next
+    })
+  }
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -449,14 +424,17 @@ function ControlLibrary() {
 
   useEffect(() => { setCopyAttrsResult(null) }, [selected]) // eslint-disable-line react-hooks/set-state-in-effect
 
-  // Default to Access Control on initial page load if no filters are active
+  // Restore the last-used filters when arriving here with a bare URL (e.g.
+  // the sidebar "Control Library" link has no query string) — navigating
+  // away to another page and back should not silently drop an assignedTo
+  // filter or reset the family tab. Falls back to Access Control only on
+  // the very first visit, when nothing has been persisted yet.
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const hasFilters = FILTER_KEYS.some((k) => {
-      const v = params.get(k)
-      return v !== null && v !== '' && v !== DEFAULTS[k]
-    })
-    if (!hasFilters) {
+    if (window.location.search) return
+    const stored = localStorage.getItem(FILTERS_STORAGE_KEY)
+    if (stored) {
+      setSearchParams(new URLSearchParams(stored), { replace: true })
+    } else {
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev)
         next.set('family', 'Access Control')
@@ -465,6 +443,13 @@ function ControlLibrary() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Persist the active filter set so it survives navigating away and back.
+  useEffect(() => {
+    const qs = searchParams.toString()
+    if (qs) localStorage.setItem(FILTERS_STORAGE_KEY, qs)
+    else localStorage.removeItem(FILTERS_STORAGE_KEY)
+  }, [searchParams])
 
   const toggleHideMet = () => setHideMet((prev) => {
     const next = !prev
@@ -599,7 +584,6 @@ function ControlLibrary() {
     if (poamSet.has('Not Allowed')) return !allowed
     return true
   }
-  const matchesTrending    = (c) => trendingSet.size === 0 || trendingSet.has(getTrendingStatusFromStorage(c))
   const matchesWarnings    = (c) => {
     if (warningsSet.size === 0) return true
     const hasWarnings = getControlWarnings(c).length > 0
@@ -648,7 +632,7 @@ function ControlLibrary() {
   const results = controls.filter((c) =>
     matchesSearch(c) && matchesFamily(c) && matchesStatus(c) &&
     matchesNotes(c) && matchesArtifacts(c) && matchesInheritance(c) &&
-    matchesScore(c) && matchesPoam(c) && matchesTrending(c) && matchesHideMet(c) &&
+    matchesScore(c) && matchesPoam(c) && matchesHideMet(c) &&
     matchesWarnings(c) && matchesInheritanceSource(c) && matchesAssignedTo(c)
   )
 
@@ -999,13 +983,25 @@ function ControlLibrary() {
                 statusCounts[s] = (statusCounts[s] || 0) + 1
               }
 
+              const isCollapsed = collapsedFamilies.has(family)
+
               return (
               <div key={family}>
-                <div className="control-family-header">
+                <div
+                  className="control-family-header control-family-header--collapsible"
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={!isCollapsed}
+                  onClick={() => toggleFamilyCollapse(family)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleFamilyCollapse(family) } }}
+                >
                   <div className="control-family-header-top">
-                    <span>{family} — {groupControls.length} control{groupControls.length === 1 ? '' : 's'}</span>
+                    <span className="control-family-header-title">
+                      <span className={`family-collapse-caret${isCollapsed ? ' family-collapse-caret--collapsed' : ''}`} aria-hidden="true">▾</span>
+                      {family} — {groupControls.length} control{groupControls.length === 1 ? '' : 's'}
+                    </span>
                     {multiSelectMode && (
-                      <button type="button" className="family-select-btn" onClick={toggleFamily}>
+                      <button type="button" className="family-select-btn" onClick={(e) => { e.stopPropagation(); toggleFamily() }}>
                         {allFamilySelected ? 'Deselect family' : 'Select family'}
                       </button>
                     )}
@@ -1020,6 +1016,7 @@ function ControlLibrary() {
                     ))}
                   </div>
                 </div>
+                {!isCollapsed && (
                 <ul className="control-list">
                   {groupControls.map((control) => {
                     const status       = readStatus(control.id)
@@ -1028,8 +1025,6 @@ function ControlLibrary() {
                     const poamOk       = isPoamAllowed(control.id)
                     const hasNote      = hasAnyNote(control)
                     const hasArtifacts = hasObjectiveArtifacts(control)
-                    const trending     = getTrendingStatusFromStorage(control)
-                    const trendInd     = TRENDING_INDICATOR[trending]
                     const isSelected        = selected.has(control.id)
                     const isOpen            = openQuickLook === control.id
                     const panelId           = `quick-look-${control.id}`
@@ -1078,9 +1073,6 @@ function ControlLibrary() {
                               <IconPaperclip size="14px" />
                             </span>
                           )}
-                          <span className="row-icon" style={{ color: trendInd.color }} title={trendInd.title}>
-                            <trendInd.icon size={14} />
-                          </span>
                         </span>
                       </>
                     )
@@ -1148,10 +1140,6 @@ function ControlLibrary() {
                           <div className="quick-look-stat">
                             <span className="quick-look-stat-label">Unreviewed</span>
                             <span className="quick-look-stat-value">{unreviewed}</span>
-                          </div>
-                          <div className="quick-look-stat">
-                            <span className="quick-look-stat-label">Trending</span>
-                            <span className="quick-look-stat-value" style={{ color: trendInd.color }}>{trending}</span>
                           </div>
                           {inheritance !== DEFAULT_INHERITANCE && (
                             <>
@@ -1221,6 +1209,7 @@ function ControlLibrary() {
                     )
                   })}
                 </ul>
+                )}
               </div>
               )
             })}
@@ -1284,22 +1273,6 @@ function ControlLibrary() {
               <div className="cl-icon-guide-row">
                 <IconPaperclip size="13px" style={{ flexShrink: 0 }} />
                 <span>Objective artifact references</span>
-              </div>
-              <div className="cl-icon-guide-row">
-                <ArrowUpRight size={13} style={{ flexShrink: 0, color: 'var(--color-met)' }} />
-                <span>Trending MET</span>
-              </div>
-              <div className="cl-icon-guide-row">
-                <ArrowDownRight size={13} style={{ flexShrink: 0, color: 'var(--color-not-met)' }} />
-                <span>Trending NOT MET</span>
-              </div>
-              <div className="cl-icon-guide-row">
-                <Loader size={13} style={{ flexShrink: 0, color: 'var(--color-in-progress)' }} />
-                <span>Trending In Progress</span>
-              </div>
-              <div className="cl-icon-guide-row">
-                <CircleDashed size={13} style={{ flexShrink: 0, color: 'var(--color-text-muted)' }} />
-                <span>Trending Not Started</span>
               </div>
               <div className="cl-icon-guide-row">
                 <span style={{ flexShrink: 0, width: '13px', textAlign: 'center' }}>⚠</span>
@@ -1366,7 +1339,6 @@ function ControlLibrary() {
           toggleMultiFilter={toggleMultiFilter}
           handleClearFilters={handleClearFilters}
           statusSet={statusSet}
-          trendingSet={trendingSet}
           warningsSet={warningsSet}
           notesSet={notesSet}
           artifactsSet={artifactsSet}

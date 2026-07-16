@@ -39,7 +39,7 @@ import {
   readInheritanceSources,
   writeInheritanceSources,
 } from './inheritance'
-import { getReviewGroups, saveReviewGroups } from './reviewGroups'
+import { getReviewGroups, saveReviewGroups, getReviewFolders, saveReviewFolders } from './reviewGroups'
 import { clearRegistry } from './artifactRegistry'
 import { readObjectiveFinding, writeObjectiveFinding } from './objectiveFindings'
 import { readObjectiveInterviewedRoles, writeObjectiveInterviewedRoles } from './objectiveInterviewedRoles'
@@ -154,6 +154,7 @@ export function exportProjectState(controls) {
     artifacts: listArtifacts(),
     environmentProfile: readEnvironmentProfile(),
     reviewGroups: getReviewGroups(),
+    reviewFolders: getReviewFolders(),
     controls: exported,
   }
 }
@@ -237,6 +238,7 @@ export function importProjectState(projectJson, controls, options = {}) {
     objectiveFindingsWritten: 0,
     objectiveInterviewedRolesWritten: 0,
     reviewGroupsWritten: 0,
+    reviewFoldersWritten: 0,
     skippedUnknownId: 0,
     skippedInvalidStatus: 0,
     skippedUnknownObjective: 0,
@@ -250,6 +252,14 @@ export function importProjectState(projectJson, controls, options = {}) {
   if (Array.isArray(projectJson.reviewGroups) && opts.mode === 'replace') {
     saveReviewGroups(projectJson.reviewGroups)
     summary.reviewGroupsWritten = projectJson.reviewGroups.length
+  }
+
+  // Review group folders — same top-level, replace-only treatment as review
+  // groups above. Missing field = older backup predating folders (no-op, so
+  // any local folders are left alone rather than being wiped out).
+  if (Array.isArray(projectJson.reviewFolders) && opts.mode === 'replace') {
+    saveReviewFolders(projectJson.reviewFolders)
+    summary.reviewFoldersWritten = projectJson.reviewFolders.length
   }
 
   // Artifact registry: v3+ files carry a top-level `artifacts` array of records.
@@ -578,6 +588,7 @@ const WIPE_PREFIXES = [
 const WIPE_EXACT_KEYS = [
   'cmmc-artifacts',
   'cmmc-companion-dibcac-review-groups',
+  'cmmc-companion-dibcac-review-folders',
   'cmmc-environment-profile',
   'cmmc-export-osc',
   'cmmc-export-assessment',

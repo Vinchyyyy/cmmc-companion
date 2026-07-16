@@ -102,14 +102,12 @@ function buildFamilyData(controls) {
 
   for (const c of controls) {
     const status      = readStatus(c.id)
-    const trending    = getTrendingStatusFromStorage(c)
     const inheritance = readInheritance(c.id)
     const source      = readInheritanceSource(c.id)
     const objectives  = c.objectives ?? []
 
     rows.push([`${c.id} — ${c.title}`])
     rows.push(['Assessment Status', status])
-    rows.push(['Trending Status',   trending])
     rows.push(['Inheritance',       inheritance])
     rows.push(['Inherited From',    source ?? ''])
 

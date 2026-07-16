@@ -12,21 +12,93 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v4.0.0 — current release, open by default */}
+      {/* v4.2.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.2.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span style={{ color: 'var(--color-text)' }}>Status/Trending Merge, Assessment Order Fix &amp; Library Improvements</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>July 16, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-accent)' }}>
+
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Merges the Trending indicator into a single auto-syncing Status field, fixes a Control Detail Prev/Next bug that could walk controls out of assessment order, and adds filter persistence and collapsible family groups to the Control Library.
+          </p>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Status &amp; Trending Merge</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Removed the separate Trending indicator everywhere (Control Detail, Control Library filters/legend/quick-look, xlsx export). Status is now the single field, and it automatically recomputes from objective MET/NOT MET progress every time an objective's call changes.</li>
+            <li>Fixed a bug where flipping an objective from NOT MET back to MET wouldn't re-sync Status once it had already been auto-set to NOT MET.</li>
+            <li>Manually overriding Status is still supported via Edit Details; a warning now appears next to the Status badge (and in the Edit Details modal) when a manual pick disagrees with objective progress, until the next objective change resyncs it.</li>
+            <li>Added an "In Progress" indicator to the Objective Rail for objectives with recorded work (interviews, examine, test, artifacts, or a finding) that haven't been marked MET/NOT MET yet.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Assessment Order Fix</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Fixed Control Detail's Prev/Next navigation, which was walking controls in raw data-file order instead of practice-number order — this put Level 1 controls ahead of lower-numbered Level 2 controls in the same family (e.g. MP.L1-3.8.3 appeared before MP.L2-3.8.1). Affected Media Protection, Physical Protection, and System &amp; Communications Protection. Prev/Next now matches the same family → practice-number order shown in the Control Library.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Control Library</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Filters (family tab, assignedTo, status, etc.) now persist across navigation — leaving the Control Library and coming back no longer silently resets to the Access Control tab.</li>
+            <li>Family group headers in the "All" view are now collapsible, with the collapsed/expanded state remembered per family.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Other</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Added a non-intrusive character counter (N / 400) to the Interviews, Examine, and Test fields, flagging when a field exceeds eMASS's 400-character import limit.</li>
+          </ul>
+
+        </div>
+      </details>
+
+      {/* v4.1.0 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.1.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span style={{ color: 'var(--color-text)' }}>Evidence Pool Fixes &amp; Backup Completeness</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>July 15, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
+
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Patch release fixing a stale-suggestion bug between the Evidence Pool and Assigned Artifacts, adding a one-click way to apply pooled evidence to every objective on a control, and closing a real gap in Project JSON backups.
+          </p>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Evidence Pool &amp; Assigned Artifacts</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Fixed a bug where a newly added Evidence Pool or Assigned Artifact entry wouldn't appear in suggestion dropdowns elsewhere on the same control until the page was refreshed — suggestions now update live as you type.</li>
+            <li>Added an "Apply to All Objectives" button on the Evidence Pool: one click assigns every pooled artifact to every objective on the control. It's additive only — existing per-objective assignments and overlapping artifacts are left untouched, so it's safe to click again after the pool changes.</li>
+            <li>Added an "Apply Inheritance to All Objectives" button in the control header (next to View Relationships / Search Related Evidence / Create Findings), shown whenever the control has at least one inheritance source. It applies every control-level inheritance source to every objective in one click, additive-only just like the Evidence Pool button.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Backup Completeness</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Fixed Project JSON export/import so DIBCAC review group folders are included — previously only the review groups themselves were backed up, so restoring on a new browser silently dropped folder organization and left groups Ungrouped.</li>
+            <li>Wipe Entire Project now also clears review group folders, matching how it already clears the groups themselves.</li>
+            <li>The restore confirmation message now explicitly reports how many DIBCAC review groups and folders were restored.</li>
+          </ul>
+
+        </div>
+      </details>
+
+      {/* v4.0.0 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.0.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Workspace Redesign: DIBCAC Mode, Documented Artifacts, Settings &amp; Accent Color</span>
+          <span style={{ color: 'var(--color-text)' }}>Workspace Redesign: DIBCAC Mode, Documented Artifacts, Settings &amp; Accent Color</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>July 14, 2026</span>
         </summary>
-        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-accent)' }}>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
 
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
             Completes the visual redesign pass across the entire application — every page now shares the same violet-accented dark workspace shell, sidebar navigation, and typography. Adds a real Accent Color picker, and closes out a batch of pre-production cleanup fixes.
           </p>
 
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Full Workspace Shell Rollout</h3>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Full Workspace Shell Rollout</h3>
           <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
             <li>DIBCAC Mode, Documented Artifacts, Settings, About, and Changelog all moved onto the shared redesigned shell (sidebar navigation, dark surface tokens, Plus Jakarta Sans / Inter / JetBrains Mono type system) — previously only Home, Control Library, Control Detail, Evidence Library, and Relationship Explorer had it.</li>
             <li>Every page in the app is now on one consistent visual system; the legacy top-nav shell is no longer used anywhere.</li>
@@ -35,14 +107,14 @@ function Changelog() {
             <li>Settings' Project Actions were reorganized into labeled Backup &amp; Restore / Official Templates groups with per-action icons and descriptions; Danger Zone copy now sits directly under the action it describes.</li>
           </ul>
 
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Accent Color</h3>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Accent Color</h3>
           <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
             <li>Added an Accent Color picker in Settings with six presets (Violet, Blue, Emerald, Rose, Gold, Cyan).</li>
             <li>Selecting a color updates the app's accent tokens globally and persists locally, so the whole workspace — nav, buttons, highlights, charts — re-themes instantly and stays that way across sessions.</li>
             <li>Removed the Theme (light/dark) toggle and Background Palette control from Settings — every page now runs on the single redesigned dark shell, so the old light-mode system no longer applied to anything and the toggle had stopped doing anything visible.</li>
           </ul>
 
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Pre-Production Cleanup</h3>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Pre-Production Cleanup</h3>
           <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
             <li>Fixed several hardcoded accent colors (sidebar logo, active nav pill, dashboard section labels, the inheritance-source heatmap gradient) that were silently ignoring the new Accent Color picker.</li>
             <li>Removed leftover debug logging from the Control Library bulk copy-attributes flow.</li>
@@ -59,7 +131,7 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.3.1</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Findings and DIBCAC Workflow Patch</span>
+          <span style={{ color: 'var(--color-text)' }}>Findings and DIBCAC Workflow Patch</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>July 1, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
@@ -68,55 +140,21 @@ function Changelog() {
             Patch release covering method-aware finding statements, bulk findings generation, a refined interview details/Apply Same Interviewer workflow, and DIBCAC Mode workflow improvements for live assessments.
           </p>
 
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Method-Aware Finding Statements</h3>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Method-Aware Findings, at Scale</h3>
           <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>Added DIBCAC-method-aware validation language to generated finding statements.</li>
-            <li>Finding statements now include objective-specific validation language based on Document, Screen Share, Artifact, Physical Review, Artifact + Screen Share, or Variable assessment methods.</li>
-            <li>Normal Findings Builder, DIBCAC group findings, and bulk findings now use the shared statement builder.</li>
-            <li>Preserved deterministic template-based generation with no AI automation or external APIs.</li>
+            <li>Generated finding statements now use validation language tailored to each objective's DIBCAC assessment method (Document, Screen Share, Artifact, Physical Review, Artifact + Screen Share, or Variable), through one shared statement builder used everywhere findings are generated.</li>
+            <li>Added bulk finding generation from three entry points — all objectives, a single control, or a Control Library multi-select — with a readiness review (Ready / Needs Attention / Skipped / Existing) and safe defaults that only auto-generate for MET objectives unless you opt in to more.</li>
           </ul>
 
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Bulk Findings</h3>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Interview &amp; Review Group Workflow</h3>
           <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>Added Create Findings for All Objectives from Project Actions.</li>
-            <li>Added Create Findings for This Control from Control Detail.</li>
-            <li>Added Create Bulk Findings from Control Library multi-select.</li>
-            <li>Added bulk readiness review with Ready, Needs Attention, Skipped, and Existing Finding counts.</li>
-            <li>Added compact target scope summaries by family, including selected control and objective counts.</li>
-            <li>Added collapsed family sections for objective review so large scopes no longer open as one flat objective list.</li>
-            <li>Added family-level warning summaries for missing roles, missing comments, missing artifacts, skipped statuses, and existing findings.</li>
-            <li>Added advanced generation options for explicitly including In Progress, Unreviewed / Not Started, and NOT MET objectives.</li>
-            <li>Preserved safe default behavior: MET objectives are eligible by default, while NOT MET, In Progress, Unreviewed, and discrepancy/difference objectives are skipped unless explicitly included.</li>
-            <li>Bulk findings generate separate objective-level finding statements.</li>
-            <li>Existing findings are preserved unless overwrite is explicitly selected.</li>
-            <li>Generated findings continue to export through the existing official Excel export path.</li>
+            <li>Reworked Fix Interview Details and Apply Same Interviewer into a shared, reusable workflow for applying interviewed roles across multiple objectives at once, with custom role support and preloaded existing selections.</li>
+            <li>DIBCAC saved review groups gained folder organization (with multi-select move and sort controls), inline comment previews, and one-click Create Group Findings for the whole group.</li>
           </ul>
 
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Interview Details Workflow</h3>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Progress Accuracy</h3>
           <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>Extracted Fix Interview Details into a reusable modal with Fix actions for missing interviewed roles and missing interview comments.</li>
-            <li>Added custom interviewed role support with a locally persisted Custom role category.</li>
-            <li>Added Apply Same Interviewer workflow for bulk applying interviewed roles across selected objectives.</li>
-            <li>Simplified Apply Same Interviewer so interview comments remain objective-specific.</li>
-            <li>Apply Same Interviewer now preloads existing interviewed roles from the current scope.</li>
-            <li>Added Apply to All and Clear Selection behavior for faster role application.</li>
-            <li>Fixed modal layering so Fix Interview Details and Apply Same Interviewer replace the parent modal step instead of stacking behind it.</li>
-          </ul>
-
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>DIBCAC Review Groups</h3>
-          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>Added inline Overall Comments previews under saved review group objectives so assessor notes can be read without opening the comment editor.</li>
-            <li>Added saved review group folder organization for assessment days, families, sessions, and follow-up groupings; folders now collapse by default.</li>
-            <li>Added multi-select group movement so multiple saved review groups can be moved into a folder or back to Ungrouped at once.</li>
-            <li>Added sort direction toggles for saved review groups, including name and created-date ordering.</li>
-            <li>Added Create Group Findings for saved review groups; group findings skip non-MET objectives by default and preserve existing findings unless overwrite is selected.</li>
-          </ul>
-
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Progress and Data Hygiene</h3>
-          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>Improved progress reconciliation so controls with all objectives marked MET derive to MET status.</li>
-            <li>Improved progress reconciliation so controls with any NOT MET objective derive to NOT MET consistently.</li>
-            <li>Updated Control Library bulk clear so Findings Builder data is cleared along with objective notes and results.</li>
+            <li>Fixed control-level progress reconciliation so a control's status correctly derives from its objectives — all-MET rolls up to MET, any NOT MET rolls up to NOT MET — and made Control Library's bulk clear also reset Findings Builder data.</li>
           </ul>
 
         </div>
@@ -127,7 +165,7 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.3.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Assessment Workbook Import, DIBCAC Workflow, Guide-Aware Reuse, and Workspace Personalization</span>
+          <span style={{ color: 'var(--color-text)' }}>Assessment Workbook Import, DIBCAC Workflow, Guide-Aware Reuse, and Workspace Personalization</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 28, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
@@ -136,98 +174,24 @@ function Changelog() {
             Adds official CMMC Level 2 Assessment Results Template workbook import with reconciliation, expanded DIBCAC workflow controls, guide-aware reuse refinements, Control Library numeric sorting, and muted theme palettes for workspace personalization.
           </p>
 
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Official Assessment Workbook Import</h3>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Official Workbook Import</h3>
           <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>Added direct <code>.xlsx</code> import for existing official CMMC Level 2 Assessment Results Template workbooks.</li>
-            <li>Added an Import Assessment Workbook action in Project Actions.</li>
-            <li>Added a staged import preview so workbook data is parsed and summarized before being applied.</li>
-            <li>Added Import as New Project and Merge Into Current Project workflows.</li>
-            <li>Imported objective notes, artifact references, findings, objective statuses, assigned-to values, and inheritance metadata where available.</li>
-            <li>Preserved current project data during merge by using conservative non-destructive merge behavior.</li>
+            <li>Added direct <code>.xlsx</code> import of existing official CMMC Level 2 Assessment Results Template workbooks, with a staged preview and a choice to merge into the current project or start a new one — notes, artifacts, findings, statuses, assignments, and inheritance metadata all carry over.</li>
+            <li>Unrecognized workbook values (assignees, inheritance sources) go through a reconciliation step where you can ignore, add as new, or map each one to an existing value, with fuzzy matching for common provider names like Entra and M365 GCC High.</li>
+            <li>Fixed artifact, note, and finding import so evidence references, interview/examine/test notes, and findings text all import correctly, and added a progress-reconciliation sweep for older imported/restored projects that were stuck showing Not Started.</li>
           </ul>
 
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Workbook Import Reconciliation</h3>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Reuse &amp; Data Integrity</h3>
           <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>Added reconciliation handling for unrecognized Assigned To values.</li>
-            <li>Added reconciliation handling for unrecognized Inheritance Source values.</li>
-            <li>Allowed unmatched workbook values to be ignored, added as new, or mapped to existing app/workbook values.</li>
-            <li>Improved reconciliation controls so dropdown actions are visually clear and easier to review.</li>
-            <li>Removed hardcoded test assignee names from reconciliation options.</li>
-            <li>Improved inheritance/provider reconciliation to use real project, workbook, and provider-source values.</li>
-            <li>Added conservative fuzzy matching and aliases for common inheritance source names such as Entra, M365 GCC High, and related provider labels.</li>
+            <li>Artifact reuse scoring now factors in Assessment Guide evidence-object context across all 110 Level 2 practices, keeping Strong Suggestions high-confidence and hiding broad/weak candidates from view.</li>
+            <li>Fixed Project JSON export/import so artifact evidence tags and mappings correctly survive a wipe/export/import round trip, including older backup files without tag data.</li>
           </ul>
 
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Artifact, Notes, and Finding Import Integrity</h3>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>DIBCAC Mode &amp; Control Library</h3>
           <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>Fixed workbook artifact/evidence import so semicolon-delimited and line-delimited evidence references become mapped artifacts.</li>
-            <li>Preserved imported artifact references in Documented Artifacts.</li>
-            <li>Imported workbook findings into objective-level finding final text.</li>
-            <li>Preserved Interview, Examine, Test, and Overall Comments notes during workbook import.</li>
-            <li>Prevented numeric/time columns from being incorrectly imported into note fields.</li>
-            <li>Improved workbook import progress handling so imported notes, artifacts, and findings immediately reflect in assessment progress.</li>
-            <li>Added a progress reconciliation sweep that repairs older imported or restored project states when stored work exists but control progress still appears Not Started.</li>
-          </ul>
-
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Project JSON Integrity</h3>
-          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>Fixed Project JSON export/import so artifact evidence tags are preserved and restored correctly.</li>
-            <li>Ensured artifact mappings and artifact tags survive wipe/export/import round trips.</li>
-            <li>Preserved compatibility with older project JSON files that do not contain artifact tag data.</li>
-            <li>Added progress reconciliation after Project JSON import so restored notes, artifacts, and findings correctly reflect assessment progress.</li>
-          </ul>
-
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Guide-Aware Artifact Reuse</h3>
-          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>Added Assessment Guide evidence-object context to artifact reuse scoring.</li>
-            <li>Added guide-derived assessment profile metadata for all 110 Level 2 practices.</li>
-            <li>Improved suggested artifact matching using expected tags, evidence tags, guide evidence objects, compound tag combinations, existing mappings, and relationship context.</li>
-            <li>Tightened Strong Suggestions so Tier 1 remains high-confidence.</li>
-            <li>Kept broad, weak, relationship-only, or below-threshold candidates hidden from assessor-facing suggestion lists.</li>
-          </ul>
-
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Suggested Reuse UX</h3>
-          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>Added Strong Suggestions and Related Candidates sections for reuse recommendations.</li>
-            <li>Collapsed Related Candidates by default.</li>
-            <li>Added per-tier pagination with five candidates at a time.</li>
-            <li>Added visible caps so suggested reuse remains focused and assessor-friendly.</li>
-            <li>Preserved assignment behavior while improving recommendation clarity.</li>
-          </ul>
-
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>DIBCAC Mode</h3>
-          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>Replaced the user-facing Unmapped DIBCAC label with Variable.</li>
-            <li>Added Variable to the main DIBCAC grouped objective list.</li>
-            <li>Preserved the meaning that Variable objectives do not have a single fixed assessment method.</li>
-            <li>Added objective status controls inside saved DIBCAC review groups.</li>
-            <li>Added Overall Comments editing from saved DIBCAC review group objectives.</li>
-            <li>Added saved review group sorting by name and recently created.</li>
-            <li>Improved Planned Ask textarea behavior.</li>
-            <li>Improved objective row selection behavior when building review groups.</li>
-            <li>Fixed DIBCAC Mode scrolling and cut-off issues when many groups are expanded.</li>
-          </ul>
-
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Control Library</h3>
-          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>Fixed Control Library ordering so controls sort by true numeric CMMC practice order instead of L1/L2 prefix or string order.</li>
-            <li>Corrected ordering for cases such as MP.L2-3.8.1 before MP.L1-3.8.3 and SC.L2-3.13.9 before SC.L2-3.13.10.</li>
-            <li>Cleaned up Control Library lint issues for a clean release baseline.</li>
-          </ul>
-
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Theme Palettes</h3>
-          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>Added controlled muted theme palettes for local workspace personalization.</li>
-            <li>Added palette options including Midnight, Pure Black, Slate Blue, Sage, Warm Neutral, and Soft Mauve.</li>
-            <li>Preserved semantic assessment colors such as MET, NOT MET, In Progress, warning, and danger colors.</li>
-            <li>Made theme palette selection automatically switch to dark mode so palettes visibly apply immediately.</li>
-            <li>Kept theme preference local-only and separate from project assessment data.</li>
-          </ul>
-
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Validation</h3>
-          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <li>No AI/ML, embeddings, server-side matching, scoring automation, POA&amp;M, or compliance outcome automation was added.</li>
-            <li>Official Assessment Results Template export remains separate from workbook import.</li>
-            <li>Project data remains local-first and browser-based.</li>
+            <li>Renamed Unmapped to Variable throughout DIBCAC Mode, and added status controls, Overall Comments editing, and name/date sorting to saved review groups.</li>
+            <li>Fixed Control Library sort order to follow true numeric CMMC practice order instead of string order.</li>
+            <li>Added six muted theme palettes for workspace personalization (applies in dark mode).</li>
           </ul>
 
         </div>
@@ -238,7 +202,7 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.2.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Findings Builder, Guide-Aware Reuse, and Export Integrity</span>
+          <span style={{ color: 'var(--color-text)' }}>Findings Builder, Guide-Aware Reuse, and Export Integrity</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 24, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
@@ -248,94 +212,27 @@ function Changelog() {
           </p>
 
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Findings Builder</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added an objective-level Findings Builder for standardized Assessment Validation Statements</li>
-              <li>Added interviewed role/title chips using controlled assessment role categories</li>
-              <li>Added generated Findings Preview with Interviewed, Reviewed, Validation Reference, Findings/Differences, and Confirmation sections</li>
-              <li>Added support for finding differences, including alternate "not implemented" confirmation language when differences are noted</li>
-              <li>Findings are saved per objective and can be edited or cleared without overwriting Interview, Examine, Test, or Overall Comments notes</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Findings Builder &amp; Official Export</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added an objective-level Findings Builder for standardized Assessment Validation Statements, with interviewed-role chips and support for noting differences.</li>
+              <li>Findings now export into the official CMMC Level 2 Assessment Results Template, with correct evidence formatting and computed Time to Assess.</li>
             </ul>
           </section>
 
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Official Assessment Results Template Export</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Restored the Assessment Workbook export to use the official CMMC Level 2 Assessment Results Template format</li>
-              <li>Wired saved objective Findings Builder statements into the official template Findings column</li>
-              <li>Preserved finding statement line breaks in the export</li>
-              <li>Updated evidence/artifact formatting so each evidence item ends with a semicolon</li>
-              <li>Populated Time to Assess in minutes using objective-level DIBCAC assessment standard logic</li>
-              <li>Kept the exporter focused on the official results template rather than a custom consultation workbook</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Project JSON Export / Import Integrity</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Fixed Project JSON export/import so artifact evidence tags are preserved and restored correctly</li>
-              <li>Ensured artifact mappings and artifact tags both survive wipe/export/import round trips</li>
-              <li>Preserved safe import behavior for older project JSON files without artifact tag data</li>
-              <li>Confirmed restored tags are available to Documented Artifacts and reuse suggestion logic after import</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Guide-Aware Artifact Reuse</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Refactored Suggested Artifacts reuse logic into a stricter deterministic evidence-profile scoring model</li>
-              <li>Added Assessment Guide evidence-object context as a reuse scoring signal</li>
-              <li>Added guide-derived assessment profile metadata for all 110 Level 2 practices</li>
-              <li>Improved artifact matching using evidence tags, expected tags, compound tag combinations, guide evidence objects, existing mappings, and relationship context</li>
-              <li>Preserved the rule that untagged artifacts are excluded from primary reuse suggestions</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Tiered Suggested Reuse UX</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Tuned Strong Suggestions and Related Candidates so Strong Suggestions remain high-confidence</li>
-              <li>Kept broad or weak Tier 3 candidates hidden from assessor-facing suggestion lists</li>
-              <li>Added per-tier result caps to keep suggestions focused</li>
-              <li>Added collapsible Related Candidates and per-tier pagination (5 items per page)</li>
-              <li>Preserved assignment behavior while making suggestion lists more assessment-useful</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Evidence Tag Picker</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Redesigned the evidence tag picker into a categorized chip/pill selector</li>
-              <li>Added selected tag chips, clearer category segmentation, and improved tag search</li>
-              <li>Added alias/related-word search support for common terms such as VPN, MFA, Entra, firewall, logs, risk, visitor, and training</li>
-              <li>Preserved the controlled evidence tag taxonomy and avoided free-form tags</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Project Safety Actions</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added a Wipe Entire Project action in Project Actions</li>
-              <li>Added a two-stage confirmation flow requiring explicit final confirmation before clearing local project state</li>
-              <li>Preserved static app data while clearing local assessment/project state</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Control Detail Suggested Artifacts</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added a View Suggested Artifacts popup near Assigned Artifacts</li>
-              <li>Suggested artifacts now appear in a floating modal instead of disrupting the Control Detail layout</li>
-              <li>Suggestions remain tag-informed guidance and do not determine assessment outcomes</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Guide-Aware Reuse &amp; Data Integrity</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Refactored Suggested Artifacts into a deterministic evidence-profile scoring model that factors in Assessment Guide context, keeping Strong Suggestions confident and hiding weak candidates behind a collapsible, paginated Related Candidates section.</li>
+              <li>Fixed Project JSON export/import so artifact evidence tags reliably survive a wipe/export/import round trip.</li>
+              <li>Redesigned the evidence tag picker into a categorized, searchable chip selector with alias matching for common terms (VPN, MFA, Entra, firewall, etc.).</li>
             </ul>
           </section>
 
           <section style={{ marginBottom: 'var(--space-2)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>No scoring determination, POA&amp;M, Sheet2 scoring, or compliance outcome automation was added</li>
-              <li>DIBCAC assessment standards remain supplemental objective-level metadata</li>
-              <li>Project data remains local-first and browser-based</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Safety &amp; Control Detail</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added a two-stage-confirmation Wipe Entire Project action.</li>
+              <li>Added a View Suggested Artifacts popup on Control Detail, next to Assigned Artifacts, instead of disrupting the page layout.</li>
             </ul>
           </section>
 
@@ -347,7 +244,7 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.1.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>DIBCAC Mode &amp; Assessment Planning</span>
+          <span style={{ color: 'var(--color-text)' }}>DIBCAC Mode &amp; Assessment Planning</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 23, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
@@ -357,60 +254,18 @@ function Changelog() {
           </p>
 
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>DIBCAC Mode</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added a new DIBCAC Mode workspace for objective-level assessment planning</li>
-              <li>Added objective grouping by DIBCAC assessment standard: Document, Screen Share, Artifact, Physical Review, Artifact + Screen Share, and Unmapped</li>
-              <li>Added method, family, and search filters for assessment objective planning</li>
-              <li>Added collapsible method, family, and control groupings for compact review</li>
-              <li>Added review group creation, editing, objective selection, planned ask notes, and saved local review groups</li>
-              <li>Added objective preview behavior inside DIBCAC Mode without navigating away</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Objective-Level DIBCAC Assessment Standards</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added supplemental objective-level DIBCAC assessment standard metadata</li>
-              <li>Added DIBCAC Standard chips to Control Detail objectives</li>
-              <li>Preserved current control/objective data as the source of truth</li>
-              <li>Unmapped objectives remain visible where the source data does not provide a standard</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Control Detail — Review Group Integration</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added Review Group display to the Control Detail objective header</li>
-              <li>Added centered modal workflow to add an objective to an existing review group or create a new review group from Control Detail</li>
-              <li>Review groups remain local browser planning data and are not included in project exports yet</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Guide Discussion</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added Assessment Guide Discussion content to the Control Detail top summary area</li>
-              <li>Split the upper Control Detail area so Evidence Pool / Expected Evidence Types and Assessment Guide Discussion are visible together</li>
-              <li>Extended the Assessment Guide Discussion panel for visual balance</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Evidence Tag Picker</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Redesigned the evidence tag picker into a modern categorized chip/pill selector</li>
-              <li>Added selected tag chips, clearer category segmentation, and improved search</li>
-              <li>Added related-word / alias matching so searches like VPN, MFA, Entra, firewall, logs, risk, visitor, and training surface more intuitive controlled tags</li>
-              <li>Preserved controlled tag taxonomy — free-form tags are not supported</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>DIBCAC Mode</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added a new DIBCAC Mode workspace for objective-level assessment planning — objectives grouped by assessment standard (Document, Screen Share, Artifact, Physical Review, Artifact + Screen Share, Unmapped), with method/family/search filters, collapsible groupings, and saved local review groups with planned-ask notes.</li>
+              <li>Added supplemental objective-level DIBCAC assessment standard metadata and matching chips on Control Detail, and a Review Group modal for adding a Control Detail objective to an existing or new group.</li>
             </ul>
           </section>
 
           <section style={{ marginBottom: 'var(--space-2)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>No scoring, POA&amp;M, or Sheet2 DIBCAC scoring logic was added in this release</li>
-              <li>Project import/export behavior was not changed</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Control Detail &amp; Evidence Tags</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added Assessment Guide Discussion content alongside Evidence Pool / Expected Evidence Types in the Control Detail summary area.</li>
+              <li>Redesigned the evidence tag picker into a categorized, searchable chip selector with alias matching (VPN, MFA, Entra, firewall, etc.), keeping the controlled tag taxonomy — no free-form tags.</li>
             </ul>
           </section>
 
@@ -422,7 +277,7 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v3.0.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>UI Workspace Overhaul</span>
+          <span style={{ color: 'var(--color-text)' }}>UI Workspace Overhaul</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 23, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
@@ -432,77 +287,28 @@ function Changelog() {
           </p>
 
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Home — Assessment Dashboard</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Redesigned Home into a full assessment dashboard with control, objective, artifact, and attention summaries</li>
-              <li>Added assessment progress, family progress, needs attention, inheritance source, continue review, and project action sections</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Dashboard, Library &amp; Control Detail</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Redesigned Home into a full assessment dashboard with progress, needs-attention, inheritance-source, and continue-review summaries.</li>
+              <li>Refined Control Library's layout and filtering into a consolidated, chip-based filter modal.</li>
+              <li>Redesigned Control Detail for wider responsive layouts, with objective-level inheritance chips and MET/NOT MET pill controls replacing dropdowns.</li>
             </ul>
           </section>
 
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Control Library</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Refined the main Control Library layout and filter experience</li>
-              <li>Added a consolidated filter modal with clearer chip-based filter selection</li>
-              <li>Improved family navigation and active filter visibility</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Control Detail</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Redesigned the control detail workspace for wider responsive layouts</li>
-              <li>Added cleaner stacked metadata for status, inheritance, inherited-from sources, trending, and assignment</li>
-              <li>Added objective-level inheritance chips</li>
-              <li>Replaced objective status dropdowns with MET / NOT MET pill controls</li>
-              <li>Refined expected evidence, guidance, assigned artifacts, and suggested artifact sections</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Evidence Library</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Renamed Evidence Lookup to Evidence Library</li>
-              <li>Redesigned the page into a categorized evidence reference library</li>
-              <li>Added category navigation, improved evidence cards, likely control links, and assessor context</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Relationship Explorer</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Redesigned the empty state into a family/control launcher</li>
-              <li>Added a more visual relationship exploration workflow</li>
-              <li>Improved relationship board/card layout and supporting evidence presentation</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Documented Artifacts</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Renamed Artifact Map to Documented Artifacts</li>
-              <li>Redesigned artifact management into a table-based workspace</li>
-              <li>Added category filtering, chip-based filter modal, evidence tag filtering, sortable mappings/reuse columns, expandable artifact rows, mapping pagination, and clearer status logic</li>
-              <li>Updated status logic: Untagged, Tagged, and Mapped</li>
-              <li>Preserved tag-driven reuse opportunities and artifact registry source-of-truth behavior</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>About + FAQ</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Merged About and FAQ into one About page</li>
-              <li>Added workspace guide, privacy model, assessment boundaries, FAQ accordion, dataset summary, and project/version information</li>
-              <li>Removed the redundant FAQ navigation item</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Evidence, Relationships &amp; Artifacts</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Renamed Evidence Lookup to Evidence Library and redesigned it into a categorized reference catalog.</li>
+              <li>Redesigned Relationship Explorer's empty state into a family/control launcher with a more visual exploration workflow.</li>
+              <li>Renamed Artifact Map to Documented Artifacts and redesigned it into a table-based workspace with category/tag filtering, sortable columns, and clearer Untagged / Tagged / Mapped status logic.</li>
             </ul>
           </section>
 
           <section style={{ marginBottom: 'var(--space-2)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Validator: Passed — 110 controls, 320 objectives, 130 evidence types, 189 relationships, 66 evidence tags</li>
-              <li>Build: Passed</li>
-              <li>No changes to CMMC controls, evidence types, relationship data, or scoring logic</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>About + FAQ</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Merged About and FAQ into one page covering the workspace guide, privacy model, assessment boundaries, FAQ accordion, and dataset/version info; removed the redundant FAQ nav item.</li>
+              <li>No changes to CMMC control, evidence, relationship, or scoring data — validator passed at 110 controls, 320 objectives, 130 evidence types, 189 relationships, 66 evidence tags.</li>
             </ul>
           </section>
 
@@ -514,66 +320,29 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v2.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Evidence Tag Registry &amp; Artifact Reuse</span>
+          <span style={{ color: 'var(--color-text)' }}>Evidence Tag Registry &amp; Artifact Reuse</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 19, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
 
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Evidence Tags</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added controlled evidence tag taxonomy — 66 tags across 17 categories covering all 14 CMMC control families</li>
-              <li>All 320 assessment objectives now have expected evidence tag mappings (one objective intentionally waived: IA.L2-3.5.11[a])</li>
-              <li>Tags classify artifact evidence types — guidance only; they do not determine objective outcomes</li>
-            </ul>
-          </section>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Introduces the controlled evidence tag taxonomy and the first tag-informed artifact reuse suggestions, editable directly from Artifact Map and Control Detail.
+          </p>
 
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Artifact Tag Editing</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Artifact evidence tags are now editable from the Artifact Map via a tag picker modal</li>
-              <li>Artifact evidence tags are also editable from ControlDetail artifact suggestion modals</li>
-              <li>Tag picker supports search, category browsing, checkbox selection, and removable chip selections</li>
-              <li>Assigned-tags chip area shows at the top of the picker with individual chip X-removal</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>ControlDetail — Suggested Existing Artifacts</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Each assessment objective now surfaces a collapsed list of existing artifacts from related controls</li>
-              <li>Suggestions are relationship-gated — only controls linked via evidence_reuse relationships contribute candidates</li>
-              <li>Tag alignment is computed against the target objective's expected tags and used to rank and label candidates</li>
-              <li>Tags explain and rank suggestions — they do not filter or suppress candidates</li>
-              <li>Tag-only candidate discovery (no relationship backing) remains deferred</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Artifact Map — Tag-Gated Reuse</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Tagged artifacts show a collapsed Potential Reuse Opportunities section sourced from existing relationship data</li>
-              <li>Untagged artifacts show a compact prompt inside the evidence tags card; reuse section is hidden</li>
-              <li>Untagged artifact titles are visually highlighted in red</li>
-              <li>Reuse pagination: 5 candidates per page with range display and Previous / Next controls</li>
-              <li>Relationship gating remains the source of truth — no tag-only discovery added</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>ControlDetail — Common Artifacts</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Common Artifacts section removed from ControlDetail UI</li>
-              <li>Underlying data is preserved in full — search indexing and Evidence Lookup remain unaffected</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Evidence Tags &amp; Tag Editing</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added a controlled evidence tag taxonomy — 66 tags across 17 categories, mapped to expected tags on all 320 assessment objectives (guidance only; tags don't determine outcomes).</li>
+              <li>Tags are editable from a searchable picker on both Artifact Map and Control Detail's artifact suggestion modals.</li>
             </ul>
           </section>
 
           <section style={{ marginBottom: 'var(--space-2)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Validator: Passed — 110 controls, 320 objectives, 130 evidence types, 189 relationships, 66 evidence tags</li>
-              <li>Build: Passed</li>
-              <li>No changes to scoring, assessment status, control definitions, or validator logic</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Tag-Informed Reuse</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Control Detail objectives now surface existing artifacts from related controls, gated by evidence_reuse relationships and ranked by tag alignment.</li>
+              <li>Artifact Map shows a paginated Potential Reuse Opportunities section for tagged artifacts, and visually flags untagged artifacts.</li>
+              <li>Removed the Common Artifacts section from Control Detail (data preserved, still searchable via Evidence Library).</li>
             </ul>
           </section>
 
@@ -585,94 +354,29 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v1.6</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Official Assessment Template Export &amp; Assessment Guide Reconciliation</span>
+          <span style={{ color: 'var(--color-text)' }}>Official Assessment Template Export &amp; Assessment Guide Reconciliation</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 13, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
 
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Official Assessment Template Export</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Bundled official CMMC Level 2 Assessment Results Template into the application</li>
-              <li>Removed template upload requirement — export is now one click</li>
-              <li>Added OSC Name and Assessment Name export dialog</li>
-              <li>Added standardized export filename: <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>CMMC_Companion_&#123;OSC&#125;_&#123;Assessment&#125;_Assessment_Results.xlsx</span></li>
-              <li>Promoted as the primary assessment deliverable in the export UI</li>
-            </ul>
-          </section>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Bundles the official CMMC Level 2 Assessment Results Template for one-click export, rewrites the export engine to patch the real workbook instead of rebuilding it, and reconciles the objective set against the official Assessment Guide.
+          </p>
 
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Export Engine Rewrite</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Replaced SheetJS workbook reconstruction with JSZip-based XML patching</li>
-              <li>Previous approach rebuilt the workbook from scratch, stripping all formatting, styles, CUI metadata, data validation dropdowns, and compliance markings</li>
-              <li>New approach opens the official workbook package directly, locates the Requirement Objectives worksheet, and patches only target cells</li>
-              <li>Exported workbook is now visually identical to the official template</li>
-              <li>Preserved: styles.xml, sharedStrings.xml, customXml, docMetadata (CUI sensitivity labels), printerSettings, data validations, merged cells, hidden sheets, and full workbook structure</li>
-              <li>File size reduced from ~1.2 MB (SheetJS reconstruction) to ~78 KB (surgical patch)</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Guide Reconciliation</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Performed objective-by-objective comparison against the official CMMC Assessment Guide Level 2</li>
-              <li><span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>RA.L2-3.11.1</span> — corrected from 5 objectives to official 2 objectives</li>
-              <li><span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>RA.L2-3.11.2</span> — corrected from 4 objectives to official 5 objectives</li>
-              <li><span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>RA.L2-3.11.3</span> — corrected from 1 objective to official 2 objectives</li>
-              <li><span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>SI.L1-3.14.5</span> — corrected objective wording to match official guide</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Objective Standardization</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Restored official assessment guide punctuation formatting across all objectives</li>
-              <li>Final objectives end with <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>.</span></li>
-              <li>Penultimate objectives end with <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>; and</span></li>
-              <li>Intermediate objectives end with <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>;</span></li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Objective Count Alignment</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Previous objective count: 321</li>
-              <li>Current objective count: 320</li>
-              <li>Official Assessment Guide: 320</li>
-              <li>Tool objective inventory now aligns with the official assessment guide</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Export Simplification</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Removed all temporary Risk Assessment export workaround logic</li>
-              <li>Direct objective mapping — no RA-specific translation layer</li>
-              <li>Cleaner export pipeline with reduced maintenance surface</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation Improvements</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added validation checks for official objective counts</li>
-              <li>Added RA control structure validation</li>
-              <li>Added SI.L1-3.14.5 structure validation</li>
-              <li>Added objective punctuation standards validation</li>
-              <li>Added template alignment requirement checks</li>
-              <li>All validation checks passing</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Official Template Export</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Bundled the official template into the app (no more upload step) and added an OSC/Assessment Name export dialog with a standardized filename.</li>
+              <li>Rewrote the export engine to patch the official workbook's XML directly instead of reconstructing it — the export is now visually identical to the official template, preserves CUI sensitivity labels and data validation, and dropped from ~1.2 MB to ~78 KB.</li>
+              <li>Removed the temporary Risk Assessment export workaround now that objectives map directly.</li>
             </ul>
           </section>
 
           <section style={{ marginBottom: 'var(--space-2)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>UI Improvements</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Official Assessment Template export promoted as the primary assessment deliverable</li>
-              <li>Backup and recovery workflows separated from deliverable generation</li>
-              <li>Export experience simplified and streamlined</li>
-              <li>Validator: Passed — 110 controls, 320 objectives, 130 evidence types, 189 relationships</li>
-              <li>Build: Passed</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Assessment Guide Reconciliation</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Did an objective-by-objective comparison against the official Assessment Guide, correcting objective counts for RA.L2-3.11.1/.2/.3 and wording for SI.L1-3.14.5, and restored official punctuation conventions across all objectives.</li>
+              <li>Objective inventory now matches the official guide exactly at 320 (down from 321). Validator and build both passing.</li>
             </ul>
           </section>
 
@@ -684,83 +388,29 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v1.5.1</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Artifact Intelligence &amp; Usability Update</span>
+          <span style={{ color: 'var(--color-text)' }}>Artifact Intelligence &amp; Usability Update</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 10, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
 
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Artifact Map</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added direct objective-level navigation using <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>/controls/&#123;controlId&#125;#objective-&#123;objectiveId&#125;</span></li>
-              <li>Artifact usages now link directly to the specific objective instead of only the parent control</li>
-              <li>Added Potential Reuse Opportunities section for artifacts</li>
-              <li>Added relationship-driven evidence reuse suggestions</li>
-              <li>Added collapsible reuse suggestion sections</li>
-              <li>Added one-click artifact reuse assignment via +</li>
-              <li>Accepted suggestions immediately disappear after assignment</li>
-              <li>Added per-artifact suggestion pagination</li>
-              <li>Added Previous / Next navigation with page indicators (5 results per page)</li>
-              <li>Added category-based artifact grouping (collapsed by default)</li>
-              <li>Added Expand All / Collapse All controls</li>
-              <li>Added artifact sorting: Most Connections, Least Connections, Name A–Z, Name Z–A</li>
-              <li>Removed Evidence Pool-only entries from Artifact Map display</li>
-              <li>Artifact Map statistics now reflect objective-level usage only</li>
-            </ul>
-          </section>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Adds relationship-driven artifact reuse suggestions with direct objective deep-linking, page-purpose info panels across the app, and assignee name normalization.
+          </p>
 
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Relationship-Driven Recommendations</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Implemented Phase 1 relationship-driven evidence reuse recommendations</li>
-              <li>Suggestions are generated directly from the relationship dataset</li>
-              <li>Added explanation text showing relationship source and type</li>
-              <li>Added direct navigation from suggestions to target objectives</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Navigation &amp; Deep Linking</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added objective anchor support for direct objective navigation</li>
-              <li>Artifact Map and reuse recommendations now support direct objective navigation</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Informational Panels</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added reusable InfoPanel component</li>
-              <li>Deployed page purpose panels to: Home, Control Library, Environment Profile, Artifact Map, Relationship Explorer, Evidence Lookup</li>
-              <li>Panels provide page purpose, assessment context, and common usage guidance</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assignment Improvements</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added assignee normalization — names stored consistently in Title Case</li>
-              <li>Eliminates duplicate assignee variants caused by capitalization differences</li>
-              <li>Examples: vince → Vince, VINCE → Vince, alex smith → Alex Smith</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Quality of Life</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Improved assessment navigation flow</li>
-              <li>Reduced Artifact Map clutter</li>
-              <li>Improved evidence reuse discovery</li>
-              <li>Improved objective-level workflow efficiency</li>
-              <li>Added page-level orientation for new users</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Artifact Map &amp; Reuse Recommendations</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added a Potential Reuse Opportunities section driven by the relationship dataset, with source/type explanations, one-click "+" assignment, and paginated results.</li>
+              <li>Artifact usages now deep-link straight to the specific objective (<span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>/controls/&#123;id&#125;#objective-&#123;id&#125;</span>) instead of just the parent control.</li>
+              <li>Added category grouping, Expand/Collapse All, and sorting (connections, name); Artifact Map now reflects objective-level usage only.</li>
             </ul>
           </section>
 
           <section style={{ marginBottom: 'var(--space-2)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Validator: Passed — 110 controls, 130 evidence types, 189 relationships</li>
-              <li>Build: Passed</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Orientation &amp; Data Hygiene</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added a reusable page-purpose info panel to Home, Control Library, Environment Profile, Artifact Map, Relationship Explorer, and Evidence Lookup.</li>
+              <li>Assignee names now normalize to consistent Title Case, eliminating duplicate entries from capitalization differences (e.g. "vince" / "VINCE" → "Vince").</li>
             </ul>
           </section>
 
@@ -772,91 +422,28 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v1.5.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Assessment Intelligence &amp; Artifact Analysis</span>
+          <span style={{ color: 'var(--color-text)' }}>Assessment Intelligence &amp; Artifact Analysis</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 9, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
 
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Introduces Artifact Map, a centralized evidence workspace with usage tracking, ComplianceForge Kill Chain categorization, and the first relationship-driven reuse recommendations — laying the groundwork for later reuse and DIBCAC features.
+          </p>
+
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Intelligence &amp; Artifact Analysis</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Introduced Artifact Map as a centralized evidence analysis workspace</li>
-              <li>Added global artifact indexing across controls and objectives</li>
-              <li>Added artifact search and usage tracking</li>
-              <li>Added Most Connections and Least Connections sorting</li>
-              <li>Added reused-artifact filtering</li>
-              <li>Added artifact usage statistics and summary metrics</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Artifact Map &amp; Categorization</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added Artifact Map with global artifact indexing, search, usage stats, and Most/Least Connections sorting, plus direct navigation from usages back to their source objectives.</li>
+              <li>Mapped all 110 controls into ComplianceForge Kill Chain operational categories, with category grouping and filtering in Artifact Map.</li>
             </ul>
           </section>
 
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Kill Chain Categorization</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added ComplianceForge Kill Chain category framework</li>
-              <li>Mapped all 110 controls into operational assessment categories</li>
-              <li>Added control-to-kill-chain lookup dataset</li>
-              <li>Added kill chain utility helpers for future workflow expansion</li>
-              <li>Added category grouping within Artifact Map</li>
-              <li>Added category-level artifact and usage summaries</li>
-              <li>Added category filtering support</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Artifact Navigation &amp; Traceability</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added direct navigation from Artifact Map usages to source objectives</li>
-              <li>Added objective anchor navigation support</li>
-              <li>Added hover context showing source control titles</li>
-              <li>Improved cross-control evidence traceability</li>
-              <li>Added objective-level deep linking support</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Evidence Reuse Recommendations</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added relationship-driven evidence reuse recommendations</li>
-              <li>Suggestions generated from related controls and objectives</li>
-              <li>Existing artifacts can be reused with a single click</li>
-              <li>Suggestions automatically exclude already-assigned artifacts</li>
-              <li>Added source control and objective attribution</li>
-              <li>Added direct navigation to source objectives</li>
-              <li>Added collapsible recommendation sections per objective</li>
-              <li>Recommendations remain optional and non-destructive</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Artifact Map UX Improvements</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Removed Evidence Pool entries from Artifact Map display</li>
-              <li>Artifact counts now reflect objective usage only</li>
-              <li>Reduced duplicate artifact visibility</li>
-              <li>Improved signal-to-noise ratio for evidence analysis</li>
-              <li>Added category collapse and expand workflow</li>
-              <li>Improved artifact browsing experience</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Chain Foundation</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Established foundation for future kill-chain workflows</li>
-              <li>Created reusable operational-category data model</li>
-              <li>Prepared platform for future assessment acceleration features</li>
-              <li>Prepared platform for future evidence reuse intelligence</li>
-              <li>Prepared platform for future chain-based assessment workflows</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Existing project data remains compatible</li>
-              <li>Existing backups remain importable</li>
-              <li>No schema migration required</li>
-              <li>No storage format changes introduced</li>
+          <section style={{ marginBottom: 'var(--space-2)' }}>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Evidence Reuse Recommendations</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added the first relationship-driven reuse recommendations — one-click reuse of existing artifacts from related controls, with source attribution and navigation, excluding anything already assigned.</li>
+              <li>No schema migration required; existing projects and backups remain fully compatible.</li>
             </ul>
           </section>
 
@@ -868,160 +455,36 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v1.4.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Assessment Collaboration &amp; Provider Catalog Update</span>
+          <span style={{ color: 'var(--color-text)' }}>Assessment Collaboration &amp; Provider Catalog Update</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 8, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
 
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Adds control assignment tracking, a curated inheritance-provider catalog, structured per-objective assessment results, and several Control Library workflow improvements for multi-control work.
+          </p>
+
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assignment Tracking</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added Assigned To field in Control Detail — assign any control to a named assessor or team member</li>
-              <li>Assignments are free-text with name suggestions drawn from existing local assignments</li>
-              <li>Blank assignment clears the field and removes the storage key</li>
-              <li>Added Assigned To display in Quick Look panel — shows assignee or "Unassigned"</li>
-              <li>Added bulk Set Assignment action in Multi-Select toolbar — write or clear assignments across multiple controls simultaneously</li>
-              <li>Assignment suggestions in the bulk modal reflect currently used names</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Assignment Tracking</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added an Assigned To field on Control Detail (with name suggestions and a bulk Set Assignment action), an Assignment Coverage dashboard section, and a matching Advanced Filter — all fully supported through Project JSON export/import.</li>
             </ul>
           </section>
 
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assignment Import/Export</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Assignments are included in Project JSON exports when nonblank</li>
-              <li>Assignments are restored during Project JSON import</li>
-              <li>Added Assignments category to Advanced Import Options</li>
-              <li>Import summary reports the number of assignments written</li>
-              <li>Replace and Fill Empty Only modes both supported for assignments</li>
-              <li>Older backups without assignment data import normally — backward compatible</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Provider Catalog &amp; Inheritance</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added a 31-entry provider catalog across 7 categories, powering searchable suggestions on the Inheritance Source field (custom values still fully supported).</li>
+              <li>Added an Inheritance Sources dashboard summary with proportional usage bars and Top 5/10/All views, an Inheritance Source Advanced Filter, and source labels on Control Library inheritance badges.</li>
             </ul>
           </section>
 
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assignment Coverage Dashboard</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added Assignment Coverage section to Home page dashboard</li>
-              <li>Displays Assigned Controls count and Unassigned Controls count</li>
-              <li>Assigned Controls count links to Control Library filtered to assigned controls</li>
-              <li>Unassigned Controls count links to Control Library filtered to unassigned controls</li>
-              <li>Section is read-only — no localStorage writes from the dashboard</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Provider Catalog</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added provider catalog with 31 curated entries across 7 categories: Identity &amp; Access, Endpoint Management, Microsoft 365, Cloud, Security Operations, Backup, and Network/Infrastructure</li>
-              <li>Inheritance Source field in Control Detail now shows searchable provider suggestions while typing</li>
-              <li>Suggestions match provider name and category — case-insensitive</li>
-              <li>Clicking a suggestion writes the exact canonical provider name</li>
-              <li>Custom provider names and free-text values remain fully supported — no forced selection</li>
-              <li>Provider suggestions also available in the bulk inheritance modal</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Inheritance Sources Dashboard</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added Inheritance Sources summary to Home page dashboard</li>
-              <li>Displays providers and sources currently in use with proportional bar visualization</li>
-              <li>Counts sourced directly from local data — custom providers appear automatically</li>
-              <li>Includes Top 5 / Top 10 / All view selector</li>
-              <li>Each row is clickable — links to Control Library filtered by that source</li>
-              <li>Section placed directly below assessment status cards for immediate visibility</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Advanced Filtering Expansion</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added Inheritance Source filter in Advanced Filters — shows only sources actively used in local data</li>
-              <li>Added Assigned To filter in Advanced Filters — options: All assignees, Assigned, Unassigned, or specific assignee name</li>
-              <li>Both filters participate in URL-based filter state persistence</li>
-              <li>Both filters are included in Clear Filters behavior</li>
-              <li>Both filters contribute to the More Filters active count badge</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Inheritance Badge Improvements</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Inheritance badges in Control Library rows now display the source alongside the status</li>
-              <li>Format: Partial — AWS GovCloud / Full — Microsoft 365 GCC High</li>
-              <li>Badge tooltip includes full inheritance label for long source names</li>
-              <li>Falls back to status-only label when no source is documented</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Objective Results Framework</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added structured assessment result fields per objective: Interview, Examine, Test, and Overall Comments</li>
-              <li>Objective result fields persist locally per control and objective</li>
-              <li>Objective results included in Project JSON export and import</li>
-              <li>Import summary reports objective results written</li>
-              <li>Older backups without objective result data import normally</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Sticky Multi-Select Toolbar</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Multi-Select bulk action toolbar is now sticky — remains visible while scrolling through the Control Library</li>
-              <li>Toolbar pins to the top of the viewport when the user scrolls past it</li>
-              <li>All bulk actions remain accessible without scrolling back to the top</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Copy From Control Workflow</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added Copy From Control action in Multi-Select toolbar</li>
-              <li>Allows copying assessment attributes from one source control to multiple selected controls</li>
-              <li>Copyable attributes: Assessment Status, Inheritance Status, Inheritance Source, Evidence Pool</li>
-              <li>Source control is selected using a searchable picker</li>
-              <li>Copy operation is scoped to selected controls only — no unintended writes</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Notes &amp; Objective Notes Simplification</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Assessment Notes field hidden from Control Detail UI to reduce clutter — field data and storage are fully preserved</li>
-              <li>Objective Notes section streamlined for focus on objective-level assessment work</li>
-              <li>All note data remains accessible via export/import and is not removed from storage</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Import Summary Improvements</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Import result summary now reports assignments written</li>
-              <li>Import summary reports objective results written</li>
-              <li>Fill Empty Only mode skips count reported when values are not overwritten</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Searchable Source Pickers</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Inheritance Source field uses a provider-catalog-backed suggestion dropdown</li>
-              <li>Assigned To field uses a local-name-backed suggestion dropdown</li>
-              <li>Copy From Control uses a control-search picker with ID and title matching</li>
-              <li>All pickers use onMouseDown to avoid focus-loss issues during selection</li>
-              <li>All pickers support keyboard-accessible custom entry — no forced catalog selection</li>
-            </ul>
-          </section>
-
-          <section>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Existing assessment data remains compatible — no migration required</li>
-              <li>Existing project backups remain importable</li>
-              <li>Assignment storage uses separate localStorage key prefix — no conflicts with existing data</li>
-              <li>Local-only data handling model preserved — no cloud storage, no CUI transmission, no authentication introduced</li>
-              <li>Controls: 110 · Evidence types: 130 · Relationships: 189 · Families: 14/14</li>
-              <li>Validator: Pass · Build: Pass</li>
+          <section style={{ marginBottom: 'var(--space-2)' }}>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Objective Results &amp; Workflow</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added structured per-objective result fields (Interview, Examine, Test, Overall Comments), included in export/import.</li>
+              <li>Control Library's Multi-Select toolbar is now sticky while scrolling, and gained a Copy From Control action to copy status/inheritance/evidence-pool attributes from one control to many at once.</li>
+              <li>Hid the legacy Assessment Notes field from Control Detail to reduce clutter (data preserved, still exportable).</li>
             </ul>
           </section>
 
@@ -1033,120 +496,37 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v1.3.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Assessment Workflow &amp; Visibility Update</span>
+          <span style={{ color: 'var(--color-text)' }}>Assessment Workflow &amp; Visibility Update</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 4, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
 
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Adds objective-level status tracking with a derived Trending Status, an Evidence Pool / Objective Artifact system, consistency warnings, inheritance documentation, and a proper Multi-Select workflow for the Control Library.
+          </p>
+
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Objective-Level Assessment Tracking</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added Objective Status tracking for every assessment objective</li>
-              <li>Objectives can now be marked Unreviewed, MET, or NOT MET</li>
-              <li>Objective status selections automatically persist locally</li>
-              <li>Controls automatically promote from Not Started to In Progress when objective review begins</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Objective Tracking &amp; Evidence</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added Objective Status (Unreviewed / MET / NOT MET) per objective, rolling up into a derived Trending Status shown throughout Control Library and Quick Look.</li>
+              <li>Added Evidence Pool and Objective Artifact tracking, contributing to Evidence Pool suggestions and reflected in backup/restore.</li>
             </ul>
           </section>
 
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Trending Status</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added derived Trending Status calculations based on objective-level assessments</li>
-              <li>Trending Status automatically evaluates objective review results: Not Started, In Progress, MET, NOT MET</li>
-              <li>Added visual Trending Status indicators throughout the Control Library</li>
-              <li>Trending Status is displayed within Quick Look summaries</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Warnings &amp; Inheritance</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added a Status Consistency Warning system flagging conflicts between Assessment Status and Trending Status, plus incomplete inheritance documentation, with expandable in-library warning panels.</li>
+              <li>Added Inheritance Source tracking and an "Inherited From" field, required for both individual and bulk inheritance assignment.</li>
             </ul>
           </section>
 
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Evidence &amp; Artifact Management</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added Evidence Pool support for controls</li>
-              <li>Added Objective Artifact assignment and tracking</li>
-              <li>Objective artifacts automatically contribute to Evidence Pool suggestions</li>
-              <li>Added visual indicators showing controls that contain artifact references</li>
-              <li>Backup and restore now support Evidence Pool and Objective Artifact data</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Warnings Framework</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added Status Consistency Warning system detecting conflicts between Assessment Status and Trending Status</li>
-              <li>Detects incomplete inheritance documentation</li>
-              <li>Added warning indicators directly in the Control Library</li>
-              <li>Added expandable warning panels with detailed explanations</li>
-              <li>Added support for multiple warnings per control with aggregation into a single warning panel</li>
-              <li>Added warning guidance and explanatory context for each warning type</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Inheritance Documentation</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added Inheritance Source tracking for controls using Partial or Full inheritance</li>
-              <li>Added "Inherited From" documentation field in Control Detail</li>
-              <li>Added inheritance validation warnings when source documentation is missing</li>
-              <li>Quick Look now displays inheritance status and source information</li>
-              <li>Bulk inheritance assignment now requires inheritance source documentation</li>
-              <li>Bulk inheritance operations apply inheritance source data to multiple controls simultaneously</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Control Library Enhancements</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added Quick Look expandable assessment summaries per control</li>
-              <li>Added warning filtering: All warnings, Has warnings, No warnings</li>
-              <li>Added Trending Status filtering</li>
-              <li>Added artifact filtering</li>
-              <li>Added inheritance filtering improvements</li>
-              <li>Added family-level progress summaries showing Assessment Status breakdown per family</li>
-              <li>Added family-level selection actions in Multi-Select mode</li>
-              <li>Added Select Family and Deselect Family workflows</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Multi-Select Workflow</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Replaced always-visible row checkboxes with dedicated Multi-Select mode</li>
-              <li>Entire row is clickable during normal browsing</li>
-              <li>Entire row becomes selectable during Multi-Select mode</li>
-              <li>Added Select All Visible controls workflow</li>
-              <li>Added family-level bulk selection</li>
-              <li>Added cleaner utility bar layout reducing visual clutter</li>
-              <li>Improved bulk editing workflows</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>User Guidance &amp; Onboarding</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added first-run acknowledgement notice and Data Handling, Privacy &amp; Limitations workflow</li>
-              <li>Added Icon Guide reference modal</li>
-              <li>Added explanations for notes, artifact, trending, warning, and scoring indicators</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Backup &amp; Restore</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Upgraded project backup format to Schema Version 2</li>
-              <li>Added support for Evidence Pool entries and Objective Artifact assignments in backups</li>
-              <li>Added backward compatibility for Version 1 backups</li>
-              <li>Improved import validation and reporting</li>
-            </ul>
-          </section>
-
-          <section>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Existing assessment data remains compatible</li>
-              <li>Existing Version 1 backups remain importable</li>
-              <li>Local-only data handling model preserved — no cloud storage, no CUI transmission, no authentication introduced</li>
-              <li>Controls: 110 · Evidence types: 130 · Relationships: 189 · Families: 14/14</li>
-              <li>Validator: Pass · Build: Pass</li>
+          <section style={{ marginBottom: 'var(--space-2)' }}>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Control Library Workflow</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added Quick Look expandable summaries, family-level progress, and warning/trending/artifact filters.</li>
+              <li>Replaced always-visible checkboxes with a dedicated Multi-Select mode supporting family-level and Select-All-Visible bulk selection.</li>
+              <li>Added a first-run privacy/data-handling notice and an Icon Guide reference modal, and upgraded the backup format to Schema Version 2 (Version 1 backups remain importable).</li>
             </ul>
           </section>
 
@@ -1158,83 +538,21 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v1.2.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Evidence Pool MVP</span>
+          <span style={{ color: 'var(--color-text)' }}>Evidence Pool MVP</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 4, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
 
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Workflow</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added control-level Evidence Pool for reusable artifact references</li>
-              <li>Added objective-level Artifact References for mapping evidence directly to assessment objectives</li>
-              <li>Added artifact suggestion/typeahead functionality sourced from the control's Evidence Pool</li>
-              <li>Automatic Evidence Pool population when artifacts are entered directly within objectives</li>
-              <li>Artifact counters and visual artifact tracking within controls</li>
-              <li>Objective artifact assignment workflow designed around real-world assessment usage</li>
-            </ul>
-          </section>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Introduces the Evidence Pool — control-level and objective-level artifact reference tracking, with typeahead suggestions, automatic status promotion, and full backup/restore support.
+          </p>
 
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Data Persistence</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Evidence Pool entries persist across browser refreshes</li>
-              <li>Objective Artifact references persist across browser refreshes</li>
-              <li>Evidence data survives normal browser sessions</li>
-              <li>Existing control notes, statuses, and inheritance tracking remain unchanged</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Backup &amp; Restore</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Evidence Pool entries are included in Project JSON exports</li>
-              <li>Objective Artifact references are included in Project JSON exports</li>
-              <li>Project JSON restore fully restores Evidence Pool and objective artifact assignments</li>
-              <li>Backward compatibility maintained — Version 1 backup files continue to import successfully</li>
-              <li>Missing Evidence Pool data in older backups does not overwrite existing local Evidence Pool data</li>
-              <li>Added Schema Version 2 support for future expansion</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Status Automation</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Controls automatically transition from Not Started to In Progress when Evidence Pool activity occurs</li>
-              <li>Controls automatically transition from Not Started to In Progress when objective artifact references are added</li>
-              <li>Objective artifact creation automatically adds new artifacts to the control-level Evidence Pool</li>
-              <li>Existing MET and NOT MET protections remain unchanged</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Control Library</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added 📎 Artifact Indicator for controls containing objective artifact references</li>
-              <li>Added Has Artifacts filter to the Control Library</li>
-              <li>Artifact filtering integrates with all existing filter systems</li>
-              <li>Artifact filters participate in URL-based state persistence</li>
-              <li>Artifact filters are included in Clear Filters behavior</li>
-              <li>Fixed stale render — Control Library now re-reads localStorage on every navigation event</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Privacy &amp; Security</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>No files are uploaded, stored, or transmitted by the application</li>
-              <li>No cloud synchronization or backend database</li>
-              <li>Artifact entries are text metadata only (for example: SSP.pdf, RBAC Configuration.png, User Export.xlsx)</li>
-              <li>Imported project backups remain local to the user's browser</li>
-            </ul>
-          </section>
-
-          <section>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Dataset unchanged — no control, evidence, or relationship modifications</li>
-              <li>Controls: 110 · Evidence types: 130 · Relationships: 189 · Families: 14/14</li>
-              <li>Validator: Pass · Build: Pass</li>
+          <section style={{ marginBottom: 'var(--space-2)' }}>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Evidence Pool</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Added a control-level Evidence Pool plus objective-level Artifact References, with typeahead suggestions and automatic pool population as objective artifacts are added.</li>
+              <li>Controls now auto-promote from Not Started to In Progress on Evidence Pool activity; data persists locally and is fully included in Project JSON export/import (Version 1 backups still import fine).</li>
+              <li>Added an artifact indicator and Has Artifacts filter to Control Library, and fixed a stale-render bug so the library re-reads localStorage on every navigation.</li>
             </ul>
           </section>
 
@@ -1246,48 +564,21 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v1.1.2</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Workflow &amp; Ownership Update</span>
+          <span style={{ color: 'var(--color-text)' }}>Workflow &amp; Ownership Update</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 4, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
 
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Workflow</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Auto-resizing Assessment Notes textareas — height expands as content grows, shrinks when content is removed, no internal scrollbar during normal use</li>
-              <li>Auto-resizing Objective Notes textareas — same behavior for all per-objective note fields</li>
-              <li>Automatic Not Started → In Progress promotion — typing into any note field on a Not Started control automatically promotes it to In Progress</li>
-              <li>Automatic In Progress → Not Started reversion — clearing all note fields on an In Progress control automatically reverts it to Not Started</li>
-              <li>MET and NOT MET statuses protected — automatic status changes never affect controls marked MET or NOT MET; manual dropdown changes are unaffected</li>
-              <li>Hide MET Controls toggle added to Control Library — hides MET controls from the list to let assessors focus on remaining work</li>
-              <li>Hide MET Controls preference persists between sessions via localStorage</li>
-              <li>If Status filter is explicitly set to MET, MET controls are shown regardless of the hide toggle</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Ownership &amp; Disclosure</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added Copyright &amp; Ownership section to About page — copyright notice, proprietary software statement, unauthorized use prohibition</li>
-              <li>Added Independence &amp; Affiliation disclosures to About page — six-point statement establishing independence from C3PAOs, The Cyber AB, DIBCAC, DoD, NIST, and government agencies</li>
-              <li>Added copyright footer to Home page — muted line beneath version information</li>
-              <li>Added affiliation FAQ entry — positioned second (directly after official-assessment-tool question) to address primary reviewer concern early</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Project Personality</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Added "Certified CMMC Assessor (CCA), Spider-Man (SM)" credential line to About page author section</li>
-            </ul>
-          </section>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Adds auto-resizing note fields with automatic status promotion/reversion, a Hide MET Controls toggle, and ownership/independence disclosures on the About page.
+          </p>
 
           <section>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Validation</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Dataset unchanged — no control, evidence, or relationship modifications</li>
-              <li>Controls: 110 · Evidence types: 130 · Relationships: 189 · Families: 14/14</li>
-              <li>Validator: Pass</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Workflow &amp; Ownership</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Note fields now auto-resize, and typing into a Not Started control's notes auto-promotes it to In Progress (clearing them reverts it) — MET/NOT MET controls are never touched by this automation.</li>
+              <li>Added a Hide MET Controls toggle to Control Library to help assessors focus on remaining work.</li>
+              <li>Added Copyright &amp; Ownership and Independence/Affiliation disclosures to the About page, establishing the project as independent of any C3PAO, Cyber AB, DIBCAC, DoD, or NIST affiliation.</li>
             </ul>
           </section>
 
@@ -1299,62 +590,29 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v1.1.1</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Production Readiness, Security &amp; Usability Update</span>
+          <span style={{ color: 'var(--color-text)' }}>Production Readiness, Security &amp; Usability Update</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 3, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
 
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            First production release — ships a status-card dashboard, safer bulk actions, a consolidated privacy/FAQ writeup, light/dark theming, and the first live GitHub and Cloudflare Pages deployment.
+          </p>
+
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Workflow</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Improved assessment progress dashboard — replaced status list with a 2×2 status card grid showing count and percentage per status</li>
-              <li>Status cards are clickable — link to Control Library filtered by status and family</li>
-              <li>Added bulk action safeguard — Clear Data now requires confirmation before overwriting any control data</li>
-              <li>Fixed bulk status update and bulk Clear Data — both were silently failing due to a missing import</li>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Workflow &amp; Import/Export</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Replaced the status list with a clickable 2×2 status card grid, and added a confirmation safeguard before bulk Clear Data (also fixed bulk status update, which was silently failing on a missing import).</li>
+              <li>Added OSC/Assessment Name export prompts with timestamped filenames, a Last Project Backup indicator, size/type-limited CSV and JSON import, and a restore confirmation dialog showing exactly what will change.</li>
             </ul>
           </section>
 
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Import &amp; Export</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>OSC / Client Name and Assessment Name prompts before CSV and JSON exports — pre-filled from previous export</li>
-              <li>Timestamped filenames (<code>YYYY-MM-DD_HHMM</code> using local browser time) to prevent same-day collisions</li>
-              <li>Last Project Backup indicator on Home page — shows when the most recent JSON backup was created</li>
-              <li>CSV import: <code>.csv</code> extension required, MIME allowlist enforced, 1 MB size limit</li>
-              <li>JSON import: <code>.json</code> extension required, MIME allowlist enforced, 2 MB size limit</li>
-              <li>JSON restore confirmation dialog — shows exactly what will and will not be overwritten before restoring; Cancel discards with no side effects</li>
-              <li>Added import/export section descriptions on Home page for first-time orientation</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Security &amp; Privacy</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Reworked About page — consolidated Data &amp; Privacy and Limitations into a single structured section covering intended use, prohibited content, storage architecture, export responsibility, and limitations</li>
-              <li>Added explicit guidance against storing CUI, SSPs, network diagrams, system inventories, device configurations, screenshots, or sensitive customer documentation</li>
-              <li>Clarified that no assessment data is transmitted to the developer, GitHub, or Cloudflare</li>
-              <li>Added FAQ page covering 13 common questions: official tool status, server storage, CUI policy, multi-assessor sharing, browser data loss, import transmission, import protections, export format differences, internet requirements, dataset updates, tool origin, data encryption, and external file sharing</li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>User Experience</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>Light / Dark theme toggle with localStorage persistence — preference survives page refresh</li>
-              <li>Flash prevention on hard reload — theme applied before React boots via inline head script</li>
-              <li>Navigation bar permanently dark in both themes for consistent visual identity</li>
-              <li>Application version and deployment environment displayed on Home page</li>
-              <li>FAQ added to navigation between About and Changelog</li>
-            </ul>
-          </section>
-
-          <section>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Infrastructure</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
-              <li>First GitHub production release — <a href="https://github.com/Vinchyyyy/cmmc-companion" target="_blank" rel="noopener noreferrer">github.com/Vinchyyyy/cmmc-companion</a></li>
-              <li>First Cloudflare Pages deployment — <a href="https://cmmc-companion.pages.dev" target="_blank" rel="noopener noreferrer">cmmc-companion.pages.dev</a></li>
-              <li>Automatic CI/CD deployment enabled — push to <code>main</code> triggers build and deploy</li>
-              <li>SPA routing confirmed working via <code>public/_redirects</code></li>
+          <section style={{ marginBottom: 'var(--space-2)' }}>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Security, Theming &amp; Launch</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <li>Consolidated the About page's privacy/limitations content and added a 13-question FAQ page covering storage, CUI policy, and data handling.</li>
+              <li>Added a flash-free Light/Dark theme toggle that persists across refreshes.</li>
+              <li>Shipped the first GitHub release and Cloudflare Pages deployment, with CI/CD on push to <code>main</code>.</li>
             </ul>
           </section>
 
@@ -1366,12 +624,12 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v1.0.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Initial V1 Release</span>
+          <span style={{ color: 'var(--color-text)' }}>Initial V1 Release</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>June 3, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Dataset</h3>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Dataset</h3>
             <table style={{ borderCollapse: 'collapse', width: '100%' }}>
               <tbody>
                 {[
@@ -1390,8 +648,8 @@ function Changelog() {
           </section>
 
           <section style={{ marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Features</h3>
-            <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Features</h3>
+            <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
               <li>Complete CMMC Level 2 control family coverage (all 14 families)</li>
               <li>Dashboard with stacked progress bar and per-family status breakdown</li>
               <li>Quick Search — matches control IDs, titles, objectives, evidence, and scoring terms</li>
@@ -1411,7 +669,7 @@ function Changelog() {
           </section>
 
           <section>
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Assessment Guide Family Order</h3>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Assessment Guide Family Order</h3>
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
               AC → AT → AU → CM → IA → IR → MA → MP → PS → PE → RA → CA → SC → SI
             </p>
@@ -1423,10 +681,10 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v0.9.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Final Family Expansion</span>
+          <span style={{ color: 'var(--color-text)' }}>Final Family Expansion</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
-          <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
             <li><strong>Media Protection (MP)</strong> — 9 controls including MP.L1-3.8.3 (FAR-referenced Level 1 practice); completed V1 family coverage</li>
             <li><strong>Maintenance (MA)</strong> — 6 controls confirmed against CMMC Assessment Guide pages 149–160; MA.L2-3.7.6 added after initial estimate missed it</li>
             <li><strong>Awareness and Training (AT)</strong> — AT.L2-3.2.3 (Insider Threat Awareness) added in correction pass after initial expansion omitted it</li>
@@ -1440,10 +698,10 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v0.8.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Major Workflow Features</span>
+          <span style={{ color: 'var(--color-text)' }}>Major Workflow Features</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
-          <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
             <li><strong>Progress dashboard</strong> — stacked bar chart showing MET / NOT MET / In Progress / Not Started distribution with per-family filtering</li>
             <li><strong>Quick Search</strong> — real-time search across control IDs, titles, objectives, evidence, and scoring metadata terms</li>
             <li><strong>Scoring and POA&amp;M metadata</strong> — scoring.json lookup keyed by control ID; score badges, Non-POA&amp;M badge, and filter in Control Library</li>
@@ -1460,10 +718,10 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v0.7.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Data Architecture Refactor</span>
+          <span style={{ color: 'var(--color-text)' }}>Data Architecture Refactor</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
-          <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
             <li>Controls split into per-family JSON files with a shared index</li>
             <li>Evidence split into per-family and shared JSON files</li>
             <li>Relationships split into per-family and cross-family JSON files</li>
@@ -1478,10 +736,10 @@ function Changelog() {
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>v0.1.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-          <span>Initial Creation</span>
+          <span style={{ color: 'var(--color-text)' }}>Initial Creation</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
-          <ul style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7 }}>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
             <li>React + Vite application scaffolded</li>
             <li>React Router v6 routing with Navigation component</li>
             <li>Home page — assessment status overview</li>
