@@ -12,15 +12,39 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v4.3.0 — current release, open by default */}
+      {/* v4.4.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.4.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span style={{ color: 'var(--color-text)' }}>DIBCAC Method Filter for Control Library</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>July 17, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-accent)' }}>
+
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Adds a DIBCAC assessment method filter to the Control Library that carries through to Control Detail, narrowing the Objective Rail to just the objectives that need that method.
+          </p>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>DIBCAC Method Filter</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>New "DIBCAC Method" filter in the Control Library (Document, Screen Share, Artifact, Physical Review, Artifact + Screen Share, Variable). A control matches if any of its objectives use the selected method(s), so it still shows up in the list.</li>
+            <li>Opening a control from a DIBCAC-filtered Library view now narrows the Objective Rail to only the matching objectives, auto-selects the first one, and shows a "Showing X of Y objectives — filtered by …" banner with a Clear button.</li>
+            <li>The filter carries across Prev/Next navigation between controls, and back to the same filtered Library view via "Back to Control Library."</li>
+          </ul>
+
+        </div>
+      </details>
+
+      {/* v4.3.0 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.3.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
           <span style={{ color: 'var(--color-text)' }}>Custom Inheritance Pool, DIBCAC Family Summary &amp; Progress Sort</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>July 16, 2026</span>
         </summary>
-        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-accent)' }}>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
 
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
             Adds a shareable pool for custom inheritance sources, replaces the DIBCAC method summary on review group cards with a family-code summary, and adds sortable Progress on the Home dashboard's Continue Review table.

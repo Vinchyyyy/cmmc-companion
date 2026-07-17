@@ -41,6 +41,14 @@ import {
 import { IconNotes, IconPaperclip } from '../components/icons'
 import { readAssignedTo, writeAssignedTo, normalizeAssignee } from '../utils/assignment'
 import BulkFindingsModal from '../components/BulkFindingsModal'
+import { DIBCAC_STANDARDS, getDibcacStandard } from '../data/dibcacAssessmentStandards'
+
+// 'variable' covers objectives with no fixed DIBCAC standard mapping (getDibcacStandard returns null).
+const DIBCAC_FILTER_VALUES = [...DIBCAC_STANDARDS, { value: 'variable', label: 'Variable' }]
+
+function objectiveDibcacValue(controlId, objId) {
+  return getDibcacStandard(controlId, objId)?.standard ?? 'variable'
+}
 
 function getControlWarnings(control) {
   const status      = readStatus(control.id)
@@ -81,6 +89,7 @@ const DEFAULTS = {
   warnings: 'All',
   inheritanceSource: 'All',
   assignedTo: 'All',
+  dibcacMethod: 'All',
 }
 
 // Family name -> 2-letter code (the prefix of every control ID in that family)
@@ -98,8 +107,8 @@ const STATUS_VAR_COLOR = {
   'Not Started': 'var(--color-not-started)',
 }
 
-const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'warnings', 'inheritanceSource', 'assignedTo']
-const CHIP_FILTER_KEYS = ['status', 'warnings', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'inheritanceSource', 'assignedTo']
+const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'warnings', 'inheritanceSource', 'assignedTo', 'dibcacMethod']
+const CHIP_FILTER_KEYS = ['status', 'warnings', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'inheritanceSource', 'assignedTo', 'dibcacMethod']
 const SEARCH_DEBOUNCE_MS = 500
 
 function getProviderSuggestions(value) {
@@ -115,11 +124,14 @@ function getProviderSuggestions(value) {
   return [...catalogMatches, ...customMatches].slice(0, 8)
 }
 
+const DIBCAC_FILTER_LABEL = new Map(DIBCAC_FILTER_VALUES.map((d) => [d.value, d.label]))
+
 function chipLabel(key, value) {
   if (key === 'artifacts')         return value === 'Yes' ? 'Has artifacts' : 'No artifacts'
   if (key === 'score')             return `Score: (${Math.abs(Number(value))}) pts`
   if (key === 'poam')              return value === 'Allowed' ? 'POA&M Allowed' : 'Non-POA&Mable'
   if (key === 'inheritanceSource') return `Source: ${value}`
+  if (key === 'dibcacMethod')      return `DIBCAC: ${DIBCAC_FILTER_LABEL.get(value) ?? value}`
   return value
 }
 
@@ -200,6 +212,7 @@ function FilterModal({
   poamSet,
   inheritanceSourceSet,
   assignedToSet,
+  dibcacMethodSet,
   usedInheritanceSources,
   usedAssignedTo,
   activeChips,
@@ -264,6 +277,18 @@ function FilterModal({
                 <FilterPill key={s} filterKey="status" value={s} activeSet={statusSet} onToggle={toggleMultiFilter} />
               ))}
             </div>
+          </section>
+
+          <section className="cl-filter-modal-section">
+            <div className="cl-filter-modal-section-title">DIBCAC Method</div>
+            <div className="cl-filter-modal-pills">
+              {DIBCAC_FILTER_VALUES.map((d) => (
+                <FilterPill key={d.value} filterKey="dibcacMethod" value={d.value} label={d.label} activeSet={dibcacMethodSet} onToggle={toggleMultiFilter} />
+              ))}
+            </div>
+            <p className="cl-filter-modal-section-hint">
+              Only shows objectives matching the selected method(s) when you open a control.
+            </p>
           </section>
 
           <section className="cl-filter-modal-section">
@@ -392,6 +417,7 @@ function ControlLibrary() {
   const warningsSet    = parseMultiFilter(searchParams.get('warnings'))
   const inheritanceSourceSet = parseMultiFilter(searchParams.get('inheritanceSource'))
   const assignedToSet  = parseMultiFilter(searchParams.get('assignedTo'))
+  const dibcacMethodSet = parseMultiFilter(searchParams.get('dibcacMethod'))
   const location = useLocation()
 
   const [searchInput, setSearchInput]   = useState(urlSearch)
@@ -598,6 +624,11 @@ function ControlLibrary() {
     return true
   }
 
+  const matchesDibcacMethod = (c) => {
+    if (dibcacMethodSet.size === 0) return true
+    return (c.objectives ?? []).some((obj) => dibcacMethodSet.has(objectiveDibcacValue(c.id, obj.id)))
+  }
+
   const matchesHideMet = (c) => {
     if (!hideMet || statusSet.has('MET')) return true
     return readStatus(c.id) !== 'MET'
@@ -638,7 +669,8 @@ function ControlLibrary() {
     matchesSearch(c) && matchesFamily(c) && matchesStatus(c) &&
     matchesNotes(c) && matchesArtifacts(c) && matchesInheritance(c) &&
     matchesScore(c) && matchesPoam(c) && matchesHideMet(c) &&
-    matchesWarnings(c) && matchesInheritanceSource(c) && matchesAssignedTo(c)
+    matchesWarnings(c) && matchesInheritanceSource(c) && matchesAssignedTo(c) &&
+    matchesDibcacMethod(c)
   )
 
   // Group by family in official CMMC order
@@ -653,7 +685,9 @@ function ControlLibrary() {
 
   const queryString = searchParams.toString()
   const currentLibraryUrl = queryString ? `/controls?${queryString}` : '/controls'
-  const fromSuffix = `?from=${encodeURIComponent(currentLibraryUrl)}`
+  const detailLinkParams = new URLSearchParams({ from: currentLibraryUrl })
+  if (dibcacMethodSet.size > 0) detailLinkParams.set('focus', [...dibcacMethodSet].join(','))
+  const fromSuffix = `?${detailLinkParams.toString()}`
 
   // -----------------------------------------------------------------------
   // Multi-select
@@ -1352,6 +1386,7 @@ function ControlLibrary() {
           poamSet={poamSet}
           inheritanceSourceSet={inheritanceSourceSet}
           assignedToSet={assignedToSet}
+          dibcacMethodSet={dibcacMethodSet}
           usedInheritanceSources={usedInheritanceSources}
           usedAssignedTo={usedAssignedTo}
           activeChips={activeChips}

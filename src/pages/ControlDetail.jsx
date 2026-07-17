@@ -51,7 +51,7 @@ import {
   readObjectiveInterviewedRoles,
   writeObjectiveInterviewedRoles,
 } from '../utils/objectiveInterviewedRoles'
-import { getDibcacStandard } from '../data/dibcacAssessmentStandards'
+import { getDibcacStandard, DIBCAC_STANDARDS } from '../data/dibcacAssessmentStandards'
 import {
   getReviewGroups,
   addObjectiveToGroup,
@@ -78,6 +78,13 @@ const EVIDENCE_TAG_LABEL = new Map(evidenceTags.map((t) => [t.id, t.label]))
 // eMASS import caps these free-text fields at 400 characters.
 const EMASS_CHAR_LIMIT = 400
 const EMASS_LIMITED_FIELDS = new Set(['interviews', 'examine', 'test'])
+
+// Labels for the DIBCAC method focus banner — mirrors ControlLibrary's filter
+// labels, plus 'variable' for objectives with no fixed standard mapping.
+const DIBCAC_FOCUS_LABEL = new Map([
+  ...DIBCAC_STANDARDS.map((d) => [d.value, d.label]),
+  ['variable', 'Variable'],
+])
 
 // Prev/Next nav must walk controls in the same family → practice-number
 // order the Control Library displays them in (see controlOrder.js) — not
@@ -966,11 +973,25 @@ function SuggestedArtifactsInline({ control, obj, allControls, onAdd, onOpenArti
 
 function ControlDetailView() {
   const { id } = useParams()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const location = useLocation()
   const control = controls.find((c) => c.id === id)
 
   const backUrl = resolveBackUrl(searchParams.get('from'))
+
+  // DIBCAC method focus carried in from a filtered Control Library view
+  // (?focus=artifact,screen_share) — restricts the Objective Rail to only
+  // the objectives matching the selected method(s).
+  const focusParam = searchParams.get('focus')
+  const focusMethods = useMemo(
+    () => new Set((focusParam ?? '').split(',').filter(Boolean)),
+    [focusParam]
+  )
+  const clearFocus = () => {
+    const next = new URLSearchParams(searchParams)
+    next.delete('focus')
+    setSearchParams(next, { replace: true })
+  }
 
   const [status, setStatus]           = useState(() => readStatus(id))
   const [inheritance, setInheritance] = useState(() => readInheritance(id))
@@ -1303,7 +1324,10 @@ function ControlDetailView() {
   }
 
   const supportingEvidence = evidenceTypes.filter((e) => e.likelyControls.includes(control.id))
-  const selectedObj = control.objectives.find((o) => o.id === selectedObjectiveId) ?? control.objectives[0] ?? null
+  const visibleObjectives = focusMethods.size > 0
+    ? control.objectives.filter((o) => focusMethods.has(getDibcacStandard(control.id, o.id)?.standard ?? 'variable'))
+    : control.objectives
+  const selectedObj = visibleObjectives.find((o) => o.id === selectedObjectiveId) ?? visibleObjectives[0] ?? null
 
   const controlIndex = orderedControls.findIndex((c) => c.id === id)
   const prevControl = controlIndex > 0 ? orderedControls[controlIndex - 1] : null
@@ -1322,7 +1346,7 @@ function ControlDetailView() {
             <div className="cd-prev-next">
               {prevControl ? (
                 <Link
-                  to={`/controls/${encodeURIComponent(prevControl.id)}`}
+                  to={`/controls/${encodeURIComponent(prevControl.id)}${location.search}`}
                   className="cd-nav-btn"
                   title={prevControl.title}
                 >
@@ -1333,7 +1357,7 @@ function ControlDetailView() {
               )}
               {nextControl ? (
                 <Link
-                  to={`/controls/${encodeURIComponent(nextControl.id)}`}
+                  to={`/controls/${encodeURIComponent(nextControl.id)}${location.search}`}
                   className="cd-nav-btn"
                   title={nextControl.title}
                 >
@@ -1527,7 +1551,16 @@ function ControlDetailView() {
         {/* LEFT: Objective Rail */}
         <aside className="cd-rail">
           <div className="cd-rail-title">Objective Rail</div>
-          {control.objectives.map((obj) => {
+          {focusMethods.size > 0 && (
+            <div className="cd-rail-focus-banner">
+              <span>
+                Showing {visibleObjectives.length} of {control.objectives.length} objectives — filtered by{' '}
+                {[...focusMethods].map((m) => DIBCAC_FOCUS_LABEL.get(m) ?? m).join(', ')}
+              </span>
+              <button type="button" className="cd-rail-focus-clear" onClick={clearFocus}>Clear</button>
+            </div>
+          )}
+          {visibleObjectives.map((obj) => {
             const artCount = (objectiveArtifacts[obj.id] ?? []).length
             const objStatus = objectiveStatuses[obj.id] ?? OBJECTIVE_STATUS_UNREVIEWED
             const railStatus = objStatus === OBJECTIVE_STATUS_UNREVIEWED && objectiveHasWork(obj.id)
@@ -1824,7 +1857,11 @@ function ControlDetailView() {
               </div>
             </div>
           ) : (
-            <p className="muted">No objectives available for this control.</p>
+            <p className="muted">
+              {focusMethods.size > 0
+                ? 'No objectives on this control match the current DIBCAC method filter.'
+                : 'No objectives available for this control.'}
+            </p>
           )}
 
           {/* Suggested Existing Artifacts card — center column, below objective work */}
