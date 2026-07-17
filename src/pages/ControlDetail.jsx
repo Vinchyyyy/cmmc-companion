@@ -987,9 +987,11 @@ function ControlDetailView() {
     () => new Set((focusParam ?? '').split(',').filter(Boolean)),
     [focusParam]
   )
+  const focusHideMet = searchParams.get('focusHideMet') === '1'
   const clearFocus = () => {
     const next = new URLSearchParams(searchParams)
     next.delete('focus')
+    next.delete('focusHideMet')
     setSearchParams(next, { replace: true })
   }
 
@@ -1325,7 +1327,10 @@ function ControlDetailView() {
 
   const supportingEvidence = evidenceTypes.filter((e) => e.likelyControls.includes(control.id))
   const visibleObjectives = focusMethods.size > 0
-    ? control.objectives.filter((o) => focusMethods.has(getDibcacStandard(control.id, o.id)?.standard ?? 'variable'))
+    ? control.objectives.filter((o) =>
+        focusMethods.has(getDibcacStandard(control.id, o.id)?.standard ?? 'variable') &&
+        (!focusHideMet || objectiveStatuses[o.id] !== OBJECTIVE_STATUS_MET)
+      )
     : control.objectives
   const selectedObj = visibleObjectives.find((o) => o.id === selectedObjectiveId) ?? visibleObjectives[0] ?? null
 
@@ -1556,6 +1561,7 @@ function ControlDetailView() {
               <span>
                 Showing {visibleObjectives.length} of {control.objectives.length} objectives — filtered by{' '}
                 {[...focusMethods].map((m) => DIBCAC_FOCUS_LABEL.get(m) ?? m).join(', ')}
+                {focusHideMet ? ', hiding MET' : ''}
               </span>
               <button type="button" className="cd-rail-focus-clear" onClick={clearFocus}>Clear</button>
             </div>

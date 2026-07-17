@@ -12,15 +12,38 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v4.4.0 — current release, open by default */}
+      {/* v4.5.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.5.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span style={{ color: 'var(--color-text)' }}>Hide MET Objectives in the DIBCAC Filter</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>July 17, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-accent)' }}>
+
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Adds a "Hide MET objectives" toggle to the Control Library's DIBCAC Method filter, so a focused review pass can skip objectives that are already done.
+          </p>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>DIBCAC Filter</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>New "Hide MET objectives" pill under the DIBCAC Method filter in the Control Library. With it on, a control only matches if it has a non-MET objective in the selected method(s).</li>
+            <li>The setting carries through to Control Detail the same way the method filter does — the Objective Rail also drops MET objectives from the filtered view, and the banner reads "…filtered by Artifact, hiding MET."</li>
+          </ul>
+
+        </div>
+      </details>
+
+      {/* v4.4.0 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.4.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
           <span style={{ color: 'var(--color-text)' }}>DIBCAC Method Filter for Control Library</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>July 17, 2026</span>
         </summary>
-        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-accent)' }}>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
 
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
             Adds a DIBCAC assessment method filter to the Control Library that carries through to Control Detail, narrowing the Objective Rail to just the objectives that need that method.

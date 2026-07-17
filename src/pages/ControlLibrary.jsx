@@ -90,6 +90,7 @@ const DEFAULTS = {
   inheritanceSource: 'All',
   assignedTo: 'All',
   dibcacMethod: 'All',
+  dibcacHideMet: 'All',
 }
 
 // Family name -> 2-letter code (the prefix of every control ID in that family)
@@ -107,8 +108,8 @@ const STATUS_VAR_COLOR = {
   'Not Started': 'var(--color-not-started)',
 }
 
-const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'warnings', 'inheritanceSource', 'assignedTo', 'dibcacMethod']
-const CHIP_FILTER_KEYS = ['status', 'warnings', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'inheritanceSource', 'assignedTo', 'dibcacMethod']
+const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'warnings', 'inheritanceSource', 'assignedTo', 'dibcacMethod', 'dibcacHideMet']
+const CHIP_FILTER_KEYS = ['status', 'warnings', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'inheritanceSource', 'assignedTo', 'dibcacMethod', 'dibcacHideMet']
 const SEARCH_DEBOUNCE_MS = 500
 
 function getProviderSuggestions(value) {
@@ -132,6 +133,7 @@ function chipLabel(key, value) {
   if (key === 'poam')              return value === 'Allowed' ? 'POA&M Allowed' : 'Non-POA&Mable'
   if (key === 'inheritanceSource') return `Source: ${value}`
   if (key === 'dibcacMethod')      return `DIBCAC: ${DIBCAC_FILTER_LABEL.get(value) ?? value}`
+  if (key === 'dibcacHideMet')     return 'Hide MET objectives'
   return value
 }
 
@@ -213,6 +215,7 @@ function FilterModal({
   inheritanceSourceSet,
   assignedToSet,
   dibcacMethodSet,
+  dibcacHideMetSet,
   usedInheritanceSources,
   usedAssignedTo,
   activeChips,
@@ -289,6 +292,9 @@ function FilterModal({
             <p className="cl-filter-modal-section-hint">
               Only shows objectives matching the selected method(s) when you open a control.
             </p>
+            <div className="cl-filter-modal-pills" style={{ marginTop: 'var(--space-2)' }}>
+              <FilterPill filterKey="dibcacHideMet" value="Yes" label="Hide MET objectives" activeSet={dibcacHideMetSet} onToggle={toggleMultiFilter} />
+            </div>
           </section>
 
           <section className="cl-filter-modal-section">
@@ -418,6 +424,8 @@ function ControlLibrary() {
   const inheritanceSourceSet = parseMultiFilter(searchParams.get('inheritanceSource'))
   const assignedToSet  = parseMultiFilter(searchParams.get('assignedTo'))
   const dibcacMethodSet = parseMultiFilter(searchParams.get('dibcacMethod'))
+  const dibcacHideMetSet = parseMultiFilter(searchParams.get('dibcacHideMet'))
+  const dibcacHideMet   = dibcacHideMetSet.has('Yes')
   const location = useLocation()
 
   const [searchInput, setSearchInput]   = useState(urlSearch)
@@ -626,7 +634,10 @@ function ControlLibrary() {
 
   const matchesDibcacMethod = (c) => {
     if (dibcacMethodSet.size === 0) return true
-    return (c.objectives ?? []).some((obj) => dibcacMethodSet.has(objectiveDibcacValue(c.id, obj.id)))
+    return (c.objectives ?? []).some((obj) =>
+      dibcacMethodSet.has(objectiveDibcacValue(c.id, obj.id)) &&
+      (!dibcacHideMet || readObjectiveStatus(c.id, obj.id) !== OBJECTIVE_STATUS_MET)
+    )
   }
 
   const matchesHideMet = (c) => {
@@ -686,7 +697,10 @@ function ControlLibrary() {
   const queryString = searchParams.toString()
   const currentLibraryUrl = queryString ? `/controls?${queryString}` : '/controls'
   const detailLinkParams = new URLSearchParams({ from: currentLibraryUrl })
-  if (dibcacMethodSet.size > 0) detailLinkParams.set('focus', [...dibcacMethodSet].join(','))
+  if (dibcacMethodSet.size > 0) {
+    detailLinkParams.set('focus', [...dibcacMethodSet].join(','))
+    if (dibcacHideMet) detailLinkParams.set('focusHideMet', '1')
+  }
   const fromSuffix = `?${detailLinkParams.toString()}`
 
   // -----------------------------------------------------------------------
@@ -1387,6 +1401,7 @@ function ControlLibrary() {
           inheritanceSourceSet={inheritanceSourceSet}
           assignedToSet={assignedToSet}
           dibcacMethodSet={dibcacMethodSet}
+          dibcacHideMetSet={dibcacHideMetSet}
           usedInheritanceSources={usedInheritanceSources}
           usedAssignedTo={usedAssignedTo}
           activeChips={activeChips}
