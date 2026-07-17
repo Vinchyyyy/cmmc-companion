@@ -9,6 +9,14 @@ import { sortControlsInAssessmentOrder } from '../utils/controlOrder'
 import { controlDiscussions } from '../data/controlDiscussions.js'
 import { PROVIDERS } from '../data/providers'
 import { getEnvironmentTechTags } from '../utils/environmentProfile'
+import {
+  isCatalogProvider,
+  isInCustomPool,
+  addCustomProvider,
+  removeCustomProvider,
+  renameCustomProvider,
+  readCustomProviders,
+} from '../utils/customProviders'
 import evidenceTypes from '../data/evidence/index.js'
 import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
 import {
@@ -517,7 +525,7 @@ function EditDetailsModal({
   onClose,
   status, onStatusSelect,
   inheritance, onInheritanceSelect,
-  inheritanceSources, addInheritanceSource, removeInheritanceSource,
+  inheritanceSources, addInheritanceSource, removeInheritanceSource, renameInheritanceSource,
   statusWarning,
   assignedTo, onAssignedToChange, onAssignedToBlur, onAssignedToSelect,
 }) {
@@ -525,6 +533,10 @@ function EditDetailsModal({
   useFocusTrap(modalRef, true)
 
   const [sourceInput, setSourceInput] = useState('')
+  const [openSourceEditor, setOpenSourceEditor] = useState(null)
+  const [sourceEditValue, setSourceEditValue] = useState('')
+  // Bumped after custom-pool writes so the "In Pool" state re-reads localStorage.
+  const [poolVersion, setPoolVersion] = useState(0)
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose() }
@@ -541,6 +553,16 @@ function EditDetailsModal({
   const handleAddSource = (name) => {
     addInheritanceSource(name)
     setSourceInput('')
+  }
+
+  const handleRenameSource = (oldName, newName, wasInPool) => {
+    const trimmed = newName.trim()
+    if (!trimmed || trimmed === oldName) return
+    renameInheritanceSource(oldName, trimmed)
+    if (wasInPool) {
+      renameCustomProvider(oldName, trimmed)
+      setPoolVersion((v) => v + 1)
+    }
   }
 
   return (
@@ -606,18 +628,88 @@ function EditDetailsModal({
             <section className="cd-edit-section">
               <div className="cd-edit-section-title">Inherited From</div>
               {inheritanceSources.length > 0 && (
-                <div className="cd-sources-chips">
-                  {inheritanceSources.map((src) => (
-                    <span key={src} className="cd-source-chip">
-                      <span className="cd-source-chip-label">{src}</span>
-                      <button
-                        type="button"
-                        className="cd-source-chip-remove"
-                        onClick={() => removeInheritanceSource(src)}
-                        aria-label={`Remove ${src}`}
-                      >×</button>
-                    </span>
-                  ))}
+                <div className="cd-sources-chips" data-pool-version={poolVersion}>
+                  {inheritanceSources.map((src) => {
+                    const isCustom = !isCatalogProvider(src)
+                    const inPool = isCustom && isInCustomPool(src)
+                    const isEditorOpen = openSourceEditor === src
+                    return (
+                      <span key={src} className="cd-source-chip-wrap">
+                        <span className={`cd-source-chip${isCustom ? ' cd-source-chip--custom' : ''}`}>
+                          {isCustom ? (
+                            <button
+                              type="button"
+                              className="cd-source-chip-label cd-source-chip-label--button"
+                              onClick={() => {
+                                setOpenSourceEditor(isEditorOpen ? null : src)
+                                setSourceEditValue(src)
+                              }}
+                              aria-expanded={isEditorOpen}
+                            >
+                              {src}
+                              <span className="cd-source-chip-custom-badge" title="Not in the provider catalog — custom entry for this control">Custom</span>
+                            </button>
+                          ) : (
+                            <span className="cd-source-chip-label">{src}</span>
+                          )}
+                          <button
+                            type="button"
+                            className="cd-source-chip-remove"
+                            onClick={() => removeInheritanceSource(src)}
+                            aria-label={`Remove ${src}`}
+                          >×</button>
+                        </span>
+                        {isEditorOpen && (
+                          <div className="cd-source-editor">
+                            <input
+                              type="text"
+                              value={sourceEditValue}
+                              onChange={(e) => setSourceEditValue(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  handleRenameSource(src, sourceEditValue, inPool)
+                                  setOpenSourceEditor(null)
+                                } else if (e.key === 'Escape') {
+                                  setOpenSourceEditor(null)
+                                }
+                              }}
+                              className="cd-source-editor-input"
+                              autoFocus
+                            />
+                            <div className="cd-source-editor-actions">
+                              <button
+                                type="button"
+                                className="cd-source-editor-btn"
+                                onClick={() => { handleRenameSource(src, sourceEditValue, inPool); setOpenSourceEditor(null) }}
+                              >Rename</button>
+                              {inPool ? (
+                                <button
+                                  type="button"
+                                  className="cd-source-editor-btn cd-source-editor-btn--pooled"
+                                  onClick={() => { removeCustomProvider(src); setPoolVersion((v) => v + 1) }}
+                                  title="Stop suggesting this name on other controls"
+                                >✓ In pool — remove</button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="cd-source-editor-btn"
+                                  onClick={() => { addCustomProvider(src); setPoolVersion((v) => v + 1) }}
+                                >Add to pool</button>
+                              )}
+                            </div>
+                            <div className="cd-source-editor-actions">
+                              <button
+                                type="button"
+                                className="cd-source-editor-btn cd-source-editor-btn--danger"
+                                onClick={() => { removeInheritanceSource(src); setOpenSourceEditor(null) }}
+                              >Delete from this control</button>
+                            </div>
+                          </div>
+                        )}
+                      </span>
+                    )
+                  })}
                 </div>
               )}
               <div className="provider-picker-wrapper">
@@ -639,8 +731,10 @@ function EditDetailsModal({
                   const q = sourceInput.toLowerCase()
                   const envTags = getEnvironmentTechTags()
                   const envLower = new Set(envTags.map((t) => t.toLowerCase()))
-                  const catalogNames = PROVIDERS.map((p) => p.name).filter((name) => !envLower.has(name.toLowerCase()))
-                  const allCandidates = [...envTags, ...catalogNames]
+                  const customNames = readCustomProviders().filter((n) => !envLower.has(n.toLowerCase()))
+                  const customLower = new Set(customNames.map((n) => n.toLowerCase()))
+                  const catalogNames = PROVIDERS.map((p) => p.name).filter((name) => !envLower.has(name.toLowerCase()) && !customLower.has(name.toLowerCase()))
+                  const allCandidates = [...envTags, ...customNames, ...catalogNames]
                   const suggestions = allCandidates
                     .filter((name) => name.toLowerCase().includes(q) && !inheritanceSources.includes(name))
                     .slice(0, 8)
@@ -997,6 +1091,13 @@ function ControlDetailView() {
   }
   const removeInheritanceSource = (name) => {
     const next = inheritanceSources.filter((s) => s !== name)
+    setInheritanceSources(next)
+    writeInheritanceSources(id, next)
+  }
+  const renameInheritanceSource = (oldName, newName) => {
+    const trimmed = newName.trim()
+    if (!trimmed || trimmed === oldName || inheritanceSources.includes(trimmed)) return
+    const next = inheritanceSources.map((s) => (s === oldName ? trimmed : s))
     setInheritanceSources(next)
     writeInheritanceSources(id, next)
   }
@@ -1864,6 +1965,7 @@ function ControlDetailView() {
           inheritanceSources={inheritanceSources}
           addInheritanceSource={addInheritanceSource}
           removeInheritanceSource={removeInheritanceSource}
+          renameInheritanceSource={renameInheritanceSource}
           statusWarning={statusWarning}
           assignedTo={assignedTo}
           onAssignedToChange={handleAssignedToChange}

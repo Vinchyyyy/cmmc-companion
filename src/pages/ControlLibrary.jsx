@@ -5,6 +5,7 @@ import DashSidebar from '../components/DashSidebar.jsx'
 import controls from '../data/controls/index'
 import { PROVIDERS } from '../data/providers'
 import { FAMILY_ORDER, comparePracticeIds } from '../utils/controlOrder'
+import { readCustomProviders } from '../utils/customProviders'
 import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
 import { readNote, writeNote } from '../utils/notes'
 import { hasObjectiveNotes, writeObjectiveNote } from '../utils/objectiveNotes'
@@ -105,9 +106,13 @@ function getProviderSuggestions(value) {
   if (!value.trim()) return []
   if (PROVIDERS.some((p) => p.name === value)) return []
   const q = value.toLowerCase()
-  return PROVIDERS.filter(
+  const catalogMatches = PROVIDERS.filter(
     (p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
-  ).slice(0, 8)
+  )
+  const customMatches = readCustomProviders()
+    .filter((name) => name.toLowerCase().includes(q))
+    .map((name) => ({ id: `custom-${name}`, name, category: 'Custom' }))
+  return [...catalogMatches, ...customMatches].slice(0, 8)
 }
 
 function chipLabel(key, value) {

@@ -812,9 +812,9 @@ function SavedGroupCard({ group, savedFolders, onDelete, onEditRequest, onPrevie
   const [showFindingsModal, setShowFindingsModal] = useState(false)
   const [, forceUpdate] = useState(0)
 
-  const methodSummary = useMemo(() => {
-    const seen = new Set(group.objectives.map((o) => o.standard))
-    return [...seen].map((s) => METHOD_META[s]?.label ?? 'Variable').join(' · ')
+  const familySummary = useMemo(() => {
+    const codes = new Set(group.objectives.map((o) => o.controlId.split('.')[0]))
+    return [...codes].sort().join(' · ')
   }, [group.objectives])
 
   const cycleStatus = useCallback((controlId, objId) => {
@@ -871,7 +871,7 @@ function SavedGroupCard({ group, savedFolders, onDelete, onEditRequest, onPrevie
             <span className="dibcac-group-card-name">{group.name}</span>
             <span className="dibcac-group-card-meta">
               {group.objectives.length} objective{group.objectives.length !== 1 ? 's' : ''}
-              {methodSummary ? ` · ${methodSummary}` : ''}
+              {familySummary ? ` · ${familySummary}` : ''}
             </span>
           </div>
         </button>

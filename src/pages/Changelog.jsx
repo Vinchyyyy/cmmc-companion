@@ -12,15 +12,49 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v4.2.0 — current release, open by default */}
+      {/* v4.3.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.3.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span style={{ color: 'var(--color-text)' }}>Custom Inheritance Pool, DIBCAC Family Summary &amp; Progress Sort</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>July 16, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-accent)' }}>
+
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Adds a shareable pool for custom inheritance sources, replaces the DIBCAC method summary on review group cards with a family-code summary, and adds sortable Progress on the Home dashboard's Continue Review table.
+          </p>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Custom Inheritance Provider Pool</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Typing a provider name that isn't in the built-in catalog now shows a "Custom" badge on its Inherited From chip. Clicking the chip opens a small editor to rename it, delete it from the control, or add it to a shared pool.</li>
+            <li>Pooled custom providers now show up as suggestions when adding inheritance sources on any control, and in the Control Library's bulk "Set Inheritance Source" suggestions — previously a custom name only ever lived on the one control it was typed into.</li>
+            <li>Added a way to remove a name from the pool entirely (distinct from deleting it off one control) — fixes a bug where deleting a custom source chip left it still suggested everywhere else because the pool entry was never cleared.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>DIBCAC Mode</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Review group cards now show the CMMC families covered (e.g. "AC · IA · MP") instead of the DIBCAC assessment methods, making it easier to see at a glance what's grouped together.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Home Dashboard</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>The Progress column header in the Continue Review table is now clickable, cycling between highest-first, lowest-first, and the default review-priority order.</li>
+          </ul>
+
+        </div>
+      </details>
+
+      {/* v4.2.0 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.2.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
           <span style={{ color: 'var(--color-text)' }}>Status/Trending Merge, Assessment Order Fix &amp; Library Improvements</span>
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>July 16, 2026</span>
         </summary>
-        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-accent)' }}>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-border)' }}>
 
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
             Merges the Trending indicator into a single auto-syncing Status field, fixes a Control Detail Prev/Next bug that could walk controls out of assessment order, and adds filter persistence and collapsible family groups to the Control Library.

@@ -610,6 +610,12 @@ function FocusReviewPanel({ controlsWithNotMet, controlsNoArtifacts, untaggedArt
   const [selected, setSelected] = useState('all')
   const [view, setView] = useState('table')
   const [page, setPage] = useState(1)
+  // null = unsorted (default order), 'asc'/'desc' = sort by Progress %
+  const [progressSort, setProgressSort] = useState(null)
+  const toggleProgressSort = () => {
+    setProgressSort((prev) => (prev === 'desc' ? 'asc' : prev === 'asc' ? null : 'desc'))
+    setPage(1)
+  }
 
   const notStartedControls = useMemo(() => controls.filter((c) => readStatus(c.id) === 'Not Started'), [])
   const allReviewControls = useMemo(
@@ -633,7 +639,15 @@ function FocusReviewPanel({ controlsWithNotMet, controlsNoArtifacts, untaggedArt
     selected === 'notMetObjective' ? controlsWithNotMet :
     selected === 'noArtifacts' ? controlsNoArtifacts : []
 
-  const items = isEvidence ? untaggedArtifacts : filteredControls
+  const items = isEvidence ? untaggedArtifacts : (
+    progressSort
+      ? [...filteredControls].sort((a, b) =>
+          progressSort === 'asc'
+            ? controlProgress(a) - controlProgress(b)
+            : controlProgress(b) - controlProgress(a)
+        )
+      : filteredControls
+  )
   const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE))
   const pageSafe = Math.min(page, totalPages)
   const pageItems = items.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE)
@@ -695,7 +709,22 @@ function FocusReviewPanel({ controlsWithNotMet, controlsNoArtifacts, untaggedArt
         ) : (
           <div className="dash-review-table-wrap">
             <table className="dash-table">
-              <thead><tr><th>Control</th><th>Title</th><th>Family</th><th>Status</th><th>Progress</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Control</th>
+                  <th>Title</th>
+                  <th>Family</th>
+                  <th>Status</th>
+                  <th>
+                    <button type="button" className="dash-table-sort-btn" onClick={toggleProgressSort}>
+                      Progress
+                      <span className="dash-table-sort-arrow">
+                        {progressSort === 'asc' ? '↑' : progressSort === 'desc' ? '↓' : '↕'}
+                      </span>
+                    </button>
+                  </th>
+                </tr>
+              </thead>
               <tbody>
                 {pageItems.map((c) => {
                   const status = readStatus(c.id)
