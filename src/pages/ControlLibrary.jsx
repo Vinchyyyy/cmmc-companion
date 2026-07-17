@@ -222,6 +222,7 @@ function FilterModal({
   savedFilters,
   onApplySavedFilter,
   onSaveFilter,
+  onDeleteSavedFilter,
 }) {
   const [filterName, setFilterName] = useState('')
 
@@ -259,15 +260,23 @@ function FilterModal({
               <div className="cl-filter-modal-section-title cl-filter-modal-section-title--saved">Saved Filters</div>
               <div className="cl-saved-filters-list">
                 {savedFilters.map((sf) => (
-                  <button
-                    key={sf.name}
-                    type="button"
-                    className="cl-saved-filter-chip"
-                    onClick={() => onApplySavedFilter(sf)}
-                  >
-                    <span className="cl-saved-filter-name">{sf.name}</span>
-                    <span className="cl-saved-filter-summary">{sf.summary}</span>
-                  </button>
+                  <span key={sf.name} className="cl-saved-filter-chip-wrap">
+                    <button
+                      type="button"
+                      className="cl-saved-filter-chip"
+                      onClick={() => onApplySavedFilter(sf)}
+                    >
+                      <span className="cl-saved-filter-name">{sf.name}</span>
+                      <span className="cl-saved-filter-summary">{sf.summary}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="cl-saved-filter-delete"
+                      onClick={() => onDeleteSavedFilter(sf.name)}
+                      aria-label={`Delete saved filter ${sf.name}`}
+                      title={`Delete "${sf.name}"`}
+                    >×</button>
+                  </span>
                 ))}
               </div>
             </section>
@@ -564,6 +573,12 @@ function ControlLibrary() {
       criteria: activeChips,
     }
     const next = [...savedFilters, entry]
+    setSavedFilters(next)
+    writeSavedFilters(next)
+  }
+
+  const deleteSavedFilter = (name) => {
+    const next = savedFilters.filter((sf) => sf.name !== name)
     setSavedFilters(next)
     writeSavedFilters(next)
   }
@@ -1408,6 +1423,7 @@ function ControlLibrary() {
           savedFilters={savedFilters}
           onApplySavedFilter={applySavedFilter}
           onSaveFilter={saveCurrentFilter}
+          onDeleteSavedFilter={deleteSavedFilter}
         />
       )}
 

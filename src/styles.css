@@ -11898,6 +11898,16 @@ button.evidence-type-chip:focus-visible {
 .dash-root .cl-saved-filter-name { font-size: 12px; font-weight: 600; color: var(--dash-accent2); }
 .dash-root .cl-saved-filter-summary { font-size: 10px; color: var(--dash-text-tertiary); }
 
+.dash-root .cl-saved-filter-chip-wrap { position: relative; display: inline-flex; }
+.dash-root .cl-saved-filter-chip-wrap .cl-saved-filter-chip { padding-right: 26px; }
+.dash-root .cl-saved-filter-delete {
+  position: absolute; top: 4px; right: 4px;
+  width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: 50%; background: transparent;
+  color: var(--dash-text-tertiary); font-size: 12px; line-height: 1; cursor: pointer;
+}
+.dash-root .cl-saved-filter-delete:hover { background: var(--dash-danger); color: #fff; }
+
 .dash-root .cl-save-filter-row {
   display: flex; align-items: center; gap: 12px;
   padding: 14px 28px;
