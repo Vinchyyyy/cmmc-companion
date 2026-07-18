@@ -1299,6 +1299,12 @@ function DibcacMode() {
   const [familyFilter, setFamilyFilter] = useState('All')
   const [methodFilter, setMethodFilter] = useState('all')
   const [checkedKeys, setCheckedKeys] = useState(new Set())
+  const [hideMet, setHideMet] = useState(() => localStorage.getItem('cmmc-dibcac-hide-met') === 'true')
+  const toggleHideMet = () => setHideMet((prev) => {
+    const next = !prev
+    localStorage.setItem('cmmc-dibcac-hide-met', String(next))
+    return next
+  })
   const [savedGroups,  setSavedGroups]  = useState(getReviewGroups)
   const [savedFolders, setSavedFolders] = useState(getReviewFolders)
   const [previewKey, setPreviewKey] = useState(null)
@@ -1334,6 +1340,7 @@ function DibcacMode() {
         if (methodFilter !== 'unknown' && o.standard !== methodFilter) return false
       }
       if (familyFilter !== 'All' && o.family !== familyFilter) return false
+      if (hideMet && readObjectiveStatus(o.controlId, o.objId) === OBJECTIVE_STATUS_MET) return false
       if (q) {
         return (
           o.controlId.toLowerCase().includes(q) ||
@@ -1345,7 +1352,7 @@ function DibcacMode() {
       }
       return true
     })
-  }, [allObjs, search, familyFilter, methodFilter])
+  }, [allObjs, search, familyFilter, methodFilter, hideMet])
 
   const methodCounts = useMemo(() => {
     const m = {}
@@ -1474,6 +1481,12 @@ function DibcacMode() {
             <option value="All">All Families</option>
             {ALL_FAMILIES.map((f) => <option key={f} value={f}>{f}</option>)}
           </select>
+          <button type="button" className="control-utility-toggle" onClick={toggleHideMet} aria-pressed={hideMet}>
+            <span className="cl2-toggle-track" style={{ background: hideMet ? 'var(--dash-accent)' : '#1C1C20' }}>
+              <span className="cl2-toggle-thumb" style={{ transform: hideMet ? 'translateX(14px)' : 'translateX(0)' }} />
+            </span>
+            Hide MET objectives
+          </button>
         </div>
 
         <div className="dibcac-method-filters" role="group" aria-label="Filter by assessment method">
