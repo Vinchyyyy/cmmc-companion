@@ -60,8 +60,20 @@ function normalizeControlId(companionId) {
 // Evidence formatting — each item ends with ";"
 // ---------------------------------------------------------------------------
 
+function dedupeArtifacts(items) {
+  const seen = new Set()
+  const out = []
+  for (const item of items) {
+    const key = item.replace(/;$/, '').trim().toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(item)
+  }
+  return out
+}
+
 function formatArtifactList(items) {
-  const cleaned = items.map((s) => s.trim()).filter(Boolean)
+  const cleaned = dedupeArtifacts(items.map((s) => s.trim()).filter(Boolean))
   if (cleaned.length === 0) return ''
   return cleaned.map((s) => (s.endsWith(';') ? s : `${s};`)).join('\n')
 }
@@ -363,8 +375,12 @@ function patchWorksheetXml(wsXml, sharedStrings, objectiveData, controlData) {
         if (objDat.artifacts) artifactParts.push(objDat.artifacts)
         if (ctrl?.pool)       artifactParts.push(ctrl.pool)
 
-        // Evidence column D — each item already ends with ";"
-        content = patchCell(content, `D${r}`, artifactParts.join('\n'))
+        // Evidence column D — each item already ends with ";"; dedupe across
+        // objective-level artifacts and the control's shared pool.
+        const combinedArtifacts = dedupeArtifacts(
+          artifactParts.join('\n').split('\n').map((s) => s.trim()).filter(Boolean)
+        )
+        content = patchCell(content, `D${r}`, combinedArtifacts.join('\n'))
         content = patchCell(content, `E${r}`, objDat.interviews)
         content = patchCell(content, `F${r}`, objDat.examine)
         content = patchCell(content, `G${r}`, objDat.test)

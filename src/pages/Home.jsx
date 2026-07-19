@@ -11,6 +11,7 @@ import { readStatus } from '../utils/status'
 import { readInheritanceSource } from '../utils/inheritance'
 import { readObjectiveStatus, OBJECTIVE_STATUS_NOT_MET } from '../utils/objectiveStatus'
 import { hasObjectiveArtifacts } from '../utils/objectiveArtifacts'
+import { controlHasWarnings } from '../utils/objectiveWarnings'
 import { listArtifacts } from '../utils/artifactRegistry'
 import { getScoringSearchTerms } from '../utils/scoring'
 
@@ -606,7 +607,7 @@ function ControlCard({ c }) {
   )
 }
 
-function FocusReviewPanel({ controlsWithNotMet, controlsNoArtifacts, untaggedArtifacts }) {
+function FocusReviewPanel({ controlsWithNotMet, controlsNoArtifacts, untaggedArtifacts, controlsWithWarnings }) {
   const [selected, setSelected] = useState('all')
   const [view, setView] = useState('table')
   const [page, setPage] = useState(1)
@@ -629,6 +630,7 @@ function FocusReviewPanel({ controlsWithNotMet, controlsNoArtifacts, untaggedArt
     { key: 'notMetObjective', label: 'Not Met Objective', count: controlsWithNotMet.length, color: '#E2665A' },
     { key: 'noArtifacts', label: 'No Artifacts', count: controlsNoArtifacts.length, color: '#E3A83B' },
     { key: 'untagged', label: 'Untagged Evidence', count: untaggedArtifacts.length, color: '#8B90F0' },
+    { key: 'warnings', label: 'Warnings', count: controlsWithWarnings.length, color: '#E2665A' },
   ]
   const activeArea = focusAreas.find((f) => f.key === selected)
   const isEvidence = selected === 'untagged'
@@ -637,7 +639,8 @@ function FocusReviewPanel({ controlsWithNotMet, controlsNoArtifacts, untaggedArt
     selected === 'all' ? allReviewControls :
     selected === 'notStarted' ? notStartedControls :
     selected === 'notMetObjective' ? controlsWithNotMet :
-    selected === 'noArtifacts' ? controlsNoArtifacts : []
+    selected === 'noArtifacts' ? controlsNoArtifacts :
+    selected === 'warnings' ? controlsWithWarnings : []
 
   const items = isEvidence ? untaggedArtifacts : (
     progressSort
@@ -771,6 +774,7 @@ const focusAreaIcons = {
   notMetObjective: FileX,
   noArtifacts: FileWarning,
   untagged: Tag,
+  warnings: AlertTriangle,
 }
 
 function Home() {
@@ -786,7 +790,8 @@ function Home() {
     const untaggedArtifacts = allArtifacts.filter((a) => a.tags.length === 0)
     const controlsWithNotMet = controls.filter((c) => c.objectives?.some((obj) => readObjectiveStatus(c.id, obj.id) === OBJECTIVE_STATUS_NOT_MET))
     const controlsNoArtifacts = controls.filter((c) => !hasObjectiveArtifacts(c))
-    return { controlAgg, objAgg, controlsTotal, objTotal, allArtifacts, untaggedArtifacts, controlsWithNotMet, controlsNoArtifacts }
+    const controlsWithWarnings = controls.filter((c) => controlHasWarnings(c))
+    return { controlAgg, objAgg, controlsTotal, objTotal, allArtifacts, untaggedArtifacts, controlsWithNotMet, controlsNoArtifacts, controlsWithWarnings }
   }, [familyStats])
 
   const controlsMetPct = dashMetrics.controlsTotal === 0 ? 0 : Math.round((dashMetrics.controlAgg.met / dashMetrics.controlsTotal) * 100)
@@ -836,6 +841,7 @@ function Home() {
           controlsWithNotMet={dashMetrics.controlsWithNotMet}
           controlsNoArtifacts={dashMetrics.controlsNoArtifacts}
           untaggedArtifacts={dashMetrics.untaggedArtifacts}
+          controlsWithWarnings={dashMetrics.controlsWithWarnings}
         />
       </main>
     </div>

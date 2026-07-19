@@ -117,7 +117,7 @@ function buildFamilyData(controls) {
 
       for (const obj of objectives) {
         const objStatus = readObjectiveStatus(c.id, obj.id)
-        const artifacts = readObjectiveArtifacts(c.id, obj.id)
+        const artifacts = [...new Set(readObjectiveArtifacts(c.id, obj.id).map((s) => s.trim()).filter(Boolean))]
         const result    = readObjectiveResult(c.id, obj.id)
         const dibcac    = getDibcacStandard(c.id, obj.id)
         rows.push([
