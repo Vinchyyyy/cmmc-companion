@@ -12,8 +12,34 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v4.7.1 — current release, open by default */}
+      {/* v4.8.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.8.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span style={{ color: 'var(--color-text)' }}>Checklist Sections, Drag Reorder, and Card View</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>July 19, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-accent)' }}>
+
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Adds organizational tools for larger DIBCAC review groups: section headers and free reordering for checklists, a card layout for objective lists, and a way to give the Review Groups panel the full workspace.
+          </p>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>DIBCAC Mode</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Checklist items in a review group can now be organized under section headers ("+ Add section header"), rendered as bold dividers in both the editor and the saved group view.</li>
+            <li>Checklist rows (items and headers) can be dragged and dropped to reorder freely, or dragged past a header to move an item into a different section — including a drop zone to move an item to the very end of the list.</li>
+            <li>Added a List / Cards view toggle for a saved group's Objectives list. Cards view uses a responsive grid that adds or removes columns as the browser window is resized, cutting down on scrolling for groups with many objectives. The choice persists across sessions.</li>
+            <li>Added an expand arrow next to "Review Groups" that lets the panel fill the full workspace width, temporarily hiding the objective browser on the left — useful when reviewing a large saved group.</li>
+            <li>The Home dashboard's "Warnings" tab no longer counts a control as a warning while its status is "In Progress" — only Not Started, MET, and NOT MET controls with real gaps show up.</li>
+          </ul>
+
+        </div>
+      </details>
+
+      {/* v4.7.1 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.7.1</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>

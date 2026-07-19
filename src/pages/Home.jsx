@@ -790,7 +790,7 @@ function Home() {
     const untaggedArtifacts = allArtifacts.filter((a) => a.tags.length === 0)
     const controlsWithNotMet = controls.filter((c) => c.objectives?.some((obj) => readObjectiveStatus(c.id, obj.id) === OBJECTIVE_STATUS_NOT_MET))
     const controlsNoArtifacts = controls.filter((c) => !hasObjectiveArtifacts(c))
-    const controlsWithWarnings = controls.filter((c) => controlHasWarnings(c))
+    const controlsWithWarnings = controls.filter((c) => readStatus(c.id) !== 'In Progress' && controlHasWarnings(c))
     return { controlAgg, objAgg, controlsTotal, objTotal, allArtifacts, untaggedArtifacts, controlsWithNotMet, controlsNoArtifacts, controlsWithWarnings }
   }, [familyStats])
 

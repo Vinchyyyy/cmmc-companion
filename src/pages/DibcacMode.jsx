@@ -493,6 +493,8 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
   const [addingChecklistItem, setAddingChecklistItem] = useState(false)
   const [newItemText, setNewItemText] = useState('')
   const [newItemObjKeys, setNewItemObjKeys] = useState(() => new Set())
+  const [addingChecklistHeader, setAddingChecklistHeader] = useState(false)
+  const [newHeaderText, setNewHeaderText] = useState('')
   const [hideMetInChecklist, setHideMetInChecklist] = useState(false)
 
   const objMap = useMemo(() => {
@@ -544,11 +546,27 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
     if (!newItemText.trim()) return
     setChecklist((prev) => [...prev, {
       id: crypto.randomUUID(),
+      type: 'item',
       text: newItemText.trim(),
       objKeys: [...newItemObjKeys],
       checked: false,
     }])
     resetNewChecklistItem()
+  }
+
+  const cancelAddChecklistHeader = () => {
+    setAddingChecklistHeader(false)
+    setNewHeaderText('')
+  }
+
+  const addChecklistHeader = () => {
+    if (!newHeaderText.trim()) return
+    setChecklist((prev) => [...prev, {
+      id: crypto.randomUUID(),
+      type: 'header',
+      text: newHeaderText.trim(),
+    }])
+    setNewHeaderText('')
   }
 
   const removeChecklistItem = (id) => setChecklist((prev) => prev.filter((i) => i.id !== id))
@@ -562,6 +580,28 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
       const has = (i.objKeys ?? []).includes(key)
       return { ...i, objKeys: has ? i.objKeys.filter((k) => k !== key) : [...(i.objKeys ?? []), key] }
     }))
+
+  // Reordering: dropping a row onto another moves it to right before that
+  // row's current position. Since headers and items share one flat list,
+  // dropping an item just after a different header is how it moves into
+  // that header's section — no separate "section" concept to keep in sync.
+  const [draggedChecklistId, setDraggedChecklistId] = useState(null)
+  const [dragOverChecklistId, setDragOverChecklistId] = useState(null)
+
+  const reorderChecklist = (draggedId, targetId) => {
+    if (!draggedId || draggedId === targetId) return
+    setChecklist((prev) => {
+      const dragIndex = prev.findIndex((i) => i.id === draggedId)
+      if (dragIndex === -1) return prev
+      const moved = prev[dragIndex]
+      const without = prev.filter((i) => i.id !== draggedId)
+      const targetIndex = targetId ? without.findIndex((i) => i.id === targetId) : without.length
+      if (targetIndex === -1) return prev
+      const next = [...without]
+      next.splice(targetIndex, 0, moved)
+      return next
+    })
+  }
 
   const handleSave = () => {
     if (!groupName.trim() || selectedObjs.length === 0) return
@@ -700,25 +740,50 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
               </span>
               Hide MET objectives
             </button>
+            {!addingChecklistHeader && (
+              <button
+                type="button"
+                className="dibcac-sort-btn"
+                onClick={() => { setAddingChecklistHeader(true); cancelAddChecklistItem() }}
+              >
+                + Add section header
+              </button>
+            )}
             {!addingChecklistItem && (
-              <button type="button" className="dibcac-sort-btn" onClick={() => setAddingChecklistItem(true)}>
+              <button
+                type="button"
+                className="dibcac-sort-btn"
+                onClick={() => { setAddingChecklistItem(true); cancelAddChecklistHeader() }}
+              >
                 + Create new list item
               </button>
             )}
           </div>
 
-          {checklist.length === 0 && !addingChecklistItem && (
+          {checklist.length === 0 && !addingChecklistItem && !addingChecklistHeader && (
             <p className="dibcac-builder-empty-hint">No checklist items yet.</p>
           )}
 
           {checklist.length > 0 && (
             <div className="dibcac-checklist-list">
-              {checklist.map((item) => (
-                <div key={item.id} className="dibcac-checklist-edit-row">
-                  <div className="dibcac-checklist-row-main">
+              {checklist.map((item) => {
+                const dragProps = {
+                  draggable: true,
+                  onDragStart: (e) => { setDraggedChecklistId(item.id); e.dataTransfer.effectAllowed = 'move' },
+                  onDragEnd: () => { setDraggedChecklistId(null); setDragOverChecklistId(null) },
+                  onDragOver: (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverChecklistId(item.id) },
+                  onDragLeave: () => setDragOverChecklistId((prev) => prev === item.id ? null : prev),
+                  onDrop: (e) => { e.preventDefault(); reorderChecklist(draggedChecklistId, item.id); setDragOverChecklistId(null) },
+                }
+                const dragState =
+                  `${draggedChecklistId === item.id ? ' dibcac-checklist-dragging' : ''}` +
+                  `${dragOverChecklistId === item.id && draggedChecklistId !== item.id ? ' dibcac-checklist-drag-over' : ''}`
+                return item.type === 'header' ? (
+                  <div key={item.id} className={`dibcac-checklist-header-edit-row${dragState}`} {...dragProps}>
+                    <span className="dibcac-checklist-drag-handle" aria-hidden="true" title="Drag to reorder">⠿</span>
                     <input
                       type="text"
-                      className="dibcac-builder-input"
+                      className="dibcac-builder-input dibcac-checklist-header-input"
                       value={item.text}
                       onChange={(e) => updateChecklistItemText(item.id, e.target.value)}
                     />
@@ -726,19 +791,65 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
                       type="button"
                       className="dibcac-builder-obj-remove"
                       onClick={() => removeChecklistItem(item.id)}
-                      aria-label={`Remove checklist item "${item.text}"`}
+                      aria-label={`Remove section header "${item.text}"`}
                     >×</button>
                   </div>
-                  <div className="dibcac-checklist-attach-label">Attached objective(s):</div>
-                  <ObjectiveAttachPicker
-                    attachedKeys={item.objKeys ?? []}
-                    onAdd={(key) => toggleChecklistItemObj(item.id, key)}
-                    onRemove={(key) => toggleChecklistItemObj(item.id, key)}
-                    flatObjs={flatObjs}
-                    hideMet={hideMetInChecklist}
-                  />
+                ) : (
+                  <div key={item.id} className={`dibcac-checklist-edit-row${dragState}`} {...dragProps}>
+                    <div className="dibcac-checklist-row-main">
+                      <span className="dibcac-checklist-drag-handle" aria-hidden="true" title="Drag to reorder">⠿</span>
+                      <input
+                        type="text"
+                        className="dibcac-builder-input"
+                        value={item.text}
+                        onChange={(e) => updateChecklistItemText(item.id, e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="dibcac-builder-obj-remove"
+                        onClick={() => removeChecklistItem(item.id)}
+                        aria-label={`Remove checklist item "${item.text}"`}
+                      >×</button>
+                    </div>
+                    <div className="dibcac-checklist-attach-label">Attached objective(s):</div>
+                    <ObjectiveAttachPicker
+                      attachedKeys={item.objKeys ?? []}
+                      onAdd={(key) => toggleChecklistItemObj(item.id, key)}
+                      onRemove={(key) => toggleChecklistItemObj(item.id, key)}
+                      flatObjs={flatObjs}
+                      hideMet={hideMetInChecklist}
+                    />
+                  </div>
+                )
+              })}
+              {draggedChecklistId && (
+                <div
+                  className={`dibcac-checklist-drop-end${dragOverChecklistId === '__end__' ? ' dibcac-checklist-drag-over' : ''}`}
+                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverChecklistId('__end__') }}
+                  onDragLeave={() => setDragOverChecklistId((prev) => prev === '__end__' ? null : prev)}
+                  onDrop={(e) => { e.preventDefault(); reorderChecklist(draggedChecklistId, null); setDragOverChecklistId(null) }}
+                >
+                  Drop here to move to end
                 </div>
-              ))}
+              )}
+            </div>
+          )}
+
+          {addingChecklistHeader && (
+            <div className="dibcac-checklist-add-form">
+              <input
+                type="text"
+                className="dibcac-builder-input"
+                value={newHeaderText}
+                onChange={(e) => setNewHeaderText(e.target.value)}
+                placeholder="Section header…"
+                autoFocus
+                onKeyDown={(e) => { if (e.key === 'Escape') cancelAddChecklistHeader() }}
+              />
+              <div className="dibcac-checklist-add-actions">
+                <button type="button" className="dibcac-builder-save" onClick={addChecklistHeader} disabled={!newHeaderText.trim()}>Add</button>
+                <button type="button" className="dibcac-builder-cancel" onClick={cancelAddChecklistHeader}>Cancel</button>
+              </div>
             </div>
           )}
 
@@ -1048,6 +1159,12 @@ function SavedGroupCard({
   const [, forceUpdate] = useState(0)
   const [objSelectMode, setObjSelectMode] = useState(false)
   const [selectedObjKeys, setSelectedObjKeys] = useState(() => new Set())
+  const [objView, setObjView] = useState(() => localStorage.getItem('cmmc-dibcac-group-obj-view') === 'cards' ? 'cards' : 'list')
+
+  const setObjViewPersisted = (view) => {
+    setObjView(view)
+    try { localStorage.setItem('cmmc-dibcac-group-obj-view', view) } catch { /* ignore */ }
+  }
 
   const checklist = group.checklist ?? []
 
@@ -1218,7 +1335,11 @@ function SavedGroupCard({
                 <span className="dibcac-preview-section-label">Checklist</span>
               </div>
               <div className="dibcac-checklist-list">
-                {checklist.map((item) => (
+                {checklist.map((item) => item.type === 'header' ? (
+                  <div key={item.id} className="dibcac-checklist-header-row">
+                    {item.text}
+                  </div>
+                ) : (
                   <div key={item.id} className="dibcac-checklist-row">
                     <div className="dibcac-checklist-row-main">
                       <input
@@ -1248,13 +1369,27 @@ function SavedGroupCard({
           <div className="dibcac-group-card-objs">
             <div className="dibcac-group-card-objs-header">
               <span className="dibcac-preview-section-label">Objectives</span>
-              {otherGroups.length > 0 && (
-                objSelectMode ? (
-                  <button type="button" className="dibcac-sort-btn" onClick={toggleObjSelectMode}>Cancel</button>
-                ) : (
-                  <button type="button" className="dibcac-sort-btn" onClick={toggleObjSelectMode}>Select</button>
-                )
-              )}
+              <div className="dibcac-group-card-objs-header-actions">
+                <div className="dibcac-obj-view-toggle">
+                  <button
+                    type="button"
+                    className={`dibcac-obj-view-btn${objView === 'list' ? ' dibcac-obj-view-btn--active' : ''}`}
+                    onClick={() => setObjViewPersisted('list')}
+                  >List</button>
+                  <button
+                    type="button"
+                    className={`dibcac-obj-view-btn${objView === 'cards' ? ' dibcac-obj-view-btn--active' : ''}`}
+                    onClick={() => setObjViewPersisted('cards')}
+                  >Cards</button>
+                </div>
+                {otherGroups.length > 0 && (
+                  objSelectMode ? (
+                    <button type="button" className="dibcac-sort-btn" onClick={toggleObjSelectMode}>Cancel</button>
+                  ) : (
+                    <button type="button" className="dibcac-sort-btn" onClick={toggleObjSelectMode}>Select</button>
+                  )
+                )}
+              </div>
             </div>
             {objSelectMode && (
               <div className="dibcac-obj-move-bar">
@@ -1275,73 +1410,75 @@ function SavedGroupCard({
                 </select>
               </div>
             )}
-            {group.objectives.map((o) => {
-              const key = o.key ?? o.objectiveRef
-              const objId = o.objId ?? o.objectiveKey
-              const status = readObjectiveStatus(o.controlId, objId)
-              const result = readObjectiveResult(o.controlId, objId)
-              const hasComments = !!result.overallComments
-              const commentPreview = result.overallComments?.trim() ?? ''
-              const handleObjRowClick = objSelectMode
-                ? (e) => {
-                    if (e.target.closest('.dibcac-group-card-obj-actions') || e.target.closest('.dibcac-obj-ref-btn')) return
-                    toggleObjSelected(key)
-                  }
-                : undefined
-              return (
-                <div
-                  key={key}
-                  className={`dibcac-group-card-obj-row${objSelectMode ? ' dibcac-group-card-obj-row--selectable' : ''}`}
-                  onClick={handleObjRowClick}
-                >
-                  <div className="dibcac-group-card-obj-main-row">
-                    <div className="dibcac-group-card-obj-left">
-                      {objSelectMode && (
-                        <input
-                          type="checkbox"
-                          className="dibcac-group-select-checkbox"
-                          checked={selectedObjKeys.has(key)}
-                          onChange={() => toggleObjSelected(key)}
-                          onClick={(e) => e.stopPropagation()}
-                          aria-label={`Select ${o.controlId}[${objId}]`}
-                        />
-                      )}
-                      <button
-                        type="button"
-                        className="dibcac-obj-ref-btn mono"
-                        onClick={() => onPreview(key)}
-                        title="Click to preview objective"
-                      >
-                        {o.controlId}[{objId}]
-                      </button>
-                      <span className="dibcac-group-card-obj-text">{o.objText ?? o.objectiveText}</span>
+            <div className={objView === 'cards' ? 'dibcac-group-card-objs-grid' : undefined}>
+              {group.objectives.map((o) => {
+                const key = o.key ?? o.objectiveRef
+                const objId = o.objId ?? o.objectiveKey
+                const status = readObjectiveStatus(o.controlId, objId)
+                const result = readObjectiveResult(o.controlId, objId)
+                const hasComments = !!result.overallComments
+                const commentPreview = result.overallComments?.trim() ?? ''
+                const handleObjRowClick = objSelectMode
+                  ? (e) => {
+                      if (e.target.closest('.dibcac-group-card-obj-actions') || e.target.closest('.dibcac-obj-ref-btn')) return
+                      toggleObjSelected(key)
+                    }
+                  : undefined
+                return (
+                  <div
+                    key={key}
+                    className={`${objView === 'cards' ? 'dibcac-group-card-obj-card' : 'dibcac-group-card-obj-row'}${objSelectMode ? ' dibcac-group-card-obj-row--selectable' : ''}`}
+                    onClick={handleObjRowClick}
+                  >
+                    <div className="dibcac-group-card-obj-main-row">
+                      <div className="dibcac-group-card-obj-left">
+                        {objSelectMode && (
+                          <input
+                            type="checkbox"
+                            className="dibcac-group-select-checkbox"
+                            checked={selectedObjKeys.has(key)}
+                            onChange={() => toggleObjSelected(key)}
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label={`Select ${o.controlId}[${objId}]`}
+                          />
+                        )}
+                        <button
+                          type="button"
+                          className="dibcac-obj-ref-btn mono"
+                          onClick={() => onPreview(key)}
+                          title="Click to preview objective"
+                        >
+                          {o.controlId}[{objId}]
+                        </button>
+                        <span className="dibcac-group-card-obj-text">{o.objText ?? o.objectiveText}</span>
+                      </div>
+                      <div className="dibcac-group-card-obj-actions">
+                        <MethodChip standard={o.standard} />
+                        <button
+                          type="button"
+                          className={`dibcac-status-cycle-btn dibcac-status-cycle-btn--${status === OBJECTIVE_STATUS_MET ? 'met' : status === OBJECTIVE_STATUS_NOT_MET ? 'not-met' : 'unreviewed'}`}
+                          onClick={() => cycleStatus(o.controlId, objId)}
+                          title="Click to cycle: Unreviewed → MET → NOT MET"
+                        >
+                          {status === OBJECTIVE_STATUS_MET ? 'MET' : status === OBJECTIVE_STATUS_NOT_MET ? 'NOT MET' : '—'}
+                        </button>
+                        <button
+                          type="button"
+                          className={`dibcac-comments-btn${hasComments ? ' dibcac-comments-btn--has-content' : ''}`}
+                          onClick={() => setCommentsKey(key)}
+                          title="Add/edit overall comments"
+                        >
+                          {hasComments ? '💬' : '○'}
+                        </button>
+                      </div>
                     </div>
-                    <div className="dibcac-group-card-obj-actions">
-                      <MethodChip standard={o.standard} />
-                      <button
-                        type="button"
-                        className={`dibcac-status-cycle-btn dibcac-status-cycle-btn--${status === OBJECTIVE_STATUS_MET ? 'met' : status === OBJECTIVE_STATUS_NOT_MET ? 'not-met' : 'unreviewed'}`}
-                        onClick={() => cycleStatus(o.controlId, objId)}
-                        title="Click to cycle: Unreviewed → MET → NOT MET"
-                      >
-                        {status === OBJECTIVE_STATUS_MET ? 'MET' : status === OBJECTIVE_STATUS_NOT_MET ? 'NOT MET' : '—'}
-                      </button>
-                      <button
-                        type="button"
-                        className={`dibcac-comments-btn${hasComments ? ' dibcac-comments-btn--has-content' : ''}`}
-                        onClick={() => setCommentsKey(key)}
-                        title="Add/edit overall comments"
-                      >
-                        {hasComments ? '💬' : '○'}
-                      </button>
-                    </div>
+                    {commentPreview && (
+                      <p className="dibcac-group-card-obj-comment">{commentPreview}</p>
+                    )}
                   </div>
-                  {commentPreview && (
-                    <p className="dibcac-group-card-obj-comment">{commentPreview}</p>
-                  )}
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
         </div>
       )}
@@ -1418,6 +1555,7 @@ function SavedGroupsPanel({
   savedGroups, savedFolders, onDelete, onEditRequest, onPreview, onEnterBuilder,
   onCreateFolder, onDeleteFolder, onMoveGroupToFolder, onBatchMove, onMoveObjectives, onUpdateChecklist,
   openFolderIds, onToggleFolderOpen, expandedGroupIds, onToggleGroupExpanded,
+  railExpanded, onToggleRailExpanded,
 }) {
   const [groupSort, setGroupSort] = useState('created') // 'name' | 'created'
   const [sortDir,   setSortDir]   = useState('asc')      // 'asc' | 'desc'
@@ -1509,12 +1647,25 @@ function SavedGroupsPanel({
   return (
     <div className="dibcac-rail-panel">
       <div className="dibcac-rail-header">
-        <h2 className="dibcac-rail-title">
-          Review Groups
-          {savedGroups.length > 0 && (
-            <span className="dibcac-saved-count">{savedGroups.length}</span>
+        <div className="dibcac-rail-title-group">
+          {onToggleRailExpanded && (
+            <button
+              type="button"
+              className="dibcac-rail-expand-btn"
+              onClick={onToggleRailExpanded}
+              aria-pressed={railExpanded}
+              title={railExpanded ? 'Collapse — show the objective browser again' : 'Expand — fill the workspace with Review Groups'}
+            >
+              {railExpanded ? '«' : '»'}
+            </button>
           )}
-        </h2>
+          <h2 className="dibcac-rail-title">
+            Review Groups
+            {savedGroups.length > 0 && (
+              <span className="dibcac-saved-count">{savedGroups.length}</span>
+            )}
+          </h2>
+        </div>
         <div className="dibcac-rail-header-actions">
           <button type="button" className="dibcac-create-btn" onClick={onEnterBuilder}>
             + Create
@@ -1725,6 +1876,7 @@ function DibcacMode() {
     return next
   })
   const [previewKey, setPreviewKey] = useState(null)
+  const [railExpanded, setRailExpanded] = useState(false)
   const searchRef = useRef(null)
 
   const allObjs = useMemo(() => {
@@ -1996,17 +2148,19 @@ function DibcacMode() {
       )}
 
       {/* ── Main workspace (always split) ─────────────────────────────────── */}
-      <div className="dibcac-workspace dibcac-workspace--split">
+      <div className={`dibcac-workspace dibcac-workspace--split${railExpanded && mode === 'browse' ? ' dibcac-workspace--rail-expanded' : ''}`}>
         {/* Left: objective browser */}
-        <div className="dibcac-browser-pane">
-          <GroupedBrowser
-            flatObjs={filteredObjs}
-            builderMode={mode === 'builder'}
-            checkedKeys={checkedKeys}
-            onCheck={toggleCheck}
-            onPreview={setPreviewKey}
-          />
-        </div>
+        {!(railExpanded && mode === 'browse') && (
+          <div className="dibcac-browser-pane">
+            <GroupedBrowser
+              flatObjs={filteredObjs}
+              builderMode={mode === 'builder'}
+              checkedKeys={checkedKeys}
+              onCheck={toggleCheck}
+              onPreview={setPreviewKey}
+            />
+          </div>
+        )}
 
         {/* Right rail */}
         <div className="dibcac-right-rail">
@@ -2061,6 +2215,8 @@ function DibcacMode() {
               onToggleFolderOpen={toggleFolderOpen}
               expandedGroupIds={expandedGroupIds}
               onToggleGroupExpanded={toggleGroupExpanded}
+              railExpanded={railExpanded}
+              onToggleRailExpanded={() => setRailExpanded((v) => !v)}
             />
           )}
         </div>

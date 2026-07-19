@@ -9195,6 +9195,10 @@ button.evidence-type-chip:focus-visible {
   align-items: flex-start;
 }
 
+.dibcac-workspace--rail-expanded {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .dibcac-browser-pane {
   min-width: 0;
 }
@@ -10233,6 +10237,77 @@ button.evidence-type-chip:focus-visible {
   gap: var(--space-2);
 }
 
+.dibcac-group-card-objs-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dibcac-obj-view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.dibcac-obj-view-btn {
+  font-size: var(--text-xs);
+  padding: 3px 9px;
+  border-radius: calc(var(--radius-sm) - 1px);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.dibcac-obj-view-btn:hover {
+  color: var(--color-text);
+}
+
+.dibcac-obj-view-btn--active {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.dibcac-group-card-objs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-2);
+  align-items: start;
+}
+
+.dibcac-group-card-obj-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
+  min-width: 0;
+}
+
+.dibcac-group-card-obj-card .dibcac-group-card-obj-main-row {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.dibcac-group-card-obj-card .dibcac-group-card-obj-actions {
+  flex-wrap: wrap;
+}
+
+.dibcac-group-card-obj-card.dibcac-group-card-obj-row--selectable {
+  cursor: pointer;
+}
+
+.dibcac-group-card-obj-card.dibcac-group-card-obj-row--selectable:hover {
+  background: color-mix(in srgb, var(--color-accent) 5%, var(--color-surface));
+}
+
 .dibcac-obj-move-bar {
   display: flex;
   align-items: center;
@@ -10281,6 +10356,66 @@ button.evidence-type-chip:focus-visible {
   background: var(--color-surface);
   border-radius: var(--radius-sm);
   border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
+}
+
+.dibcac-checklist-header-row {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  padding: var(--space-2) 2px 4px;
+  margin-top: var(--space-2);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+.dibcac-checklist-header-row:first-child {
+  margin-top: 0;
+}
+
+.dibcac-checklist-header-edit-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: color-mix(in srgb, var(--color-surface-alt) 60%, transparent);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.dibcac-checklist-header-input {
+  flex: 1;
+  font-weight: 600;
+}
+
+.dibcac-checklist-drag-handle {
+  flex-shrink: 0;
+  cursor: grab;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1;
+  user-select: none;
+  padding: 2px 2px;
+}
+
+.dibcac-checklist-drag-handle:active {
+  cursor: grabbing;
+}
+
+.dibcac-checklist-dragging {
+  opacity: 0.4;
+}
+
+.dibcac-checklist-drag-over {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+.dibcac-checklist-drop-end {
+  padding: var(--space-2) var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-align: center;
 }
 
 .dibcac-checklist-edit-row .dibcac-checklist-row-main .dibcac-builder-input {
@@ -10455,6 +10590,39 @@ button.evidence-type-chip:focus-visible {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+.dibcac-rail-title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.dibcac-rail-expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  font-size: var(--text-base);
+  line-height: 1;
+  color: var(--color-text-muted);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.dibcac-rail-expand-btn:hover {
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface-alt));
+}
+
+.dibcac-rail-expand-btn[aria-pressed="true"] {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .dibcac-rail-empty {
