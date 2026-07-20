@@ -849,6 +849,11 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
               <div className="dibcac-checklist-add-actions">
                 <button type="button" className="dibcac-builder-save" onClick={addChecklistHeader} disabled={!newHeaderText.trim()}>Add</button>
                 <button type="button" className="dibcac-builder-cancel" onClick={cancelAddChecklistHeader}>Cancel</button>
+                <button
+                  type="button"
+                  className="dibcac-checklist-add-switch"
+                  onClick={() => { cancelAddChecklistHeader(); setAddingChecklistItem(true) }}
+                >+ Add checklist item instead</button>
               </div>
             </div>
           )}
@@ -875,6 +880,11 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
               <div className="dibcac-checklist-add-actions">
                 <button type="button" className="dibcac-builder-save" onClick={addChecklistItem} disabled={!newItemText.trim()}>Add</button>
                 <button type="button" className="dibcac-builder-cancel" onClick={cancelAddChecklistItem}>Cancel</button>
+                <button
+                  type="button"
+                  className="dibcac-checklist-add-switch"
+                  onClick={() => { cancelAddChecklistItem(); setAddingChecklistHeader(true) }}
+                >+ Add section header instead</button>
               </div>
             </div>
           )}
@@ -1178,6 +1188,24 @@ function SavedGroupCard({
   }
   const objLabelFor = (key) => key
 
+  // For items with attached objectives, "checked" is derived live from
+  // objective status rather than the stored flag — this is what makes an
+  // item auto-strike when its objective(s) get marked MET from elsewhere
+  // (another checklist item, another group, the objectives list, etc.),
+  // and un-strike if any of them stop being MET. An item tied to multiple
+  // objectives only shows complete once every one of them is MET, so a
+  // partial match (one objective MET via a different item, the rest not)
+  // never renders as a false "done". Items with no attached objectives have
+  // nothing to derive from, so they keep their own manually-toggled flag.
+  const isItemMet = (item) => {
+    const keys = item.objKeys ?? []
+    if (keys.length === 0) return !!item.checked
+    return keys.every((key) => {
+      const parsed = parseObjKey(key)
+      return !!parsed && readObjectiveStatus(parsed.controlId, parsed.objId) === OBJECTIVE_STATUS_MET
+    })
+  }
+
   // Wording and attached objectives are only editable via Edit Review Group
   // (same as Planned Ask) — outside of edit, checking an item on/off is the
   // only interaction available here.
@@ -1185,7 +1213,7 @@ function SavedGroupCard({
   // them to Unreviewed. This is the whole point of the checklist — ticking
   // it off is how an objective gets marked done during a live session.
   const toggleChecklistItem = (item) => {
-    const willBeChecked = !item.checked
+    const willBeChecked = !isItemMet(item)
     const next = checklist.map((i) => i.id === item.id ? { ...i, checked: willBeChecked } : i)
     onUpdateChecklist?.(group.id, next)
     for (const key of item.objKeys ?? []) {
@@ -1345,11 +1373,11 @@ function SavedGroupCard({
                       <input
                         type="checkbox"
                         className="dibcac-obj-checkbox dibcac-checklist-checkbox"
-                        checked={item.checked}
+                        checked={isItemMet(item)}
                         onChange={() => toggleChecklistItem(item)}
                         aria-label={`Mark "${item.text}" complete`}
                       />
-                      <span className={`dibcac-checklist-text${item.checked ? ' dibcac-checklist-text--done' : ''}`}>
+                      <span className={`dibcac-checklist-text${isItemMet(item) ? ' dibcac-checklist-text--done' : ''}`}>
                         {item.text}
                       </span>
                     </div>
