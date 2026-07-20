@@ -57,6 +57,22 @@ function normalizeControlId(companionId) {
 }
 
 // ---------------------------------------------------------------------------
+// Character limits — per the CMMC Assessment Template Data Element Glossary.
+// Artifacts and Interviews are capped per-value and overall; Examine, Test,
+// and Overall Comments are capped overall only. Enforced here as a defensive
+// backstop (the UI already caps entry) so the exported cell can never violate
+// the template's limits, e.g. from data imported before these caps existed.
+// ---------------------------------------------------------------------------
+
+const ARTIFACT_VALUE_LIMIT   = 400
+const ARTIFACT_OVERALL_LIMIT = 4000
+const CELL_OVERALL_LIMIT     = 4000
+
+function truncate(str, limit) {
+  return str.length > limit ? str.slice(0, limit) : str
+}
+
+// ---------------------------------------------------------------------------
 // Evidence formatting — each item ends with ";"
 // ---------------------------------------------------------------------------
 
@@ -73,9 +89,11 @@ function dedupeArtifacts(items) {
 }
 
 function formatArtifactList(items) {
-  const cleaned = dedupeArtifacts(items.map((s) => s.trim()).filter(Boolean))
+  const cleaned = dedupeArtifacts(
+    items.map((s) => truncate(s.trim(), ARTIFACT_VALUE_LIMIT)).filter(Boolean)
+  )
   if (cleaned.length === 0) return ''
-  return cleaned.map((s) => (s.endsWith(';') ? s : `${s};`)).join('\n')
+  return truncate(cleaned.map((s) => (s.endsWith(';') ? s : `${s};`)).join('\n'), ARTIFACT_OVERALL_LIMIT)
 }
 
 // ---------------------------------------------------------------------------
@@ -140,13 +158,13 @@ function readObjectiveData(controlId, objId) {
   if (note?.trim())                   commentParts.push(note.trim())
 
   return {
-    interviews:      result.interviews?.trim()  ?? '',
-    examine:         result.examine?.trim()     ?? '',
-    test:            result.test?.trim()        ?? '',
-    overallComments: commentParts.join('\n\n'),
+    interviews:      truncate(result.interviews?.trim() ?? '', CELL_OVERALL_LIMIT),
+    examine:         truncate(result.examine?.trim()    ?? '', CELL_OVERALL_LIMIT),
+    test:            truncate(result.test?.trim()       ?? '', CELL_OVERALL_LIMIT),
+    overallComments: truncate(commentParts.join('\n\n'), CELL_OVERALL_LIMIT),
     artifacts:       formatArtifactList(artifacts),
     score:           toTemplateScore(status),
-    findingText:     finding?.finalText?.trim() ?? '',
+    findingText:     truncate(finding?.finalText?.trim() ?? '', CELL_OVERALL_LIMIT),
   }
 }
 
@@ -171,8 +189,8 @@ function buildObjectiveMap(controls) {
 
     controlData.set(templateId, {
       inherited:  toTemplateInherited(inheritance),
-      esp:        (inheritance !== 'None' && esp) ? esp : '',
-      assessedBy: assessedBy ?? '',
+      esp:        truncate((inheritance !== 'None' && esp) ? esp : '', 2000),
+      assessedBy: truncate(assessedBy ?? '', 100),
       pool:       formatArtifactList(pool),
     })
 
@@ -380,7 +398,7 @@ function patchWorksheetXml(wsXml, sharedStrings, objectiveData, controlData) {
         const combinedArtifacts = dedupeArtifacts(
           artifactParts.join('\n').split('\n').map((s) => s.trim()).filter(Boolean)
         )
-        content = patchCell(content, `D${r}`, combinedArtifacts.join('\n'))
+        content = patchCell(content, `D${r}`, truncate(combinedArtifacts.join('\n'), ARTIFACT_OVERALL_LIMIT))
         content = patchCell(content, `E${r}`, objDat.interviews)
         content = patchCell(content, `F${r}`, objDat.examine)
         content = patchCell(content, `G${r}`, objDat.test)

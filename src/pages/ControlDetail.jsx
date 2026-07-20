@@ -75,9 +75,17 @@ import {
 // Evidence tag id → display label (for tag-aware reuse overlap chips).
 const EVIDENCE_TAG_LABEL = new Map(evidenceTags.map((t) => [t.id, t.label]))
 
-// eMASS import caps these free-text fields at 400 characters.
-const EMASS_CHAR_LIMIT = 400
-const EMASS_LIMITED_FIELDS = new Set(['interviews', 'examine', 'test'])
+// Character limits per the CMMC Assessment Template Data Element Glossary
+// (Examine / Test / Overall Comments are capped at 4000; Interviews is
+// capped at 4000 overall in the export cell, with an additional 400-per-value
+// guideline for individual interview entries that this single free-text
+// field can't enforce on its own).
+const FIELD_CHAR_LIMITS = {
+  interviews:      4000,
+  examine:         4000,
+  test:            4000,
+  overallComments: 4000,
+}
 
 // Labels for the DIBCAC method focus banner — mirrors ControlLibrary's filter
 // labels, plus 'variable' for objectives with no fixed standard mapping.
@@ -1843,13 +1851,15 @@ function ControlDetailView() {
                         onChange={(e) => handleObjectiveResultChange(selectedObj.id, field, e.target.value)}
                         rows={3}
                         placeholder={placeholder}
+                        maxLength={FIELD_CHAR_LIMITS[field]}
                       />
-                      {EMASS_LIMITED_FIELDS.has(field) && (() => {
+                      {FIELD_CHAR_LIMITS[field] && (() => {
+                        const limit = FIELD_CHAR_LIMITS[field]
                         const len = ((objectiveResults[selectedObj.id] ?? {})[field] ?? '').length
-                        const overLimit = len > EMASS_CHAR_LIMIT
+                        const overLimit = len > limit
                         return (
                           <div className={`cd-field-char-count${overLimit ? ' cd-field-char-count--over' : ''}`}>
-                            {len} / {EMASS_CHAR_LIMIT}{overLimit ? ' — exceeds eMASS import limit' : ''}
+                            {len} / {limit}{overLimit ? ' — exceeds template limit' : ''}
                           </div>
                         )
                       })()}
