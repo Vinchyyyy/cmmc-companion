@@ -5,6 +5,8 @@
 // The controlId is part of the key because objective IDs ("a", "b", "c"...)
 // repeat across every control.
 
+import { writeStatus } from './status'
+
 const STORAGE_PREFIX = 'cmmc-obj-status-'
 
 export const OBJECTIVE_STATUS_UNREVIEWED = 'Unreviewed'
@@ -77,6 +79,18 @@ export function getTrendingStatusFromStorage(control) {
     statusMap[obj.id] = readObjectiveStatus(control.id, obj.id)
   }
   return getTrendingStatus(control.objectives, statusMap)
+}
+
+// Recomputes the control-level Status field from current objective statuses
+// and writes it — mirrors ControlDetail's own syncStatusToTrending so any
+// surface that sets an objective's status outside ControlDetail (DIBCAC
+// Mode's checklist toggle and status-cycle button) keeps Control Library and
+// Home in sync too. Without this, marking the last remaining objective MET
+// from DIBCAC Mode would leave the control's own Status stuck at whatever it
+// was before, even though every objective is now MET.
+export function syncControlStatusFromObjectives(control) {
+  if (!control) return
+  writeStatus(control.id, getTrendingStatusFromStorage(control))
 }
 
 // Returns a warning object when Assessment Status and Trending Status conflict,

@@ -7,6 +7,7 @@ import { getDibcacStandard, DIBCAC_STANDARDS } from '../data/dibcacAssessmentSta
 import {
   readObjectiveStatus,
   writeObjectiveStatus,
+  syncControlStatusFromObjectives,
   OBJECTIVE_STATUS_MET,
   OBJECTIVE_STATUS_NOT_MET,
   OBJECTIVE_STATUS_UNREVIEWED,
@@ -1237,10 +1238,17 @@ function SavedGroupCard({
     const willBeChecked = !isItemMet(item)
     const next = checklist.map((i) => i.id === item.id ? { ...i, checked: willBeChecked } : i)
     onUpdateChecklist?.(group.id, next)
+    const touchedControlIds = new Set()
     for (const key of item.objKeys ?? []) {
       const parsed = parseObjKey(key)
       if (!parsed) continue
       writeObjectiveStatus(parsed.controlId, parsed.objId, willBeChecked ? OBJECTIVE_STATUS_MET : OBJECTIVE_STATUS_UNREVIEWED)
+      touchedControlIds.add(parsed.controlId)
+    }
+    // A checklist item's objectives can span multiple controls, so each
+    // touched control's own Status needs its own resync.
+    for (const controlId of touchedControlIds) {
+      syncControlStatusFromObjectives(CONTROL_BY_ID.get(controlId))
     }
     forceUpdate((n) => n + 1)
   }
@@ -1282,6 +1290,7 @@ function SavedGroupCard({
       : current === OBJECTIVE_STATUS_MET      ? OBJECTIVE_STATUS_NOT_MET
       :                                          OBJECTIVE_STATUS_UNREVIEWED
     writeObjectiveStatus(controlId, objId, next)
+    syncControlStatusFromObjectives(CONTROL_BY_ID.get(controlId))
     forceUpdate((n) => n + 1)
   }, [])
 
