@@ -220,6 +220,11 @@ export default function BulkFindingsModal({ title, controlsInScope, onClose }) {
     setDone(eligibleRows.length)
   }
 
+  // Also used for onClose (not just onSave/"Apply Same Interviewer"): Apply
+  // Same Interviewer writes roles straight to storage for other objectives
+  // as soon as it's applied, independent of whether the current objective's
+  // own edits are saved — so closing without clicking Save must still
+  // refresh the row list, or those objectives keep showing stale warnings.
   const handleFixSave = () => {
     setFixTarget(null)
     setRefreshKey((k) => k + 1)
@@ -251,7 +256,7 @@ export default function BulkFindingsModal({ title, controlsInScope, onClose }) {
         objText={fixTarget.objText}
         scopeObjectives={scopeObjectives}
         onSave={handleFixSave}
-        onClose={() => setFixTarget(null)}
+        onClose={handleFixSave}
       />
     )
   }
