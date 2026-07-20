@@ -32,6 +32,27 @@ import FixInterviewDetailsModal from '../components/FixInterviewDetailsModal'
 import ApplySameInterviewerModal from '../components/ApplySameInterviewerModal'
 import { buildFinalText } from '../utils/findingStatementBuilder'
 
+// Persist small sets of ids (open folders, expanded groups) across route
+// changes — DibcacMode fully unmounts when navigating away, so plain
+// useState alone would reset these to empty every time the page is revisited.
+function readIdSet(key) {
+  try {
+    const raw = localStorage.getItem(key)
+    const arr = raw ? JSON.parse(raw) : []
+    return new Set(Array.isArray(arr) ? arr : [])
+  } catch {
+    return new Set()
+  }
+}
+
+function writeIdSet(key, set) {
+  try {
+    localStorage.setItem(key, JSON.stringify([...set]))
+  } catch {
+    // localStorage may be unavailable (private browsing, quota, etc.)
+  }
+}
+
 const METHOD_ORDER = [
   'document',
   'screen_share',
@@ -1891,20 +1912,25 @@ function DibcacMode() {
   // Lifted out of FolderSection/SavedGroupCard so open/expanded state survives
   // SavedGroupsPanel unmounting when entering builder mode to edit a group —
   // previously editing a group and saving would collapse every open folder.
-  const [openFolderIds, setOpenFolderIds] = useState(() => new Set())
-  const [expandedGroupIds, setExpandedGroupIds] = useState(() => new Set())
+  // Also persisted to localStorage (not just component state) so navigating
+  // away to another page and back doesn't collapse everything — DibcacMode
+  // fully unmounts on route change, which would otherwise reset these to empty.
+  const [openFolderIds, setOpenFolderIds] = useState(() => readIdSet('cmmc-dibcac-open-folder-ids'))
+  const [expandedGroupIds, setExpandedGroupIds] = useState(() => readIdSet('cmmc-dibcac-expanded-group-ids'))
   const toggleFolderOpen = (id) => setOpenFolderIds((prev) => {
     const next = new Set(prev)
     next.has(id) ? next.delete(id) : next.add(id)
+    writeIdSet('cmmc-dibcac-open-folder-ids', next)
     return next
   })
   const toggleGroupExpanded = (id) => setExpandedGroupIds((prev) => {
     const next = new Set(prev)
     next.has(id) ? next.delete(id) : next.add(id)
+    writeIdSet('cmmc-dibcac-expanded-group-ids', next)
     return next
   })
   const [previewKey, setPreviewKey] = useState(null)
-  const [railExpanded, setRailExpanded] = useState(false)
+  const [railExpanded, setRailExpanded] = useState(() => localStorage.getItem('cmmc-dibcac-rail-expanded') === 'true')
   const searchRef = useRef(null)
 
   const allObjs = useMemo(() => {
@@ -2244,7 +2270,11 @@ function DibcacMode() {
               expandedGroupIds={expandedGroupIds}
               onToggleGroupExpanded={toggleGroupExpanded}
               railExpanded={railExpanded}
-              onToggleRailExpanded={() => setRailExpanded((v) => !v)}
+              onToggleRailExpanded={() => setRailExpanded((v) => {
+                const next = !v
+                localStorage.setItem('cmmc-dibcac-rail-expanded', String(next))
+                return next
+              })}
             />
           )}
         </div>
