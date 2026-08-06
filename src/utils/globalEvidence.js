@@ -13,6 +13,10 @@ export const GLOBAL_EVIDENCE_TYPES = {
 export const DEFAULT_GLOBAL_EVIDENCE = {
   ssp: '',
   families: {},
+  applied: {
+    ssp: '',
+    families: {},
+  },
 }
 
 function normalizeFamilyEntry(entry) {
@@ -24,14 +28,24 @@ function normalizeFamilyEntry(entry) {
 
 export function normalizeGlobalEvidence(value) {
   const families = {}
+  const appliedFamilies = {}
   if (value?.families && typeof value.families === 'object' && !Array.isArray(value.families)) {
     for (const [code, entry] of Object.entries(value.families)) {
       families[code] = normalizeFamilyEntry(entry)
     }
   }
+  if (value?.applied?.families && typeof value.applied.families === 'object' && !Array.isArray(value.applied.families)) {
+    for (const [code, entry] of Object.entries(value.applied.families)) {
+      appliedFamilies[code] = normalizeFamilyEntry(entry)
+    }
+  }
   return {
     ssp: typeof value?.ssp === 'string' ? value.ssp : '',
     families,
+    applied: {
+      ssp: typeof value?.applied?.ssp === 'string' ? value.applied.ssp : '',
+      families: appliedFamilies,
+    },
   }
 }
 

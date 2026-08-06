@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FileText, ShieldCheck, Trash2 } from 'lucide-react'
+import { CheckCircle2, FileText, ShieldCheck, Trash2 } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
 import controls from '../data/controls/index.js'
 import { FAMILY_ORDER } from '../utils/controlOrder.js'
@@ -47,18 +47,56 @@ function GlobalEvidence() {
     },
   }))
 
-  const apply = (name, type, family = null) => {
+  const setAppliedValue = (current, type, value, family = null) => {
+    if (type === 'ssp') {
+      return { ...current, applied: { ...current.applied, ssp: value } }
+    }
+    return {
+      ...current,
+      applied: {
+        ...current.applied,
+        families: {
+          ...current.applied.families,
+          [family.code]: {
+            policy: '',
+            procedure: '',
+            ...(current.applied.families[family.code] ?? {}),
+            [type]: value,
+          },
+        },
+      },
+    }
+  }
+
+  const apply = (name, type, family = null, previousApplied = '') => {
+    if (previousApplied.trim() && previousApplied !== name) {
+      removeGlobalArtifact(controls, previousApplied, family?.code)
+    }
     const counts = applyGlobalArtifact(controls, name, type, family?.code)
+    updateConfig((current) => setAppliedValue(current, type, name, family))
     setResult({
       ok: true,
       message: `${family ? `${family.name} ${type}` : 'SSP'} applied to ${counts.controls} control${counts.controls === 1 ? '' : 's'} and ${counts.objectives} objective${counts.objectives === 1 ? '' : 's'}.`,
     })
   }
 
-  const clear = (name, type, family = null) => {
-    const counts = removeGlobalArtifact(controls, name, family?.code)
-    if (type === 'ssp') setSsp('')
-    else setFamilyValue(family.code, type, '')
+  const clear = (draftName, type, family = null, appliedName = '') => {
+    const nameToRemove = appliedName.trim() ? appliedName : draftName
+    const counts = removeGlobalArtifact(controls, nameToRemove, family?.code)
+    updateConfig((current) => {
+      let next
+      if (type === 'ssp') next = { ...current, ssp: '' }
+      else {
+        next = {
+          ...current,
+          families: {
+            ...current.families,
+            [family.code]: { policy: '', procedure: '', ...(current.families[family.code] ?? {}), [type]: '' },
+          },
+        }
+      }
+      return setAppliedValue(next, type, '', family)
+    })
     setResult({
       ok: true,
       message: `${family ? `${family.name} ${type}` : 'SSP'} removed from ${counts.controls} control${counts.controls === 1 ? '' : 's'} and their objectives.`,
@@ -101,8 +139,14 @@ function GlobalEvidence() {
                 placeholder="e.g. Acme System Security Plan v3.2"
                 aria-label="System Security Plan artifact name"
               />
-              <button type="button" disabled={!config.ssp.trim()} onClick={() => apply(config.ssp, 'ssp')}>Apply to All</button>
-              <button type="button" className="ge-clear-btn" disabled={!config.ssp.trim()} onClick={() => clear(config.ssp, 'ssp')}>
+              {config.ssp.trim() && config.ssp === config.applied.ssp ? (
+                <span className="ge-applied-state" role="status" title="This exact artifact name has been applied">
+                  <CheckCircle2 size={17} /> Applied
+                </span>
+              ) : (
+                <button type="button" disabled={!config.ssp.trim()} onClick={() => apply(config.ssp, 'ssp', null, config.applied.ssp)}>Apply to All</button>
+              )}
+              <button type="button" className="ge-clear-btn" disabled={!config.ssp.trim() && !config.applied.ssp.trim()} onClick={() => clear(config.ssp, 'ssp', null, config.applied.ssp)}>
                 <Trash2 size={14} /> Clear
               </button>
             </div>
@@ -122,6 +166,7 @@ function GlobalEvidence() {
             <div className="ge-family-list">
               {FAMILIES.map((family) => {
                 const values = { policy: '', procedure: '', ...(config.families[family.code] ?? {}) }
+                const appliedValues = { policy: '', procedure: '', ...(config.applied.families[family.code] ?? {}) }
                 return (
                   <div className="ge-family-card" key={family.code}>
                     <div className="ge-family-title-row">
@@ -141,8 +186,15 @@ function GlobalEvidence() {
                           onChange={(e) => setFamilyValue(family.code, type, e.target.value)}
                           placeholder={`e.g. ${family.name} ${type === 'policy' ? 'Policy' : 'Procedures'}`}
                         />
-                        <button type="button" disabled={!values[type].trim()} onClick={() => apply(values[type], type, family)}>Apply</button>
-                        <button type="button" className="ge-icon-clear" disabled={!values[type].trim()} onClick={() => clear(values[type], type, family)} aria-label={`Clear ${family.name} ${type}`} title="Remove this global document from the family">
+                        {values[type].trim() && values[type] === appliedValues[type] ? (
+                          <span className="ge-applied-state ge-applied-state--compact" role="status" title="This exact artifact name has been applied">
+                            <CheckCircle2 size={17} />
+                            <span>Applied</span>
+                          </span>
+                        ) : (
+                          <button type="button" disabled={!values[type].trim()} onClick={() => apply(values[type], type, family, appliedValues[type])}>Apply</button>
+                        )}
+                        <button type="button" className="ge-icon-clear" disabled={!values[type].trim() && !appliedValues[type].trim()} onClick={() => clear(values[type], type, family, appliedValues[type])} aria-label={`Clear ${family.name} ${type}`} title="Remove this global document from the family">
                           <Trash2 size={15} />
                         </button>
                       </div>

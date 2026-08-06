@@ -13213,6 +13213,25 @@ button.evidence-type-chip:focus-visible {
 .ge-document-row button { white-space: nowrap; }
 .ge-clear-btn { display: inline-flex; align-items: center; gap: 5px; }
 
+.ge-applied-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--color-met-bg);
+  color: var(--color-met);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ge-applied-state--compact {
+  padding: 0 5px;
+}
+
 .ge-family-list { display: flex; flex-direction: column; gap: var(--space-3); }
 .ge-family-card { border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); background: var(--color-surface-alt); }
 .ge-family-title-row { margin-bottom: var(--space-3); }
