@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, BookOpen, FileText, GitBranch, ShieldCheck, Archive, Info, History,
-  Settings as SettingsIcon,
+  Settings as SettingsIcon, Files,
 } from 'lucide-react'
 
 const navItems = [
@@ -11,6 +11,7 @@ const navItems = [
   { label: 'Relationship Explorer', to: '/relationships', icon: GitBranch, match: (p) => p.startsWith('/relationships') },
   { label: 'DIBCAC Mode', to: '/dibcac-mode', icon: ShieldCheck, match: (p) => p.startsWith('/dibcac-mode') },
   { label: 'Documented Artifacts', to: '/artifact-map', icon: Archive, match: (p) => p.startsWith('/artifact-map') },
+  { label: 'Global Evidence', to: '/global-evidence', icon: Files, match: (p) => p.startsWith('/global-evidence') },
   { label: 'About', to: '/about', icon: Info, match: (p) => p.startsWith('/about') || p.startsWith('/faq') },
   { label: 'Changelog', to: '/changelog', icon: History, match: (p) => p.startsWith('/changelog') },
   { label: 'Settings', to: '/settings', icon: SettingsIcon, match: (p) => p.startsWith('/settings') },

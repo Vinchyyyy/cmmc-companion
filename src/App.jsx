@@ -11,6 +11,7 @@ import Changelog from './pages/Changelog.jsx'
 import ArtifactMap from './pages/ArtifactMap.jsx'
 import DibcacMode from './pages/DibcacMode.jsx'
 import Settings from './pages/Settings.jsx'
+import GlobalEvidence from './pages/GlobalEvidence.jsx'
 
 const NOTICE_VERSION = 1
 const NOTICE_KEY = 'cmmc-notice-version'
@@ -73,7 +74,7 @@ function App() {
   const location = useLocation()
   // Redesigned pages render their own violet-themed <DashSidebar/> and hide the
   // legacy shared <Navigation/>. Extend this list as more pages get redesigned.
-  const isRedesigned = location.pathname === '/' || location.pathname.startsWith('/controls') || location.pathname.startsWith('/evidence') || location.pathname.startsWith('/relationships') || location.pathname.startsWith('/dibcac-mode') || location.pathname.startsWith('/artifact-map') || location.pathname.startsWith('/settings') || location.pathname.startsWith('/about') || location.pathname.startsWith('/faq') || location.pathname.startsWith('/changelog')
+  const isRedesigned = location.pathname === '/' || location.pathname.startsWith('/controls') || location.pathname.startsWith('/evidence') || location.pathname.startsWith('/relationships') || location.pathname.startsWith('/dibcac-mode') || location.pathname.startsWith('/artifact-map') || location.pathname.startsWith('/global-evidence') || location.pathname.startsWith('/settings') || location.pathname.startsWith('/about') || location.pathname.startsWith('/faq') || location.pathname.startsWith('/changelog')
   return (
     <div className="app">
       <FirstRunNotice />
@@ -86,6 +87,7 @@ function App() {
           <Route path="/evidence" element={<EvidenceLookup />} />
           <Route path="/relationships" element={<RelationshipExplorer />} />
           <Route path="/artifact-map" element={<ArtifactMap />} />
+          <Route path="/global-evidence" element={<GlobalEvidence />} />
           <Route path="/dibcac-mode" element={<DibcacMode />} />
           <Route path="/about" element={<About />} />
           <Route path="/faq" element={<About />} />

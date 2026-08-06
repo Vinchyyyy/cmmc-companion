@@ -29,6 +29,9 @@ import {
   writeInheritanceSources,
   readObjectiveInheritance,
   writeObjectiveInheritance,
+  addInheritanceSourceToObjectives,
+  removeInheritanceSourceFromObjectives,
+  renameInheritanceSourceOnObjectives,
 } from '../utils/inheritance'
 import { readAssignedTo, writeAssignedTo, normalizeAssignee } from '../utils/assignment'
 import { readPool, writePool } from '../utils/evidencePool'
@@ -1119,11 +1122,15 @@ function ControlDetailView() {
     const next = [...inheritanceSources, trimmed]
     setInheritanceSources(next)
     writeInheritanceSources(id, next)
+    addInheritanceSourceToObjectives(control, trimmed)
+    setObjectiveInheritance(loadObjectiveInheritance(id, control))
   }
   const removeInheritanceSource = (name) => {
     const next = inheritanceSources.filter((s) => s !== name)
     setInheritanceSources(next)
     writeInheritanceSources(id, next)
+    removeInheritanceSourceFromObjectives(control, name)
+    setObjectiveInheritance(loadObjectiveInheritance(id, control))
   }
   const renameInheritanceSource = (oldName, newName) => {
     const trimmed = newName.trim()
@@ -1131,6 +1138,8 @@ function ControlDetailView() {
     const next = inheritanceSources.map((s) => (s === oldName ? trimmed : s))
     setInheritanceSources(next)
     writeInheritanceSources(id, next)
+    renameInheritanceSourceOnObjectives(control, oldName, trimmed)
+    setObjectiveInheritance(loadObjectiveInheritance(id, control))
   }
   const handleAssignedToChange  = (e) => { const v = e.target.value; setAssignedTo(v); writeAssignedTo(id, v) }
   const handleAssignedToBlur   = () => { const n = normalizeAssignee(assignedTo); setAssignedTo(n); writeAssignedTo(id, n) }

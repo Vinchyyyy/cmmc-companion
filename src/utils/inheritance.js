@@ -155,6 +155,41 @@ export function writeObjectiveInheritance(controlId, objectiveId, sources) {
   }
 }
 
+// Propagation helpers keep control-level inheritance edits synchronized with
+// every objective while preserving the user's ability to remove a source from
+// an individual objective afterward.
+export function addInheritanceSourceToObjectives(control, source) {
+  const trimmed = String(source ?? '').trim()
+  if (!control?.id || !trimmed) return
+  for (const objective of control.objectives ?? []) {
+    const current = readObjectiveInheritance(control.id, objective.id)
+    if (!current.includes(trimmed)) {
+      writeObjectiveInheritance(control.id, objective.id, [...current, trimmed])
+    }
+  }
+}
+
+export function removeInheritanceSourceFromObjectives(control, source) {
+  if (!control?.id || !source) return
+  for (const objective of control.objectives ?? []) {
+    const current = readObjectiveInheritance(control.id, objective.id)
+    if (current.includes(source)) {
+      writeObjectiveInheritance(control.id, objective.id, current.filter((item) => item !== source))
+    }
+  }
+}
+
+export function renameInheritanceSourceOnObjectives(control, oldName, newName) {
+  const trimmed = String(newName ?? '').trim()
+  if (!control?.id || !oldName || !trimmed) return
+  for (const objective of control.objectives ?? []) {
+    const current = readObjectiveInheritance(control.id, objective.id)
+    if (!current.includes(oldName)) continue
+    const next = current.map((item) => (item === oldName ? trimmed : item))
+    writeObjectiveInheritance(control.id, objective.id, [...new Set(next)])
+  }
+}
+
 // Returns a warning object when inheritance is set but source is undocumented,
 // or null when source is present or inheritance is None.
 // Accepts a string (legacy) or an array (multi-source).

@@ -29,8 +29,11 @@ import {
   readInheritance,
   writeInheritance,
   readInheritanceSource,
+  readInheritanceSources,
   writeInheritanceSource,
   getInheritanceSourceWarning,
+  addInheritanceSourceToObjectives,
+  removeInheritanceSourceFromObjectives,
 } from '../utils/inheritance'
 import {
   SCORE_VALUES,
@@ -746,8 +749,14 @@ function ControlLibrary() {
   const bulkSetStatus      = (s) => { for (const id of selected) writeStatus(id, s); forceUpdate() }
   const bulkSetInheritance = (v, source = '') => {
     for (const id of selected) {
+      const ctrl = controls.find((candidate) => candidate.id === id)
+      const previousSources = readInheritanceSources(id)
       writeInheritance(id, v)
       writeInheritanceSource(id, v === DEFAULT_INHERITANCE ? '' : source)
+      for (const previousSource of previousSources) {
+        if (previousSource !== source) removeInheritanceSourceFromObjectives(ctrl, previousSource)
+      }
+      if (v !== DEFAULT_INHERITANCE && source) addInheritanceSourceToObjectives(ctrl, source)
     }
     forceUpdate()
   }
@@ -755,6 +764,9 @@ function ControlLibrary() {
     for (const ctrl of selectedControls) {
       writeStatus(ctrl.id, 'Not Started')
       writeInheritance(ctrl.id, DEFAULT_INHERITANCE)
+      for (const source of readInheritanceSources(ctrl.id)) {
+        if (source) removeInheritanceSourceFromObjectives(ctrl, source)
+      }
       writeInheritanceSource(ctrl.id, '')
       writeNote(ctrl.id, '')
       writePool(ctrl.id, [])
@@ -1697,7 +1709,16 @@ function ControlLibrary() {
                     for (const targetId of targets) {
                       if (attrs.status) writeStatus(targetId, readStatus(sourceId))
                       if (attrs.inheritance) writeInheritance(targetId, readInheritance(sourceId))
-                      if (attrs.inheritanceSource) writeInheritanceSource(targetId, readInheritanceSource(sourceId))
+                      if (attrs.inheritanceSource) {
+                        const target = controls.find((candidate) => candidate.id === targetId)
+                        const previousSources = readInheritanceSources(targetId)
+                        const nextSource = readInheritanceSource(sourceId)
+                        for (const previousSource of previousSources) {
+                          if (previousSource !== nextSource) removeInheritanceSourceFromObjectives(target, previousSource)
+                        }
+                        writeInheritanceSource(targetId, nextSource)
+                        if (nextSource) addInheritanceSourceToObjectives(target, nextSource)
+                      }
                       if (attrs.evidencePool) writePool(targetId, readPool(sourceId))
                     }
 

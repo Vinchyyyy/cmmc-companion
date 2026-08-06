@@ -43,8 +43,10 @@ import { getReviewGroups, saveReviewGroups, getReviewFolders, saveReviewFolders 
 import { clearRegistry } from './artifactRegistry'
 import { readObjectiveFinding, writeObjectiveFinding } from './objectiveFindings'
 import { readObjectiveInterviewedRoles, writeObjectiveInterviewedRoles } from './objectiveInterviewedRoles'
+import { readProjectMeta, writeProjectMeta } from './projectMeta'
+import { readGlobalEvidence, writeGlobalEvidence } from './globalEvidence'
 
-export const SCHEMA_VERSION = 4
+export const SCHEMA_VERSION = 5
 
 export const DEFAULT_IMPORT_OPTIONS = {
   mode: 'replace',
@@ -66,7 +68,7 @@ export const DEFAULT_IMPORT_OPTIONS = {
 
 // All schema versions this app can import. Add new versions here as the
 // schema evolves — never remove old ones while users may have older backups.
-export const ACCEPTED_SCHEMA_VERSIONS = [1, 2, 3, 4]
+export const ACCEPTED_SCHEMA_VERSIONS = [1, 2, 3, 4, 5]
 
 // =========================================================================
 // Export
@@ -152,6 +154,8 @@ export function exportProjectState(controls) {
     schemaVersion: SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
     artifacts: listArtifacts(),
+    projectMeta: readProjectMeta(),
+    globalEvidence: readGlobalEvidence(),
     environmentProfile: readEnvironmentProfile(),
     reviewGroups: getReviewGroups(),
     reviewFolders: getReviewFolders(),
@@ -194,7 +198,7 @@ export function importProjectState(projectJson, controls, options = {}) {
     return {
       ok: false,
       error: `Unsupported schema version ${projectJson.schemaVersion}. ` +
-             `Expected version 1, 2, 3, or 4.`,
+             `Expected version 1, 2, 3, 4, or 5.`,
     }
   }
   if (!Array.isArray(projectJson.controls)) {
@@ -219,6 +223,14 @@ export function importProjectState(projectJson, controls, options = {}) {
     typeof projectJson.environmentProfile === 'object'
   ) {
     writeEnvironmentProfile(projectJson.environmentProfile)
+  }
+
+  if (projectJson.projectMeta && typeof projectJson.projectMeta === 'object' && !Array.isArray(projectJson.projectMeta)) {
+    writeProjectMeta(projectJson.projectMeta)
+  }
+
+  if (projectJson.globalEvidence && typeof projectJson.globalEvidence === 'object' && !Array.isArray(projectJson.globalEvidence)) {
+    writeGlobalEvidence(projectJson.globalEvidence)
   }
 
   const summary = {
@@ -590,6 +602,8 @@ const WIPE_EXACT_KEYS = [
   'cmmc-companion-dibcac-review-groups',
   'cmmc-companion-dibcac-review-folders',
   'cmmc-environment-profile',
+  'cmmc-project-meta',
+  'cmmc-global-evidence',
   'cmmc-export-osc',
   'cmmc-export-assessment',
   'cmmc-last-backup',

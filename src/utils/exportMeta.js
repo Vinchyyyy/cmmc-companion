@@ -1,3 +1,5 @@
+import { readProjectMeta } from './projectMeta'
+
 const OSC_KEY        = 'cmmc-export-osc'
 const ASSESSMENT_KEY = 'cmmc-export-assessment'
 const LAST_BACKUP_KEY = 'cmmc-last-backup'
@@ -32,8 +34,9 @@ export function formatLastBackup(isoString) {
 
 export function readExportMeta() {
   try {
+    const projectOsc = readProjectMeta().oscName
     return {
-      osc:        localStorage.getItem(OSC_KEY)        ?? '',
+      osc:        projectOsc || localStorage.getItem(OSC_KEY) || '',
       assessment: localStorage.getItem(ASSESSMENT_KEY) ?? '',
     }
   } catch {

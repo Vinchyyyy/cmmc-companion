@@ -17,6 +17,7 @@ import { parseAssessmentWorkbook, applyWorkbookImport } from '../utils/importAss
 import { PROVIDERS } from '../data/providers'
 import { ACCENT_PALETTES, readAccent, writeAccent, applyAccent } from '../utils/accentColor'
 import { reconcileProgressFromStoredWork } from '../utils/progressReconciliation'
+import { readProjectMeta, writeProjectMeta } from '../utils/projectMeta'
 
 // Provider names from the app's real provider registry — used as fallback
 // options in the inheritance source reconciliation dropdown when the project
@@ -40,11 +41,17 @@ function Settings() {
   const [wipeSuccess, setWipeSuccess] = useState(false)
   const [lastBackup, setLastBackup] = useState(() => readLastBackup())
   const [accent, setAccent] = useState(() => readAccent())
+  const [projectMeta, setProjectMeta] = useState(() => readProjectMeta())
 
   const handleAccentChange = (value) => {
     writeAccent(value)
     applyAccent(value)
     setAccent(value)
+  }
+
+  const handleOscNameChange = (value) => {
+    const next = writeProjectMeta({ ...projectMeta, oscName: value })
+    setProjectMeta(next)
   }
 
   const openExportDialog = (mode) => {
@@ -120,7 +127,7 @@ function Settings() {
           setJsonResult({ ok: false, message: 'Invalid JSON: expected an object.' }); return
         }
         if (!ACCEPTED_SCHEMA_VERSIONS.includes(parsed.schemaVersion)) {
-          setJsonResult({ ok: false, message: `Unsupported schema version ${parsed.schemaVersion}. Expected version 1, 2, 3, or 4.` }); return
+          setJsonResult({ ok: false, message: `Unsupported schema version ${parsed.schemaVersion}. Expected version 1, 2, 3, 4, or 5.` }); return
         }
         if (!Array.isArray(parsed.controls)) {
           setJsonResult({ ok: false, message: 'Invalid JSON: "controls" must be an array.' }); return
@@ -140,6 +147,7 @@ function Settings() {
     try {
       const summary = importProjectState(pendingJsonImport, controls, importOptions)
       if (!summary.ok) { setJsonResult({ ok: false, message: summary.error }); return }
+      setProjectMeta(readProjectMeta())
       reconcileProgressFromStoredWork(controls)
       const p = (n, singular, plural) => n > 0 ? `${n} ${n === 1 ? singular : plural}` : null
       const parts = [
@@ -267,6 +275,7 @@ function Settings() {
     setWipeInput('')
     setWipeSuccess(true)
     setLastBackup(null)
+    setProjectMeta(readProjectMeta())
     setJsonResult(null)
     setTimeout(() => setWipeSuccess(false), 5000)
   }
@@ -280,6 +289,25 @@ function Settings() {
       <main className="dash-main set-page">
       <h1 className="set-title">Settings</h1>
       <p className="set-subtitle">Data management, backups, and appearance for this local assessment workspace.</p>
+
+      <div className="set-card">
+        <div className="set-card-body">
+          <div className="set-card-group-label">Project Identity</div>
+          <div className="set-project-field">
+            <label htmlFor="project-osc-name">OSC / Client Name</label>
+            <p>Identifies the organization currently being assessed and pre-fills export dialogs.</p>
+            <input
+              id="project-osc-name"
+              type="text"
+              className="export-dialog-input"
+              placeholder="e.g. Acme Corp"
+              value={projectMeta.oscName}
+              onChange={(e) => handleOscNameChange(e.target.value)}
+              autoComplete="organization"
+            />
+          </div>
+        </div>
+      </div>
 
       <div className="set-card">
         <div className="set-card-group-label-row">
@@ -465,6 +493,7 @@ function Settings() {
               <li>Control assignments</li>
               <li>Review groups and group memberships</li>
               <li>Environment profile</li>
+              <li>OSC name and global evidence configuration</li>
             </ul>
             <p><strong>This action cannot be undone.</strong> Export a project backup first if you want to preserve your work.</p>
             <div className="confirm-dialog-buttons">
