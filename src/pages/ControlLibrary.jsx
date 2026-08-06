@@ -45,6 +45,7 @@ import { IconNotes, IconPaperclip } from '../components/icons'
 import { readAssignedTo, writeAssignedTo, normalizeAssignee } from '../utils/assignment'
 import BulkFindingsModal from '../components/BulkFindingsModal'
 import { DIBCAC_STANDARDS, getDibcacStandard } from '../data/dibcacAssessmentStandards'
+import { formatProviderReference } from '../utils/oscProfile'
 
 // 'variable' covers objectives with no fixed DIBCAC standard mapping (getDibcacStandard returns null).
 const DIBCAC_FILTER_VALUES = [...DIBCAC_STANDARDS, { value: 'variable', label: 'Variable' }]
@@ -1122,7 +1123,7 @@ function ControlLibrary() {
                         <span className={`status-badge ${STATUS_BADGE_CLASS[status]}`}>{status}</span>
                         {inheritance !== DEFAULT_INHERITANCE && (() => {
                           const inheritanceBadgeLabel = inheritanceSource.trim()
-                            ? `${inheritance} — ${inheritanceSource.trim()}`
+                            ? `${inheritance} — ${formatProviderReference(inheritanceSource.trim())}`
                             : inheritance
                           return (
                             <span

@@ -45,8 +45,9 @@ import { readObjectiveFinding, writeObjectiveFinding } from './objectiveFindings
 import { readObjectiveInterviewedRoles, writeObjectiveInterviewedRoles } from './objectiveInterviewedRoles'
 import { readProjectMeta, writeProjectMeta } from './projectMeta'
 import { readGlobalEvidence, writeGlobalEvidence } from './globalEvidence'
+import { readOscProfile, writeOscProfile } from './oscProfile'
 
-export const SCHEMA_VERSION = 5
+export const SCHEMA_VERSION = 6
 
 export const DEFAULT_IMPORT_OPTIONS = {
   mode: 'replace',
@@ -68,7 +69,7 @@ export const DEFAULT_IMPORT_OPTIONS = {
 
 // All schema versions this app can import. Add new versions here as the
 // schema evolves — never remove old ones while users may have older backups.
-export const ACCEPTED_SCHEMA_VERSIONS = [1, 2, 3, 4, 5]
+export const ACCEPTED_SCHEMA_VERSIONS = [1, 2, 3, 4, 5, 6]
 
 // =========================================================================
 // Export
@@ -155,6 +156,7 @@ export function exportProjectState(controls) {
     exportedAt: new Date().toISOString(),
     artifacts: listArtifacts(),
     projectMeta: readProjectMeta(),
+    oscProfile: readOscProfile(),
     globalEvidence: readGlobalEvidence(),
     environmentProfile: readEnvironmentProfile(),
     reviewGroups: getReviewGroups(),
@@ -198,7 +200,7 @@ export function importProjectState(projectJson, controls, options = {}) {
     return {
       ok: false,
       error: `Unsupported schema version ${projectJson.schemaVersion}. ` +
-             `Expected version 1, 2, 3, 4, or 5.`,
+             `Expected version 1, 2, 3, 4, 5, or 6.`,
     }
   }
   if (!Array.isArray(projectJson.controls)) {
@@ -227,6 +229,10 @@ export function importProjectState(projectJson, controls, options = {}) {
 
   if (projectJson.projectMeta && typeof projectJson.projectMeta === 'object' && !Array.isArray(projectJson.projectMeta)) {
     writeProjectMeta(projectJson.projectMeta)
+  }
+
+  if (projectJson.oscProfile && typeof projectJson.oscProfile === 'object' && !Array.isArray(projectJson.oscProfile)) {
+    writeOscProfile(projectJson.oscProfile)
   }
 
   if (projectJson.globalEvidence && typeof projectJson.globalEvidence === 'object' && !Array.isArray(projectJson.globalEvidence)) {
@@ -603,6 +609,7 @@ const WIPE_EXACT_KEYS = [
   'cmmc-companion-dibcac-review-folders',
   'cmmc-environment-profile',
   'cmmc-project-meta',
+  'cmmc-osc-profile',
   'cmmc-global-evidence',
   'cmmc-export-osc',
   'cmmc-export-assessment',

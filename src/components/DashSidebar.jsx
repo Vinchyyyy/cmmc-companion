@@ -1,17 +1,17 @@
 import { Link, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, BookOpen, FileText, GitBranch, ShieldCheck, Archive, Info, History,
-  Settings as SettingsIcon, Files,
+  Settings as SettingsIcon, Building2,
 } from 'lucide-react'
 
 const navItems = [
   { label: 'Home', to: '/', icon: LayoutDashboard, match: (p) => p === '/' },
   { label: 'Control Library', to: '/controls', icon: BookOpen, match: (p) => p.startsWith('/controls') },
+  { label: 'DIBCAC Mode', to: '/dibcac-mode', icon: ShieldCheck, match: (p) => p.startsWith('/dibcac-mode') },
+  { label: 'OSC Profile', to: '/osc-profile', icon: Building2, match: (p) => p.startsWith('/osc-profile') || p.startsWith('/global-evidence') },
+  { label: 'Documented Artifacts', to: '/artifact-map', icon: Archive, match: (p) => p.startsWith('/artifact-map') },
   { label: 'Evidence Library', to: '/evidence', icon: FileText, match: (p) => p.startsWith('/evidence') },
   { label: 'Relationship Explorer', to: '/relationships', icon: GitBranch, match: (p) => p.startsWith('/relationships') },
-  { label: 'DIBCAC Mode', to: '/dibcac-mode', icon: ShieldCheck, match: (p) => p.startsWith('/dibcac-mode') },
-  { label: 'Documented Artifacts', to: '/artifact-map', icon: Archive, match: (p) => p.startsWith('/artifact-map') },
-  { label: 'Global Evidence', to: '/global-evidence', icon: Files, match: (p) => p.startsWith('/global-evidence') },
   { label: 'About', to: '/about', icon: Info, match: (p) => p.startsWith('/about') || p.startsWith('/faq') },
   { label: 'Changelog', to: '/changelog', icon: History, match: (p) => p.startsWith('/changelog') },
   { label: 'Settings', to: '/settings', icon: SettingsIcon, match: (p) => p.startsWith('/settings') },

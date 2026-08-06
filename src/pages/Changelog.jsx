@@ -12,8 +12,52 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v4.8.5 — current release, open by default */}
+      {/* v4.9.0 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.9.0</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span style={{ color: 'var(--color-text)' }}>OSC Profile and CRM Inheritance Mapping</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>August 6, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-accent)' }}>
+
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Adds a consolidated OSC workspace, reusable evidence and inheritance tools, and a crosswalk-assisted workflow for translating provider responsibility matrices into reviewed CMMC inheritance assignments.
+          </p>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>OSC Profile</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Added a central OSC Profile for engagement context, service providers, physical locations, environment walkthrough notes, and global evidence.</li>
+            <li>Moved the OSC name into the profile, surfaced it on the assessment dashboard, and pre-fills it in export dialogs while keeping the field editable.</li>
+            <li>Service provider records now capture CUI/SPD handling, CRM status, connection method, and DIBCAC High, FedRAMP Moderate, or FedRAMP High standards acceptance.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Global Evidence and Inheritance</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Added reusable System Security Plan and family policy/procedure assignments that apply artifact references across their intended controls and objectives.</li>
+            <li>Apply actions now change to a confirmation checkmark and return whenever the underlying entry is edited.</li>
+            <li>Control-level inheritance now propagates to all objectives while preserving per-objective removal and multiple inheritance providers.</li>
+            <li>Provider standards acceptance is shown with inheritance references and exported to the official workbook's Standards Acceptance field.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>CRM Responsibility Mapper</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Added a provider-specific mapper for classifying CRM rows as OSC/Tenant, Provider, Shared, or Review before applying Partial or Full inheritance.</li>
+            <li>Includes the complete 110-requirement NIST SP 800-171 Rev. 2 Appendix D reference and clearly distinguishes exact mappings from parent-control enhancement candidates.</li>
+            <li>The predictive NIST SP 800-53 picker supports official control and enhancement titles, multi-select, removable pills, outside-click dismissal, and shorthand searches such as AC-4, AC 4, or AC4.</li>
+          </ul>
+
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Navigation</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Reordered the sidebar around the primary assessment workflow: Home, Control Library, DIBCAC Mode, OSC Profile, Documented Artifacts, Evidence Library, and Relationship Explorer.</li>
+          </ul>
+
+        </div>
+      </details>
+
+      {/* v4.8.5 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.8.5</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
@@ -21,16 +65,13 @@ function Changelog() {
           <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>July 19, 2026</span>
         </summary>
         <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-accent)' }}>
-
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
             Fixes interviewed roles applied to other objectives not showing up in the findings list.
           </p>
-
           <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Bulk Findings / DIBCAC Group Findings</h3>
           <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
             <li>"Apply Same Interviewer" writes interviewed roles to the other selected objectives immediately, independent of whether the current objective's own edit is saved. Closing Fix Interview Details with the ✕ or Cancel (instead of Save) previously left the findings row list showing stale "Missing interviewed role" warnings for those objectives even though the roles were already saved — the list now refreshes on close the same way it does on save.</li>
           </ul>
-
         </div>
       </details>
 

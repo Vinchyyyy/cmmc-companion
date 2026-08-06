@@ -5,6 +5,8 @@
 // or services of an enclave provider (e.g., a managed cloud, a GovCloud
 // environment) rather than being independently implemented by the organization.
 
+import { ensureOscProvider } from './oscProfile'
+
 const STORAGE_PREFIX = 'cmmc-inheritance-'
 
 export const INHERITANCE_VALUES = ['None', 'Full', 'Partial']
@@ -77,6 +79,7 @@ export function writeInheritanceSource(controlId, value) {
     } else {
       localStorage.setItem(`${SOURCE_PREFIX}${controlId}`, value)
       localStorage.setItem(`${SOURCES_PREFIX}${controlId}`, JSON.stringify([value]))
+      ensureOscProvider(value)
     }
   } catch {
     // localStorage may be unavailable (private browsing, quota, etc.)
@@ -115,6 +118,7 @@ export function writeInheritanceSources(controlId, sources) {
       localStorage.setItem(`${SOURCES_PREFIX}${controlId}`, JSON.stringify(filtered))
       // Keep legacy key in sync so existing filter logic continues to see the first source
       localStorage.setItem(`${SOURCE_PREFIX}${controlId}`, filtered[0])
+      for (const source of filtered) ensureOscProvider(source)
     }
   } catch {
     // localStorage may be unavailable (private browsing, quota, etc.)

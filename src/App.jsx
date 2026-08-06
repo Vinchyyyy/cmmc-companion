@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import Navigation from './components/Navigation.jsx'
 import Home from './pages/Home.jsx'
 import ControlLibrary from './pages/ControlLibrary.jsx'
@@ -11,7 +11,8 @@ import Changelog from './pages/Changelog.jsx'
 import ArtifactMap from './pages/ArtifactMap.jsx'
 import DibcacMode from './pages/DibcacMode.jsx'
 import Settings from './pages/Settings.jsx'
-import GlobalEvidence from './pages/GlobalEvidence.jsx'
+import OscProfile from './pages/OscProfile.jsx'
+import CrmResponsibilityMapper from './pages/CrmResponsibilityMapper.jsx'
 
 const NOTICE_VERSION = 1
 const NOTICE_KEY = 'cmmc-notice-version'
@@ -74,7 +75,7 @@ function App() {
   const location = useLocation()
   // Redesigned pages render their own violet-themed <DashSidebar/> and hide the
   // legacy shared <Navigation/>. Extend this list as more pages get redesigned.
-  const isRedesigned = location.pathname === '/' || location.pathname.startsWith('/controls') || location.pathname.startsWith('/evidence') || location.pathname.startsWith('/relationships') || location.pathname.startsWith('/dibcac-mode') || location.pathname.startsWith('/artifact-map') || location.pathname.startsWith('/global-evidence') || location.pathname.startsWith('/settings') || location.pathname.startsWith('/about') || location.pathname.startsWith('/faq') || location.pathname.startsWith('/changelog')
+  const isRedesigned = location.pathname === '/' || location.pathname.startsWith('/controls') || location.pathname.startsWith('/evidence') || location.pathname.startsWith('/relationships') || location.pathname.startsWith('/dibcac-mode') || location.pathname.startsWith('/artifact-map') || location.pathname.startsWith('/osc-profile') || location.pathname.startsWith('/global-evidence') || location.pathname.startsWith('/settings') || location.pathname.startsWith('/about') || location.pathname.startsWith('/faq') || location.pathname.startsWith('/changelog')
   return (
     <div className="app">
       <FirstRunNotice />
@@ -87,7 +88,9 @@ function App() {
           <Route path="/evidence" element={<EvidenceLookup />} />
           <Route path="/relationships" element={<RelationshipExplorer />} />
           <Route path="/artifact-map" element={<ArtifactMap />} />
-          <Route path="/global-evidence" element={<GlobalEvidence />} />
+          <Route path="/osc-profile" element={<OscProfile />} />
+          <Route path="/osc-profile/providers/:providerId/crm-mapper" element={<CrmResponsibilityMapper />} />
+          <Route path="/global-evidence" element={<Navigate to="/osc-profile?tab=evidence" replace />} />
           <Route path="/dibcac-mode" element={<DibcacMode />} />
           <Route path="/about" element={<About />} />
           <Route path="/faq" element={<About />} />

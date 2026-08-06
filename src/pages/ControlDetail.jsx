@@ -55,6 +55,7 @@ import {
   writeObjectiveInterviewedRoles,
 } from '../utils/objectiveInterviewedRoles'
 import { getDibcacStandard, DIBCAC_STANDARDS } from '../data/dibcacAssessmentStandards'
+import { formatProviderReference } from '../utils/oscProfile'
 import {
   getReviewGroups,
   addObjectiveToGroup,
@@ -664,11 +665,11 @@ function EditDetailsModal({
                               }}
                               aria-expanded={isEditorOpen}
                             >
-                              {src}
+                              {formatProviderReference(src)}
                               <span className="cd-source-chip-custom-badge" title="Not in the provider catalog — custom entry for this control">Custom</span>
                             </button>
                           ) : (
-                            <span className="cd-source-chip-label">{src}</span>
+                            <span className="cd-source-chip-label">{formatProviderReference(src)}</span>
                           )}
                           <button
                             type="button"
@@ -1427,7 +1428,7 @@ function ControlDetailView() {
                 ? (
                   <div className="cd-meta-sources">
                     {inheritanceSources.map((src) => (
-                      <span key={src} className="cd-source-chip cd-source-chip--readonly">{src}</span>
+                      <span key={src} className="cd-source-chip cd-source-chip--readonly">{formatProviderReference(src)}</span>
                     ))}
                   </div>
                 )
@@ -1679,7 +1680,7 @@ function ControlDetailView() {
                       <div className="cd-obj-inherit-chips">
                         {(objectiveInheritance[selectedObj.id] ?? []).map((src) => (
                           <span key={src} className="cd-source-chip">
-                            <span className="cd-source-chip-label">{src}</span>
+                            <span className="cd-source-chip-label">{formatProviderReference(src)}</span>
                             <button
                               type="button"
                               className="cd-source-chip-remove"

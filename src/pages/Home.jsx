@@ -14,6 +14,7 @@ import { hasObjectiveArtifacts } from '../utils/objectiveArtifacts'
 import { controlHasWarnings } from '../utils/objectiveWarnings'
 import { listArtifacts } from '../utils/artifactRegistry'
 import { getScoringSearchTerms } from '../utils/scoring'
+import { readProjectMeta } from '../utils/projectMeta'
 
 // =========================================================================
 // Family definitions — order matches the real Control Library family filter.
@@ -778,6 +779,7 @@ const focusAreaIcons = {
 }
 
 function Home() {
+  const [projectMeta] = useState(readProjectMeta)
   const familyStats = useMemo(() => computeFamilyStats(), [])
   const matrix = useMemo(() => computeInheritanceMatrix(), [])
 
@@ -812,7 +814,7 @@ function Home() {
       <main className="dash-main">
         <div className="dash-header">
           <div>
-            <h1 className="dash-title">Assessment Dashboard</h1>
+            <h1 className="dash-title">Assessment Dashboard{projectMeta.oscName.trim() ? ` for ${projectMeta.oscName.trim()}` : ''}</h1>
             <p className="dash-muted dash-subtitle">CMMC Companion — local assessment workspace</p>
           </div>
           <HeaderSearch />

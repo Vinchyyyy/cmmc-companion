@@ -56,7 +56,7 @@ function readConfigWithAppliedMigration() {
   return changed ? writeGlobalEvidence(next) : saved
 }
 
-function GlobalEvidence() {
+function GlobalEvidence({ embedded = false }) {
   const [config, setConfig] = useState(readConfigWithAppliedMigration)
   const [result, setResult] = useState(null)
 
@@ -135,10 +135,8 @@ function GlobalEvidence() {
     })
   }
 
-  return (
-    <div className="dash-root">
-      <DashSidebar />
-      <main className="dash-main ge-page">
+  const content = (
+    <>
         <div className="ge-header">
           <div>
             <h1 className="set-title">Global Evidence</h1>
@@ -237,7 +235,15 @@ function GlobalEvidence() {
             </div>
           </div>
         </section>
-      </main>
+    </>
+  )
+
+  if (embedded) return <div className="ge-page ge-page--embedded">{content}</div>
+
+  return (
+    <div className="dash-root">
+      <DashSidebar />
+      <main className="dash-main ge-page">{content}</main>
     </div>
   )
 }

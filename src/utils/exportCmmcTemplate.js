@@ -4,7 +4,7 @@
 // Write backend: JSZip surgical XML patch.
 //   - Opens the bundled template as a raw ZIP archive.
 //   - Resolves the Requirement Objectives worksheet path via workbook.xml + rels.
-//   - Patches only editable cells (D/E/F/G/H/K/L/M/O/P) in place using inline strings.
+//   - Patches only editable cells (D/E/F/G/H/J/K/L/M/O/P) in place using inline strings.
 //   - All other ZIP entries (styles, customXml, docMetadata, other sheets, rels, etc.)
 //     are passed through completely untouched.
 //
@@ -27,6 +27,7 @@ import { readInheritance, readInheritanceSource } from './inheritance'
 import { readAssignedTo } from './assignment'
 import { readObjectiveStatus, OBJECTIVE_STATUS_MET, OBJECTIVE_STATUS_NOT_MET } from './objectiveStatus'
 import { getDibcacStandard } from '../data/dibcacAssessmentStandards'
+import { readProviderStandardsAcceptance } from './oscProfile'
 
 // ---------------------------------------------------------------------------
 // L1 → L2 prefix normalization
@@ -184,12 +185,14 @@ function buildObjectiveMap(controls) {
   for (const [templateId, ctrl] of companionByTemplateId) {
     const inheritance = readInheritance(ctrl.id)
     const esp         = readInheritanceSource(ctrl.id)
+    const standardsAcceptance = readProviderStandardsAcceptance(esp)
     const assessedBy  = readAssignedTo(ctrl.id)
     const pool        = readPool(ctrl.id)
 
     controlData.set(templateId, {
       inherited:  toTemplateInherited(inheritance),
       esp:        truncate((inheritance !== 'None' && esp) ? esp : '', 2000),
+      standardsAcceptance: inheritance !== 'None' ? standardsAcceptance : '',
       assessedBy: truncate(assessedBy ?? '', 100),
       pool:       formatArtifactList(pool),
     })
@@ -382,6 +385,7 @@ function patchWorksheetXml(wsXml, sharedStrings, objectiveData, controlData) {
 
       // Control-level columns (same value for every objective row of this control)
       if (ctrl) {
+        content = patchCell(content, `J${r}`, ctrl.standardsAcceptance)
         content = patchCell(content, `K${r}`, ctrl.inherited)
         content = patchCell(content, `L${r}`, ctrl.esp)
         content = patchCell(content, `O${r}`, ctrl.assessedBy)
