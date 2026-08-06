@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Building2, FileSpreadsheet, MapPin, Plus, Trash2 } from 'lucide-react'
+import { Building2, FileSpreadsheet, MapPin, Pencil, Plus, Save, Trash2 } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
 import GlobalEvidence from './GlobalEvidence.jsx'
 import controls from '../data/controls/index.js'
@@ -17,7 +17,6 @@ const TABS = [
   ['overview', 'Overview'],
   ['providers', 'Service Providers'],
   ['locations', 'Physical Locations'],
-  ['walkthrough', 'Environment Walkthrough'],
   ['evidence', 'Global Evidence'],
 ]
 
@@ -90,6 +89,7 @@ function OscProfile() {
     }
     return readOscProfile()
   })
+  const [editingProviders, setEditingProviders] = useState(() => new Set())
 
   const chooseTab = (tab) => setSearchParams(tab === 'overview' ? {} : { tab })
   const saveProfile = (updater) => setProfile((current) => writeOscProfile(updater(current)))
@@ -108,13 +108,24 @@ function OscProfile() {
     saveProfile((current) => ({ ...current, [collection]: current[collection].filter((item) => item.id !== id) }))
   }
 
-  const addProvider = () => saveProfile((current) => ({
-    ...current,
-    providers: [...current.providers, {
-      id: makeId(), name: '', type: 'Other ESP', service: '', handlesCui: 'Unknown',
-      handlesSpd: 'Unknown', crmStatus: 'Unknown', standardsAcceptance: '', connectionMethod: '', notes: '',
-    }],
-  }))
+  const addProvider = () => {
+    const id = makeId()
+    saveProfile((current) => ({
+      ...current,
+      providers: [...current.providers, {
+        id, name: '', type: 'Other ESP', service: '', handlesCui: 'Unknown',
+        handlesSpd: 'Unknown', crmStatus: 'Unknown', standardsAcceptance: '', connectionMethod: '', notes: '',
+      }],
+    }))
+    setEditingProviders((current) => new Set(current).add(id))
+  }
+
+  const setProviderEditing = (id, editing) => setEditingProviders((current) => {
+    const next = new Set(current)
+    if (editing) next.add(id)
+    else next.delete(id)
+    return next
+  })
 
   const addLocation = () => saveProfile((current) => ({
     ...current,
@@ -148,15 +159,10 @@ function OscProfile() {
               <h2>Organization Overview</h2>
               <p className="op-section-intro">Keep the identifiers and high-level context you want available throughout the engagement.</p>
               <div className="op-grid">
-                <Field label="OSC / Client Name" hint="Used on the dashboard and pre-filled in export dialogs.">
+                <Field label="OSC / Client Name" hint="Used on the dashboard and pre-filled in export dialogs." wide>
                   <input className="export-dialog-input" value={projectMeta.oscName} placeholder="e.g. Acme Corp" autoComplete="organization" onChange={(e) => setProjectMeta(writeProjectMeta({ ...projectMeta, oscName: e.target.value }))} />
                 </Field>
-                <Field label="Primary Contact"><input className="export-dialog-input" value={profile.overview.primaryContact} onChange={(e) => updateSection('overview', 'primaryContact', e.target.value)} /></Field>
-                <Field label="CAGE Code(s)"><input className="export-dialog-input" value={profile.overview.cageCodes} onChange={(e) => updateSection('overview', 'cageCodes', e.target.value)} /></Field>
-                <Field label="Approximate Users"><input className="export-dialog-input" value={profile.overview.approximateUsers} onChange={(e) => updateSection('overview', 'approximateUsers', e.target.value)} /></Field>
-                <Field label="Workforce Model"><input className="export-dialog-input" value={profile.overview.workforceModel} placeholder="e.g. On-site, remote, hybrid" onChange={(e) => updateSection('overview', 'workforceModel', e.target.value)} /></Field>
                 <Field label="Business / Mission Description" wide><textarea value={profile.overview.businessDescription} onChange={(e) => updateSection('overview', 'businessDescription', e.target.value)} /></Field>
-                <Field label="Assessment Context" wide><textarea value={profile.overview.assessmentContext} placeholder="What prompted the engagement and what is the expected assessment scope?" onChange={(e) => updateSection('overview', 'assessmentContext', e.target.value)} /></Field>
                 <Field label="Boundary Summary" wide><textarea value={profile.overview.boundarySummary} onChange={(e) => updateSection('overview', 'boundarySummary', e.target.value)} /></Field>
                 <Field label="How CUI Enters and Moves Through the Environment" wide><textarea value={profile.overview.cuiDescription} onChange={(e) => updateSection('overview', 'cuiDescription', e.target.value)} /></Field>
               </div>
@@ -168,7 +174,7 @@ function OscProfile() {
           <section className="set-card op-section">
             <div className="set-card-body">
               <div className="op-section-title-row"><div><h2>External Service Providers</h2><p className="op-section-intro">Capture CSPs, MSPs, MSSPs, and other ESP relationships. CRM means Customer Responsibility Matrix; some organizations call it a CRMA.</p></div><button type="button" onClick={addProvider}><Plus size={15} /> Add Provider</button></div>
-              <details className="op-cheat-sheet" open>
+              <details className="op-cheat-sheet">
                 <summary>Service Provider Acronym Cheat Sheet</summary>
                 <p className="op-cheat-intro"><strong>Fast rule:</strong> classify the actual service—not just the company’s marketing label. One company may fill several roles.</p>
                 <h3>Provider Types</h3>
@@ -203,22 +209,50 @@ function OscProfile() {
               </details>
               {profile.providers.length === 0 && <div className="op-empty">No providers recorded yet.</div>}
               <div className="op-collection">
-                {profile.providers.map((provider, index) => (
-                  <article className="op-item" key={provider.id}>
-                    <div className="op-item-header"><div><h3>Provider {index + 1}{provider.name ? ` — ${provider.name}` : ''}</h3>{provider.crmMappings?.length > 0 && <span className="op-mapping-count">{provider.crmMappings.length} CRM row{provider.crmMappings.length === 1 ? '' : 's'} mapped with NIST SP 800-53</span>}</div><div className="op-item-actions"><Link className="op-mapper-link" to={`/osc-profile/providers/${provider.id}/crm-mapper`}><FileSpreadsheet size={15} /> CRM Mapper</Link><button type="button" className="op-remove" onClick={() => removeItem('providers', provider.id, 'provider')}><Trash2 size={15} /> Remove</button></div></div>
-                    <div className="op-grid">
-                      <Field label="Provider Name"><input value={provider.name} onChange={(e) => updateCollection('providers', provider.id, 'name', e.target.value)} /></Field>
-                      <Field label="Provider Type"><select value={provider.type} onChange={(e) => updateCollection('providers', provider.id, 'type', e.target.value)}>{['CSP', 'MSP', 'MSSP', 'Other ESP', 'Unknown'].map((v) => <option key={v}>{v}</option>)}</select></Field>
-                      <Field label="Service Provided"><input value={provider.service} onChange={(e) => updateCollection('providers', provider.id, 'service', e.target.value)} /></Field>
-                      <Field label="Handles CUI?"><select value={provider.handlesCui} onChange={(e) => updateCollection('providers', provider.id, 'handlesCui', e.target.value)}>{['Unknown', 'Yes', 'No'].map((v) => <option key={v}>{v}</option>)}</select></Field>
-                      <Field label="Handles Security Protection Data?"><select value={provider.handlesSpd} onChange={(e) => updateCollection('providers', provider.id, 'handlesSpd', e.target.value)}>{['Unknown', 'Yes', 'No'].map((v) => <option key={v}>{v}</option>)}</select></Field>
-                      <Field label="CRM / CRMA Status"><select value={provider.crmStatus} onChange={(e) => updateCollection('providers', provider.id, 'crmStatus', e.target.value)}>{['Unknown', 'Available', 'Requested', 'Not Available', 'Not Applicable'].map((v) => <option key={v}>{v}</option>)}</select></Field>
-                      <Field label="Standards Acceptance" hint="Used for every inheritance reference to this provider and in the official Excel export."><select value={provider.standardsAcceptance} onChange={(e) => updateCollection('providers', provider.id, 'standardsAcceptance', e.target.value)}><option value="">Not Specified</option>{STANDARDS_ACCEPTANCE_VALUES.map((v) => <option key={v}>{v}</option>)}</select></Field>
-                      <Field label="Connection / Access Method"><input value={provider.connectionMethod} onChange={(e) => updateCollection('providers', provider.id, 'connectionMethod', e.target.value)} /></Field>
-                      <Field label="Notes" wide><textarea value={provider.notes} onChange={(e) => updateCollection('providers', provider.id, 'notes', e.target.value)} /></Field>
-                    </div>
-                  </article>
-                ))}
+                {profile.providers.map((provider, index) => {
+                  const editing = editingProviders.has(provider.id)
+                  return (
+                    <article className={`op-item op-provider-card${editing ? ' op-provider-card--editing' : ''}`} key={provider.id}>
+                      <div className="op-item-header">
+                        <div>
+                          <div className="op-provider-title-row"><h3>{provider.name || `Provider ${index + 1}`}</h3><span className="op-provider-type">{provider.type || 'Unknown'}</span></div>
+                          {provider.crmMappings?.length > 0 && <span className="op-mapping-count">{provider.crmMappings.length} CRM row{provider.crmMappings.length === 1 ? '' : 's'} mapped with NIST SP 800-53</span>}
+                        </div>
+                        <div className="op-item-actions">
+                          {!editing && <Link className="op-mapper-link" to={`/osc-profile/providers/${provider.id}/crm-mapper`}><FileSpreadsheet size={15} /> CRM Mapper</Link>}
+                          {editing ? <button type="button" className="op-provider-save" disabled={!provider.name.trim()} onClick={() => setProviderEditing(provider.id, false)}><Save size={15} /> Save Provider</button> : <button type="button" className="op-provider-edit" onClick={() => setProviderEditing(provider.id, true)}><Pencil size={14} /> Edit</button>}
+                          <button type="button" className="op-remove" onClick={() => removeItem('providers', provider.id, 'provider')}><Trash2 size={15} /> Remove</button>
+                        </div>
+                      </div>
+
+                      {editing ? (
+                        <div className="op-grid">
+                          <Field label="Provider Name"><input value={provider.name} autoComplete="organization" onChange={(e) => updateCollection('providers', provider.id, 'name', e.target.value)} /></Field>
+                          <Field label="Provider Type"><select value={provider.type} onChange={(e) => updateCollection('providers', provider.id, 'type', e.target.value)}>{['CSP', 'MSP', 'MSSP', 'Other ESP', 'Unknown'].map((v) => <option key={v}>{v}</option>)}</select></Field>
+                          <Field label="Service Provided"><input value={provider.service} onChange={(e) => updateCollection('providers', provider.id, 'service', e.target.value)} /></Field>
+                          <Field label="Handles CUI?"><select value={provider.handlesCui} onChange={(e) => updateCollection('providers', provider.id, 'handlesCui', e.target.value)}>{['Unknown', 'Yes', 'No'].map((v) => <option key={v}>{v}</option>)}</select></Field>
+                          <Field label="Handles Security Protection Data?"><select value={provider.handlesSpd} onChange={(e) => updateCollection('providers', provider.id, 'handlesSpd', e.target.value)}>{['Unknown', 'Yes', 'No'].map((v) => <option key={v}>{v}</option>)}</select></Field>
+                          <Field label="CRM / CRMA Status"><select value={provider.crmStatus} onChange={(e) => updateCollection('providers', provider.id, 'crmStatus', e.target.value)}>{['Unknown', 'Available', 'Requested', 'Not Available', 'Not Applicable'].map((v) => <option key={v}>{v}</option>)}</select></Field>
+                          <Field label="Standards Acceptance" hint="Used for every inheritance reference to this provider and in the official Excel export."><select value={provider.standardsAcceptance} onChange={(e) => updateCollection('providers', provider.id, 'standardsAcceptance', e.target.value)}><option value="">Not Specified</option>{STANDARDS_ACCEPTANCE_VALUES.map((v) => <option key={v}>{v}</option>)}</select></Field>
+                          <Field label="Connection / Access Method"><input value={provider.connectionMethod} onChange={(e) => updateCollection('providers', provider.id, 'connectionMethod', e.target.value)} /></Field>
+                          <Field label="Notes" wide><textarea value={provider.notes} onChange={(e) => updateCollection('providers', provider.id, 'notes', e.target.value)} /></Field>
+                        </div>
+                      ) : (
+                        <div className="op-provider-summary">
+                          <p className={provider.service ? '' : 'muted'}>{provider.service || 'No service description recorded.'}</p>
+                          <dl>
+                            <div><dt>Handles CUI</dt><dd>{provider.handlesCui}</dd></div>
+                            <div><dt>Handles SPD</dt><dd>{provider.handlesSpd}</dd></div>
+                            <div><dt>CRM / CRMA</dt><dd>{provider.crmStatus}</dd></div>
+                            <div><dt>Standards Acceptance</dt><dd>{provider.standardsAcceptance || 'Not Specified'}</dd></div>
+                            <div><dt>Connection / Access</dt><dd>{provider.connectionMethod || 'Not recorded'}</dd></div>
+                          </dl>
+                          {provider.notes && <div className="op-provider-notes"><strong>Notes</strong><p>{provider.notes}</p></div>}
+                        </div>
+                      )}
+                    </article>
+                  )
+                })}
               </div>
             </div>
           </section>
@@ -244,26 +278,6 @@ function OscProfile() {
                     </div>
                   </article>
                 ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {activeTab === 'walkthrough' && (
-          <section className="set-card op-section">
-            <div className="set-card-body">
-              <h2>Environment Walkthrough</h2>
-              <p className="op-section-intro">Use this as a structured call notebook for the OSC’s high-level verbal walkthrough.</p>
-              <div className="op-grid">
-                <Field label="Call Date"><input type="date" value={profile.walkthrough.callDate} onChange={(e) => updateSection('walkthrough', 'callDate', e.target.value)} /></Field>
-                <Field label="Attendees"><input value={profile.walkthrough.attendees} onChange={(e) => updateSection('walkthrough', 'attendees', e.target.value)} /></Field>
-                {[
-                  ['environmentNotes', 'Environment Walkthrough Notes'],
-                  ['cuiFlowNotes', 'CUI Flow Summary'],
-                  ['openQuestions', 'Open Questions'],
-                  ['followUps', 'Follow-up Actions'],
-                  ['documentsRequested', 'Documents Requested'],
-                ].map(([field, label]) => <Field key={field} label={label} wide><textarea value={profile.walkthrough[field]} onChange={(e) => updateSection('walkthrough', field, e.target.value)} /></Field>)}
               </div>
             </div>
           </section>
