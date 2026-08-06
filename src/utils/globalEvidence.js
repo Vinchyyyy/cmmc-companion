@@ -132,3 +132,20 @@ export function removeGlobalArtifact(controls, name, familyCode = '') {
 
   return { controls: controlCount, objectives: objectiveCount }
 }
+
+// Used when upgrading projects created before applied-state tracking existed.
+// Only reports true when the artifact is present everywhere in its intended
+// scope, so an un-applied draft is never mistaken for a completed operation.
+export function isGlobalArtifactApplied(controls, name, familyCode = '') {
+  const trimmed = String(name ?? '').trim()
+  if (!trimmed) return false
+  const scopedControls = controlsForScope(controls, familyCode)
+  if (scopedControls.length === 0) return false
+
+  return scopedControls.every((control) => {
+    if (!includesArtifact(readPool(control.id), trimmed)) return false
+    return (control.objectives ?? []).every((objective) =>
+      includesArtifact(readObjectiveArtifacts(control.id, objective.id), trimmed)
+    )
+  })
+}

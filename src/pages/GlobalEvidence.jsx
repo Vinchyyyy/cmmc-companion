@@ -5,6 +5,7 @@ import controls from '../data/controls/index.js'
 import { FAMILY_ORDER } from '../utils/controlOrder.js'
 import {
   applyGlobalArtifact,
+  isGlobalArtifactApplied,
   readGlobalEvidence,
   removeGlobalArtifact,
   writeGlobalEvidence,
@@ -24,8 +25,39 @@ function buildFamilies() {
 
 const FAMILIES = buildFamilies()
 
+function readConfigWithAppliedMigration() {
+  const saved = readGlobalEvidence()
+  const next = {
+    ...saved,
+    applied: {
+      ...saved.applied,
+      families: { ...saved.applied.families },
+    },
+  }
+  let changed = false
+
+  if (!next.applied.ssp && next.ssp.trim() && isGlobalArtifactApplied(controls, next.ssp)) {
+    next.applied.ssp = next.ssp
+    changed = true
+  }
+
+  for (const family of FAMILIES) {
+    const values = { policy: '', procedure: '', ...(next.families[family.code] ?? {}) }
+    const appliedValues = { policy: '', procedure: '', ...(next.applied.families[family.code] ?? {}) }
+    for (const type of ['policy', 'procedure']) {
+      if (!appliedValues[type] && values[type].trim() && isGlobalArtifactApplied(controls, values[type], family.code)) {
+        appliedValues[type] = values[type]
+        changed = true
+      }
+    }
+    if (appliedValues.policy || appliedValues.procedure) next.applied.families[family.code] = appliedValues
+  }
+
+  return changed ? writeGlobalEvidence(next) : saved
+}
+
 function GlobalEvidence() {
-  const [config, setConfig] = useState(() => readGlobalEvidence())
+  const [config, setConfig] = useState(readConfigWithAppliedMigration)
   const [result, setResult] = useState(null)
 
   const updateConfig = (updater) => {
