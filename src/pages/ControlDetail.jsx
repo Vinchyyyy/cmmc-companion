@@ -55,7 +55,7 @@ import {
   writeObjectiveInterviewedRoles,
 } from '../utils/objectiveInterviewedRoles'
 import { getDibcacStandard, DIBCAC_STANDARDS } from '../data/dibcacAssessmentStandards'
-import { formatProviderReference } from '../utils/oscProfile'
+import { formatProviderReference, readOscProfile } from '../utils/oscProfile'
 import {
   getReviewGroups,
   addObjectiveToGroup,
@@ -750,10 +750,12 @@ function EditDetailsModal({
                   const q = sourceInput.toLowerCase()
                   const envTags = getEnvironmentTechTags()
                   const envLower = new Set(envTags.map((t) => t.toLowerCase()))
-                  const customNames = readCustomProviders().filter((n) => !envLower.has(n.toLowerCase()))
+                  const oscNames = readOscProfile().providers.map((provider) => provider.name.trim()).filter(Boolean)
+                  const oscLower = new Set(oscNames.map((name) => name.toLowerCase()))
+                  const customNames = readCustomProviders().filter((n) => !envLower.has(n.toLowerCase()) && !oscLower.has(n.toLowerCase()))
                   const customLower = new Set(customNames.map((n) => n.toLowerCase()))
-                  const catalogNames = PROVIDERS.map((p) => p.name).filter((name) => !envLower.has(name.toLowerCase()) && !customLower.has(name.toLowerCase()))
-                  const allCandidates = [...envTags, ...customNames, ...catalogNames]
+                  const catalogNames = PROVIDERS.map((p) => p.name).filter((name) => !envLower.has(name.toLowerCase()) && !oscLower.has(name.toLowerCase()) && !customLower.has(name.toLowerCase()))
+                  const allCandidates = [...oscNames, ...envTags, ...customNames, ...catalogNames]
                   const suggestions = allCandidates
                     .filter((name) => name.toLowerCase().includes(q) && !inheritanceSources.includes(name))
                     .slice(0, 8)

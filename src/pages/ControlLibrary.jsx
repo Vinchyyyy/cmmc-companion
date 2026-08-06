@@ -45,7 +45,7 @@ import { IconNotes, IconPaperclip } from '../components/icons'
 import { readAssignedTo, writeAssignedTo, normalizeAssignee } from '../utils/assignment'
 import BulkFindingsModal from '../components/BulkFindingsModal'
 import { DIBCAC_STANDARDS, getDibcacStandard } from '../data/dibcacAssessmentStandards'
-import { formatProviderReference } from '../utils/oscProfile'
+import { findOscProvider, formatProviderReference, readOscProfile } from '../utils/oscProfile'
 
 // 'variable' covers objectives with no fixed DIBCAC standard mapping (getDibcacStandard returns null).
 const DIBCAC_FILTER_VALUES = [...DIBCAC_STANDARDS, { value: 'variable', label: 'Variable' }]
@@ -116,17 +116,31 @@ const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheri
 const CHIP_FILTER_KEYS = ['status', 'warnings', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'inheritanceSource', 'assignedTo', 'dibcacMethod', 'dibcacHideMet']
 const SEARCH_DEBOUNCE_MS = 500
 
-function getProviderSuggestions(value) {
+function getProviderSuggestions(value, selectedProviderId = '') {
   if (!value.trim()) return []
-  if (PROVIDERS.some((p) => p.name === value)) return []
   const q = value.toLowerCase()
+  const oscMatches = readOscProfile().providers
+    .filter((provider) => provider.id !== selectedProviderId && provider.name.trim() && (
+      provider.name.toLowerCase().includes(q) ||
+      provider.type.toLowerCase().includes(q) ||
+      provider.service.toLowerCase().includes(q)
+    ))
+    .map((provider) => ({ id: `osc-${provider.id}`, providerId: provider.id, name: provider.name.trim(), category: provider.type, inheritanceLevel: provider.inheritanceLevel }))
   const catalogMatches = PROVIDERS.filter(
     (p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
   )
   const customMatches = readCustomProviders()
     .filter((name) => name.toLowerCase().includes(q))
     .map((name) => ({ id: `custom-${name}`, name, category: 'Custom' }))
-  return [...catalogMatches, ...customMatches].slice(0, 8)
+  const seen = new Set()
+  return [...oscMatches, ...catalogMatches, ...customMatches]
+    .filter((provider) => {
+      const key = provider.name.toLowerCase()
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+    .slice(0, 8)
 }
 
 const DIBCAC_FILTER_LABEL = new Map(DIBCAC_FILTER_VALUES.map((d) => [d.value, d.label]))
@@ -1010,7 +1024,7 @@ function ControlLibrary() {
                 if (v === DEFAULT_INHERITANCE) {
                   bulkSetInheritance(DEFAULT_INHERITANCE)
                 } else {
-                  setBulkInheritanceModal({ value: v, source: '' })
+                  setBulkInheritanceModal({ value: v, source: '', providerId: '' })
                 }
               }}>
               <option value="" disabled>Set inheritance…</option>
@@ -1445,10 +1459,20 @@ function ControlLibrary() {
         <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="bulk-inheritance-title">
           <div className="confirm-dialog">
             <h2 id="bulk-inheritance-title">Set Inheritance Source</h2>
-            <p>
-              You are setting inheritance to <strong>{bulkInheritanceModal.value}</strong> for{' '}
-              {selectedCount} control{selectedCount === 1 ? '' : 's'}.
-            </p>
+            <p>You are setting inheritance for {selectedCount} control{selectedCount === 1 ? '' : 's'}.</p>
+            <div className="control-meta-field" style={{ marginTop: 'var(--space-3)' }}>
+              <label htmlFor="bulk-inheritance-level" style={{ display: 'block', marginBottom: 'var(--space-1)', fontWeight: 600, fontSize: 'var(--text-sm)' }}>
+                Inheritance Level
+              </label>
+              <select
+                id="bulk-inheritance-level"
+                value={bulkInheritanceModal.value}
+                onChange={(e) => setBulkInheritanceModal((prev) => ({ ...prev, value: e.target.value }))}
+                style={{ width: '100%' }}
+              >
+                {INHERITANCE_VALUES.filter((value) => value !== DEFAULT_INHERITANCE).map((value) => <option key={value}>{value}</option>)}
+              </select>
+            </div>
             <div className="control-meta-field" style={{ marginTop: 'var(--space-3)' }}>
               <label htmlFor="bulk-inheritance-source" style={{ display: 'block', marginBottom: 'var(--space-1)', fontWeight: 600, fontSize: 'var(--text-sm)' }}>
                 Inherited From
@@ -1458,32 +1482,48 @@ function ControlLibrary() {
                   id="bulk-inheritance-source"
                   type="text"
                   value={bulkInheritanceModal.source}
-                  onChange={(e) => setBulkInheritanceModal((prev) => ({ ...prev, source: e.target.value }))}
+                  onChange={(e) => {
+                    const source = e.target.value
+                    const provider = findOscProvider(source)
+                    setBulkInheritanceModal((prev) => ({
+                      ...prev,
+                      source,
+                      providerId: provider?.id ?? '',
+                      value: provider?.inheritanceLevel ?? prev.value,
+                    }))
+                  }}
                   placeholder="e.g. Microsoft 365 GCC High, AWS GovCloud"
                   style={{ width: '100%', boxSizing: 'border-box' }}
                   autoComplete="off"
                   autoFocus
-                  className={getProviderSuggestions(bulkInheritanceModal.source).length > 0 ? 'provider-picker-input--open' : ''}
+                  className={getProviderSuggestions(bulkInheritanceModal.source, bulkInheritanceModal.providerId).length > 0 ? 'provider-picker-input--open' : ''}
                 />
-                {getProviderSuggestions(bulkInheritanceModal.source).length > 0 && (
+                {getProviderSuggestions(bulkInheritanceModal.source, bulkInheritanceModal.providerId).length > 0 && (
                   <ul className="provider-picker-results">
-                    {getProviderSuggestions(bulkInheritanceModal.source).map((p) => (
+                    {getProviderSuggestions(bulkInheritanceModal.source, bulkInheritanceModal.providerId).map((p) => (
                       <li
                         key={p.id}
                         className="provider-picker-result"
                         onMouseDown={(e) => {
                           e.preventDefault()
-                          setBulkInheritanceModal((prev) => ({ ...prev, source: p.name }))
+                          setBulkInheritanceModal((prev) => ({
+                            ...prev,
+                            source: p.name,
+                            providerId: p.providerId ?? '',
+                            value: p.inheritanceLevel ?? prev.value,
+                          }))
                         }}
                       >
-                        {p.name}
+                        {p.name}{p.providerId ? ` · OSC Profile · ${p.inheritanceLevel}` : ''}
                       </li>
                     ))}
                   </ul>
                 )}
               </div>
               <p style={{ marginTop: 'var(--space-1)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                Enter the provider, service, or source responsible for the inherited control implementation.
+                {bulkInheritanceModal.providerId
+                  ? 'OSC Profile provider selected. Its default level has been applied; you can change it above for this assignment.'
+                  : 'Enter the provider, service, or source responsible for the inherited control implementation.'}
               </p>
             </div>
             <div className="confirm-dialog-buttons">

@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'cmmc-osc-profile'
 
 export const STANDARDS_ACCEPTANCE_VALUES = ['DIBCAC High', 'FedRAMP Moderate', 'FedRAMP High']
+export const PROVIDER_INHERITANCE_LEVELS = ['Partial', 'Full']
 
 const makeId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
 
@@ -14,6 +15,7 @@ function normalizeProvider(item) {
     handlesCui: ['Unknown', 'Yes', 'No'].includes(raw.handlesCui) ? raw.handlesCui : 'Unknown',
     handlesSpd: ['Unknown', 'Yes', 'No'].includes(raw.handlesSpd) ? raw.handlesSpd : 'Unknown',
     crmStatus: ['Unknown', 'Available', 'Requested', 'Not Available', 'Not Applicable'].includes(raw.crmStatus) ? raw.crmStatus : 'Unknown',
+    inheritanceLevel: PROVIDER_INHERITANCE_LEVELS.includes(raw.inheritanceLevel) ? raw.inheritanceLevel : 'Partial',
     standardsAcceptance: STANDARDS_ACCEPTANCE_VALUES.includes(raw.standardsAcceptance) ? raw.standardsAcceptance : '',
     connectionMethod: typeof raw.connectionMethod === 'string' ? raw.connectionMethod : '',
     notes: typeof raw.notes === 'string' ? raw.notes : '',
@@ -108,6 +110,12 @@ export function readProviderStandardsAcceptance(name) {
   const normalizedName = String(name ?? '').trim().toLowerCase()
   if (!normalizedName) return ''
   return readOscProfile().providers.find((provider) => provider.name.trim().toLowerCase() === normalizedName)?.standardsAcceptance ?? ''
+}
+
+export function findOscProvider(name) {
+  const normalizedName = String(name ?? '').trim().toLowerCase()
+  if (!normalizedName) return null
+  return readOscProfile().providers.find((provider) => provider.name.trim().toLowerCase() === normalizedName) ?? null
 }
 
 export function formatProviderReference(name) {

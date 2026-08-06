@@ -8,6 +8,7 @@ import { readProjectMeta, writeProjectMeta } from '../utils/projectMeta'
 import { readInheritanceSources } from '../utils/inheritance'
 import {
   ensureOscProvider,
+  PROVIDER_INHERITANCE_LEVELS,
   readOscProfile,
   STANDARDS_ACCEPTANCE_VALUES,
   writeOscProfile,
@@ -114,7 +115,7 @@ function OscProfile() {
       ...current,
       providers: [...current.providers, {
         id, name: '', type: 'Other ESP', service: '', handlesCui: 'Unknown',
-        handlesSpd: 'Unknown', crmStatus: 'Unknown', standardsAcceptance: '', connectionMethod: '', notes: '',
+        handlesSpd: 'Unknown', crmStatus: 'Unknown', inheritanceLevel: 'Partial', standardsAcceptance: '', connectionMethod: '', notes: '',
       }],
     }))
     setEditingProviders((current) => new Set(current).add(id))
@@ -233,6 +234,7 @@ function OscProfile() {
                           <Field label="Handles CUI?"><select value={provider.handlesCui} onChange={(e) => updateCollection('providers', provider.id, 'handlesCui', e.target.value)}>{['Unknown', 'Yes', 'No'].map((v) => <option key={v}>{v}</option>)}</select></Field>
                           <Field label="Handles Security Protection Data?"><select value={provider.handlesSpd} onChange={(e) => updateCollection('providers', provider.id, 'handlesSpd', e.target.value)}>{['Unknown', 'Yes', 'No'].map((v) => <option key={v}>{v}</option>)}</select></Field>
                           <Field label="CRM / CRMA Status"><select value={provider.crmStatus} onChange={(e) => updateCollection('providers', provider.id, 'crmStatus', e.target.value)}>{['Unknown', 'Available', 'Requested', 'Not Available', 'Not Applicable'].map((v) => <option key={v}>{v}</option>)}</select></Field>
+                          <Field label="Default Inheritance Level" hint="Pre-selected when this provider is used in the Control Library; you can override it per assignment."><select value={provider.inheritanceLevel} onChange={(e) => updateCollection('providers', provider.id, 'inheritanceLevel', e.target.value)}>{PROVIDER_INHERITANCE_LEVELS.map((v) => <option key={v}>{v}</option>)}</select></Field>
                           <Field label="Standards Acceptance" hint="Used for every inheritance reference to this provider and in the official Excel export."><select value={provider.standardsAcceptance} onChange={(e) => updateCollection('providers', provider.id, 'standardsAcceptance', e.target.value)}><option value="">Not Specified</option>{STANDARDS_ACCEPTANCE_VALUES.map((v) => <option key={v}>{v}</option>)}</select></Field>
                           <Field label="Connection / Access Method"><input value={provider.connectionMethod} onChange={(e) => updateCollection('providers', provider.id, 'connectionMethod', e.target.value)} /></Field>
                           <Field label="Notes" wide><textarea value={provider.notes} onChange={(e) => updateCollection('providers', provider.id, 'notes', e.target.value)} /></Field>
@@ -244,6 +246,7 @@ function OscProfile() {
                             <div><dt>Handles CUI</dt><dd>{provider.handlesCui}</dd></div>
                             <div><dt>Handles SPD</dt><dd>{provider.handlesSpd}</dd></div>
                             <div><dt>CRM / CRMA</dt><dd>{provider.crmStatus}</dd></div>
+                            <div><dt>Default Inheritance</dt><dd>{provider.inheritanceLevel}</dd></div>
                             <div><dt>Standards Acceptance</dt><dd>{provider.standardsAcceptance || 'Not Specified'}</dd></div>
                             <div><dt>Connection / Access</dt><dd>{provider.connectionMethod || 'Not recorded'}</dd></div>
                           </dl>
