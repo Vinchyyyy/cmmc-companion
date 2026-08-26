@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import DashSidebar from '../components/DashSidebar.jsx'
 import AutoResizeTextarea from '../components/AutoResizeTextarea'
+import { normalizePastedText } from '../utils/pasteFormatting'
 import ExpectedEvidenceTypes from '../components/ExpectedEvidenceTypes'
 import useFocusTrap from '../components/useFocusTrap'
 import { useParams, Link, useSearchParams, useLocation } from 'react-router-dom'
@@ -1836,6 +1837,9 @@ function ControlDetailView() {
                   const fieldId = `obj-${field}-${control.id}-${selectedObj.id}`
                   const isInterviews = field === 'interviews'
                   const objRoles = isInterviews ? (objectiveInterviewedRoles[selectedObj.id] ?? []) : []
+                  const fieldValue = (objectiveResults[selectedObj.id] ?? {})[field] ?? ''
+                  const cleanedFieldValue = normalizePastedText(fieldValue)
+                  const canCleanFormatting = cleanedFieldValue !== fieldValue
                   return (
                     <div key={field} style={{ marginBottom: 'var(--space-3)' }}>
                       <div className={isInterviews ? 'cd-interviews-header' : undefined}>
@@ -1871,15 +1875,27 @@ function ControlDetailView() {
                       )}
                       <AutoResizeTextarea
                         id={fieldId}
-                        value={(objectiveResults[selectedObj.id] ?? {})[field] ?? ''}
+                        value={fieldValue}
                         onChange={(e) => handleObjectiveResultChange(selectedObj.id, field, e.target.value)}
                         rows={3}
                         placeholder={placeholder}
                         maxLength={FIELD_CHAR_LIMITS[field]}
                       />
+                      {canCleanFormatting && (
+                        <div style={{ marginTop: 'var(--space-1)' }}>
+                          <button
+                            type="button"
+                            className="cd-source-editor-btn"
+                            onClick={() => handleObjectiveResultChange(selectedObj.id, field, cleanedFieldValue)}
+                            title="Join unwanted PDF or SSP line wraps while preserving paragraphs and lists."
+                          >
+                            Clean pasted formatting
+                          </button>
+                        </div>
+                      )}
                       {FIELD_CHAR_LIMITS[field] && (() => {
                         const limit = FIELD_CHAR_LIMITS[field]
-                        const len = ((objectiveResults[selectedObj.id] ?? {})[field] ?? '').length
+                        const len = fieldValue.length
                         const overLimit = len > limit
                         return (
                           <div className={`cd-field-char-count${overLimit ? ' cd-field-char-count--over' : ''}`}>

@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "test:paste-formatting": "node scripts/test-paste-formatting.mjs",
     "validate": "node scripts/validate-data.cjs"
   },
   "dependencies": {
