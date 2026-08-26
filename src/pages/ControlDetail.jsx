@@ -1246,7 +1246,10 @@ function ControlDetailView() {
     for (const [objId, artifacts] of Object.entries(objectiveArtifacts)) {
       const filtered = artifacts.filter((a) => a !== item)
       nextObjArtifacts[objId] = filtered
-      writeObjectiveArtifacts(id, objId, filtered)
+      const syncedFinding = writeObjectiveArtifacts(id, objId, filtered)
+      if (syncedFinding) {
+        setObjectiveFindings((prev) => ({ ...prev, [objId]: syncedFinding }))
+      }
     }
     setObjectiveArtifacts(nextObjArtifacts)
   }
@@ -1264,7 +1267,10 @@ function ControlDetailView() {
       if (additions.length === 0) continue
       const next = [...current, ...additions]
       nextObjArtifacts[obj.id] = next
-      writeObjectiveArtifacts(id, obj.id, next)
+      const syncedFinding = writeObjectiveArtifacts(id, obj.id, next)
+      if (syncedFinding) {
+        setObjectiveFindings((prev) => ({ ...prev, [obj.id]: syncedFinding }))
+      }
     }
     setObjectiveArtifacts(nextObjArtifacts)
     promoteToInProgress(status, id, setStatus)
@@ -1308,7 +1314,10 @@ function ControlDetailView() {
     if (needsObjectiveUpdate) {
       const next = [...current, trimmed]
       setObjectiveArtifacts((prev) => ({ ...prev, [objId]: next }))
-      writeObjectiveArtifacts(id, objId, next)
+      const syncedFinding = writeObjectiveArtifacts(id, objId, next)
+      if (syncedFinding) {
+        setObjectiveFindings((prev) => ({ ...prev, [objId]: syncedFinding }))
+      }
     }
 
     if (needsPoolUpdate) {
@@ -1332,7 +1341,10 @@ function ControlDetailView() {
     const current = objectiveArtifacts[objId] ?? []
     const next = current.filter((a) => a !== item)
     setObjectiveArtifacts((prev) => ({ ...prev, [objId]: next }))
-    writeObjectiveArtifacts(id, objId, next)
+    const syncedFinding = writeObjectiveArtifacts(id, objId, next)
+    if (syncedFinding) {
+      setObjectiveFindings((prev) => ({ ...prev, [objId]: syncedFinding }))
+    }
   }
 
   if (!control) {

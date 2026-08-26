@@ -50,6 +50,11 @@ function buildArtifactsText(artifacts) {
   return valid.map((a) => `${a.trim()};`).join(' ')
 }
 
+export function buildArtifactsLine(artifacts) {
+  const artifactsText = buildArtifactsText(artifacts)
+  return `A) Reviewed ${artifactsText ?? '[no artifact references entered]'}`
+}
+
 // D-line confirmation language. Differences always take priority (existing
 // behavior — "not implemented"). Otherwise the language is chosen by
 // statusContext so non-MET/override-generated findings never falsely claim
@@ -88,8 +93,7 @@ export function buildFinalText({
     lines.push('')
   }
 
-  const artifactsText = buildArtifactsText(includedArtifacts)
-  lines.push(`A) Reviewed ${artifactsText ?? '[no artifact references entered]'}`)
+  lines.push(buildArtifactsLine(includedArtifacts))
   lines.push(`B) ${buildObjectiveValidationStatement({ objectiveRef, objectiveText, dibcacMethod })}`)
 
   if (hasDifferences) {

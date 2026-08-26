@@ -13,6 +13,7 @@
 // No file contents, no uploads, no CUI.
 
 import { idsToNames, namesToIds } from './artifactRegistry'
+import { syncObjectiveFindingArtifacts } from './objectiveFindings'
 
 const STORAGE_PREFIX = 'cmmc-obj-artifacts-'
 
@@ -58,7 +59,11 @@ export function readObjectiveArtifacts(controlId, objectiveId) {
 // Accepts display names. Converts to artifact ids (find-or-create) and stores
 // ids; an empty list removes the key.
 export function writeObjectiveArtifacts(controlId, objectiveId, names) {
-  writeRaw(controlId, objectiveId, namesToIds(names ?? []))
+  const previousNames = readObjectiveArtifacts(controlId, objectiveId)
+  const nextIds = namesToIds(names ?? [])
+  const nextNames = idsToNames(nextIds)
+  writeRaw(controlId, objectiveId, nextIds)
+  return syncObjectiveFindingArtifacts(controlId, objectiveId, previousNames, nextNames)
 }
 
 // True if any of the control's objectives has at least one artifact reference.
