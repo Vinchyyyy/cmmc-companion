@@ -23,6 +23,12 @@ import { reconcileProgressFromStoredWork } from '../utils/progressReconciliation
 // has no existing sources yet.
 const PROVIDER_NAMES = PROVIDERS.map((p) => p.name)
 
+const CONTROL_FAMILIES = [...new Map(controls.map((control) => {
+  const code = control.id.split('.')[0]
+  return [code, { code, name: control.family }]
+})).values()]
+const ALL_CONTROL_FAMILY_CODES = CONTROL_FAMILIES.map(({ code }) => code)
+
 function Settings() {
   const jsonFileRef = useRef(null)
   const workbookFileRef = useRef(null)
@@ -49,12 +55,18 @@ function Settings() {
 
   const openExportDialog = (mode) => {
     const meta = readExportMeta()
-    setExportDialog({ mode, osc: meta.osc, assessment: meta.assessment })
+    setExportDialog({
+      mode,
+      osc: meta.osc,
+      assessment: meta.assessment,
+      selectedFamilyCodes: mode === 'xlsx' ? [...ALL_CONTROL_FAMILY_CODES] : [],
+    })
   }
   const closeExportDialog = () => setExportDialog(null)
 
   const confirmExport = async () => {
-    const { mode, osc, assessment } = exportDialog
+    const { mode, osc, assessment, selectedFamilyCodes } = exportDialog
+    if (mode === 'xlsx' && selectedFamilyCodes.length === 0) return
     writeExportMeta(osc, assessment)
     closeExportDialog()
 
@@ -64,7 +76,9 @@ function Settings() {
         const res = await fetch('/templates/CMMC_Level2_AssessmentResults_Template.xlsx')
         if (!res.ok) throw new Error(`Failed to fetch bundled template (HTTP ${res.status}).`)
         const buffer = await res.arrayBuffer()
-        const { workbook, warnings } = await buildCmmcTemplateWorkbook(buffer, controls)
+        const { workbook, warnings } = await buildCmmcTemplateWorkbook(buffer, controls, {
+          selectedFamilyCodes,
+        })
         const sanitize = (s) => (s ?? '').trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '_')
         const parts = ['CMMC_Companion']
         const cleanOsc = sanitize(osc)
@@ -441,9 +455,66 @@ function Settings() {
                 />
               </label>
             </div>
+            {exportDialog.mode === 'xlsx' && (
+              <details className="advanced-options-panel export-family-options">
+                <summary className="advanced-options-toggle">
+                  Advanced Options
+                  <span className="export-family-summary-count">
+                    {exportDialog.selectedFamilyCodes.length} of {CONTROL_FAMILIES.length} families
+                  </span>
+                </summary>
+                <div className="advanced-options-body">
+                  <p className="advanced-options-hint">
+                    Choose which control families populate the workbook. Unselected families remain blank; the official template structure is unchanged.
+                  </p>
+                  <div className="export-family-actions" aria-label="Control family selection actions">
+                    <button
+                      type="button"
+                      onClick={() => setExportDialog((d) => ({
+                        ...d,
+                        selectedFamilyCodes: [...ALL_CONTROL_FAMILY_CODES],
+                      }))}
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setExportDialog((d) => ({ ...d, selectedFamilyCodes: [] }))}
+                    >
+                      Deselect All
+                    </button>
+                  </div>
+                  <div className="export-family-grid">
+                    {CONTROL_FAMILIES.map(({ code, name }) => (
+                      <label key={code} className="import-option-row export-family-option">
+                        <input
+                          type="checkbox"
+                          checked={exportDialog.selectedFamilyCodes.includes(code)}
+                          onChange={(e) => setExportDialog((d) => ({
+                            ...d,
+                            selectedFamilyCodes: e.target.checked
+                              ? [...d.selectedFamilyCodes, code]
+                              : d.selectedFamilyCodes.filter((familyCode) => familyCode !== code),
+                          }))}
+                        />
+                        <span><strong>{code}</strong> — {name}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {exportDialog.selectedFamilyCodes.length === 0 && (
+                    <p className="export-family-error" role="alert">
+                      Select at least one control family to export.
+                    </p>
+                  )}
+                </div>
+              </details>
+            )}
             <div className="confirm-dialog-buttons">
               <button onClick={closeExportDialog}>Cancel</button>
-              <button onClick={confirmExport}>
+              <button
+                onClick={confirmExport}
+                disabled={exportDialog.mode === 'xlsx' && exportDialog.selectedFamilyCodes.length === 0}
+              >
                 {exportDialog.mode === 'xlsx' ? 'Export Assessment Workbook' : 'Create Backup'}
               </button>
             </div>

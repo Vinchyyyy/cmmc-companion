@@ -432,10 +432,18 @@ function patchWorksheetXml(wsXml, sharedStrings, objectiveData, controlData) {
  *
  * @param {ArrayBuffer} templateBuffer
  * @param {Array}       controls
+ * @param {{ selectedFamilyCodes?: string[] }} [options]
  * @returns {Promise<{ workbook: JSZip, warnings: object }>}
  */
-export async function buildCmmcTemplateWorkbook(templateBuffer, controls) {
+export async function buildCmmcTemplateWorkbook(templateBuffer, controls, options = {}) {
   const zip = await JSZip.loadAsync(templateBuffer)
+
+  const selectedFamilyCodes = options.selectedFamilyCodes == null
+    ? null
+    : new Set(options.selectedFamilyCodes)
+  const controlsToExport = selectedFamilyCodes == null
+    ? controls
+    : controls.filter((control) => selectedFamilyCodes.has(control.id.split('.')[0]))
 
   // Resolve worksheet path dynamically from workbook relationships
   const wbXml    = await zip.file('xl/workbook.xml').async('string')
@@ -448,7 +456,7 @@ export async function buildCmmcTemplateWorkbook(templateBuffer, controls) {
   const sharedStrings = parseSharedStrings(ssXml)
 
   // Build field maps from app state
-  const { objectiveData, controlData } = buildObjectiveMap(controls)
+  const { objectiveData, controlData } = buildObjectiveMap(controlsToExport)
 
   // Collect template row list for warning summary (before patching)
   const wsXml = await zip.file(sheetPath).async('string')
@@ -468,7 +476,13 @@ export async function buildCmmcTemplateWorkbook(templateBuffer, controls) {
   const patchedXml = patchWorksheetXml(wsXml, sharedStrings, objectiveData, controlData)
   zip.file(sheetPath, patchedXml)
 
-  const warnings = buildWarningSummary(controls, objectiveData, allTemplateRows)
+  const warningRows = selectedFamilyCodes == null
+    ? allTemplateRows
+    : allTemplateRows.filter(({ templateKey }) => {
+      const familyCode = templateKey.split('.')[0]
+      return selectedFamilyCodes.has(familyCode)
+    })
+  const warnings = buildWarningSummary(controlsToExport, objectiveData, warningRows)
 
   return { workbook: zip, warnings }
 }
