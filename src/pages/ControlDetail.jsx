@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import { Check } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
 import AutoResizeTextarea from '../components/AutoResizeTextarea'
 import { normalizePastedText } from '../utils/pasteFormatting'
@@ -51,6 +52,7 @@ import {
   writeObjectiveFinding,
   clearObjectiveFinding,
 } from '../utils/objectiveFindings'
+import { ensureMetObjectiveFinding } from '../utils/autoObjectiveFinding'
 import {
   readObjectiveInterviewedRoles,
   writeObjectiveInterviewedRoles,
@@ -1149,9 +1151,15 @@ function ControlDetailView() {
   const handleAssignedToBlur   = () => { const n = normalizeAssignee(assignedTo); setAssignedTo(n); writeAssignedTo(id, n) }
   const handleAssignedToSelect = (name) => { setAssignedTo(name); writeAssignedTo(id, name) }
   const handleObjectiveStatusChange = (objId, value) => {
+    const previousValue = objectiveStatuses[objId] ?? OBJECTIVE_STATUS_UNREVIEWED
     const next = { ...objectiveStatuses, [objId]: value }
     setObjectiveStatuses(next)
     writeObjectiveStatus(id, objId, value)
+    if (value === OBJECTIVE_STATUS_MET && previousValue !== OBJECTIVE_STATUS_MET) {
+      const objective = control?.objectives?.find((item) => item.id === objId)
+      const createdFinding = ensureMetObjectiveFinding(control, objective)
+      if (createdFinding) setObjectiveFindings((prev) => ({ ...prev, [objId]: createdFinding }))
+    }
     if (value !== OBJECTIVE_STATUS_UNREVIEWED) promoteToInProgress(status, id, setStatus)
     syncStatusToTrending(next)
   }
@@ -1193,6 +1201,21 @@ function ControlDetailView() {
     const next = { ...current, [field]: value }
     setObjectiveResults((prev) => ({ ...prev, [objId]: next }))
     writeObjectiveResult(id, objId, next)
+    promoteToInProgress(status, id, setStatus)
+  }
+
+  const handleApplyExamineToAllObjectives = (sourceObjId) => {
+    const examine = objectiveResults[sourceObjId]?.examine ?? ''
+    if (!examine.trim() || !control?.objectives?.length) return
+
+    const nextResults = { ...objectiveResults }
+    for (const obj of control.objectives) {
+      const current = nextResults[obj.id] ?? { interviews: '', examine: '', test: '', overallComments: '' }
+      const next = { ...current, examine }
+      nextResults[obj.id] = next
+      writeObjectiveResult(id, obj.id, next)
+    }
+    setObjectiveResults(nextResults)
     promoteToInProgress(status, id, setStatus)
   }
 
@@ -1836,13 +1859,17 @@ function ControlDetailView() {
                 ].map(({ field, label, placeholder }) => {
                   const fieldId = `obj-${field}-${control.id}-${selectedObj.id}`
                   const isInterviews = field === 'interviews'
+                  const isExamine = field === 'examine'
                   const objRoles = isInterviews ? (objectiveInterviewedRoles[selectedObj.id] ?? []) : []
                   const fieldValue = (objectiveResults[selectedObj.id] ?? {})[field] ?? ''
                   const cleanedFieldValue = normalizePastedText(fieldValue)
                   const canCleanFormatting = cleanedFieldValue !== fieldValue
+                  const examineText = isExamine ? fieldValue : ''
+                  const examineAppliedToAll = isExamine && control.objectives.length > 1 && examineText.trim() !== '' &&
+                    control.objectives.every((obj) => (objectiveResults[obj.id]?.examine ?? '') === examineText)
                   return (
                     <div key={field} style={{ marginBottom: 'var(--space-3)' }}>
-                      <div className={isInterviews ? 'cd-interviews-header' : undefined}>
+                      <div className={(isInterviews || isExamine) ? 'cd-result-field-header' : undefined}>
                         <label htmlFor={fieldId}><strong>{label}</strong></label>
                         {isInterviews && (
                           <button
@@ -1851,6 +1878,20 @@ function ControlDetailView() {
                             onClick={() => setShowRolePickerModal(true)}
                           >
                             + Add Role
+                          </button>
+                        )}
+                        {isExamine && control.objectives.length > 1 && (
+                          <button
+                            type="button"
+                            className={`cd-apply-examine-btn${examineAppliedToAll ? ' cd-apply-examine-btn--applied' : ''}`}
+                            disabled={!examineText.trim() || examineAppliedToAll}
+                            onClick={() => handleApplyExamineToAllObjectives(selectedObj.id)}
+                            title={examineAppliedToAll
+                              ? 'This Examine text is applied to every objective in the control.'
+                              : 'Replace the Examine text on every objective in this control with this text.'}
+                          >
+                            {examineAppliedToAll && <Check size={12} aria-hidden="true" />}
+                            {examineAppliedToAll ? 'Applied to all' : 'Apply to all objectives'}
                           </button>
                         )}
                       </div>

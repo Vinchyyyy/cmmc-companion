@@ -8,6 +8,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "test:auto-finding": "node scripts/test-auto-objective-finding.mjs",
+    "test:dibcac-templates": "node scripts/test-dibcac-templates.mjs",
+    "test:crm-import": "node scripts/test-crm-bulk-import.mjs",
     "test:paste-formatting": "node scripts/test-paste-formatting.mjs",
     "validate": "node scripts/validate-data.cjs"
   },

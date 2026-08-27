@@ -134,7 +134,7 @@ function Settings() {
           setJsonResult({ ok: false, message: 'Invalid JSON: expected an object.' }); return
         }
         if (!ACCEPTED_SCHEMA_VERSIONS.includes(parsed.schemaVersion)) {
-          setJsonResult({ ok: false, message: `Unsupported schema version ${parsed.schemaVersion}. Expected version 1, 2, 3, 4, 5, or 6.` }); return
+          setJsonResult({ ok: false, message: `Unsupported schema version ${parsed.schemaVersion}. Expected version 1 through 8.` }); return
         }
         if (!Array.isArray(parsed.controls)) {
           setJsonResult({ ok: false, message: 'Invalid JSON: "controls" must be an array.' }); return
@@ -164,11 +164,13 @@ function Settings() {
         p(summary.inheritanceWritten,       'inheritance value',    'inheritance values'),
         p(summary.inheritanceSourcesWritten,'inheritance source',   'inheritance sources'),
         p(summary.assignmentsWritten,       'assignment',           'assignments'),
+        p(summary.datesAssessedWritten,     'date assessed',         'dates assessed'),
         p(summary.evidencePoolsWritten,     'evidence pool',        'evidence pools'),
         p(summary.objectiveArtifactsWritten,'objective artifact set','objective artifact sets'),
         p(summary.objectiveResultsWritten,  'objective result',     'objective results'),
         p(summary.reviewGroupsWritten,      'DIBCAC review group',  'DIBCAC review groups'),
         p(summary.reviewFoldersWritten,     'DIBCAC review folder', 'DIBCAC review folders'),
+        p(summary.dibcacTemplatesWritten,   'DIBCAC template',      'DIBCAC templates'),
       ].filter(Boolean)
       const skipSuffix = summary.skippedBecauseExisting > 0
         ? ` Skipped ${summary.skippedBecauseExisting} existing field${summary.skippedBecauseExisting === 1 ? '' : 's'} — Fill Empty Only mode.`
@@ -534,6 +536,7 @@ function Settings() {
               <li>Evidence tags on artifacts</li>
               <li>Inheritance settings and inheritance sources</li>
               <li>Control assignments</li>
+              <li>Manually selected assessment dates</li>
               <li>Review groups and group memberships</li>
               <li>Environment profile</li>
               <li>OSC profile and global evidence configuration</li>
@@ -847,6 +850,7 @@ function Settings() {
                         ['inheritance',       'Inheritance status'],
                         ['inheritanceSource', 'Inheritance source'],
                         ['assignments',       'Assignments'],
+                        ['datesAssessed',     'Dates Assessed'],
                         ['evidencePool',      'Evidence Pool'],
                         ['objectiveArtifacts','Objective Artifacts'],
                         ['objectiveResults',  'Objective Results'],

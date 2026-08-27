@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Check, FileSpreadsheet, Plus, Trash2, TriangleAlert } from 'lucide-react'
+import { ArrowLeft, Check, ClipboardPaste, FileSpreadsheet, Plus, Trash2, TriangleAlert } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
+import CrmBulkImportModal from '../components/CrmBulkImportModal.jsx'
 import controls from '../data/controls/index.js'
 import {
   findCrosswalkCandidates,
@@ -223,6 +224,8 @@ function CrmResponsibilityMapper() {
   const [profile, setProfile] = useState(readOscProfile)
   const [activeView, setActiveView] = useState('assign')
   const [referenceSearch, setReferenceSearch] = useState('')
+  const [bulkImportOpen, setBulkImportOpen] = useState(false)
+  const [bulkImportResult, setBulkImportResult] = useState(null)
   const provider = profile.providers.find((item) => item.id === providerId)
 
   if (!provider) return <Navigate to="/osc-profile?tab=providers" replace />
@@ -234,6 +237,39 @@ function CrmResponsibilityMapper() {
 
   const updateMapping = (next) => saveMappings(provider.crmMappings.map((mapping) => mapping.id === next.id ? next : mapping))
   const loadExamples = () => saveMappings([...provider.crmMappings, ...EXAMPLES.map(createMapping)])
+  const applyBulkImport = (selectedRows, assignments) => {
+    const appliedAt = new Date().toISOString()
+    const importedMappings = selectedRows.map((row) => createMapping({
+      sourceSection: 'Bulk CRM import',
+      rawControls: row.rawControl,
+      controls: [row.normalizedControl],
+      controlTitle: nist53Title(row.normalizedControl),
+      narrative: `CRM inheritance value: ${row.rawStatus}`,
+      responsibility: row.treatment === 'Full' ? 'provider' : 'shared',
+      treatment: row.treatment,
+      selectedRequirements: row.candidates.map((candidate) => candidate.requirement),
+      appliedRequirements: row.candidates.map((candidate) => candidate.requirement),
+      appliedAt,
+    }))
+
+    const importedKeys = new Set(importedMappings.map((mapping) => `${mapping.controls.join(',')}|${mapping.treatment}`))
+    const retainedMappings = provider.crmMappings.filter((mapping) => (
+      mapping.sourceSection !== 'Bulk CRM import' || !importedKeys.has(`${mapping.controls.join(',')}|${mapping.treatment}`)
+    ))
+
+    for (const assignment of assignments) {
+      const control = findAppControl(assignment.requirement)
+      if (!control) continue
+      writeInheritance(control.id, assignment.treatment)
+      const currentSources = readInheritanceSources(control.id)
+      if (!currentSources.includes(provider.name)) writeInheritanceSources(control.id, [...currentSources, provider.name])
+      addInheritanceSourceToObjectives(control, provider.name)
+    }
+
+    saveMappings([...retainedMappings, ...importedMappings])
+    setBulkImportResult({ rows: selectedRows.length, assignments: assignments.length })
+    setBulkImportOpen(false)
+  }
   const filteredReference = NIST53_CROSSWALK_ROWS.filter((row) => {
     const control = findAppControl(row.requirement)
     return `${row.requirement} ${control?.title ?? ''} ${row.nist53Controls.join(' ')}`.toLowerCase().includes(referenceSearch.toLowerCase())
@@ -255,7 +291,8 @@ function CrmResponsibilityMapper() {
 
         {activeView === 'assign' && (
           <>
-            <div className="crm-toolbar"><div><h2>CRM Responsibility Rows</h2><p>Enter one CRM row at a time, classify it, review the crosswalk candidates, then apply.</p></div><div><button type="button" className="crm-secondary" onClick={loadExamples}><FileSpreadsheet size={16} /> Load 2 Examples</button><button type="button" onClick={() => saveMappings([...provider.crmMappings, createMapping()])}><Plus size={16} /> Add CRM Row</button></div></div>
+            <div className="crm-toolbar"><div><h2>CRM Responsibility Rows</h2><p>Enter rows individually or paste the Control ID and inheritance columns from a CRM.</p></div><div><button type="button" className="crm-secondary" onClick={loadExamples}><FileSpreadsheet size={16} /> Load 2 Examples</button><button type="button" className="crm-secondary" onClick={() => setBulkImportOpen(true)}><ClipboardPaste size={16} /> Bulk Paste CRM</button><button type="button" onClick={() => saveMappings([...provider.crmMappings, createMapping()])}><Plus size={16} /> Add CRM Row</button></div></div>
+            {bulkImportResult && <div className="crm-import-success"><Check size={16} /> Imported {bulkImportResult.rows} CRM row{bulkImportResult.rows === 1 ? '' : 's'} and applied reviewed inheritance to {bulkImportResult.assignments} CMMC requirement{bulkImportResult.assignments === 1 ? '' : 's'}.</div>}
             {provider.crmMappings.length === 0 ? <div className="op-empty crm-empty">No CRM rows yet. Load the supplied AC-2 examples or add a blank row.</div> : <div className="crm-map-list">{provider.crmMappings.map((mapping) => <MappingCard key={mapping.id} mapping={mapping} providerName={provider.name} onChange={updateMapping} onRemove={() => saveMappings(provider.crmMappings.filter((item) => item.id !== mapping.id))} />)}</div>}
           </>
         )}
@@ -263,6 +300,8 @@ function CrmResponsibilityMapper() {
         {activeView === 'reference' && (
           <section className="set-card crm-reference"><div className="set-card-body"><div className="crm-toolbar"><div><h2>NIST SP 800-171 Rev. 2 Appendix D</h2><p>Educational reverse reference for all 110 requirements included in the app.</p></div><input value={referenceSearch} onChange={(event) => setReferenceSearch(event.target.value)} placeholder="Search 3.1.1, AC-2, access…" /></div><div className="op-table-wrap"><table className="op-cheat-table crm-reference-table"><thead><tr><th>800-171 Requirement</th><th>Requirement Title</th><th>Relevant 800-53 Controls</th></tr></thead><tbody>{filteredReference.map((row) => <tr key={row.requirement}><td><strong>{row.requirement}</strong></td><td>{findAppControl(row.requirement)?.title ?? 'Requirement'}</td><td>{row.nist53Controls.map((id) => <span className="crm-reference-chip" key={id} title={nist53Title(id)}>{id}</span>)}</td></tr>)}</tbody></table></div></div></section>
         )}
+
+        {bulkImportOpen && <CrmBulkImportModal providerName={provider.name} onApply={applyBulkImport} onClose={() => setBulkImportOpen(false)} />}
       </main>
     </div>
   )

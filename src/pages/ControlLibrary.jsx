@@ -46,6 +46,7 @@ import { readAssignedTo, writeAssignedTo, normalizeAssignee } from '../utils/ass
 import BulkFindingsModal from '../components/BulkFindingsModal'
 import { DIBCAC_STANDARDS, getDibcacStandard } from '../data/dibcacAssessmentStandards'
 import { findOscProvider, formatProviderReference, readOscProfile } from '../utils/oscProfile'
+import { formatDateAssessed, readDateAssessed, writeDateAssessed } from '../utils/dateAssessed'
 
 // 'variable' covers objectives with no fixed DIBCAC standard mapping (getDibcacStandard returns null).
 const DIBCAC_FILTER_VALUES = [...DIBCAC_STANDARDS, { value: 'variable', label: 'Variable' }]
@@ -461,6 +462,7 @@ function ControlLibrary() {
   const [confirmClear, setConfirmClear] = useState(false)
   const [bulkInheritanceModal, setBulkInheritanceModal] = useState(null)
   const [bulkAssignmentModal, setBulkAssignmentModal] = useState(null)
+  const [bulkDateAssessedModal, setBulkDateAssessedModal] = useState(null)
   const [copyAttrsModal, setCopyAttrsModal] = useState(null)
   const [copyAttrsResult, setCopyAttrsResult] = useState(null)
   const [showFilterModal, setShowFilterModal] = useState(false)
@@ -708,6 +710,11 @@ function ControlLibrary() {
     forceUpdate()
   }
 
+  const bulkSetDateAssessed = (date) => {
+    for (const id of selected) writeDateAssessed(id, date)
+    forceUpdate()
+  }
+
   // Preserve official index.js order — do NOT sort by compareIds
   const results = controls.filter((c) =>
     matchesSearch(c) && matchesFamily(c) && matchesStatus(c) &&
@@ -783,6 +790,7 @@ function ControlLibrary() {
         if (source) removeInheritanceSourceFromObjectives(ctrl, source)
       }
       writeInheritanceSource(ctrl.id, '')
+      writeDateAssessed(ctrl.id, '')
       writeNote(ctrl.id, '')
       writePool(ctrl.id, [])
       for (const obj of ctrl.objectives ?? []) {
@@ -1033,6 +1041,9 @@ function ControlLibrary() {
             <button onClick={() => setBulkAssignmentModal({ assignedTo: '' })}>
               Set Assignment
             </button>
+            <button onClick={() => setBulkDateAssessedModal({ date: '' })}>
+              Set Date Assessed
+            </button>
             <button
               onClick={() => {
                 setCopyAttrsResult(null)
@@ -1048,7 +1059,7 @@ function ControlLibrary() {
               Create Bulk Findings
             </button>
             <button className="bulk-toolbar-danger" onClick={() => setConfirmClear(true)}
-              title="Reset status, inheritance, and all notes for selected controls">
+              title="Reset assessment data, including Date Assessed, for selected controls">
               Clear Data
             </button>
             <button className="bulk-toolbar-clear" onClick={exitMultiSelect}><X size={14} /> Exit Multi-Select</button>
@@ -1258,6 +1269,14 @@ function ControlLibrary() {
                               <span className="quick-look-stat-value">{readAssignedTo(control.id)}</span>
                             ) : (
                               <span className="quick-look-stat-value" style={{ color: 'var(--color-text-muted)' }}>Unassigned</span>
+                            )}
+                          </div>
+                          <div className="quick-look-stat">
+                            <span className="quick-look-stat-label">Date Assessed</span>
+                            {readDateAssessed(control.id) ? (
+                              <span className="quick-look-stat-value">{formatDateAssessed(readDateAssessed(control.id))}</span>
+                            ) : (
+                              <span className="quick-look-stat-value" style={{ color: 'var(--color-text-muted)' }}>Not set</span>
                             )}
                           </div>
                         </div>
@@ -1542,6 +1561,41 @@ function ControlLibrary() {
         </div>
       )}
 
+      {bulkDateAssessedModal && (
+        <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="bulk-date-assessed-title">
+          <div className="confirm-dialog">
+            <h2 id="bulk-date-assessed-title">Set Date Assessed</h2>
+            <p>Set a manually selected assessment date for {selectedCount} control{selectedCount === 1 ? '' : 's'}.</p>
+            <div className="control-meta-field" style={{ marginTop: 'var(--space-3)' }}>
+              <label htmlFor="bulk-date-assessed-input" style={{ display: 'block', marginBottom: 'var(--space-1)', fontWeight: 600, fontSize: 'var(--text-sm)' }}>
+                Date Assessed
+              </label>
+              <input
+                id="bulk-date-assessed-input"
+                type="date"
+                value={bulkDateAssessedModal.date}
+                onChange={(e) => setBulkDateAssessedModal({ date: e.target.value })}
+                style={{ width: '100%', boxSizing: 'border-box' }}
+                autoFocus
+              />
+              <p style={{ marginTop: 'var(--space-1)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                This date is never generated automatically and will populate Date Assessed in the official Excel export.
+              </p>
+            </div>
+            <div className="confirm-dialog-buttons">
+              <button onClick={() => setBulkDateAssessedModal(null)}>Cancel</button>
+              <button onClick={() => { bulkSetDateAssessed(''); setBulkDateAssessedModal(null) }}>Clear Date</button>
+              <button
+                disabled={!bulkDateAssessedModal.date}
+                onClick={() => { bulkSetDateAssessed(bulkDateAssessedModal.date); setBulkDateAssessedModal(null) }}
+              >
+                Set Date
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {bulkAssignmentModal && (
         <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="bulk-assignment-title">
           <div className="confirm-dialog">
@@ -1787,6 +1841,7 @@ function ControlLibrary() {
               <li>Assessment Notes: deleted</li>
               <li>Objective Notes: deleted</li>
               <li>Objective Statuses: Unreviewed</li>
+              <li>Date Assessed: cleared</li>
               <li>Evidence Pool entries: deleted</li>
               <li>Objective Artifact references: deleted</li>
             </ul>

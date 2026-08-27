@@ -1,7 +1,8 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { FolderPlus, Folder } from 'lucide-react'
+import { FolderPlus, Folder, LayoutTemplate } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
+import DibcacTemplatesModal from '../components/DibcacTemplatesModal.jsx'
 import controls from '../data/controls/index'
 import { getDibcacStandard, DIBCAC_STANDARDS } from '../data/dibcacAssessmentStandards'
 import {
@@ -22,11 +23,13 @@ import {
   deleteReviewGroup,
   saveReviewGroups,
   getReviewFolders,
+  saveReviewFolders,
   createReviewFolder,
   deleteReviewFolder,
   assignGroupToFolder,
 } from '../utils/reviewGroups'
 import { readObjectiveFinding, writeObjectiveFinding } from '../utils/objectiveFindings'
+import { ensureMetObjectiveFinding } from '../utils/autoObjectiveFinding'
 import { readObjectiveInterviewedRoles } from '../utils/objectiveInterviewedRoles'
 import { getObjectiveWarnings } from '../utils/objectiveWarnings'
 import FixInterviewDetailsModal from '../components/FixInterviewDetailsModal'
@@ -1248,6 +1251,11 @@ function SavedGroupCard({
       const parsed = parseObjKey(key)
       if (!parsed) continue
       writeObjectiveStatus(parsed.controlId, parsed.objId, willBeChecked ? OBJECTIVE_STATUS_MET : OBJECTIVE_STATUS_UNREVIEWED)
+      if (willBeChecked) {
+        const control = CONTROL_BY_ID.get(parsed.controlId)
+        const objective = control?.objectives?.find((item) => item.id === parsed.objId)
+        ensureMetObjectiveFinding(control, objective)
+      }
       touchedControlIds.add(parsed.controlId)
     }
     // A checklist item's objectives can span multiple controls, so each
@@ -1295,6 +1303,11 @@ function SavedGroupCard({
       : current === OBJECTIVE_STATUS_MET      ? OBJECTIVE_STATUS_NOT_MET
       :                                          OBJECTIVE_STATUS_UNREVIEWED
     writeObjectiveStatus(controlId, objId, next)
+    if (next === OBJECTIVE_STATUS_MET) {
+      const control = CONTROL_BY_ID.get(controlId)
+      const objective = control?.objectives?.find((item) => item.id === objId)
+      ensureMetObjectiveFinding(control, objective)
+    }
     syncControlStatusFromObjectives(CONTROL_BY_ID.get(controlId))
     forceUpdate((n) => n + 1)
   }, [])
@@ -1820,7 +1833,7 @@ function SavedGroupsPanel({
             </div>
           )}
 
-          <p className="dibcac-saved-hint">Saved locally · not included in project exports.</p>
+          <p className="dibcac-saved-hint">Saved locally · included in Settings project backups.</p>
 
           {hasFolders ? (
             <>
@@ -1944,6 +1957,7 @@ function DibcacMode() {
     return next
   })
   const [previewKey, setPreviewKey] = useState(null)
+  const [templatesOpen, setTemplatesOpen] = useState(false)
   const [railExpanded, setRailExpanded] = useState(() => localStorage.getItem('cmmc-dibcac-rail-expanded') === 'true')
   const searchRef = useRef(null)
 
@@ -2120,6 +2134,21 @@ function DibcacMode() {
     setSavedGroups(getReviewGroups())
   }
 
+  const handleApplyTemplate = ({ groups, folders }) => {
+    saveReviewGroups(groups)
+    saveReviewFolders(folders)
+    setSavedGroups(groups)
+    setSavedFolders(folders)
+    const nextOpenFolders = new Set(folders.map((folder) => folder.id))
+    setOpenFolderIds(nextOpenFolders)
+    setExpandedGroupIds(new Set())
+    writeIdSet('cmmc-dibcac-open-folder-ids', nextOpenFolders)
+    writeIdSet('cmmc-dibcac-expanded-group-ids', new Set())
+    setMode('browse')
+    setEditingGroup(null)
+    setCheckedKeys(new Set())
+  }
+
 
   return (
     <div className="dash-root">
@@ -2130,10 +2159,21 @@ function DibcacMode() {
       {previewKey && (
         <ObjectivePreview previewKey={previewKey} onClose={() => setPreviewKey(null)} />
       )}
+      {templatesOpen && (
+        <DibcacTemplatesModal
+          currentGroups={savedGroups}
+          currentFolders={savedFolders}
+          onApply={handleApplyTemplate}
+          onClose={() => setTemplatesOpen(false)}
+        />
+      )}
 
       {/* ── Page header ──────────────────────────────────────────────────── */}
       <div className="dibcac-page-header">
-        <h1>DIBCAC Mode</h1>
+        <div className="dibcac-page-header-row">
+          <h1>DIBCAC Mode</h1>
+          <button type="button" className="dibcac-templates-btn" onClick={() => setTemplatesOpen(true)}><LayoutTemplate size={16} /> Templates</button>
+        </div>
         <p className="dibcac-page-subtitle">
           Plan objective review sequences by DIBCAC assessment method.
           Use this workspace to group objectives efficiently before a live assessment session.

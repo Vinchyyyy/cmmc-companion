@@ -281,10 +281,13 @@ export default function BulkFindingsModal({ title, controlsInScope, onClose }) {
       aria-modal="true"
       aria-label={title}
     >
-      <div className="dibcac-group-findings-panel dibcac-group-findings-panel--wide">
-        <div className="dibcac-comments-header">
-          <span className="dibcac-comments-title">{title}</span>
-          <span className="dibcac-comments-id">{rows.length} objective{rows.length !== 1 ? 's' : ''} in scope</span>
+      <div className="dibcac-group-findings-panel dibcac-group-findings-panel--wide bulk-findings-modal">
+        <div className="dibcac-comments-header bulk-findings-modal-header">
+          <div className="bulk-findings-modal-heading">
+            <span className="dibcac-comments-title">{title}</span>
+            <span className="dibcac-comments-id">Review the scope and readiness before generating findings.</span>
+          </div>
+          <span className="bulk-findings-modal-scope-count">{rows.length} objective{rows.length !== 1 ? 's' : ''} in scope</span>
           <button type="button" className="dibcac-preview-close" onClick={onClose} aria-label="Close">✕</button>
         </div>
 
@@ -295,7 +298,7 @@ export default function BulkFindingsModal({ title, controlsInScope, onClose }) {
                 {done} finding{done !== 1 ? 's' : ''} generated. Open each objective in Control Detail to review or refine.
               </p>
             </div>
-            <div className="dibcac-comments-footer">
+            <div className="dibcac-comments-footer bulk-findings-modal-footer">
               <button type="button" className="dibcac-builder-save" onClick={onClose}>Close</button>
             </div>
           </>
@@ -479,10 +482,10 @@ export default function BulkFindingsModal({ title, controlsInScope, onClose }) {
                 )}
               </div>
             </div>
-            <div className="dibcac-comments-footer">
+            <div className="dibcac-comments-footer bulk-findings-modal-footer">
               <button
                 type="button"
-                className="dibcac-builder-save"
+                className="dibcac-builder-save bulk-findings-generate-btn"
                 onClick={handleGenerate}
                 disabled={eligibleRows.length === 0}
               >

@@ -4,15 +4,14 @@
 // Write backend: JSZip surgical XML patch.
 //   - Opens the bundled template as a raw ZIP archive.
 //   - Resolves the Requirement Objectives worksheet path via workbook.xml + rels.
-//   - Patches only editable cells (D/E/F/G/H/J/K/L/M/O/P) in place using inline strings.
+//   - Patches editable cells (D/E/F/G/H/I/J/K/L/M/N/O/P) in place.
 //   - All other ZIP entries (styles, customXml, docMetadata, other sheets, rels, etc.)
 //     are passed through completely untouched.
 //
 // Key rules:
 //  - Columns A, B, C are never touched.
-//  - Columns I, J, N are never touched.
 //  - sharedStrings.xml is read (to resolve B-column template keys) but never written.
-//  - Column N (Date Assessed) is left blank by policy.
+//  - Column N receives the manually selected control-level Date Assessed.
 //  - Column P (Findings) is populated with the saved Findings Builder statement when present.
 //  - L1→L2 prefix normalization applied for 17 controls.
 //  - Export continues even if a template row has no companion source; a warning summary is returned.
@@ -28,6 +27,7 @@ import { readAssignedTo } from './assignment'
 import { readObjectiveStatus, OBJECTIVE_STATUS_MET, OBJECTIVE_STATUS_NOT_MET } from './objectiveStatus'
 import { getDibcacStandard } from '../data/dibcacAssessmentStandards'
 import { readProviderStandardsAcceptance } from './oscProfile'
+import { dateAssessedToExcelSerial, readDateAssessed } from './dateAssessed'
 
 // ---------------------------------------------------------------------------
 // L1 → L2 prefix normalization
@@ -187,6 +187,7 @@ function buildObjectiveMap(controls) {
     const esp         = readInheritanceSource(ctrl.id)
     const standardsAcceptance = readProviderStandardsAcceptance(esp)
     const assessedBy  = readAssignedTo(ctrl.id)
+    const dateAssessed = readDateAssessed(ctrl.id)
     const pool        = readPool(ctrl.id)
 
     controlData.set(templateId, {
@@ -194,6 +195,7 @@ function buildObjectiveMap(controls) {
       esp:        truncate((inheritance !== 'None' && esp) ? esp : '', 2000),
       standardsAcceptance: inheritance !== 'None' ? standardsAcceptance : '',
       assessedBy: truncate(assessedBy ?? '', 100),
+      dateAssessed: dateAssessedToExcelSerial(dateAssessed),
       pool:       formatArtifactList(pool),
     })
 
@@ -388,6 +390,8 @@ function patchWorksheetXml(wsXml, sharedStrings, objectiveData, controlData) {
         content = patchCell(content, `J${r}`, ctrl.standardsAcceptance)
         content = patchCell(content, `K${r}`, ctrl.inherited)
         content = patchCell(content, `L${r}`, ctrl.esp)
+        // Keep the template's date number format while writing a real Excel date.
+        content = patchNumericCell(content, `N${r}`, ctrl.dateAssessed)
         content = patchCell(content, `O${r}`, ctrl.assessedBy)
       }
 

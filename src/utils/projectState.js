@@ -9,6 +9,7 @@
 //   - control-level evidence pool (cmmc-pool-{controlId})
 //   - objective-level artifacts   (cmmc-obj-artifacts-{controlId}-{objectiveId})
 //   - objective-level results     (cmmc-objective-result-{controlId}-{objectiveId})
+//   - manually selected date      (cmmc-date-assessed-{controlId})
 
 import { STATUSES, DEFAULT_STATUS, readStatus, writeStatus } from './status'
 import { readNote, writeNote } from './notes'
@@ -46,8 +47,10 @@ import { readObjectiveInterviewedRoles, writeObjectiveInterviewedRoles } from '.
 import { readProjectMeta, writeProjectMeta } from './projectMeta'
 import { readGlobalEvidence, writeGlobalEvidence } from './globalEvidence'
 import { readOscProfile, writeOscProfile } from './oscProfile'
+import { readDateAssessed, writeDateAssessed } from './dateAssessed'
+import { readCustomDibcacTemplates, writeCustomDibcacTemplates } from './dibcacTemplates'
 
-export const SCHEMA_VERSION = 6
+export const SCHEMA_VERSION = 8
 
 export const DEFAULT_IMPORT_OPTIONS = {
   mode: 'replace',
@@ -59,6 +62,7 @@ export const DEFAULT_IMPORT_OPTIONS = {
     inheritance: true,
     inheritanceSource: true,
     assignments: true,
+    datesAssessed: true,
     evidencePool: true,
     objectiveArtifacts: true,
     objectiveResults: true,
@@ -69,7 +73,7 @@ export const DEFAULT_IMPORT_OPTIONS = {
 
 // All schema versions this app can import. Add new versions here as the
 // schema evolves — never remove old ones while users may have older backups.
-export const ACCEPTED_SCHEMA_VERSIONS = [1, 2, 3, 4, 5, 6]
+export const ACCEPTED_SCHEMA_VERSIONS = [1, 2, 3, 4, 5, 6, 7, 8]
 
 // =========================================================================
 // Export
@@ -139,6 +143,8 @@ export function exportProjectState(controls) {
     }
 
     if (assignedTo) entry.assignedTo = assignedTo
+    const dateAssessed = readDateAssessed(control.id)
+    if (dateAssessed) entry.dateAssessed = dateAssessed
 
     if (pool.length > 0) entry.evidencePool = pool
     if (Object.keys(objectiveArtifacts).length > 0) entry.objectiveArtifacts = objectiveArtifacts
@@ -161,6 +167,7 @@ export function exportProjectState(controls) {
     environmentProfile: readEnvironmentProfile(),
     reviewGroups: getReviewGroups(),
     reviewFolders: getReviewFolders(),
+    dibcacTemplates: readCustomDibcacTemplates(),
     controls: exported,
   }
 }
@@ -200,7 +207,7 @@ export function importProjectState(projectJson, controls, options = {}) {
     return {
       ok: false,
       error: `Unsupported schema version ${projectJson.schemaVersion}. ` +
-             `Expected version 1, 2, 3, 4, 5, or 6.`,
+             `Expected version 1, 2, 3, 4, 5, 6, 7, or 8.`,
     }
   }
   if (!Array.isArray(projectJson.controls)) {
@@ -249,6 +256,7 @@ export function importProjectState(projectJson, controls, options = {}) {
     inheritanceWritten: 0,
     inheritanceSourcesWritten: 0,
     assignmentsWritten: 0,
+    datesAssessedWritten: 0,
     evidencePoolsWritten: 0,
     objectiveArtifactsWritten: 0,
     objectiveResultsWritten: 0,
@@ -257,6 +265,7 @@ export function importProjectState(projectJson, controls, options = {}) {
     objectiveInterviewedRolesWritten: 0,
     reviewGroupsWritten: 0,
     reviewFoldersWritten: 0,
+    dibcacTemplatesWritten: 0,
     skippedUnknownId: 0,
     skippedInvalidStatus: 0,
     skippedUnknownObjective: 0,
@@ -278,6 +287,13 @@ export function importProjectState(projectJson, controls, options = {}) {
   if (Array.isArray(projectJson.reviewFolders) && opts.mode === 'replace') {
     saveReviewFolders(projectJson.reviewFolders)
     summary.reviewFoldersWritten = projectJson.reviewFolders.length
+  }
+
+  // User-created DIBCAC templates are portable project preferences. The
+  // built-in baseline is code-owned and is intentionally never imported.
+  if (Array.isArray(projectJson.dibcacTemplates) && opts.mode === 'replace') {
+    const templates = writeCustomDibcacTemplates(projectJson.dibcacTemplates)
+    summary.dibcacTemplatesWritten = templates.length
   }
 
   // Artifact registry: v3+ files carry a top-level `artifacts` array of records.
@@ -459,6 +475,14 @@ export function importProjectState(projectJson, controls, options = {}) {
       }
     }
 
+    // Date Assessed is deliberately manual and optional.
+    if (opts.categories.datesAssessed && typeof entry.dateAssessed === 'string') {
+      if (canWrite(readDateAssessed(control.id) === '', opts, summary)) {
+        writeDateAssessed(control.id, entry.dateAssessed)
+        if (readDateAssessed(control.id)) summary.datesAssessedWritten++
+      }
+    }
+
     // Evidence Pool
     // Only write when the field is explicitly present in the entry.
     // Missing field = backward-compatible no-op (does not clear existing pool).
@@ -595,6 +619,7 @@ const WIPE_PREFIXES = [
   'cmmc-inheritance-sources-',
   'cmmc-obj-inheritance-',
   'cmmc-assigned-to-',
+  'cmmc-date-assessed-',
   'cmmc-pool-',
   'cmmc-obj-artifacts-',
   'cmmc-objective-result-',
