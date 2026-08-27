@@ -31,6 +31,7 @@ function readConfigWithAppliedMigration() {
     ...saved,
     applied: {
       ...saved.applied,
+      pool: [...saved.applied.pool],
       families: { ...saved.applied.families },
     },
   }
@@ -39,6 +40,14 @@ function readConfigWithAppliedMigration() {
   if (!next.applied.ssp && next.ssp.trim() && isGlobalArtifactApplied(controls, next.ssp)) {
     next.applied.ssp = next.ssp
     changed = true
+  }
+
+  for (const name of next.pool) {
+    const alreadyTracked = next.applied.pool.some((item) => item.toLowerCase() === name.toLowerCase())
+    if (!alreadyTracked && isGlobalArtifactApplied(controls, name)) {
+      next.applied.pool.push(name)
+      changed = true
+    }
   }
 
   for (const family of FAMILIES) {
@@ -59,6 +68,7 @@ function readConfigWithAppliedMigration() {
 function GlobalEvidence({ embedded = false }) {
   const [config, setConfig] = useState(readConfigWithAppliedMigration)
   const [result, setResult] = useState(null)
+  const [poolDraft, setPoolDraft] = useState('')
 
   const updateConfig = (updater) => {
     setConfig((current) => {
@@ -70,6 +80,43 @@ function GlobalEvidence({ embedded = false }) {
   }
 
   const setSsp = (value) => updateConfig((current) => ({ ...current, ssp: value }))
+
+  const includesName = (items, name) => items.some((item) => item.toLowerCase() === name.trim().toLowerCase())
+
+  const applyPoolArtifact = (name) => {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    const counts = applyGlobalArtifact(controls, trimmed, 'general')
+    updateConfig((current) => ({
+      ...current,
+      pool: includesName(current.pool, trimmed) ? current.pool : [...current.pool, trimmed],
+      applied: {
+        ...current.applied,
+        pool: includesName(current.applied.pool, trimmed) ? current.applied.pool : [...current.applied.pool, trimmed],
+      },
+    }))
+    setPoolDraft('')
+    setResult({
+      ok: true,
+      message: `${trimmed} applied to ${counts.controls} control${counts.controls === 1 ? '' : 's'} and ${counts.objectives} objective${counts.objectives === 1 ? '' : 's'}.`,
+    })
+  }
+
+  const removePoolArtifact = (name) => {
+    const counts = removeGlobalArtifact(controls, name)
+    updateConfig((current) => ({
+      ...current,
+      pool: current.pool.filter((item) => item.toLowerCase() !== name.toLowerCase()),
+      applied: {
+        ...current.applied,
+        pool: current.applied.pool.filter((item) => item.toLowerCase() !== name.toLowerCase()),
+      },
+    }))
+    setResult({
+      ok: true,
+      message: `${name} removed from ${counts.controls} control${counts.controls === 1 ? '' : 's'} and their objectives.`,
+    })
+  }
 
   const setFamilyValue = (code, field, value) => updateConfig((current) => ({
     ...current,
@@ -180,6 +227,52 @@ function GlobalEvidence({ embedded = false }) {
                 <Trash2 size={14} /> Clear
               </button>
             </div>
+          </div>
+        </section>
+
+        <section className="set-card ge-pool-card">
+          <div className="set-card-body">
+            <div className="ge-section-heading">
+              <FileText size={18} />
+              <div>
+                <h2>Overall Global Pool</h2>
+                <p>Add general artifacts that should be available to every control and objective, such as a shared responsibility matrix or device inventory.</p>
+              </div>
+            </div>
+            <div className="ge-pool-add-row">
+              <input
+                type="text"
+                className="export-dialog-input"
+                value={poolDraft}
+                onChange={(event) => setPoolDraft(event.target.value)}
+                onKeyDown={(event) => { if (event.key === 'Enter') applyPoolArtifact(poolDraft) }}
+                placeholder="e.g. Shared Responsibility Matrix.xlsx"
+                aria-label="Overall global artifact name"
+              />
+              <button type="button" disabled={!poolDraft.trim()} onClick={() => applyPoolArtifact(poolDraft)}>Add &amp; Apply to All</button>
+            </div>
+            {config.pool.length > 0 ? (
+              <div className="ge-pool-list">
+                {config.pool.map((name) => {
+                  const applied = includesName(config.applied.pool, name)
+                  return (
+                    <div className="ge-pool-item" key={name.toLowerCase()}>
+                      <div><FileText size={15} /><span>{name}</span></div>
+                      {applied ? (
+                        <span className="ge-applied-state ge-applied-state--compact" role="status"><CheckCircle2 size={16} /> Applied</span>
+                      ) : (
+                        <button type="button" onClick={() => applyPoolArtifact(name)}>Apply to All</button>
+                      )}
+                      <button type="button" className="ge-icon-clear" onClick={() => removePoolArtifact(name)} aria-label={`Remove ${name} from overall global pool`} title="Remove this artifact from every control and objective">
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="ge-pool-empty">No overall global artifacts yet.</p>
+            )}
           </div>
         </section>
 

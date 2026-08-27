@@ -8,15 +8,32 @@ export const GLOBAL_EVIDENCE_TYPES = {
   ssp: { label: 'System Security Plan', tag: 'system_security_plan' },
   policy: { label: 'Policy Document', tag: 'policy_document' },
   procedure: { label: 'Procedure Document', tag: 'procedure_document' },
+  general: { label: 'Global Artifact', tag: null },
 }
 
 export const DEFAULT_GLOBAL_EVIDENCE = {
   ssp: '',
+  pool: [],
   families: {},
   applied: {
     ssp: '',
+    pool: [],
     families: {},
   },
+}
+
+function normalizeArtifactList(value) {
+  const result = []
+  const seen = new Set()
+  for (const item of Array.isArray(value) ? value : []) {
+    if (typeof item !== 'string') continue
+    const name = item.trim()
+    const key = normalizeName(name)
+    if (!name || seen.has(key)) continue
+    seen.add(key)
+    result.push(name)
+  }
+  return result
 }
 
 function normalizeFamilyEntry(entry) {
@@ -41,9 +58,11 @@ export function normalizeGlobalEvidence(value) {
   }
   return {
     ssp: typeof value?.ssp === 'string' ? value.ssp : '',
+    pool: normalizeArtifactList(value?.pool),
     families,
     applied: {
       ssp: typeof value?.applied?.ssp === 'string' ? value.applied.ssp : '',
+      pool: normalizeArtifactList(value?.applied?.pool),
       families: appliedFamilies,
     },
   }
@@ -89,7 +108,7 @@ export function applyGlobalArtifact(controls, name, type, familyCode = '') {
   if (!trimmed || !definition) return { controls: 0, objectives: 0 }
 
   const artifact = findOrCreate(trimmed)
-  if (artifact) updateArtifactTags(artifact.id, [...(artifact.tags ?? []), definition.tag])
+  if (artifact && definition.tag) updateArtifactTags(artifact.id, [...(artifact.tags ?? []), definition.tag])
 
   let controlCount = 0
   let objectiveCount = 0
