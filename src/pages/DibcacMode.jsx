@@ -42,6 +42,7 @@ import {
   buildGroupNumberMap,
   checklistItemDomId,
   countPlannedAskReferences,
+  detectPlannedAskMention,
   insertPlannedAskReference,
   normalizePlannedAskContent,
   numberChecklistEntries,
@@ -482,19 +483,12 @@ function PlannedAskEditor({ content, onChange, referenceIndex }) {
     textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
   }, [value])
 
-  const detectMention = (text, caret) => {
-    const start = text.lastIndexOf('@', Math.max(0, caret - 1))
-    if (start === -1 || (start > 0 && !/\s/.test(text[start - 1]))) return null
-    const query = text.slice(start + 1, caret)
-    if (query.includes('\n') || query.length > 100) return null
-    return { start, end: caret, query }
-  }
-
   const handleChange = (event) => {
     const nextText = event.target.value
     const caret = event.target.selectionStart
-    onChange(updatePlannedAskContent(content, nextText, referenceIndex))
-    setMention(detectMention(nextText, caret))
+    const nextContent = updatePlannedAskContent(content, nextText, referenceIndex)
+    onChange(nextContent)
+    setMention(detectPlannedAskMention(nextContent, nextText, caret, referenceIndex))
     setActiveIndex(0)
   }
 

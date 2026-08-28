@@ -133,6 +133,23 @@ function renderedRanges(content, referenceIndex) {
   return { text, ranges }
 }
 
+export function detectPlannedAskMention(content, text, caret, referenceIndex) {
+  const start = text.lastIndexOf('@', Math.max(0, caret - 1))
+  if (start === -1 || (start > 0 && !/\s/.test(text[start - 1]))) return null
+
+  // A completed structured reference is rendered as an @G… token too. Once
+  // the caret is at or beyond that token, it must not be mistaken for a new
+  // mention search while the user continues typing ordinary text.
+  const completedReference = renderedRanges(content, referenceIndex).ranges.some(({ segment, start: rangeStart, end }) =>
+    segment.type === 'checklistRef' && rangeStart === start && caret >= end
+  )
+  if (completedReference) return null
+
+  const query = text.slice(start + 1, caret)
+  if (query.includes('\n') || query.length > 100) return null
+  return { start, end: caret, query }
+}
+
 function contentFromTextAndReferences(text, references) {
   const content = []
   let cursor = 0
@@ -171,9 +188,11 @@ export function updatePlannedAskContent(content, nextText, referenceIndex) {
 
 export function insertPlannedAskReference(content, selectionStart, selectionEnd, reference, referenceIndex) {
   const rendered = renderedRanges(content, referenceIndex)
-  const insertText = `@${reference.displayRef}`
-  const nextText = rendered.text.slice(0, selectionStart) + insertText + rendered.text.slice(selectionEnd)
-  const delta = insertText.length - (selectionEnd - selectionStart)
+  const referenceText = `@${reference.displayRef}`
+  const trailingText = /\s/.test(rendered.text[selectionEnd] ?? '') ? '' : ' '
+  const insertedText = referenceText + trailingText
+  const nextText = rendered.text.slice(0, selectionStart) + insertedText + rendered.text.slice(selectionEnd)
+  const delta = insertedText.length - (selectionEnd - selectionStart)
   const references = rendered.ranges
     .filter(({ segment }) => segment.type === 'checklistRef')
     .filter(({ start, end }) => end <= selectionStart || start >= selectionEnd)
@@ -187,11 +206,11 @@ export function insertPlannedAskReference(content, selectionStart, selectionEnd,
     groupId: reference.groupId,
     itemId: reference.itemId,
     start: selectionStart,
-    end: selectionStart + insertText.length,
+    end: selectionStart + referenceText.length,
   })
   return {
     content: contentFromTextAndReferences(nextText, references),
-    caret: selectionStart + insertText.length,
+    caret: selectionStart + insertedText.length,
   }
 }
 

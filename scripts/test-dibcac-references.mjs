@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import {
   buildChecklistReferenceIndex,
   buildGroupNumberMap,
+  detectPlannedAskMention,
   insertPlannedAskReference,
   normalizePlannedAskContent,
   plannedAskFallbackText,
@@ -64,10 +65,24 @@ assert.equal(resolveChecklistNavigationTarget(canonical, index, 'missing', 'item
 assert.equal(resolveChecklistNavigationTarget(canonical, index, 'group-1', 'missing'), null)
 const inserted = insertPlannedAskReference([{ type: 'text', text: 'Show ' }], 5, 5, reference, index)
 assert.deepEqual(inserted.content[1], { type: 'checklistRef', groupId: 'group-1', itemId: 'item-0-a' })
-assert.equal(renderPlannedAskText(inserted.content, index), 'Show @G1-1.1')
+assert.equal(renderPlannedAskText(inserted.content, index), 'Show @G1-1.1 ')
 assert.match(plannedAskFallbackText(inserted.content, index), /G1-1\.1 — MFA configuration/)
 
-const editedBefore = updatePlannedAskContent(inserted.content, 'Please Show @G1-1.1', index)
+const continuedText = 'Show @G1-1.1 and continue typing'
+const continuedContent = updatePlannedAskContent(inserted.content, continuedText, index)
+assert.equal(detectPlannedAskMention(continuedContent, continuedText, continuedText.length, index), null)
+const continuedLine = 'Show @G1-1.1\nContinue on a new line'
+const continuedLineContent = updatePlannedAskContent(inserted.content, continuedLine, index)
+assert.equal(detectPlannedAskMention(continuedLineContent, continuedLine, continuedLine.length, index), null)
+const newMentionText = 'Show @G1-1.1 and then @MFA'
+const newMentionContent = updatePlannedAskContent(inserted.content, newMentionText, index)
+assert.deepEqual(detectPlannedAskMention(newMentionContent, newMentionText, newMentionText.length, index), {
+  start: newMentionText.lastIndexOf('@'),
+  end: newMentionText.length,
+  query: 'MFA',
+})
+
+const editedBefore = updatePlannedAskContent(inserted.content, 'Please Show @G1-1.1 ', index)
 assert.equal(editedBefore.some((segment) => segment.type === 'checklistRef'), true)
 const editedReference = updatePlannedAskContent(inserted.content, 'Show @changed', index)
 assert.equal(editedReference.some((segment) => segment.type === 'checklistRef'), false)
@@ -75,4 +90,4 @@ assert.equal(editedReference.some((segment) => segment.type === 'checklistRef'),
 assert.deepEqual(normalizePlannedAskContent(null, 'Legacy plain text'), [{ type: 'text', text: 'Legacy plain text' }])
 assert.equal(renderPlannedAskText([{ type: 'checklistRef', groupId: 'missing', itemId: 'missing' }], index), '@Missing checklist reference')
 
-console.log('DIBCAC reference tests passed: canonical G numbering, reorder stability, search, navigation resolution, structured insertion/editing, legacy text, missing targets, and double digits.')
+console.log('DIBCAC reference tests passed: canonical G numbering, reorder stability, search, post-reference typing, navigation resolution, structured insertion/editing, legacy text, missing targets, and double digits.')
