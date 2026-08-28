@@ -1,13 +1,25 @@
 import { withCanonicalGroupOrder } from './dibcacReferences.js'
+import { normalizePlannedAskRichDocument, richDocumentToLegacyContent } from './dibcacRichText.js'
 
 const STORAGE_KEY  = 'cmmc-companion-dibcac-review-groups'
 const FOLDERS_KEY  = 'cmmc-companion-dibcac-review-folders'
+
+function normalizeGroups(groups) {
+  return withCanonicalGroupOrder(groups).map((group) => {
+    const plannedAskRichDocument = normalizePlannedAskRichDocument(group?.plannedAskRichDocument, group?.plannedAskContent, group?.plannedAsk)
+    return {
+      ...group,
+      plannedAskRichDocument,
+      plannedAskContent: richDocumentToLegacyContent(plannedAskRichDocument),
+    }
+  })
+}
 
 export function getReviewGroups() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     const parsed = raw ? JSON.parse(raw) : []
-    const normalized = withCanonicalGroupOrder(parsed)
+    const normalized = normalizeGroups(parsed)
     if (raw && JSON.stringify(parsed) !== JSON.stringify(normalized)) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized))
     }
@@ -18,7 +30,7 @@ export function getReviewGroups() {
 }
 
 export function saveReviewGroups(groups) {
-  const normalized = withCanonicalGroupOrder(groups)
+  const normalized = normalizeGroups(groups)
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized)) } catch { /* storage unavailable */ }
   return normalized
 }

@@ -36,6 +36,16 @@ try {
         { type: 'text', text: 'See ' },
         { type: 'checklistRef', groupId: 'group-primary', itemId: 'item-mfa' },
       ],
+      plannedAskRichDocument: {
+        version: 1,
+        blocks: [
+          { type: 'topic', topicAnchorId: 'topic-auth', indent: 0, children: [{ type: 'text', text: 'AUTHENTICATION' }] },
+          { type: 'bullet', indent: 1, children: [
+            { type: 'text', text: 'Review ', bold: true, color: 'blue', size: 'large' },
+            { type: 'checklistRef', groupId: 'group-primary', itemId: 'item-mfa' },
+          ] },
+        ],
+      },
       objectives: [{ key: 'AC.L1-3.1.1[a]', controlId: 'AC.L1-3.1.1', objId: 'a', objText: controls[0].objectives[0].text, standard: 'screen_share' }],
       checklist: [
         { id: 'header-users', type: 'header', text: 'User authentication' },
@@ -73,7 +83,7 @@ try {
   })
 
   const exported = exportProjectState(controls)
-  assert.equal(SCHEMA_VERSION, 10)
+  assert.equal(SCHEMA_VERSION, 11)
   assert.deepEqual(exported.reviewGroups, getReviewGroups())
   assert.deepEqual(exported.reviewFolders, folders)
   assert.equal(exported.controls[0].objectiveResults.a.interviews, 'Manual objective interview text.')
@@ -88,6 +98,9 @@ try {
   assert.equal(readStatus('AC.L1-3.1.1'), 'In Progress')
   assert.deepEqual(getReviewGroups(), exported.reviewGroups)
   assert.deepEqual(getReviewGroups()[0].plannedAskContent[1], { type: 'checklistRef', groupId: 'group-primary', itemId: 'item-mfa' })
+  assert.equal(getReviewGroups()[0].plannedAskRichDocument.blocks[0].topicAnchorId, 'topic-auth')
+  assert.equal(getReviewGroups()[0].plannedAskRichDocument.blocks[1].children[0].bold, true)
+  assert.deepEqual(getReviewGroups()[0].plannedAskRichDocument.blocks[1].children[1], { type: 'checklistRef', groupId: 'group-primary', itemId: 'item-mfa' })
   assert.deepEqual(getReviewFolders(), folders)
   assert.equal(readCustomDibcacTemplates()[0].name, 'Authentication Template')
   const restoredResult = readObjectiveResult('AC.L1-3.1.1', 'a')

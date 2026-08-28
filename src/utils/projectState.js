@@ -50,7 +50,7 @@ import { readOscProfile, writeOscProfile } from './oscProfile'
 import { readDateAssessed, writeDateAssessed } from './dateAssessed'
 import { readCustomDibcacTemplates, writeCustomDibcacTemplates } from './dibcacTemplates'
 
-export const SCHEMA_VERSION = 10
+export const SCHEMA_VERSION = 11
 
 export const DEFAULT_IMPORT_OPTIONS = {
   mode: 'replace',
@@ -73,7 +73,7 @@ export const DEFAULT_IMPORT_OPTIONS = {
 
 // All schema versions this app can import. Add new versions here as the
 // schema evolves — never remove old ones while users may have older backups.
-export const ACCEPTED_SCHEMA_VERSIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+export const ACCEPTED_SCHEMA_VERSIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 // =========================================================================
 // Export
@@ -208,7 +208,7 @@ export function importProjectState(projectJson, controls, options = {}) {
     return {
       ok: false,
       error: `Unsupported schema version ${projectJson.schemaVersion}. ` +
-             `Expected version 1 through 10.`,
+             `Expected version 1 through 11.`,
     }
   }
   if (!Array.isArray(projectJson.controls)) {

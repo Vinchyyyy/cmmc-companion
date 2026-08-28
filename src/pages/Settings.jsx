@@ -134,7 +134,7 @@ function Settings() {
           setJsonResult({ ok: false, message: 'Invalid JSON: expected an object.' }); return
         }
         if (!ACCEPTED_SCHEMA_VERSIONS.includes(parsed.schemaVersion)) {
-          setJsonResult({ ok: false, message: `Unsupported schema version ${parsed.schemaVersion}. Expected version 1 through 10.` }); return
+          setJsonResult({ ok: false, message: `Unsupported schema version ${parsed.schemaVersion}. Expected version 1 through 11.` }); return
         }
         if (!Array.isArray(parsed.controls)) {
           setJsonResult({ ok: false, message: 'Invalid JSON: "controls" must be an array.' }); return

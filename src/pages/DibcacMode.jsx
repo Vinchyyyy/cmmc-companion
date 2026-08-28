@@ -41,18 +41,24 @@ import {
   buildChecklistReferenceMap,
   buildGroupNumberMap,
   checklistItemDomId,
-  countPlannedAskReferences,
-  detectPlannedAskMention,
-  insertPlannedAskReference,
-  normalizePlannedAskContent,
   numberChecklistEntries,
-  plannedAskFallbackText,
-  renderPlannedAskText,
   reviewGroupDomId,
   resolveChecklistNavigationTarget,
   searchChecklistReferences,
-  updatePlannedAskContent,
 } from '../utils/dibcacReferences.js'
+import {
+  buildTopicAnchorIndex,
+  countAllPlannedAskReferences,
+  normalizePlannedAskRichDocument,
+  isRichBlockComplete,
+  PLANNED_ASK_COLORS,
+  parseTopicAnchorSyntax,
+  resolveTopicNavigationTarget,
+  richDocumentPlainText,
+  richDocumentToEditorHtml,
+  richDocumentToLegacyContent,
+  topicAnchorDomId,
+} from '../utils/dibcacRichText.js'
 
 // Persist small sets of ids (open folders, expanded groups) across route
 // changes — DibcacMode fully unmounts when navigating away, so plain
@@ -462,77 +468,414 @@ function GroupedBrowser({ flatObjs, builderMode, checkedKeys, onCheck, onPreview
 
 // ── Builder panel (new group OR editing existing) ─────────────────────────────
 
-function PlannedAskEditor({ content, onChange, referenceIndex }) {
-  const textareaRef = useRef(null)
+const RICH_COLOR_VALUES = {
+  default: '#d4d4d8',
+  blue: '#60a5fa',
+  green: '#4ade80',
+  amber: '#fbbf24',
+  red: '#f87171',
+}
+
+function closestRichBlock(node, editor) {
+  const element = node?.nodeType === 1 ? node : node?.parentElement
+  const block = element?.closest?.('[data-pa-block="true"]')
+  return block && editor.contains(block) ? block : null
+}
+
+function rangeForTextOffsets(root, start, end) {
+  const range = document.createRange()
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+  let position = 0
+  let startSet = false
+  let node = walker.nextNode()
+  while (node) {
+    const next = position + node.data.length
+    if (!startSet && start <= next) {
+      range.setStart(node, Math.max(0, start - position))
+      startSet = true
+    }
+    if (startSet && end <= next) {
+      range.setEnd(node, Math.max(0, end - position))
+      return range
+    }
+    position = next
+    node = walker.nextNode()
+  }
+  range.selectNodeContents(root)
+  range.collapse(false)
+  return range
+}
+
+function markFromElement(element, inherited) {
+  const marks = { ...inherited }
+  const tag = element.tagName?.toLowerCase()
+  if (tag === 'strong' || tag === 'b' || Number.parseInt(element.style?.fontWeight, 10) >= 600) marks.bold = true
+  const color = element.dataset?.color
+  if (PLANNED_ASK_COLORS.includes(color) && color !== 'default') marks.color = color
+  const size = element.dataset?.size
+  if (['small', 'large'].includes(size)) marks.size = size
+  if (tag === 'font') {
+    const fontSize = element.getAttribute('size')
+    if (fontSize === '2') marks.size = 'small'
+    if (fontSize === '3') delete marks.size
+    if (fontSize === '5') marks.size = 'large'
+    const rawColor = String(element.getAttribute('color') ?? '').toLowerCase()
+    const match = Object.entries(RICH_COLOR_VALUES).find(([, value]) => value.toLowerCase() === rawColor)
+    if (match?.[0] === 'default') delete marks.color
+    else if (match) marks.color = match[0]
+  }
+  const inlineColor = String(element.style?.color ?? '').replace(/\s+/g, '').toLowerCase()
+  const styleColorMap = {
+    '#d4d4d8': 'default', 'rgb(212,212,216)': 'default',
+    '#60a5fa': 'blue', 'rgb(96,165,250)': 'blue',
+    '#4ade80': 'green', 'rgb(74,222,128)': 'green',
+    '#fbbf24': 'amber', 'rgb(251,191,36)': 'amber',
+    '#f87171': 'red', 'rgb(248,113,113)': 'red',
+  }
+  if (styleColorMap[inlineColor] === 'default') delete marks.color
+  else if (styleColorMap[inlineColor]) marks.color = styleColorMap[inlineColor]
+  const inlineSize = String(element.style?.fontSize ?? '').toLowerCase()
+  if (inlineSize.includes('small') || (inlineSize.endsWith('px') && Number.parseFloat(inlineSize) <= 13)) marks.size = 'small'
+  if (inlineSize.includes('large') || (inlineSize.endsWith('px') && Number.parseFloat(inlineSize) >= 18)) marks.size = 'large'
+  return marks
+}
+
+function inlineNodesFromDom(root, inherited = {}) {
+  const nodes = []
+  for (const child of root.childNodes) {
+    if (child.nodeType === Node.TEXT_NODE) {
+      if (child.data) nodes.push({ type: 'text', text: child.data, ...inherited })
+      continue
+    }
+    if (child.nodeType !== Node.ELEMENT_NODE) continue
+    if (child.dataset?.paRef === 'true') {
+      nodes.push({ type: 'checklistRef', groupId: child.dataset.groupId ?? '', itemId: child.dataset.itemId ?? '' })
+      continue
+    }
+    if (child.tagName === 'BR') {
+      nodes.push({ type: 'text', text: '\n', ...inherited })
+      continue
+    }
+    nodes.push(...inlineNodesFromDom(child, markFromElement(child, inherited)))
+  }
+  return nodes
+}
+
+function richDocumentFromEditor(editor) {
+  const elements = [...editor.children]
+  const blocks = elements.length ? elements.map((element) => ({
+    type: element.dataset?.type === 'bullet' ? 'bullet' : element.dataset?.type === 'topic' ? 'topic' : 'paragraph',
+    indent: Math.max(0, Math.min(4, Number.parseInt(element.dataset?.indent ?? '0', 10) || 0)),
+    ...(element.dataset?.type === 'topic' ? { topicAnchorId: element.dataset.topicAnchorId } : {}),
+    children: inlineNodesFromDom(element),
+  })) : (editor.textContent ? [{ type: 'paragraph', indent: 0, children: inlineNodesFromDom(editor) }] : [])
+  return normalizePlannedAskRichDocument({ version: 1, blocks })
+}
+
+function RichInline({ node, referenceMap, onNavigate }) {
+  if (node.type === 'checklistRef') {
+    const reference = referenceMap.get(`${node.groupId}:${node.itemId}`)
+    if (!reference) return <span className="dibcac-planned-ask-ref dibcac-planned-ask-ref--missing">Missing checklist reference</span>
+    return (
+      <button type="button" className="dibcac-planned-ask-ref" onClick={() => onNavigate?.({ groupId: node.groupId, itemId: node.itemId })} title={`Open ${reference.groupName}: ${reference.label}`}>
+        <strong>{reference.displayRef}</strong><span>— {reference.label}</span>
+      </button>
+    )
+  }
+  const style = {
+    ...(node.color ? { color: RICH_COLOR_VALUES[node.color] } : {}),
+    ...(node.size === 'small' ? { fontSize: '0.85em' } : {}),
+    ...(node.size === 'large' ? { fontSize: '1.2em' } : {}),
+    ...(node.bold ? { fontWeight: 700 } : {}),
+  }
+  return <span style={style}>{node.text}</span>
+}
+
+function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) {
+  const editorRef = useRef(null)
+  const savedRangeRef = useRef(null)
   const [mention, setMention] = useState(null)
   const [activeIndex, setActiveIndex] = useState(0)
-  const pendingCaret = useRef(null)
-  const value = renderPlannedAskText(content, referenceIndex)
   const suggestions = mention ? searchChecklistReferences(referenceIndex, mention.query) : []
+  const initialized = useRef(false)
 
   useEffect(() => {
-    if (pendingCaret.current === null || !textareaRef.current) return
-    textareaRef.current.focus()
-    textareaRef.current.setSelectionRange(pendingCaret.current, pendingCaret.current)
-    pendingCaret.current = null
-  }, [content])
+    if (initialized.current || !editorRef.current) return
+    editorRef.current.innerHTML = richDocumentToEditorHtml(richDocument, referenceIndex)
+    editorRef.current.dataset.empty = richDocument.blocks.length === 0 ? 'true' : 'false'
+    initialized.current = true
+  }, [referenceIndex, richDocument])
 
   useEffect(() => {
-    if (!textareaRef.current) return
-    textareaRef.current.style.height = 'auto'
-    textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
-  }, [value])
+    const rememberRange = () => {
+      const editor = editorRef.current
+      const selection = window.getSelection()
+      if (editor && selection?.rangeCount && editor.contains(selection.anchorNode)) {
+        savedRangeRef.current = selection.getRangeAt(0).cloneRange()
+      }
+    }
+    document.addEventListener('selectionchange', rememberRange)
+    return () => document.removeEventListener('selectionchange', rememberRange)
+  }, [])
 
-  const handleChange = (event) => {
-    const nextText = event.target.value
-    const caret = event.target.selectionStart
-    const nextContent = updatePlannedAskContent(content, nextText, referenceIndex)
-    onChange(nextContent)
-    setMention(detectPlannedAskMention(nextContent, nextText, caret, referenceIndex))
+  const emitChange = () => {
+    if (editorRef.current) {
+      editorRef.current.dataset.empty = (!editorRef.current.innerText.trim() && !editorRef.current.querySelector('[data-pa-ref="true"]')) ? 'true' : 'false'
+      onChange(richDocumentFromEditor(editorRef.current))
+    }
+  }
+
+  const normalizeDashShortcut = () => {
+    const editor = editorRef.current
+    const selection = window.getSelection()
+    const block = selection?.rangeCount ? closestRichBlock(selection.getRangeAt(0).startContainer, editor) : null
+    if (!block || block.dataset.type === 'bullet' || !block.textContent?.startsWith('- ')) return
+    const prefix = rangeForTextOffsets(block, 0, 2)
+    prefix.deleteContents()
+    block.dataset.type = 'bullet'
+    block.dataset.indent = block.dataset.indent ?? '0'
+  }
+
+  const normalizeTopicShortcut = () => {
+    const editor = editorRef.current
+    const selection = window.getSelection()
+    const block = selection?.rangeCount ? closestRichBlock(selection.getRangeAt(0).startContainer, editor) : null
+    if (!block || block.dataset.type === 'topic' || block.querySelector('[data-pa-ref="true"]')) return
+    const label = parseTopicAnchorSyntax(block.textContent)
+    if (!label) return
+    block.dataset.type = 'topic'
+    block.dataset.indent = '0'
+    block.dataset.topicAnchorId = globalThis.crypto?.randomUUID?.() ?? `topic-${Date.now()}-${Math.random().toString(16).slice(2)}`
+    block.textContent = label
+    const caret = document.createRange()
+    caret.selectNodeContents(block)
+    caret.collapse(false)
+    selection.removeAllRanges()
+    selection.addRange(caret)
+  }
+
+  const detectMention = () => {
+    const editor = editorRef.current
+    const selection = window.getSelection()
+    if (!editor || !selection?.rangeCount || !selection.isCollapsed) return setMention(null)
+    const selectionRange = selection.getRangeAt(0)
+    const block = closestRichBlock(selectionRange.endContainer, editor)
+    if (!block) return setMention(null)
+    const before = document.createRange()
+    before.selectNodeContents(block)
+    before.setEnd(selectionRange.endContainer, selectionRange.endOffset)
+    const text = before.toString()
+    const start = text.lastIndexOf('@')
+    if (start === -1 || (start > 0 && !/\s/.test(text[start - 1]))) return setMention(null)
+    const query = text.slice(start + 1)
+    if (query.includes('\n') || query.length > 100) return setMention(null)
+    const startsAtCompletedReference = [...block.querySelectorAll('[data-pa-ref="true"]')].some((referenceNode) => {
+      const beforeReference = document.createRange()
+      beforeReference.selectNodeContents(block)
+      beforeReference.setEndBefore(referenceNode)
+      return beforeReference.toString().length === start
+    })
+    if (startsAtCompletedReference) return setMention(null)
+    const replacementRange = rangeForTextOffsets(block, start, text.length)
+    const startElement = replacementRange.startContainer.parentElement
+    if (startElement?.closest?.('[data-pa-ref="true"]')) return setMention(null)
+    setMention({ query, range: replacementRange })
     setActiveIndex(0)
   }
 
   const chooseReference = (reference) => {
     if (!mention) return
-    const inserted = insertPlannedAskReference(content, mention.start, mention.end, reference, referenceIndex)
-    pendingCaret.current = inserted.caret
-    onChange(inserted.content)
+    const ref = document.createElement('span')
+    ref.className = 'dibcac-rich-ref'
+    ref.dataset.paRef = 'true'
+    ref.dataset.groupId = reference.groupId
+    ref.dataset.itemId = reference.itemId
+    ref.contentEditable = 'false'
+    ref.textContent = `@${reference.displayRef}`
+    const trailing = document.createTextNode(' ')
+    mention.range.deleteContents()
+    mention.range.insertNode(trailing)
+    mention.range.insertNode(ref)
+    const selection = window.getSelection()
+    const caret = document.createRange()
+    caret.setStartAfter(trailing)
+    caret.collapse(true)
+    selection.removeAllRanges()
+    selection.addRange(caret)
+    editorRef.current?.focus()
+    emitChange()
     setMention(null)
     setActiveIndex(0)
   }
 
-  const handleKeyDown = (event) => {
-    if (!mention || suggestions.length === 0) {
-      if (event.key === 'Escape') setMention(null)
-      return
+  const applyCommand = (command, value = null) => {
+    const editor = editorRef.current
+    const selection = window.getSelection()
+    let selectionIsInEditor = !!(editor && selection?.rangeCount && editor.contains(selection.anchorNode))
+    if (!selectionIsInEditor && savedRangeRef.current) {
+      selection?.removeAllRanges()
+      selection?.addRange(savedRangeRef.current)
+      selectionIsInEditor = true
     }
-    if (event.key === 'ArrowDown') {
+    if (!selectionIsInEditor) editor?.focus()
+    if (command === 'foreColor') document.execCommand('styleWithCSS', false, true)
+    document.execCommand(command, false, value)
+    if (selection?.rangeCount && editor?.contains(selection.anchorNode)) savedRangeRef.current = selection.getRangeAt(0).cloneRange()
+    emitChange()
+  }
+
+  const applyColor = (color) => {
+    const editor = editorRef.current
+    const selection = window.getSelection()
+    const range = savedRangeRef.current?.cloneRange()
+    if (!editor || !range || range.collapsed || !editor.contains(range.commonAncestorContainer)) return
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT)
+    const targets = []
+    let textNode = walker.nextNode()
+    while (textNode) {
+      if (range.intersectsNode(textNode) && !textNode.parentElement?.closest('[data-pa-ref="true"]')) {
+        const start = textNode === range.startContainer ? range.startOffset : 0
+        const end = textNode === range.endContainer ? range.endOffset : textNode.data.length
+        if (end > start) targets.push({ textNode, start, end })
+      }
+      textNode = walker.nextNode()
+    }
+    const wrapped = []
+    for (const target of targets.reverse()) {
+      let selectedNode = target.textNode
+      if (target.end < selectedNode.data.length) selectedNode.splitText(target.end)
+      if (target.start > 0) selectedNode = selectedNode.splitText(target.start)
+      const span = document.createElement('span')
+      span.dataset.color = color
+      span.style.color = RICH_COLOR_VALUES[color]
+      selectedNode.parentNode.insertBefore(span, selectedNode)
+      span.append(selectedNode)
+      wrapped.unshift(span)
+    }
+    if (wrapped.length) {
+      const nextRange = document.createRange()
+      nextRange.setStartBefore(wrapped[0])
+      nextRange.setEndAfter(wrapped.at(-1))
+      selection?.removeAllRanges()
+      selection?.addRange(nextRange)
+      savedRangeRef.current = nextRange.cloneRange()
+      emitChange()
+    }
+  }
+
+  const updateCurrentBlock = (updater) => {
+    const selection = window.getSelection()
+    const block = selection?.rangeCount ? closestRichBlock(selection.getRangeAt(0).startContainer, editorRef.current) : null
+    if (!block) return
+    updater(block)
+    emitChange()
+    editorRef.current?.focus()
+  }
+
+  const insertRichBlockBreak = () => {
+    const editor = editorRef.current
+    const selection = window.getSelection()
+    if (!editor || !selection?.rangeCount) return false
+    const caret = selection.getRangeAt(0)
+    const block = closestRichBlock(caret.startContainer, editor)
+    if (!block) return false
+    const isEmpty = !block.textContent?.trim() && !block.querySelector('[data-pa-ref="true"]')
+    if (block.dataset.type === 'bullet' && isEmpty) {
+      block.dataset.type = 'paragraph'
+      block.dataset.indent = '0'
+      delete block.dataset.topicAnchorId
+      if (!block.childNodes.length) block.append(document.createElement('br'))
+      const paragraphCaret = document.createRange()
+      paragraphCaret.selectNodeContents(block)
+      paragraphCaret.collapse(true)
+      selection.removeAllRanges()
+      selection.addRange(paragraphCaret)
+      emitChange()
+      return true
+    }
+    const tail = document.createRange()
+    tail.setStart(caret.startContainer, caret.startOffset)
+    tail.setEnd(block, block.childNodes.length)
+    const trailingContent = tail.extractContents()
+    const nextBlock = document.createElement('div')
+    nextBlock.dataset.paBlock = 'true'
+    nextBlock.dataset.type = block.dataset.type === 'bullet' ? 'bullet' : 'paragraph'
+    nextBlock.dataset.indent = block.dataset.indent ?? '0'
+    nextBlock.append(trailingContent)
+    if (!nextBlock.textContent && !nextBlock.querySelector('[data-pa-ref="true"]')) nextBlock.append(document.createElement('br'))
+    if (!block.textContent && !block.querySelector('[data-pa-ref="true"]')) block.append(document.createElement('br'))
+    block.after(nextBlock)
+    const nextCaret = document.createRange()
+    nextCaret.selectNodeContents(nextBlock)
+    nextCaret.collapse(true)
+    selection.removeAllRanges()
+    selection.addRange(nextCaret)
+    emitChange()
+    return true
+  }
+
+  const handleKeyDown = (event) => {
+    if (mention && suggestions.length > 0 && event.key === 'ArrowDown') {
       event.preventDefault()
       setActiveIndex((current) => (current + 1) % suggestions.length)
-    } else if (event.key === 'ArrowUp') {
+    } else if (mention && suggestions.length > 0 && event.key === 'ArrowUp') {
       event.preventDefault()
       setActiveIndex((current) => (current - 1 + suggestions.length) % suggestions.length)
-    } else if (event.key === 'Enter') {
+    } else if (mention && suggestions.length > 0 && event.key === 'Enter') {
       event.preventDefault()
       chooseReference(suggestions[activeIndex])
     } else if (event.key === 'Escape') {
       event.preventDefault()
       setMention(null)
+    } else if (event.key === 'Enter' && insertRichBlockBreak()) {
+      event.preventDefault()
+      setMention(null)
+    } else if (event.key === 'Tab') {
+      const block = closestRichBlock(window.getSelection()?.anchorNode, editorRef.current)
+      if (block?.dataset.type === 'bullet') {
+        event.preventDefault()
+        const current = Number.parseInt(block.dataset.indent ?? '0', 10) || 0
+        block.dataset.indent = String(Math.max(0, Math.min(4, current + (event.shiftKey ? -1 : 1))))
+        emitChange()
+      }
     }
   }
 
   return (
     <div className="dibcac-planned-ask-editor">
-      <textarea
-        ref={textareaRef}
+      <div className="dibcac-rich-toolbar" aria-label="Planned Ask formatting">
+        <button type="button" title="Bold" onMouseDown={(event) => { event.preventDefault(); applyCommand('bold') }}><strong>B</strong></button>
+        <button type="button" title="Bulleted list" onMouseDown={(event) => { event.preventDefault(); updateCurrentBlock((block) => {
+          const exitingList = block.dataset.type === 'bullet'
+          block.dataset.type = exitingList ? 'paragraph' : 'bullet'
+          if (exitingList) block.dataset.indent = '0'
+          delete block.dataset.topicAnchorId
+        }) }}>• List</button>
+        <button type="button" title="Outdent" onMouseDown={(event) => { event.preventDefault(); updateCurrentBlock((block) => { block.dataset.indent = String(Math.max(0, (Number.parseInt(block.dataset.indent ?? '0', 10) || 0) - 1)) }) }}>←</button>
+        <button type="button" title="Indent" onMouseDown={(event) => { event.preventDefault(); updateCurrentBlock((block) => { block.dataset.indent = String(Math.min(4, (Number.parseInt(block.dataset.indent ?? '0', 10) || 0) + 1)) }) }}>→</button>
+        <span className="dibcac-rich-toolbar-separator" />
+        <button type="button" title="Small text" onMouseDown={(event) => { event.preventDefault(); applyCommand('fontSize', '2') }}>A−</button>
+        <button type="button" title="Normal text" onMouseDown={(event) => { event.preventDefault(); applyCommand('fontSize', '3') }}>A</button>
+        <button type="button" title="Large text" onMouseDown={(event) => { event.preventDefault(); applyCommand('fontSize', '5') }}>A+</button>
+        <span className="dibcac-rich-toolbar-separator" />
+        {PLANNED_ASK_COLORS.map((color) => (
+          <button key={color} type="button" className="dibcac-rich-color" title={`${color} text`} aria-label={`${color} text`} style={{ '--rich-color': RICH_COLOR_VALUES[color] }} onMouseDown={(event) => { event.preventDefault(); applyColor(color) }} />
+        ))}
+      </div>
+      <div
+        ref={editorRef}
         id="planned-ask"
-        className="dibcac-builder-textarea"
-        value={value}
-        onChange={handleChange}
+        className="dibcac-builder-textarea dibcac-rich-editor"
+        contentEditable
+        suppressContentEditableWarning
+        role="textbox"
+        aria-multiline="true"
+        aria-label="Planned Ask"
+        data-placeholder="Describe what you plan to ask or review during this session… Type @ to reference a checklist item."
+        onInput={() => { normalizeDashShortcut(); normalizeTopicShortcut(); emitChange(); detectMention() }}
         onKeyDown={handleKeyDown}
-        rows={4}
-        placeholder="Describe what you plan to ask or review during this session… Type @ to reference a checklist item."
-        style={{ resize: 'none', overflow: 'hidden' }}
         aria-autocomplete="list"
         aria-expanded={!!mention}
       />
@@ -559,30 +902,31 @@ function PlannedAskEditor({ content, onChange, referenceIndex }) {
   )
 }
 
-function PlannedAskReadOnly({ content, fallback, referenceIndex, onNavigate }) {
-  const normalized = normalizePlannedAskContent(content, fallback)
+function PlannedAskReadOnly({ document, content, fallback, referenceIndex, onNavigate, groupId, highlightedTopicAnchorId }) {
+  const normalized = normalizePlannedAskRichDocument(document, content, fallback)
   const referenceMap = buildChecklistReferenceMap(referenceIndex)
   return (
-    <p className="dibcac-group-card-ask-text">
-      {normalized.map((segment, index) => {
-        if (segment.type === 'text') return <span key={index}>{segment.text}</span>
-        const reference = referenceMap.get(`${segment.groupId}:${segment.itemId}`)
-        if (!reference) {
-          return <span key={index} className="dibcac-planned-ask-ref dibcac-planned-ask-ref--missing">Missing checklist reference</span>
-        }
-        return (
-          <button
-            key={index}
-            type="button"
-            className="dibcac-planned-ask-ref"
-            onClick={() => onNavigate?.({ groupId: segment.groupId, itemId: segment.itemId })}
-            title={`Open ${reference.groupName}: ${reference.label}`}
-          >
-            <strong>{reference.displayRef}</strong><span>— {reference.label}</span>
-          </button>
-        )
-      })}
-    </p>
+    <div className="dibcac-group-card-ask-text dibcac-rich-readonly">
+      {normalized.blocks.map((block, blockIndex) => block.type === 'topic' ? (
+        <div
+          key={block.topicAnchorId ?? blockIndex}
+          id={topicAnchorDomId(groupId, block.topicAnchorId)}
+          data-topic-anchor-id={block.topicAnchorId}
+          tabIndex={-1}
+          className={`dibcac-rich-topic${highlightedTopicAnchorId === `${groupId}:${block.topicAnchorId}` ? ' dibcac-rich-topic--highlighted' : ''}`}
+        >
+          {block.children.map((node, nodeIndex) => <RichInline key={nodeIndex} node={node} referenceMap={referenceMap} onNavigate={onNavigate} />)}
+        </div>
+      ) : (
+        <div
+          key={blockIndex}
+          className={`dibcac-rich-block dibcac-rich-block--${block.type}${isRichBlockComplete(block, referenceIndex) ? ' dibcac-rich-block--complete' : ''}`}
+          style={{ '--rich-indent': block.indent }}
+        >
+          {block.children.map((node, nodeIndex) => <RichInline key={nodeIndex} node={node} referenceMap={referenceMap} onNavigate={onNavigate} />)}
+        </div>
+      ))}
+    </div>
   )
 }
 
@@ -669,7 +1013,11 @@ function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, edit
 
   const [groupId] = useState(() => editingGroup?.id ?? crypto.randomUUID())
   const [groupName, setGroupName] = useState(() => editingGroup?.name ?? '')
-  const [plannedAskContent, setPlannedAskContent] = useState(() => normalizePlannedAskContent(editingGroup?.plannedAskContent, editingGroup?.plannedAsk ?? ''))
+  const [plannedAskRichDocument, setPlannedAskRichDocument] = useState(() => normalizePlannedAskRichDocument(
+    editingGroup?.plannedAskRichDocument,
+    editingGroup?.plannedAskContent,
+    editingGroup?.plannedAsk ?? '',
+  ))
   const [selectedObjs, setSelectedObjs] = useState(() =>
     editingGroup ? [...editingGroup.objectives] : []
   )
@@ -681,11 +1029,11 @@ function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, edit
   const [addingChecklistHeader, setAddingChecklistHeader] = useState(false)
   const [newHeaderText, setNewHeaderText] = useState('')
   const referenceGroups = useMemo(() => {
-    const draft = { ...(editingGroup ?? {}), id: groupId, name: groupName || 'Untitled group', checklist, plannedAskContent }
+    const draft = { ...(editingGroup ?? {}), id: groupId, name: groupName || 'Untitled group', checklist, plannedAskRichDocument }
     const existingIndex = allGroups.findIndex((group) => group.id === groupId)
     if (existingIndex === -1) return [...allGroups, draft]
     return allGroups.map((group) => group.id === groupId ? draft : group)
-  }, [allGroups, checklist, editingGroup, groupId, groupName, plannedAskContent])
+  }, [allGroups, checklist, editingGroup, groupId, groupName, plannedAskRichDocument])
   const referenceIndex = useMemo(() => buildChecklistReferenceIndex(referenceGroups), [referenceGroups])
 
   const objMap = useMemo(() => {
@@ -763,7 +1111,7 @@ function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, edit
   }
 
   const removeChecklistItem = (id) => {
-    const referenceCount = countPlannedAskReferences(referenceGroups, groupId, id)
+    const referenceCount = countAllPlannedAskReferences(referenceGroups, groupId, id)
     if (referenceCount > 0 && !window.confirm(`This checklist item is used by ${referenceCount} Planned Ask reference${referenceCount === 1 ? '' : 's'}. Delete it and leave those references marked as missing?`)) return
     setChecklist((prev) => prev.filter((i) => i.id !== id))
   }
@@ -802,6 +1150,8 @@ function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, edit
 
   const handleSave = () => {
     if (!groupName.trim()) return
+    const plannedAskContent = richDocumentToLegacyContent(plannedAskRichDocument)
+    const plannedAsk = richDocumentPlainText(plannedAskRichDocument, referenceIndex, true).trim()
     const normObjs = selectedObjs.map((o) => ({
       key: o.key ?? o.objectiveRef,
       controlId: o.controlId,
@@ -815,8 +1165,9 @@ function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, edit
       onSave({
         ...editingGroup,
         name: groupName.trim(),
-        plannedAsk: plannedAskFallbackText(plannedAskContent, referenceIndex).trim(),
+        plannedAsk,
         plannedAskContent,
+        plannedAskRichDocument,
         objectives: normObjs,
         checklist,
       })
@@ -824,8 +1175,9 @@ function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, edit
       onSave({
         id: groupId,
         name: groupName.trim(),
-        plannedAsk: plannedAskFallbackText(plannedAskContent, referenceIndex).trim(),
+        plannedAsk,
         plannedAskContent,
+        plannedAskRichDocument,
         objectives: normObjs,
         checklist,
         createdAt: new Date().toISOString(),
@@ -928,7 +1280,7 @@ function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, edit
 
         <div className="dibcac-builder-field">
           <label className="dibcac-builder-label" htmlFor="planned-ask">Planned Ask</label>
-          <PlannedAskEditor content={plannedAskContent} onChange={setPlannedAskContent} referenceIndex={referenceIndex} />
+          <PlannedAskEditor document={plannedAskRichDocument} onChange={setPlannedAskRichDocument} referenceIndex={referenceIndex} />
         </div>
 
         <div className="dibcac-builder-field">
@@ -1402,7 +1754,7 @@ function SavedGroupCard({
   onMoveObjectives, onRemoveObjectives, onUpdateChecklist, selectionMode, isSelected, onToggleSelect, isExpanded, onToggleExpanded,
   objectiveSelectionMode = false, selectedCrossGroupObjectives, onToggleCrossGroupObjective,
   onSelectAllCrossGroupObjectives, onDeselectAllCrossGroupObjectives,
-  groupNumber, referenceIndex, onNavigateChecklistItem, highlightedChecklistItemId, onReorderGroup,
+  groupNumber, referenceIndex, onNavigateChecklistItem, onNavigateTopic, highlightedChecklistItemId, highlightedTopicAnchorId, onReorderGroup,
 }) {
   const expanded = isExpanded ?? false
   const [commentsKey, setCommentsKey] = useState(null) // `${controlId}[${objId}]`
@@ -1423,6 +1775,7 @@ function SavedGroupCard({
 
   const checklist = useMemo(() => group.checklist ?? [], [group.checklist])
   const checklistNumbers = useMemo(() => numberChecklistEntries(checklist), [checklist])
+  const navigatorTopics = useMemo(() => buildTopicAnchorIndex(allGroups?.length ? allGroups : [group]), [allGroups, group])
 
   // Checklist items may attach objectives outside this group's own objective
   // list (any control in the catalog), so keys are parsed directly rather
@@ -1553,7 +1906,7 @@ function SavedGroupCard({
     const codes = new Set(group.objectives.map((o) => o.controlId.split('.')[0]))
     return [...codes].sort().join(' · ')
   }, [group.objectives])
-  const incomingReferenceCount = useMemo(() => countPlannedAskReferences(allGroups, group.id), [allGroups, group.id])
+  const incomingReferenceCount = useMemo(() => countAllPlannedAskReferences(allGroups, group.id), [allGroups, group.id])
 
   const cycleStatus = useCallback((controlId, objId) => {
     const current = readObjectiveStatus(controlId, objId)
@@ -1667,17 +2020,22 @@ function SavedGroupCard({
 
       {expanded && (
         <div className="dibcac-group-card-body">
-          {(group.plannedAsk || group.plannedAskContent?.length > 0) && (
+          {(group.plannedAsk || group.plannedAskContent?.length > 0 || group.plannedAskRichDocument?.blocks?.length > 0) && (
             <div className="dibcac-group-card-ask-block">
               <span className="dibcac-preview-section-label">Planned Ask</span>
               <PlannedAskReadOnly
+                document={group.plannedAskRichDocument}
                 content={group.plannedAskContent}
                 fallback={group.plannedAsk}
                 referenceIndex={referenceIndex}
                 onNavigate={onNavigateChecklistItem}
+                groupId={group.id}
+                highlightedTopicAnchorId={highlightedTopicAnchorId}
               />
             </div>
           )}
+
+          {navigatorTopics.length > 0 && <TopicNavigator topics={navigatorTopics} onNavigate={onNavigateTopic} compact />}
 
           {checklist.length > 0 && (
             <div className="dibcac-checklist">
@@ -1931,7 +2289,7 @@ function FolderSection({
   isOpen, onToggleOpen, expandedGroupIds, onToggleGroupExpanded,
   objectiveSelectionMode, selectedCrossGroupObjectives, onToggleCrossGroupObjective,
   onSelectAllCrossGroupObjectives, onDeselectAllCrossGroupObjectives,
-  groupNumberMap, referenceIndex, onNavigateChecklistItem, highlightedChecklistItemId, onReorderGroup,
+  groupNumberMap, referenceIndex, onNavigateChecklistItem, onNavigateTopic, highlightedChecklistItemId, highlightedTopicAnchorId, onReorderGroup,
 }) {
   const [confirming, setConfirming] = useState(false)
 
@@ -1985,7 +2343,9 @@ function FolderSection({
                 groupNumber={groupNumberMap.get(group.id)}
                 referenceIndex={referenceIndex}
                 onNavigateChecklistItem={onNavigateChecklistItem}
+                onNavigateTopic={onNavigateTopic}
                 highlightedChecklistItemId={highlightedChecklistItemId}
+                highlightedTopicAnchorId={highlightedTopicAnchorId}
                 onReorderGroup={onReorderGroup}
               />
             ))
@@ -2004,7 +2364,7 @@ function SavedGroupsPanel({
   onCreateFromSelectedObjectives, onMoveSelectedObjectives,
   openFolderIds, onToggleFolderOpen, expandedGroupIds, onToggleGroupExpanded,
   railExpanded, onToggleRailExpanded,
-  groupNumberMap, referenceIndex, onNavigateChecklistItem, highlightedChecklistItemId, onReorderGroup,
+  groupNumberMap, referenceIndex, onNavigateChecklistItem, onNavigateTopic, highlightedChecklistItemId, highlightedTopicAnchorId, onReorderGroup,
 }) {
   const [groupSort, setGroupSort] = useState('order') // 'order' | 'name' | 'created'
   const [sortDir,   setSortDir]   = useState('asc')      // 'asc' | 'desc'
@@ -2381,7 +2741,9 @@ function SavedGroupsPanel({
                   groupNumberMap={groupNumberMap}
                   referenceIndex={referenceIndex}
                   onNavigateChecklistItem={onNavigateChecklistItem}
+                  onNavigateTopic={onNavigateTopic}
                   highlightedChecklistItemId={highlightedChecklistItemId}
+                  highlightedTopicAnchorId={highlightedTopicAnchorId}
                   onReorderGroup={onReorderGroup}
                 />
               ))}
@@ -2418,7 +2780,9 @@ function SavedGroupsPanel({
                         groupNumber={groupNumberMap.get(group.id)}
                         referenceIndex={referenceIndex}
                         onNavigateChecklistItem={onNavigateChecklistItem}
+                        onNavigateTopic={onNavigateTopic}
                         highlightedChecklistItemId={highlightedChecklistItemId}
+                        highlightedTopicAnchorId={highlightedTopicAnchorId}
                         onReorderGroup={onReorderGroup}
                       />
                     ))}
@@ -2454,7 +2818,9 @@ function SavedGroupsPanel({
                   groupNumber={groupNumberMap.get(group.id)}
                   referenceIndex={referenceIndex}
                   onNavigateChecklistItem={onNavigateChecklistItem}
+                  onNavigateTopic={onNavigateTopic}
                   highlightedChecklistItemId={highlightedChecklistItemId}
+                  highlightedTopicAnchorId={highlightedTopicAnchorId}
                   onReorderGroup={onReorderGroup}
                 />
               ))}
@@ -2463,6 +2829,34 @@ function SavedGroupsPanel({
         </>
       )}
     </div>
+  )
+}
+
+function TopicNavigator({ topics, onNavigate, compact = false }) {
+  const [query, setQuery] = useState('')
+  const visible = useMemo(() => {
+    const normalized = query.trim().toLowerCase()
+    return normalized ? topics.filter((topic) => topic.label.toLowerCase().includes(normalized)) : topics
+  }, [query, topics])
+  return (
+    <section className={`dibcac-topic-navigator${compact ? ' dibcac-topic-navigator--compact' : ''}`} aria-label="Topic Navigator">
+      <div className="dibcac-topic-navigator-header">
+        <span>Topic Navigator</span>
+        {topics.length > 8 && (
+          <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a topic…" aria-label="Search topics" />
+        )}
+      </div>
+      <div className="dibcac-topic-navigator-chips">
+        {visible.length > 0 ? visible.map((topic) => (
+          <button
+            key={`${topic.groupId}:${topic.topicAnchorId}`}
+            type="button"
+            onClick={() => onNavigate(topic)}
+            title={`Open topic in ${topic.groupName}`}
+          >{topic.label}</button>
+        )) : <span className="dibcac-topic-navigator-empty">{topics.length ? 'No matching topics.' : 'Add a heading such as !REMOTE ACCESS! in Planned Ask.'}</span>}
+      </div>
+    </section>
   )
 }
 
@@ -2484,6 +2878,7 @@ function DibcacMode() {
   const [savedGroups,  setSavedGroups]  = useState(getReviewGroups)
   const [savedFolders, setSavedFolders] = useState(getReviewFolders)
   const referenceIndex = useMemo(() => buildChecklistReferenceIndex(savedGroups), [savedGroups])
+  const topicIndex = useMemo(() => buildTopicAnchorIndex(savedGroups), [savedGroups])
   const groupNumberMap = useMemo(() => buildGroupNumberMap(savedGroups), [savedGroups])
   // Lifted out of FolderSection/SavedGroupCard so open/expanded state survives
   // SavedGroupsPanel unmounting when entering builder mode to edit a group —
@@ -2509,13 +2904,13 @@ function DibcacMode() {
   const [templatesOpen, setTemplatesOpen] = useState(false)
   const [railExpanded, setRailExpanded] = useState(() => localStorage.getItem('cmmc-dibcac-rail-expanded') === 'true')
   const [highlightedChecklistItemId, setHighlightedChecklistItemId] = useState(null)
+  const [highlightedTopicAnchorId, setHighlightedTopicAnchorId] = useState(null)
   const highlightTimerRef = useRef(null)
   const searchRef = useRef(null)
 
   useEffect(() => () => clearTimeout(highlightTimerRef.current), [])
 
-  const navigateToChecklistItem = useCallback(({ groupId, itemId }) => {
-    const target = resolveChecklistNavigationTarget(savedGroups, referenceIndex, groupId, itemId)
+  const revealSavedGroupTarget = useCallback((target, elementId, setHighlight, highlightKey) => {
     if (!target) return false
     setMode('browse')
     setEditingGroup(null)
@@ -2529,20 +2924,30 @@ function DibcacMode() {
       })
     }
     setExpandedGroupIds((current) => {
-      const next = new Set(current).add(groupId)
+      const next = new Set(current).add(target.groupId)
       writeIdSet('cmmc-dibcac-expanded-group-ids', next)
       return next
     })
-    setHighlightedChecklistItemId(itemId)
+    setHighlight(highlightKey)
     clearTimeout(highlightTimerRef.current)
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      const element = document.getElementById(checklistItemDomId(itemId))
+      const element = document.getElementById(elementId)
       element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       element?.focus({ preventScroll: true })
-      highlightTimerRef.current = setTimeout(() => setHighlightedChecklistItemId(null), 1800)
+      highlightTimerRef.current = setTimeout(() => setHighlight(null), 1800)
     }))
     return true
-  }, [referenceIndex, savedGroups])
+  }, [])
+
+  const navigateToChecklistItem = useCallback(({ groupId, itemId }) => {
+    const target = resolveChecklistNavigationTarget(savedGroups, referenceIndex, groupId, itemId)
+    return revealSavedGroupTarget(target, checklistItemDomId(itemId), setHighlightedChecklistItemId, itemId)
+  }, [referenceIndex, revealSavedGroupTarget, savedGroups])
+
+  const navigateToTopic = useCallback(({ groupId, topicAnchorId }) => {
+    const target = resolveTopicNavigationTarget(savedGroups, topicIndex, groupId, topicAnchorId)
+    return revealSavedGroupTarget(target, topicAnchorDomId(groupId, topicAnchorId), setHighlightedTopicAnchorId, `${groupId}:${topicAnchorId}`)
+  }, [revealSavedGroupTarget, savedGroups, topicIndex])
 
   const allObjs = useMemo(() => {
     const list = []
@@ -2632,6 +3037,7 @@ function DibcacMode() {
         name: group.name,
         plannedAsk: group.plannedAsk,
         plannedAskContent: group.plannedAskContent,
+        plannedAskRichDocument: group.plannedAskRichDocument,
         objectives: group.objectives,
         checklist: group.checklist,
       })
@@ -2989,7 +3395,9 @@ function DibcacMode() {
                         groupNumber={groupNumberMap.get(group.id)}
                         referenceIndex={referenceIndex}
                         onNavigateChecklistItem={navigateToChecklistItem}
+                        onNavigateTopic={navigateToTopic}
                         highlightedChecklistItemId={highlightedChecklistItemId}
+                        highlightedTopicAnchorId={highlightedTopicAnchorId}
                         onReorderGroup={handleReorderGroup}
                       />
                     ))}
@@ -3027,7 +3435,9 @@ function DibcacMode() {
               groupNumberMap={groupNumberMap}
               referenceIndex={referenceIndex}
               onNavigateChecklistItem={navigateToChecklistItem}
+              onNavigateTopic={navigateToTopic}
               highlightedChecklistItemId={highlightedChecklistItemId}
+              highlightedTopicAnchorId={highlightedTopicAnchorId}
               onReorderGroup={handleReorderGroup}
             />
           )}

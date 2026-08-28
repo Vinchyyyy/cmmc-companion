@@ -606,6 +606,41 @@ For this codebase, the best balance is a versioned structured Planned Ask docume
 
 This avoids offset corruption, keeps identity stable, permits a deterministic plain-text fallback, and makes read-only rendering straightforward. It does require a purpose-built editor adapter or careful textarea serialization. A pragmatic staged implementation could begin with tokens, then migrate to structured segments while retaining legacy parsing.
 
+The implemented rich-text extension adds `plannedAskRichDocument` while continuing to generate both fields above for backward compatibility:
+
+```json
+{
+  "plannedAskRichDocument": {
+    "version": 1,
+    "blocks": [
+      {
+        "type": "bullet",
+        "indent": 1,
+        "children": [
+          { "type": "text", "text": "Demonstrate ", "bold": true, "color": "blue", "size": "large" },
+          { "type": "checklistRef", "groupId": "group-uuid", "itemId": "item-uuid" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Supported formatting is intentionally limited to paragraph/bullet blocks, Topic Anchor headings, indentation levels 0–4, bold, the approved color palette, and small/normal/large text. Full-project JSON schema 11 and DIBCAC template schema 4 preserve this document. Template instantiation remaps reference nodes to regenerated group and checklist-item IDs and regenerates Topic Anchor IDs. Imported legacy strings and `plannedAskContent` arrays are migrated into a version-1 rich document when loaded, edited, or templated.
+
+Topic Anchors use a block with stable identity separate from its editable label:
+
+```json
+{
+  "type": "topic",
+  "indent": 0,
+  "topicAnchorId": "stable-topic-uuid",
+  "children": [{ "type": "text", "text": "REMOTE ACCESS" }]
+}
+```
+
+Typing a complete `!REMOTE ACCESS!` line promotes it to this structured block immediately. Renaming the block updates only its text and retains `topicAnchorId`. The global Topic Navigator derives its entries from canonical review-group order followed by block order, while navigation resolves `groupId + topicAnchorId`, expands the containing folder/group, and targets the stable rendered DOM anchor. Normal exclamation punctuation is not promoted because the entire trimmed block must match the paired-delimiter syntax and contain at least one letter or number.
+
 ### Stable behavior across reordering
 
 Every reference must resolve by `groupId + itemId`. At render time:

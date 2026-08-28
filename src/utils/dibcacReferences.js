@@ -42,6 +42,7 @@ export function buildChecklistReferenceIndex(groups) {
         displayRef: `G${groupNumber}-${localNumber}`,
         label: item.text,
         folderId: group.folderId ?? null,
+        checked: !!item.checked,
       })
     }
   }

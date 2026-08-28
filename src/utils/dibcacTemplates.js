@@ -1,9 +1,10 @@
 import { DEFAULT_DIBCAC_TEMPLATE_BASE64 } from '../data/defaultDibcacTemplate.js'
 import { normalizePlannedAskContent, remapPlannedAskContent } from './dibcacReferences.js'
+import { normalizePlannedAskRichDocument, remapPlannedAskRichDocument, richDocumentToLegacyContent } from './dibcacRichText.js'
 
 const STORAGE_KEY = 'cmmc-dibcac-templates'
 export const DIBCAC_TEMPLATE_KIND = 'cmmc-dibcac-template'
-export const DIBCAC_TEMPLATE_SCHEMA_VERSION = 2
+export const DIBCAC_TEMPLATE_SCHEMA_VERSION = 4
 
 const makeId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
 
@@ -44,15 +45,21 @@ export function normalizeDibcacTemplate(value, fallbackName = 'Imported DIBCAC T
   const folderIds = new Set(folders.map((folder) => folder.id))
   const groups = rawGroups
     .filter((group) => group && typeof group === 'object' && typeof group.name === 'string' && group.name.trim())
-    .map((group) => ({
-      id: typeof group.id === 'string' && group.id ? group.id : makeId(),
-      name: group.name.trim(),
-      folderId: typeof group.folderId === 'string' && folderIds.has(group.folderId) ? group.folderId : null,
-      plannedAsk: typeof group.plannedAsk === 'string' ? group.plannedAsk : '',
-      plannedAskContent: normalizePlannedAskContent(group.plannedAskContent, typeof group.plannedAsk === 'string' ? group.plannedAsk : ''),
-      objectives: Array.isArray(group.objectives) ? group.objectives.map(cleanObjective).filter(Boolean) : [],
-      checklist: Array.isArray(group.checklist) ? group.checklist.map(cleanChecklistEntry).filter(Boolean) : [],
-    }))
+    .map((group) => {
+      const fallback = typeof group.plannedAsk === 'string' ? group.plannedAsk : ''
+      const legacyContent = normalizePlannedAskContent(group.plannedAskContent, fallback)
+      const plannedAskRichDocument = normalizePlannedAskRichDocument(group.plannedAskRichDocument, legacyContent, fallback)
+      return {
+        id: typeof group.id === 'string' && group.id ? group.id : makeId(),
+        name: group.name.trim(),
+        folderId: typeof group.folderId === 'string' && folderIds.has(group.folderId) ? group.folderId : null,
+        plannedAsk: fallback,
+        plannedAskContent: richDocumentToLegacyContent(plannedAskRichDocument),
+        plannedAskRichDocument,
+        objectives: Array.isArray(group.objectives) ? group.objectives.map(cleanObjective).filter(Boolean) : [],
+        checklist: Array.isArray(group.checklist) ? group.checklist.map(cleanChecklistEntry).filter(Boolean) : [],
+      }
+    })
 
   return {
     id: typeof raw.id === 'string' && raw.id ? raw.id : makeId(),
@@ -146,6 +153,11 @@ export function instantiateDibcacTemplate(template) {
   const folderIdMap = new Map(normalized.folders.map((folder) => [folder.id, makeId()]))
   const groupIdMap = new Map(normalized.groups.map((group) => [group.id, makeId()]))
   const itemIdMap = new Map(normalized.groups.flatMap((group) => group.checklist.map((item) => [item.id, makeId()])))
+  const topicAnchorIdMap = new Map(normalized.groups.flatMap((group) => (
+    group.plannedAskRichDocument.blocks
+      .filter((block) => block.type === 'topic' && block.topicAnchorId)
+      .map((block) => [block.topicAnchorId, makeId()])
+  )))
   const folders = normalized.folders.map((folder) => ({ id: folderIdMap.get(folder.id), name: folder.name, createdAt }))
   const groups = normalized.groups.map((group) => ({
     id: groupIdMap.get(group.id),
@@ -153,6 +165,7 @@ export function instantiateDibcacTemplate(template) {
     folderId: group.folderId ? folderIdMap.get(group.folderId) ?? null : null,
     plannedAsk: group.plannedAsk,
     plannedAskContent: remapPlannedAskContent(group.plannedAskContent, groupIdMap, itemIdMap),
+    plannedAskRichDocument: remapPlannedAskRichDocument(group.plannedAskRichDocument, groupIdMap, itemIdMap, topicAnchorIdMap),
     objectives: group.objectives.map((item) => ({ ...item })),
     checklist: group.checklist.map((item) => ({ ...item, id: itemIdMap.get(item.id), ...(item.type === 'item' ? { checked: false, objKeys: [...item.objKeys] } : {}) })),
     createdAt,

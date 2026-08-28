@@ -13,6 +13,7 @@
     "test:checklist-interview-notes": "node scripts/test-checklist-interview-notes.mjs",
     "test:project-dibcac-roundtrip": "node scripts/test-project-dibcac-roundtrip.mjs",
     "test:dibcac-references": "node scripts/test-dibcac-references.mjs",
+    "test:dibcac-rich-text": "node scripts/test-dibcac-rich-text.mjs",
     "test:global-evidence": "node scripts/test-global-evidence-pool.mjs",
     "test:crm-import": "node scripts/test-crm-bulk-import.mjs",
     "test:paste-formatting": "node scripts/test-paste-formatting.mjs",

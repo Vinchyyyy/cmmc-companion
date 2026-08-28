@@ -40,6 +40,16 @@ const sampleGroups = [{
     { type: 'text', text: 'Review ' },
     { type: 'checklistRef', groupId: 'group-one', itemId: 'question-one' },
   ],
+  plannedAskRichDocument: {
+    version: 1,
+    blocks: [
+      { type: 'bullet', indent: 1, children: [
+        { type: 'text', text: 'Review ', bold: true, color: 'green' },
+        { type: 'checklistRef', groupId: 'group-one', itemId: 'question-one' },
+      ] },
+      { type: 'topic', topicAnchorId: 'topic-access', indent: 0, children: [{ type: 'text', text: 'ACCESS APPROVALS' }] },
+    ],
+  },
   comment: 'Assessment-specific comment that must not travel.',
   status: 'MET',
   objectives: [{ key: 'AC.L1-3.1.1::a', controlId: 'AC.L1-3.1.1', objId: 'a', objText: 'Authorized access is limited.', standard: 'CMMC' }],
@@ -50,6 +60,7 @@ const custom = createDibcacTemplateFromCurrent('Reusable AC', sampleGroups, samp
 assert.equal(custom.groups[0].checklist[0].checked, false)
 assert.equal('interviewNote' in custom.groups[0].checklist[0], false)
 assert.deepEqual(custom.groups[0].plannedAskContent[1], { type: 'checklistRef', groupId: 'group-one', itemId: 'question-one' })
+assert.equal(custom.groups[0].plannedAskRichDocument.blocks[0].children[0].bold, true)
 assert.equal('comment' in custom.groups[0], false)
 assert.equal('status' in custom.groups[0], false)
 assert.deepEqual(custom.folders[0], { id: 'folder-one', name: 'Access Control' })
@@ -63,6 +74,10 @@ assert.equal(instantiated.groups[0].plannedAsk, sampleGroups[0].plannedAsk)
 assert.notEqual(instantiated.groups[0].plannedAskContent[1].groupId, 'group-one')
 assert.equal(instantiated.groups[0].plannedAskContent[1].groupId, instantiated.groups[0].id)
 assert.equal(instantiated.groups[0].plannedAskContent[1].itemId, instantiated.groups[0].checklist[0].id)
+assert.equal(instantiated.groups[0].plannedAskRichDocument.blocks[0].children[1].groupId, instantiated.groups[0].id)
+assert.equal(instantiated.groups[0].plannedAskRichDocument.blocks[0].children[1].itemId, instantiated.groups[0].checklist[0].id)
+assert.notEqual(instantiated.groups[0].plannedAskRichDocument.blocks[1].topicAnchorId, 'topic-access')
+assert.equal(instantiated.groups[0].plannedAskRichDocument.blocks[1].children[0].text, 'ACCESS APPROVALS')
 
 saveCustomDibcacTemplate(custom)
 assert.equal(readCustomDibcacTemplates().length, 1)
@@ -90,6 +105,7 @@ assert.equal('controls' in projectBackup.template, false)
 assert.equal('findings' in projectBackup.template, false)
 assert.equal('overallComments' in projectBackup.template, false)
 assert.equal(projectBackup.template.groups[0].checklist[0].checked, false)
+assert.equal(projectBackup.template.groups[0].plannedAskRichDocument.blocks[1].topicAnchorId, 'topic-access')
 
 assert.equal(extractDibcacTemplate({ controls: [] }).ok, false)
 assert.equal(extractDibcacTemplate({ groups: [] }).ok, false)
