@@ -844,6 +844,14 @@ function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) 
         event.preventDefault()
         const current = Number.parseInt(block.dataset.indent ?? '0', 10) || 0
         block.dataset.indent = String(Math.max(0, Math.min(4, current + (event.shiftKey ? -1 : 1))))
+        setListActive(true)
+        emitChange()
+      } else if (block?.dataset.type === 'paragraph' && !event.shiftKey) {
+        event.preventDefault()
+        block.dataset.type = 'bullet'
+        block.dataset.indent = '0'
+        delete block.dataset.topicAnchorId
+        setListActive(true)
         emitChange()
       }
     }
