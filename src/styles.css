@@ -9435,6 +9435,35 @@ button.evidence-type-chip:focus-visible {
   gap: var(--space-4);
 }
 
+.dibcac-browser-expand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dibcac-browser-expand-row span {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.dibcac-browser-expand-row button {
+  padding: 5px 10px;
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, var(--color-border));
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dibcac-browser-expand-row button:hover {
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
+}
+
 .dibcac-empty {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
@@ -10390,6 +10419,20 @@ button.evidence-type-chip:focus-visible {
   margin-top: 1px;
 }
 
+.dibcac-inline-delete-confirm,
+.dibcac-objective-remove-confirm {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dibcac-inline-delete-confirm span,
+.dibcac-objective-remove-confirm span {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+
 .dibcac-action-btn {
   padding: 5px var(--space-3);
   background: none;
@@ -10524,6 +10567,19 @@ button.evidence-type-chip:focus-visible {
   background: color-mix(in srgb, var(--color-accent, #3b82f6) 8%, var(--color-surface));
   border: 1px solid color-mix(in srgb, var(--color-accent, #3b82f6) 30%, transparent);
   border-radius: var(--radius-md);
+}
+
+.dibcac-objective-remove-confirm {
+  width: 100%;
+}
+
+.dibcac-objective-remove-confirm span {
+  flex: 1;
+}
+
+.dibcac-obj-move-bar .dibcac-action-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
 }
 
 /* ── Group checklist ─────────────────────────────────────────────────────── */
@@ -11561,6 +11617,11 @@ button.evidence-type-chip:focus-visible {
   gap: var(--space-2);
   font-size: var(--text-xs);
   color: var(--color-text-muted);
+}
+
+.dibcac-folder-delete-confirm span {
+  max-width: 230px;
+  line-height: 1.35;
 }
 
 .dibcac-folder-body {

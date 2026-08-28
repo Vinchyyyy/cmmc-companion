@@ -308,12 +308,49 @@ function GroupedBrowser({ flatObjs, builderMode, checkedKeys, onCheck, onPreview
     ...[...grouped.keys()].filter((m) => !METHOD_ORDER.includes(m)),
   ]
 
+  const expansionKeys = useMemo(() => {
+    const methods = []
+    const families = []
+    const controls = []
+    for (const [method, byFamily] of grouped) {
+      methods.push(method)
+      for (const [family, byControl] of byFamily) {
+        families.push(`${method}:${family}`)
+        for (const controlId of byControl.keys()) controls.push(`${method}:${family}:${controlId}`)
+      }
+    }
+    return { methods, families, controls }
+  }, [grouped])
+
+  const allExpanded = expansionKeys.methods.length > 0 &&
+    expansionKeys.methods.every((key) => openMethods.has(key)) &&
+    expansionKeys.families.every((key) => openFamilies.has(key)) &&
+    expansionKeys.controls.every((key) => openControls.has(key))
+
+  const expandAll = () => {
+    setOpenMethods(new Set(expansionKeys.methods))
+    setOpenFamilies(new Set(expansionKeys.families))
+    setOpenControls(new Set(expansionKeys.controls))
+  }
+
+  const collapseAll = () => {
+    setOpenMethods(new Set())
+    setOpenFamilies(new Set())
+    setOpenControls(new Set())
+  }
+
   if (flatObjs.length === 0) {
     return <div className="dibcac-empty">No objectives match the current filters.</div>
   }
 
   return (
     <div className="dibcac-browser">
+      <div className="dibcac-browser-expand-row">
+        <span>{flatObjs.length} matching objective{flatObjs.length === 1 ? '' : 's'}</span>
+        <button type="button" onClick={allExpanded ? collapseAll : expandAll}>
+          {allExpanded ? 'Collapse All' : 'Expand All'}
+        </button>
+      </div>
       {orderedMethods.map((method) => {
         const meta = METHOD_META[method] ?? METHOD_META.unknown
         const byFamily = grouped.get(method)
@@ -629,7 +666,7 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
   }
 
   const handleSave = () => {
-    if (!groupName.trim() || selectedObjs.length === 0) return
+    if (!groupName.trim()) return
     const normObjs = selectedObjs.map((o) => ({
       key: o.key ?? o.objectiveRef,
       controlId: o.controlId,
@@ -921,7 +958,7 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
           type="button"
           className="dibcac-builder-save"
           onClick={handleSave}
-          disabled={!groupName.trim() || selectedObjs.length === 0}
+          disabled={!groupName.trim()}
         >
           {isEditing ? 'Save Changes' : 'Save Group'}
         </button>
@@ -1191,7 +1228,7 @@ function GroupFindingsModal({ group, onClose }) {
 
 function SavedGroupCard({
   group, savedFolders, allGroups, onDelete, onEditRequest, onPreview, onMoveToFolder,
-  onMoveObjectives, onUpdateChecklist, selectionMode, isSelected, onToggleSelect, isExpanded, onToggleExpanded,
+  onMoveObjectives, onRemoveObjectives, onUpdateChecklist, selectionMode, isSelected, onToggleSelect, isExpanded, onToggleExpanded,
 }) {
   const expanded = isExpanded ?? false
   const [commentsKey, setCommentsKey] = useState(null) // `${controlId}[${objId}]`
@@ -1199,6 +1236,8 @@ function SavedGroupCard({
   const [, forceUpdate] = useState(0)
   const [objSelectMode, setObjSelectMode] = useState(false)
   const [selectedObjKeys, setSelectedObjKeys] = useState(() => new Set())
+  const [confirmingGroupDelete, setConfirmingGroupDelete] = useState(false)
+  const [confirmingObjectiveRemove, setConfirmingObjectiveRemove] = useState(false)
   const [objView, setObjView] = useState(() => localStorage.getItem('cmmc-dibcac-group-obj-view') === 'cards' ? 'cards' : 'list')
 
   const setObjViewPersisted = (view) => {
@@ -1274,6 +1313,7 @@ function SavedGroupCard({
   const toggleObjSelectMode = () => {
     setObjSelectMode((v) => !v)
     setSelectedObjKeys(new Set())
+    setConfirmingObjectiveRemove(false)
   }
 
   const toggleObjSelected = (key) => {
@@ -1287,6 +1327,14 @@ function SavedGroupCard({
   const handleMoveSelected = (targetGroupId) => {
     if (!targetGroupId || selectedObjKeys.size === 0) return
     onMoveObjectives?.(group.id, targetGroupId, [...selectedObjKeys])
+    setObjSelectMode(false)
+    setSelectedObjKeys(new Set())
+  }
+
+  const handleRemoveSelected = () => {
+    if (selectedObjKeys.size === 0) return
+    onRemoveObjectives?.(group.id, [...selectedObjKeys])
+    setConfirmingObjectiveRemove(false)
     setObjSelectMode(false)
     setSelectedObjKeys(new Set())
   }
@@ -1373,11 +1421,19 @@ function SavedGroupCard({
             onClick={() => setShowFindingsModal(true)}
             title="Generate findings for MET objectives in this group"
           >Findings</button>
-          <button
-            type="button"
-            className="dibcac-action-btn dibcac-action-btn--delete"
-            onClick={() => onDelete(group.id)}
-          >Delete</button>
+          {confirmingGroupDelete ? (
+            <div className="dibcac-inline-delete-confirm">
+              <span>Delete this group?</span>
+              <button type="button" className="dibcac-action-btn dibcac-action-btn--delete" onClick={() => onDelete(group.id)}>Yes, delete</button>
+              <button type="button" className="dibcac-action-btn" onClick={() => setConfirmingGroupDelete(false)}>Cancel</button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="dibcac-action-btn dibcac-action-btn--delete"
+              onClick={() => setConfirmingGroupDelete(true)}
+            >Delete</button>
+          )}
           {savedFolders && savedFolders.length > 0 && onMoveToFolder && (
             <select
               className="dibcac-folder-select"
@@ -1458,7 +1514,7 @@ function SavedGroupCard({
                     onClick={() => setObjViewPersisted('cards')}
                   >Cards</button>
                 </div>
-                {otherGroups.length > 0 && (
+                {group.objectives.length > 0 && (
                   objSelectMode ? (
                     <button type="button" className="dibcac-sort-btn" onClick={toggleObjSelectMode}>Cancel</button>
                   ) : (
@@ -1469,21 +1525,39 @@ function SavedGroupCard({
             </div>
             {objSelectMode && (
               <div className="dibcac-obj-move-bar">
-                <span className="dibcac-selection-count">
-                  {selectedObjKeys.size} selected
-                </span>
-                <select
-                  className="dibcac-folder-select"
-                  value=""
-                  disabled={selectedObjKeys.size === 0}
-                  onChange={(e) => handleMoveSelected(e.target.value)}
-                  aria-label="Move selected objectives to group"
-                >
-                  <option value="">Move to group…</option>
-                  {otherGroups.map((g) => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
-                  ))}
-                </select>
+                {confirmingObjectiveRemove ? (
+                  <div className="dibcac-objective-remove-confirm">
+                    <span>Remove {selectedObjKeys.size} selected objective{selectedObjKeys.size === 1 ? '' : 's'} from this group? Assessment data will remain intact.</span>
+                    <button type="button" className="dibcac-action-btn dibcac-action-btn--delete" onClick={handleRemoveSelected}>Yes, remove</button>
+                    <button type="button" className="dibcac-action-btn" onClick={() => setConfirmingObjectiveRemove(false)}>Cancel</button>
+                  </div>
+                ) : (
+                  <>
+                    <span className="dibcac-selection-count">
+                      {selectedObjKeys.size} selected
+                    </span>
+                    {otherGroups.length > 0 && (
+                      <select
+                        className="dibcac-folder-select"
+                        value=""
+                        disabled={selectedObjKeys.size === 0}
+                        onChange={(e) => handleMoveSelected(e.target.value)}
+                        aria-label="Move selected objectives to group"
+                      >
+                        <option value="">Move to group…</option>
+                        {otherGroups.map((g) => (
+                          <option key={g.id} value={g.id}>{g.name}</option>
+                        ))}
+                      </select>
+                    )}
+                    <button
+                      type="button"
+                      className="dibcac-action-btn dibcac-action-btn--delete"
+                      disabled={selectedObjKeys.size === 0}
+                      onClick={() => setConfirmingObjectiveRemove(true)}
+                    >Remove selected</button>
+                  </>
+                )}
               </div>
             )}
             <div className={objView === 'cards' ? 'dibcac-group-card-objs-grid' : undefined}>
@@ -1570,7 +1644,7 @@ function parseGroupSortKey(name) {
 
 function FolderSection({
   folder, groups, savedFolders, allGroups, onDelete, onEditRequest, onPreview,
-  onMoveToFolder, onDeleteFolder, onMoveObjectives, onUpdateChecklist, selectionMode, selectedIds, onToggleSelect,
+  onMoveToFolder, onDeleteFolder, onMoveObjectives, onRemoveObjectives, onUpdateChecklist, selectionMode, selectedIds, onToggleSelect,
   isOpen, onToggleOpen, expandedGroupIds, onToggleGroupExpanded,
 }) {
   const [confirming, setConfirming] = useState(false)
@@ -1586,9 +1660,9 @@ function FolderSection({
         </button>
         {confirming ? (
           <div className="dibcac-folder-delete-confirm">
-            <span>Delete folder?</span>
-            <button type="button" className="dibcac-action-btn dibcac-action-btn--delete" onClick={() => { onDeleteFolder(folder.id); setConfirming(false) }}>Yes</button>
-            <button type="button" className="dibcac-action-btn" onClick={() => setConfirming(false)}>No</button>
+            <span>Delete this folder? Its groups will become ungrouped.</span>
+            <button type="button" className="dibcac-action-btn dibcac-action-btn--delete" onClick={() => { onDeleteFolder(folder.id); setConfirming(false) }}>Yes, delete</button>
+            <button type="button" className="dibcac-action-btn" onClick={() => setConfirming(false)}>Cancel</button>
           </div>
         ) : (
           <button type="button" className="dibcac-action-btn dibcac-action-btn--delete" onClick={() => setConfirming(true)}>Delete</button>
@@ -1610,6 +1684,7 @@ function FolderSection({
                 onPreview={onPreview}
                 onMoveToFolder={onMoveToFolder}
                 onMoveObjectives={onMoveObjectives}
+                onRemoveObjectives={onRemoveObjectives}
                 onUpdateChecklist={onUpdateChecklist}
                 selectionMode={selectionMode}
                 isSelected={selectedIds?.has(group.id)}
@@ -1629,7 +1704,7 @@ function FolderSection({
 
 function SavedGroupsPanel({
   savedGroups, savedFolders, onDelete, onEditRequest, onPreview, onEnterBuilder,
-  onCreateFolder, onDeleteFolder, onMoveGroupToFolder, onBatchMove, onMoveObjectives, onUpdateChecklist,
+  onCreateFolder, onDeleteFolder, onMoveGroupToFolder, onBatchMove, onMoveObjectives, onRemoveObjectives, onUpdateChecklist,
   openFolderIds, onToggleFolderOpen, expandedGroupIds, onToggleGroupExpanded,
   railExpanded, onToggleRailExpanded,
 }) {
@@ -1850,6 +1925,7 @@ function SavedGroupsPanel({
                   onMoveToFolder={onMoveGroupToFolder}
                   onDeleteFolder={onDeleteFolder}
                   onMoveObjectives={onMoveObjectives}
+                  onRemoveObjectives={onRemoveObjectives}
                   onUpdateChecklist={onUpdateChecklist}
                   selectionMode={selectionMode}
                   selectedIds={selectedIds}
@@ -1878,6 +1954,7 @@ function SavedGroupsPanel({
                         onPreview={onPreview}
                         onMoveToFolder={onMoveGroupToFolder}
                         onMoveObjectives={onMoveObjectives}
+                        onRemoveObjectives={onRemoveObjectives}
                         onUpdateChecklist={onUpdateChecklist}
                         selectionMode={selectionMode}
                         isSelected={selectedIds.has(group.id)}
@@ -1903,6 +1980,7 @@ function SavedGroupsPanel({
                   onPreview={onPreview}
                   onMoveToFolder={onMoveGroupToFolder}
                   onMoveObjectives={onMoveObjectives}
+                  onRemoveObjectives={onRemoveObjectives}
                   onUpdateChecklist={onUpdateChecklist}
                   selectionMode={selectionMode}
                   isSelected={selectedIds.has(group.id)}
@@ -2098,6 +2176,20 @@ function DibcacMode() {
     saveReviewGroups(next)
     setSavedGroups(next)
     setExpandedGroupIds((prev) => new Set(prev).add(sourceGroupId).add(targetGroupId))
+  }
+
+  const handleRemoveObjectives = (groupId, objKeys) => {
+    if (objKeys.length === 0) return
+    const keySet = new Set(objKeys)
+    const next = savedGroups.map((group) => group.id === groupId
+      ? {
+          ...group,
+          objectives: group.objectives.filter((objective) => !keySet.has(objective.key ?? objective.objectiveRef)),
+          updatedAt: new Date().toISOString(),
+        }
+      : group)
+    saveReviewGroups(next)
+    setSavedGroups(next)
   }
 
   // Persists a group's checklist (add/remove/check/uncheck items) straight
@@ -2296,6 +2388,7 @@ function DibcacMode() {
                         onEditRequest={handleEditRequest}
                         onPreview={setPreviewKey}
                         onMoveObjectives={handleMoveObjectives}
+                        onRemoveObjectives={handleRemoveObjectives}
                         onUpdateChecklist={handleUpdateChecklist}
                         isExpanded={expandedGroupIds.has(group.id)}
                         onToggleExpanded={() => toggleGroupExpanded(group.id)}
@@ -2318,6 +2411,7 @@ function DibcacMode() {
               onMoveGroupToFolder={handleMoveGroupToFolder}
               onBatchMove={handleBatchMoveGroups}
               onMoveObjectives={handleMoveObjectives}
+              onRemoveObjectives={handleRemoveObjectives}
               onUpdateChecklist={handleUpdateChecklist}
               openFolderIds={openFolderIds}
               onToggleFolderOpen={toggleFolderOpen}
