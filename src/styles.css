@@ -10696,12 +10696,31 @@ button.evidence-type-chip:focus-visible {
 }
 
 .dibcac-checklist-header-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-text);
   padding: var(--space-2) 2px 4px;
   margin-top: var(--space-2);
   border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+.dibcac-checklist-number {
+  flex: 0 0 auto;
+  min-width: 2rem;
+  color: var(--dash-accent);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 650;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.dibcac-checklist-number--header {
+  min-width: 1.25rem;
+  font-size: 0.8rem;
 }
 
 .dibcac-checklist-header-row:first-child {
@@ -10779,15 +10798,19 @@ button.evidence-type-chip:focus-visible {
 
 .dibcac-checklist-obj-list {
   list-style: none;
-  margin: 0;
+  margin: 2px 0 0;
   padding-left: 27px;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 5px;
 }
 
 .dibcac-checklist-obj-item {
-  font-size: 10px;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: baseline;
+  gap: 7px;
+  font-size: 11px;
   color: var(--color-text-muted);
   position: relative;
 }
@@ -10796,6 +10819,23 @@ button.evidence-type-chip:focus-visible {
   content: '–';
   position: absolute;
   left: -11px;
+}
+
+.dibcac-checklist-obj-ref {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.dibcac-checklist-obj-statement {
+  color: color-mix(in srgb, var(--color-text) 78%, var(--color-text-muted));
+  line-height: 1.4;
+}
+
+@media (max-width: 720px) {
+  .dibcac-checklist-obj-item {
+    grid-template-columns: 1fr;
+    gap: 1px;
+  }
 }
 
 .dibcac-checklist-add-form {

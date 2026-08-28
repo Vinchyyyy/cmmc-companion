@@ -78,6 +78,30 @@ const METHOD_META = {
 const ALL_FAMILIES = [...new Set(controls.map((c) => c.family))]
 const CONTROL_BY_ID = new Map(controls.map((c) => [c.id, c]))
 
+function numberChecklistEntries(checklist) {
+  const numbers = new Map()
+  let topLevel = 0
+  let currentHeader = 0
+  let child = 0
+
+  for (const entry of checklist ?? []) {
+    if (entry.type === 'header') {
+      topLevel += 1
+      currentHeader = topLevel
+      child = 0
+      numbers.set(entry.id, String(currentHeader))
+    } else if (currentHeader > 0) {
+      child += 1
+      numbers.set(entry.id, `${currentHeader}.${child}`)
+    } else {
+      topLevel += 1
+      numbers.set(entry.id, String(topLevel))
+    }
+  }
+
+  return numbers
+}
+
 // ── Shared chips ──────────────────────────────────────────────────────────────
 
 function MethodChip({ standard }) {
@@ -553,6 +577,7 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
     editingGroup ? [...editingGroup.objectives] : []
   )
   const [checklist, setChecklist] = useState(() => editingGroup?.checklist ?? [])
+  const checklistNumbers = useMemo(() => numberChecklistEntries(checklist), [checklist])
   const [addingChecklistItem, setAddingChecklistItem] = useState(false)
   const [newItemText, setNewItemText] = useState('')
   const [newItemObjKeys, setNewItemObjKeys] = useState(() => new Set())
@@ -844,6 +869,7 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
                 return item.type === 'header' ? (
                   <div key={item.id} className={`dibcac-checklist-header-edit-row${dragState}`} {...dragProps}>
                     <span className="dibcac-checklist-drag-handle" aria-hidden="true" title="Drag to reorder">⠿</span>
+                    <span className="dibcac-checklist-number dibcac-checklist-number--header">{checklistNumbers.get(item.id)}</span>
                     <input
                       type="text"
                       className="dibcac-builder-input dibcac-checklist-header-input"
@@ -861,6 +887,7 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
                   <div key={item.id} className={`dibcac-checklist-edit-row${dragState}`} {...dragProps}>
                     <div className="dibcac-checklist-row-main">
                       <span className="dibcac-checklist-drag-handle" aria-hidden="true" title="Drag to reorder">⠿</span>
+                      <span className="dibcac-checklist-number">{checklistNumbers.get(item.id)}</span>
                       <input
                         type="text"
                         className="dibcac-builder-input"
@@ -1275,7 +1302,8 @@ function SavedGroupCard({
     try { localStorage.setItem('cmmc-dibcac-group-obj-view', view) } catch { /* ignore */ }
   }
 
-  const checklist = group.checklist ?? []
+  const checklist = useMemo(() => group.checklist ?? [], [group.checklist])
+  const checklistNumbers = useMemo(() => numberChecklistEntries(checklist), [checklist])
 
   // Checklist items may attach objectives outside this group's own objective
   // list (any control in the catalog), so keys are parsed directly rather
@@ -1285,7 +1313,13 @@ function SavedGroupCard({
     const m = key.match(/^(.+)\[([^[\]]+)\]$/)
     return m ? { controlId: m[1], objId: m[2] } : null
   }
-  const objLabelFor = (key) => key
+  const objectiveDetailsFor = (key) => {
+    const parsed = parseObjKey(key)
+    const objective = parsed
+      ? CONTROL_BY_ID.get(parsed.controlId)?.objectives?.find((entry) => entry.id === parsed.objId)
+      : null
+    return { reference: key, statement: objective?.text ?? 'Objective statement unavailable.' }
+  }
 
   // For items with attached objectives, "checked" is derived live from
   // objective status rather than the stored flag — this is what makes an
@@ -1517,7 +1551,8 @@ function SavedGroupCard({
               <div className="dibcac-checklist-list">
                 {checklist.map((item) => item.type === 'header' ? (
                   <div key={item.id} className="dibcac-checklist-header-row">
-                    {item.text}
+                    <span className="dibcac-checklist-number dibcac-checklist-number--header">{checklistNumbers.get(item.id)}</span>
+                    <span>{item.text}</span>
                   </div>
                 ) : (
                   <div key={item.id} className="dibcac-checklist-row">
@@ -1529,15 +1564,22 @@ function SavedGroupCard({
                         onChange={() => toggleChecklistItem(item)}
                         aria-label={`Mark "${item.text}" complete`}
                       />
+                      <span className="dibcac-checklist-number">{checklistNumbers.get(item.id)}</span>
                       <span className={`dibcac-checklist-text${isItemMet(item) ? ' dibcac-checklist-text--done' : ''}`}>
                         {item.text}
                       </span>
                     </div>
                     {(item.objKeys ?? []).length > 0 && (
                       <ul className="dibcac-checklist-obj-list">
-                        {item.objKeys.map((key) => (
-                          <li key={key} className="dibcac-checklist-obj-item mono">{objLabelFor(key)}</li>
-                        ))}
+                        {item.objKeys.map((key) => {
+                          const details = objectiveDetailsFor(key)
+                          return (
+                            <li key={key} className="dibcac-checklist-obj-item">
+                              <span className="dibcac-checklist-obj-ref mono">{details.reference}</span>
+                              <span className="dibcac-checklist-obj-statement">{details.statement}</span>
+                            </li>
+                          )
+                        })}
                       </ul>
                     )}
                     <button
