@@ -1284,6 +1284,7 @@ function SavedGroupCard({
   group, savedFolders, allGroups, onDelete, onEditRequest, onPreview, onMoveToFolder,
   onMoveObjectives, onRemoveObjectives, onUpdateChecklist, selectionMode, isSelected, onToggleSelect, isExpanded, onToggleExpanded,
   objectiveSelectionMode = false, selectedCrossGroupObjectives, onToggleCrossGroupObjective,
+  onSelectAllCrossGroupObjectives, onDeselectAllCrossGroupObjectives,
 }) {
   const expanded = isExpanded ?? false
   const [commentsKey, setCommentsKey] = useState(null) // `${controlId}[${objId}]`
@@ -1405,6 +1406,15 @@ function SavedGroupCard({
       return next
     })
   }
+
+  const allObjectiveKeys = useMemo(
+    () => group.objectives.map((objective) => objective.key ?? objective.objectiveRef),
+    [group.objectives]
+  )
+
+  const selectedInThisGroup = objectiveSelectionMode
+    ? allObjectiveKeys.filter((key) => selectedCrossGroupObjectives?.has(crossGroupSelectionKey(group.id, key))).length
+    : selectedObjKeys.size
 
   const handleMoveSelected = (targetGroupId) => {
     if (!targetGroupId || selectedObjKeys.size === 0) return
@@ -1642,6 +1652,8 @@ function SavedGroupCard({
                     <span className="dibcac-selection-count">
                       {selectedObjKeys.size} selected
                     </span>
+                    <button type="button" className="dibcac-sort-btn" disabled={selectedObjKeys.size === allObjectiveKeys.length} onClick={() => setSelectedObjKeys(new Set(allObjectiveKeys))}>Select All</button>
+                    <button type="button" className="dibcac-sort-btn" disabled={selectedObjKeys.size === 0} onClick={() => setSelectedObjKeys(new Set())}>Deselect All</button>
                     {otherGroups.length > 0 && (
                       <select
                         className="dibcac-folder-select"
@@ -1664,6 +1676,23 @@ function SavedGroupCard({
                     >Remove selected</button>
                   </>
                 )}
+              </div>
+            )}
+            {objectiveSelectionMode && (
+              <div className="dibcac-obj-move-bar">
+                <span className="dibcac-selection-count">{selectedInThisGroup} selected in this group</span>
+                <button
+                  type="button"
+                  className="dibcac-sort-btn"
+                  disabled={selectedInThisGroup === allObjectiveKeys.length}
+                  onClick={() => onSelectAllCrossGroupObjectives?.(group.id, allObjectiveKeys)}
+                >Select All</button>
+                <button
+                  type="button"
+                  className="dibcac-sort-btn"
+                  disabled={selectedInThisGroup === 0}
+                  onClick={() => onDeselectAllCrossGroupObjectives?.(group.id, allObjectiveKeys)}
+                >Deselect All</button>
               </div>
             )}
             <div className={objView === 'cards' ? 'dibcac-group-card-objs-grid' : undefined}>
@@ -1769,6 +1798,7 @@ function FolderSection({
   onMoveToFolder, onDeleteFolder, onMoveObjectives, onRemoveObjectives, onUpdateChecklist, selectionMode, selectedIds, onToggleSelect,
   isOpen, onToggleOpen, expandedGroupIds, onToggleGroupExpanded,
   objectiveSelectionMode, selectedCrossGroupObjectives, onToggleCrossGroupObjective,
+  onSelectAllCrossGroupObjectives, onDeselectAllCrossGroupObjectives,
 }) {
   const [confirming, setConfirming] = useState(false)
 
@@ -1817,6 +1847,8 @@ function FolderSection({
                 objectiveSelectionMode={objectiveSelectionMode}
                 selectedCrossGroupObjectives={selectedCrossGroupObjectives}
                 onToggleCrossGroupObjective={onToggleCrossGroupObjective}
+                onSelectAllCrossGroupObjectives={onSelectAllCrossGroupObjectives}
+                onDeselectAllCrossGroupObjectives={onDeselectAllCrossGroupObjectives}
               />
             ))
           )}
@@ -1831,7 +1863,7 @@ function FolderSection({
 function SavedGroupsPanel({
   savedGroups, savedFolders, onDelete, onEditRequest, onPreview, onEnterBuilder,
   onCreateFolder, onDeleteFolder, onMoveGroupToFolder, onBatchMove, onMoveObjectives, onRemoveObjectives, onUpdateChecklist,
-  onCreateFromSelectedObjectives,
+  onCreateFromSelectedObjectives, onMoveSelectedObjectives,
   openFolderIds, onToggleFolderOpen, expandedGroupIds, onToggleGroupExpanded,
   railExpanded, onToggleRailExpanded,
 }) {
@@ -1847,6 +1879,7 @@ function SavedGroupsPanel({
   const [showCreateFromSelected, setShowCreateFromSelected] = useState(false)
   const [selectedGroupName, setSelectedGroupName] = useState('')
   const [removeFromOriginals, setRemoveFromOriginals] = useState(false)
+  const [moveTargetGroupId, setMoveTargetGroupId] = useState('')
 
   const selectedUniqueObjectiveCount = useMemo(() => {
     const keys = new Set()
@@ -1866,12 +1899,29 @@ function SavedGroupsPanel({
     })
   }
 
+  const selectAllCrossGroupObjectives = (groupId, objectiveKeys) => {
+    setSelectedCrossGroupObjectives((current) => {
+      const next = new Set(current)
+      for (const key of objectiveKeys) next.add(crossGroupSelectionKey(groupId, key))
+      return next
+    })
+  }
+
+  const deselectAllCrossGroupObjectives = (groupId, objectiveKeys) => {
+    setSelectedCrossGroupObjectives((current) => {
+      const next = new Set(current)
+      for (const key of objectiveKeys) next.delete(crossGroupSelectionKey(groupId, key))
+      return next
+    })
+  }
+
   const exitObjectiveSelectionMode = () => {
     setObjectiveSelectionMode(false)
     setSelectedCrossGroupObjectives(new Set())
     setShowCreateFromSelected(false)
     setSelectedGroupName('')
     setRemoveFromOriginals(false)
+    setMoveTargetGroupId('')
   }
 
   const startObjectiveSelectionMode = () => {
@@ -1884,6 +1934,13 @@ function SavedGroupsPanel({
     if (!selectedGroupName.trim() || selectedCrossGroupObjectives.size === 0) return
     const selections = [...selectedCrossGroupObjectives].map(parseCrossGroupSelectionKey).filter(Boolean)
     onCreateFromSelectedObjectives(selections, selectedGroupName.trim(), removeFromOriginals)
+    exitObjectiveSelectionMode()
+  }
+
+  const submitMoveSelectedObjectives = () => {
+    if (!moveTargetGroupId || selectedCrossGroupObjectives.size === 0) return
+    const selections = [...selectedCrossGroupObjectives].map(parseCrossGroupSelectionKey).filter(Boolean)
+    onMoveSelectedObjectives(selections, moveTargetGroupId)
     exitObjectiveSelectionMode()
   }
 
@@ -2022,6 +2079,23 @@ function SavedGroupsPanel({
             disabled={selectedCrossGroupObjectives.size === 0}
             onClick={() => setShowCreateFromSelected(true)}
           >Create Group from Selected</button>
+          <div className="dibcac-cross-group-move-controls">
+            <select
+              className="dibcac-folder-select"
+              value={moveTargetGroupId}
+              onChange={(event) => setMoveTargetGroupId(event.target.value)}
+              aria-label="Destination group for selected objectives"
+            >
+              <option value="">Move to group…</option>
+              {savedGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
+            </select>
+            <button
+              type="button"
+              className="dibcac-builder-save"
+              disabled={!moveTargetGroupId || selectedCrossGroupObjectives.size === 0}
+              onClick={submitMoveSelectedObjectives}
+            >Move Selected</button>
+          </div>
         </div>
       )}
 
@@ -2162,6 +2236,8 @@ function SavedGroupsPanel({
                   objectiveSelectionMode={objectiveSelectionMode}
                   selectedCrossGroupObjectives={selectedCrossGroupObjectives}
                   onToggleCrossGroupObjective={toggleCrossGroupObjective}
+                  onSelectAllCrossGroupObjectives={selectAllCrossGroupObjectives}
+                  onDeselectAllCrossGroupObjectives={deselectAllCrossGroupObjectives}
                 />
               ))}
               {ungrouped.length > 0 && (
@@ -2192,6 +2268,8 @@ function SavedGroupsPanel({
                         objectiveSelectionMode={objectiveSelectionMode}
                         selectedCrossGroupObjectives={selectedCrossGroupObjectives}
                         onToggleCrossGroupObjective={toggleCrossGroupObjective}
+                        onSelectAllCrossGroupObjectives={selectAllCrossGroupObjectives}
+                        onDeselectAllCrossGroupObjectives={deselectAllCrossGroupObjectives}
                       />
                     ))}
                   </div>
@@ -2221,6 +2299,8 @@ function SavedGroupsPanel({
                   objectiveSelectionMode={objectiveSelectionMode}
                   selectedCrossGroupObjectives={selectedCrossGroupObjectives}
                   onToggleCrossGroupObjective={toggleCrossGroupObjective}
+                  onSelectAllCrossGroupObjectives={selectAllCrossGroupObjectives}
+                  onDeselectAllCrossGroupObjectives={deselectAllCrossGroupObjectives}
                 />
               ))}
             </div>
@@ -2466,6 +2546,43 @@ function DibcacMode() {
     setExpandedGroupIds((current) => new Set(current).add(newGroup.id))
   }
 
+  const handleMoveSelectedObjectives = (selections, targetGroupId) => {
+    const target = savedGroups.find((group) => group.id === targetGroupId)
+    if (!target || selections.length === 0) return
+
+    const selectedByGroup = new Map()
+    const uniqueObjectives = new Map()
+    for (const { groupId, objectiveKey } of selections) {
+      const source = savedGroups.find((group) => group.id === groupId)
+      const objective = source?.objectives.find((item) => (item.key ?? item.objectiveRef) === objectiveKey)
+      if (!objective) continue
+      if (!selectedByGroup.has(groupId)) selectedByGroup.set(groupId, new Set())
+      selectedByGroup.get(groupId).add(objectiveKey)
+      if (!uniqueObjectives.has(objectiveKey)) uniqueObjectives.set(objectiveKey, objective)
+    }
+    if (uniqueObjectives.size === 0) return
+
+    const targetKeys = new Set(target.objectives.map((item) => item.key ?? item.objectiveRef))
+    const additions = [...uniqueObjectives.entries()]
+      .filter(([key]) => !targetKeys.has(key))
+      .map(([, objective]) => objective)
+    const now = new Date().toISOString()
+    const next = savedGroups.map((group) => {
+      if (group.id === targetGroupId) {
+        return additions.length > 0
+          ? { ...group, objectives: [...group.objectives, ...additions], updatedAt: now }
+          : group
+      }
+      const selectedKeys = selectedByGroup.get(group.id)
+      return selectedKeys
+        ? { ...group, objectives: group.objectives.filter((item) => !selectedKeys.has(item.key ?? item.objectiveRef)), updatedAt: now }
+        : group
+    })
+    saveReviewGroups(next)
+    setSavedGroups(next)
+    setExpandedGroupIds((current) => new Set(current).add(targetGroupId))
+  }
+
   // Persists a group's checklist (add/remove/check/uncheck items) straight
   // to state + storage, same pattern as handleMoveObjectives above.
   const handleUpdateChecklist = (groupId, checklist) => {
@@ -2687,6 +2804,7 @@ function DibcacMode() {
               onMoveObjectives={handleMoveObjectives}
               onRemoveObjectives={handleRemoveObjectives}
               onCreateFromSelectedObjectives={handleCreateFromSelectedObjectives}
+              onMoveSelectedObjectives={handleMoveSelectedObjectives}
               onUpdateChecklist={handleUpdateChecklist}
               openFolderIds={openFolderIds}
               onToggleFolderOpen={toggleFolderOpen}
