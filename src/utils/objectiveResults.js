@@ -43,6 +43,23 @@ export function combinedInterviewText(result) {
   return [manual, ...generated].filter(Boolean).join('\n\n')
 }
 
+export function objectiveResultHasWork(result) {
+  const normalized = {
+    interviews: coerceString(result?.interviews),
+    examine: coerceString(result?.examine),
+    test: coerceString(result?.test),
+    overallComments: coerceString(result?.overallComments),
+    checklistInterviewNotes: normalizeChecklistInterviewNotes(result?.checklistInterviewNotes),
+  }
+  return normalized.interviews.trim() !== '' || normalized.examine.trim() !== '' ||
+    normalized.test.trim() !== '' || normalized.overallComments.trim() !== '' ||
+    Object.keys(normalized.checklistInterviewNotes).length > 0
+}
+
+export function objectiveResultIsEmpty(result) {
+  return !objectiveResultHasWork(result)
+}
+
 // Safe localStorage read — returns the default object if the key is missing,
 // JSON is invalid, or storage is unavailable (private browsing, quota, SSR).
 // Each field is coerced to a string; missing or non-string fields default to ''.
@@ -98,8 +115,7 @@ export function hasObjectiveResults(control) {
   if (!control || !Array.isArray(control.objectives)) return false
   for (const obj of control.objectives) {
     const result = readObjectiveResult(control.id, obj.id)
-    if (result.interviews.trim() || result.examine.trim() || result.test.trim() ||
-        result.overallComments.trim() || Object.keys(result.checklistInterviewNotes).length > 0) return true
+    if (objectiveResultHasWork(result)) return true
   }
   return false
 }

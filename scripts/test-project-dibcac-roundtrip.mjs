@@ -14,6 +14,8 @@ try {
   const { exportProjectState, importProjectState, SCHEMA_VERSION } = await vite.ssrLoadModule('/src/utils/projectState.js')
   const { getReviewGroups, getReviewFolders, saveReviewGroups, saveReviewFolders } = await vite.ssrLoadModule('/src/utils/reviewGroups.js')
   const { readObjectiveResult, writeObjectiveResult } = await vite.ssrLoadModule('/src/utils/objectiveResults.js')
+  const { reconcileProgressFromStoredWork } = await vite.ssrLoadModule('/src/utils/progressReconciliation.js')
+  const { readStatus } = await vite.ssrLoadModule('/src/utils/status.js')
   const { readCustomDibcacTemplates, writeCustomDibcacTemplates } = await vite.ssrLoadModule('/src/utils/dibcacTemplates.js')
 
   const controls = [{
@@ -82,6 +84,8 @@ try {
   memory.clear()
   const imported = importProjectState(exported, controls)
   assert.equal(imported.ok, true)
+  assert.doesNotThrow(() => reconcileProgressFromStoredWork(controls))
+  assert.equal(readStatus('AC.L1-3.1.1'), 'In Progress')
   assert.deepEqual(getReviewGroups(), exported.reviewGroups)
   assert.deepEqual(getReviewGroups()[0].plannedAskContent[1], { type: 'checklistRef', groupId: 'group-primary', itemId: 'item-mfa' })
   assert.deepEqual(getReviewFolders(), folders)
@@ -90,7 +94,7 @@ try {
   assert.equal(restoredResult.interviews, 'Manual objective interview text.')
   assert.equal(restoredResult.checklistInterviewNotes['group-primary:item-mfa'].note, 'MFA was demonstrated live.')
 
-  console.log('Full-project DIBCAC JSON round-trip passed: groups, folders, assignments, checklist structure, notes, and templates restored.')
+  console.log('Full-project DIBCAC JSON round-trip passed: groups, folders, assignments, checklist structure, structured interview notes, progress reconciliation, and templates restored.')
 } finally {
   await vite.close()
 }

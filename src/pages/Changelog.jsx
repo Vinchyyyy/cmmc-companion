@@ -12,8 +12,30 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v4.9.1 — current release, open by default */}
+      {/* v4.9.2 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.9.2</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span style={{ color: 'var(--color-text)' }}>Project Restore Integrity Patch</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>August 27, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-accent)' }}>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Fixes project restoration failing after structured DIBCAC checklist interview notes were successfully read from a backup.
+          </p>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Backup and Restore</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Progress reconciliation now safely handles both text fields and structured checklist interview notes.</li>
+            <li>Schema v10 groups, folders, Planned Ask references, checklist notes, and progress state restore together.</li>
+            <li>Restore errors identify the failing stage and warn if data may already have been partially restored.</li>
+            <li>Assessment-workbook preview and merge checks now protect existing structured checklist notes as real objective work.</li>
+          </ul>
+        </div>
+      </details>
+
+      {/* v4.9.1 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.9.1</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>

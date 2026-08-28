@@ -151,9 +151,11 @@ function Settings() {
 
   const confirmJsonRestore = () => {
     if (!pendingJsonImport) return
+    let restoreStage = 'project data import'
     try {
       const summary = importProjectState(pendingJsonImport, controls, importOptions)
       if (!summary.ok) { setJsonResult({ ok: false, message: summary.error }); return }
+      restoreStage = 'progress reconciliation'
       reconcileProgressFromStoredWork(controls)
       const p = (n, singular, plural) => n > 0 ? `${n} ${n === 1 ? singular : plural}` : null
       const parts = [
@@ -187,8 +189,12 @@ function Settings() {
         message = `Restored ${summary.controlsProcessed} control${summary.controlsProcessed === 1 ? '' : 's'} — ${parts.join(', ')}${unknownSuffix}.${skipSuffix}`
       }
       setJsonResult({ ok: true, message })
-    } catch {
-      setJsonResult({ ok: false, message: 'Restore failed — unexpected error.' })
+    } catch (error) {
+      const detail = error instanceof Error && error.message ? `: ${error.message}` : ''
+      setJsonResult({
+        ok: false,
+        message: `Restore failed during ${restoreStage}${detail}. Some data may already have been restored; retry in a fresh workspace after the issue is resolved.`,
+      })
     } finally {
       setPendingJsonImport(null)
     }

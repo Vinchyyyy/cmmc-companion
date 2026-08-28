@@ -1,4 +1,21 @@
 
+## Version 4.9.2 — Project Restore Integrity Patch
+Date: August 27, 2026
+
+### JSON Restore Reliability
+- Fixed project restoration failing during progress reconciliation when objective results contain structured DIBCAC checklist interview notes.
+- Replaced string-only result checks with shared type-safe checks for manual text and structured checklist-note data.
+- Confirmed schema v10 backups restore review groups, folders, Planned Ask references, checklist notes, and progress state together.
+- Restore failures now identify whether the error occurred during project import or progress reconciliation and warn when a partial write may have occurred.
+
+### Workbook Import Hardening
+- Fixed the same structured-result assumption in assessment-workbook preview and merge checks.
+- Existing checklist interview notes are now recognized as real objective work and are protected from accidental overwrite during workbook imports.
+
+### Validation
+- Added an end-to-end export, wipe, import, and progress-reconciliation regression test containing structured checklist interview notes.
+- Full lint, production build, DIBCAC reference tests, interview-note stress tests, and data validation pass.
+
 ## Version 4.9.1 — DIBCAC Planned Ask Cross-References
 Date: August 27, 2026
 

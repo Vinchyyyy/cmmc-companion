@@ -12,7 +12,7 @@
 // still the default.
 
 import { readObjectiveNote }   from './objectiveNotes'
-import { readObjectiveResult } from './objectiveResults'
+import { objectiveResultHasWork, readObjectiveResult } from './objectiveResults'
 import { readObjectiveArtifacts } from './objectiveArtifacts'
 import { readObjectiveFinding }   from './objectiveFindings'
 import {
@@ -28,7 +28,7 @@ function objectiveHasWork(controlId, objId) {
   if (readObjectiveNote(controlId, objId).trim()) return true
   // Interview / Examine / Test / Overall Comments
   const result = readObjectiveResult(controlId, objId)
-  if (Object.values(result).some((v) => v.trim())) return true
+  if (objectiveResultHasWork(result)) return true
   // Assigned artifact references
   if (readObjectiveArtifacts(controlId, objId).length > 0) return true
   // Saved finding statement

@@ -39,7 +39,7 @@ import {
   getTrendingStatusFromStorage,
 } from './objectiveStatus'
 import { readStatus, writeStatus, DEFAULT_STATUS } from './status'
-import { readObjectiveResult, writeObjectiveResult } from './objectiveResults'
+import { objectiveResultHasWork, objectiveResultIsEmpty, readObjectiveResult, writeObjectiveResult } from './objectiveResults'
 import { readObjectiveFinding, writeObjectiveFinding } from './objectiveFindings'
 import { readObjectiveArtifactIds, writeObjectiveArtifactIds } from './objectiveArtifacts'
 import { findOrCreate, findByName } from './artifactRegistry'
@@ -769,7 +769,7 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
   for (const [controlId, objMap] of Object.entries(objectiveData)) {
     for (const objId of Object.keys(objMap)) {
       const hasStatus  = readObjectiveStatus(controlId, objId) !== OBJECTIVE_STATUS_UNREVIEWED
-      const hasResult  = Object.values(readObjectiveResult(controlId, objId)).some((v) => v.trim() !== '')
+      const hasResult  = objectiveResultHasWork(readObjectiveResult(controlId, objId))
       const hasFinding = readObjectiveFinding(controlId, objId) !== null
       if (hasStatus || hasResult || hasFinding) existingObjectivesWithData++
     }
@@ -964,7 +964,7 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
         objEntry.interviews || objEntry.examine || objEntry.test || objEntry.overallComments
       if (hasResults) {
         const current      = readObjectiveResult(controlId, objId)
-        const currentEmpty = Object.values(current).every((v) => v.trim() === '')
+        const currentEmpty = objectiveResultIsEmpty(current)
         if (isNew || currentEmpty) {
           writeObjectiveResult(controlId, objId, {
             interviews:      objEntry.interviews,
