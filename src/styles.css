@@ -3106,13 +3106,6 @@ a:has(> button):hover {
   color: var(--color-accent);
 }
 
-.dibcac-cross-group-move-controls {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-}
-
 /* -------------------------------------------------------------------------
    Bulk action toolbar
    ------------------------------------------------------------------------- */
@@ -11796,20 +11789,55 @@ button.evidence-type-chip:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-4);
   border-top: 1px solid color-mix(in srgb, var(--color-accent) 35%, var(--color-border));
   border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 35%, var(--color-border));
   background: color-mix(in srgb, var(--color-accent) 9%, var(--color-surface));
 }
 
-.dibcac-cross-group-selection-bar > div {
+.dibcac-cross-group-selection-summary {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .dibcac-cross-group-selection-bar strong { color: var(--color-text); font-size: var(--text-sm); }
 .dibcac-cross-group-selection-bar span { color: var(--color-text-muted); font-size: var(--text-xs); }
+
+.dibcac-cross-group-selection-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.dibcac-cross-group-primary-action {
+  flex: 0 0 auto;
+  padding: 7px var(--space-3);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.dibcac-cross-group-move-select {
+  max-width: 220px;
+  min-width: 150px;
+  padding: 7px 28px 7px 9px;
+  color: var(--color-text);
+}
+
+@media (max-width: 760px) {
+  .dibcac-cross-group-selection-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dibcac-cross-group-selection-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+}
 
 .dibcac-cross-group-create {
   display: flex;

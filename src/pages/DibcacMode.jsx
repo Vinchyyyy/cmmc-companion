@@ -1879,7 +1879,6 @@ function SavedGroupsPanel({
   const [showCreateFromSelected, setShowCreateFromSelected] = useState(false)
   const [selectedGroupName, setSelectedGroupName] = useState('')
   const [removeFromOriginals, setRemoveFromOriginals] = useState(false)
-  const [moveTargetGroupId, setMoveTargetGroupId] = useState('')
 
   const selectedUniqueObjectiveCount = useMemo(() => {
     const keys = new Set()
@@ -1921,7 +1920,6 @@ function SavedGroupsPanel({
     setShowCreateFromSelected(false)
     setSelectedGroupName('')
     setRemoveFromOriginals(false)
-    setMoveTargetGroupId('')
   }
 
   const startObjectiveSelectionMode = () => {
@@ -1937,10 +1935,10 @@ function SavedGroupsPanel({
     exitObjectiveSelectionMode()
   }
 
-  const submitMoveSelectedObjectives = () => {
-    if (!moveTargetGroupId || selectedCrossGroupObjectives.size === 0) return
+  const submitMoveSelectedObjectives = (targetGroupId) => {
+    if (!targetGroupId || selectedCrossGroupObjectives.size === 0) return
     const selections = [...selectedCrossGroupObjectives].map(parseCrossGroupSelectionKey).filter(Boolean)
-    onMoveSelectedObjectives(selections, moveTargetGroupId)
+    onMoveSelectedObjectives(selections, targetGroupId)
     exitObjectiveSelectionMode()
   }
 
@@ -2069,32 +2067,27 @@ function SavedGroupsPanel({
 
       {objectiveSelectionMode && (
         <div className="dibcac-cross-group-selection-bar">
-          <div>
+          <div className="dibcac-cross-group-selection-summary">
             <strong>{selectedCrossGroupObjectives.size} selection{selectedCrossGroupObjectives.size === 1 ? '' : 's'}</strong>
             <span>{selectedUniqueObjectiveCount} unique objective{selectedUniqueObjectiveCount === 1 ? '' : 's'} across open groups</span>
           </div>
-          <button
-            type="button"
-            className="dibcac-builder-save"
-            disabled={selectedCrossGroupObjectives.size === 0}
-            onClick={() => setShowCreateFromSelected(true)}
-          >Create Group from Selected</button>
-          <div className="dibcac-cross-group-move-controls">
+          <div className="dibcac-cross-group-selection-actions">
+            <button
+              type="button"
+              className="dibcac-builder-save dibcac-cross-group-primary-action"
+              disabled={selectedCrossGroupObjectives.size === 0}
+              onClick={() => setShowCreateFromSelected(true)}
+            >Create Group from Selected</button>
             <select
-              className="dibcac-folder-select"
-              value={moveTargetGroupId}
-              onChange={(event) => setMoveTargetGroupId(event.target.value)}
+              className="dibcac-folder-select dibcac-cross-group-move-select"
+              value=""
+              disabled={selectedCrossGroupObjectives.size === 0}
+              onChange={(event) => submitMoveSelectedObjectives(event.target.value)}
               aria-label="Destination group for selected objectives"
             >
               <option value="">Move to group…</option>
               {savedGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
             </select>
-            <button
-              type="button"
-              className="dibcac-builder-save"
-              disabled={!moveTargetGroupId || selectedCrossGroupObjectives.size === 0}
-              onClick={submitMoveSelectedObjectives}
-            >Move Selected</button>
           </div>
         </div>
       )}
