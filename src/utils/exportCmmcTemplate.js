@@ -18,7 +18,7 @@
 
 import JSZip from 'jszip'
 import { readObjectiveNote } from './objectiveNotes'
-import { readObjectiveResult } from './objectiveResults'
+import { combinedInterviewText, readObjectiveResult } from './objectiveResults'
 import { readObjectiveArtifacts } from './objectiveArtifacts'
 import { readObjectiveFinding } from './objectiveFindings'
 import { readPool } from './evidencePool'
@@ -159,7 +159,7 @@ function readObjectiveData(controlId, objId) {
   if (note?.trim())                   commentParts.push(note.trim())
 
   return {
-    interviews:      truncate(result.interviews?.trim() ?? '', CELL_OVERALL_LIMIT),
+    interviews:      truncate(combinedInterviewText(result), CELL_OVERALL_LIMIT),
     examine:         truncate(result.examine?.trim()    ?? '', CELL_OVERALL_LIMIT),
     test:            truncate(result.test?.trim()       ?? '', CELL_OVERALL_LIMIT),
     overallComments: truncate(commentParts.join('\n\n'), CELL_OVERALL_LIMIT),

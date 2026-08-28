@@ -1922,6 +1922,18 @@ function ControlDetailView() {
                         placeholder={placeholder}
                         maxLength={FIELD_CHAR_LIMITS[field]}
                       />
+                      {isInterviews && Object.keys((objectiveResults[selectedObj.id] ?? {}).checklistInterviewNotes ?? {}).length > 0 && (
+                        <div className="cd-synced-interview-notes">
+                          <strong>Synced DIBCAC checklist notes</strong>
+                          {Object.entries(objectiveResults[selectedObj.id].checklistInterviewNotes).map(([sourceId, entry]) => (
+                            <div key={sourceId} className="cd-synced-interview-note">
+                              <span>{entry.label}</span>
+                              <p>{entry.note}</p>
+                            </div>
+                          ))}
+                          <small>Edit these from their checklist item in DIBCAC Mode.</small>
+                        </div>
+                      )}
                       {canCleanFormatting && (
                         <div style={{ marginTop: 'var(--space-1)' }}>
                           <button

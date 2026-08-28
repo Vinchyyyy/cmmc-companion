@@ -8,7 +8,7 @@ import {
 } from '../utils/objectiveStatus'
 import { readObjectiveFinding, writeObjectiveFinding } from '../utils/objectiveFindings'
 import { readObjectiveArtifacts } from '../utils/objectiveArtifacts'
-import { readObjectiveResult } from '../utils/objectiveResults'
+import { combinedInterviewText, readObjectiveResult } from '../utils/objectiveResults'
 import { readObjectiveInterviewedRoles } from '../utils/objectiveInterviewedRoles'
 import { buildFinalText } from '../utils/findingStatementBuilder'
 import FixInterviewDetailsModal from './FixInterviewDetailsModal'
@@ -58,7 +58,8 @@ export default function BulkFindingsModal({ title, controlsInScope, onClose }) {
         const isMet        = status === OBJECTIVE_STATUS_MET
         const isNotMet      = status === OBJECTIVE_STATUS_NOT_MET
         const isUnreviewed  = status === OBJECTIVE_STATUS_UNREVIEWED
-        const hasActivity   = roles.length > 0 || result.interviews.trim() !== '' || artifacts.length > 0
+        const interviewText = combinedInterviewText(result)
+        const hasActivity   = roles.length > 0 || interviewText !== '' || artifacts.length > 0
         const isInProgress  = isUnreviewed && hasActivity
         const isNotStarted  = isUnreviewed && !hasActivity
 
@@ -67,7 +68,7 @@ export default function BulkFindingsModal({ title, controlsInScope, onClose }) {
         const hasExisting = existing !== null
         const hasSavedDifferences = !!existing?.hasDifferences
         const missingRoles = roles.length === 0
-        const missingInterviewComments = !result.interviews.trim()
+        const missingInterviewComments = !interviewText
 
         const warnings = []
         if (artifacts.length === 0)   warnings.push({ key: 'artifacts', text: 'No assigned artifacts.' })

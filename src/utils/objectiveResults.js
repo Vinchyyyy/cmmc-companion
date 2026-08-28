@@ -3,7 +3,7 @@
 //
 // Storage key format: cmmc-objective-result-{controlId}-{objectiveId}
 // Value: JSON object with four fields aligned to the CMMC L2 assessment template:
-//   { interviews, examine, test, overallComments }
+//   { interviews, examine, test, overallComments, checklistInterviewNotes }
 //
 // The controlId is part of the key because objective IDs ("a", "b", "c"...)
 // repeat across every control — without controlId scoping, every control's
@@ -11,7 +11,7 @@
 
 const STORAGE_PREFIX = 'cmmc-objective-result-'
 
-const DEFAULT_RESULT = { interviews: '', examine: '', test: '', overallComments: '' }
+const DEFAULT_RESULT = { interviews: '', examine: '', test: '', overallComments: '', checklistInterviewNotes: {} }
 
 function objectiveResultKey(controlId, objectiveId) {
   return `${STORAGE_PREFIX}${controlId}-${objectiveId}`
@@ -19,6 +19,28 @@ function objectiveResultKey(controlId, objectiveId) {
 
 function coerceString(v) {
   return typeof v === 'string' ? v : ''
+}
+
+function normalizeChecklistInterviewNotes(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+  const notes = {}
+  for (const [sourceId, entry] of Object.entries(value)) {
+    if (!sourceId || !entry || typeof entry !== 'object' || Array.isArray(entry)) continue
+    const note = coerceString(entry.note).trim()
+    if (!note) continue
+    notes[sourceId] = {
+      label: coerceString(entry.label).trim() || 'DIBCAC checklist note',
+      note,
+    }
+  }
+  return notes
+}
+
+export function combinedInterviewText(result) {
+  const manual = coerceString(result?.interviews).trim()
+  const generated = Object.values(normalizeChecklistInterviewNotes(result?.checklistInterviewNotes))
+    .map((entry) => `Checklist — ${entry.label}:\n${entry.note}`)
+  return [manual, ...generated].filter(Boolean).join('\n\n')
 }
 
 // Safe localStorage read — returns the default object if the key is missing,
@@ -36,6 +58,7 @@ export function readObjectiveResult(controlId, objectiveId) {
       examine:         coerceString(parsed.examine),
       test:            coerceString(parsed.test),
       overallComments: coerceString(parsed.overallComments),
+      checklistInterviewNotes: normalizeChecklistInterviewNotes(parsed.checklistInterviewNotes),
     }
   } catch {
     return { ...DEFAULT_RESULT }
@@ -53,8 +76,11 @@ export function writeObjectiveResult(controlId, objectiveId, result) {
       examine:         coerceString(result?.examine),
       test:            coerceString(result?.test),
       overallComments: coerceString(result?.overallComments),
+      checklistInterviewNotes: normalizeChecklistInterviewNotes(result?.checklistInterviewNotes),
     }
-    const allBlank = Object.values(merged).every((v) => v.trim() === '')
+    const allBlank = merged.interviews.trim() === '' && merged.examine.trim() === '' &&
+      merged.test.trim() === '' && merged.overallComments.trim() === '' &&
+      Object.keys(merged.checklistInterviewNotes).length === 0
     if (allBlank) {
       localStorage.removeItem(objectiveResultKey(controlId, objectiveId))
     } else {
@@ -72,7 +98,8 @@ export function hasObjectiveResults(control) {
   if (!control || !Array.isArray(control.objectives)) return false
   for (const obj of control.objectives) {
     const result = readObjectiveResult(control.id, obj.id)
-    if (Object.values(result).some((v) => v.trim() !== '')) return true
+    if (result.interviews.trim() || result.examine.trim() || result.test.trim() ||
+        result.overallComments.trim() || Object.keys(result.checklistInterviewNotes).length > 0) return true
   }
   return false
 }

@@ -50,7 +50,7 @@ import { readOscProfile, writeOscProfile } from './oscProfile'
 import { readDateAssessed, writeDateAssessed } from './dateAssessed'
 import { readCustomDibcacTemplates, writeCustomDibcacTemplates } from './dibcacTemplates'
 
-export const SCHEMA_VERSION = 8
+export const SCHEMA_VERSION = 9
 
 export const DEFAULT_IMPORT_OPTIONS = {
   mode: 'replace',
@@ -73,7 +73,7 @@ export const DEFAULT_IMPORT_OPTIONS = {
 
 // All schema versions this app can import. Add new versions here as the
 // schema evolves — never remove old ones while users may have older backups.
-export const ACCEPTED_SCHEMA_VERSIONS = [1, 2, 3, 4, 5, 6, 7, 8]
+export const ACCEPTED_SCHEMA_VERSIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 // =========================================================================
 // Export
@@ -104,7 +104,8 @@ export function exportProjectState(controls) {
     const objectiveResults = {}
     for (const obj of control.objectives ?? []) {
       const r = readObjectiveResult(control.id, obj.id)
-      if (Object.values(r).some((v) => v.trim() !== '')) objectiveResults[obj.id] = r
+      if (r.interviews.trim() || r.examine.trim() || r.test.trim() || r.overallComments.trim() ||
+          Object.keys(r.checklistInterviewNotes ?? {}).length > 0) objectiveResults[obj.id] = r
     }
 
     const objectiveFindings = {}
@@ -207,7 +208,7 @@ export function importProjectState(projectJson, controls, options = {}) {
     return {
       ok: false,
       error: `Unsupported schema version ${projectJson.schemaVersion}. ` +
-             `Expected version 1, 2, 3, 4, 5, 6, 7, or 8.`,
+             `Expected version 1, 2, 3, 4, 5, 6, 7, 8, or 9.`,
     }
   }
   if (!Array.isArray(projectJson.controls)) {
@@ -522,7 +523,7 @@ export function importProjectState(projectJson, controls, options = {}) {
       }
     }
 
-    // Objective Results (interviews, examine, test, overallComments)
+    // Objective Results (manual fields plus source-aware DIBCAC checklist interview notes)
     if (opts.categories.objectiveResults) {
       if (
         'objectiveResults' in entry &&
@@ -534,16 +535,31 @@ export function importProjectState(projectJson, controls, options = {}) {
           if (!knownObjectiveIds.has(objId)) { summary.skippedUnknownObjective++; continue }
           if (result !== null && typeof result === 'object' && !Array.isArray(result)) {
             const coerce = (v) => (typeof v === 'string' ? v : '')
+            const checklistInterviewNotes = {}
+            if (result.checklistInterviewNotes && typeof result.checklistInterviewNotes === 'object' && !Array.isArray(result.checklistInterviewNotes)) {
+              for (const [sourceId, entry] of Object.entries(result.checklistInterviewNotes)) {
+                if (!sourceId || !entry || typeof entry !== 'object' || Array.isArray(entry)) continue
+                const note = coerce(entry.note).trim()
+                if (!note) continue
+                checklistInterviewNotes[sourceId] = {
+                  label: coerce(entry.label).trim() || 'DIBCAC checklist note',
+                  note,
+                }
+              }
+            }
             const incoming = {
               interviews:      coerce(result.interviews),
               examine:         coerce(result.examine),
               test:            coerce(result.test),
               overallComments: coerce(result.overallComments),
+              checklistInterviewNotes,
             }
-            const hasData = Object.values(incoming).some((v) => v.trim() !== '')
+            const hasData = incoming.interviews.trim() || incoming.examine.trim() || incoming.test.trim() ||
+              incoming.overallComments.trim() || Object.keys(checklistInterviewNotes).length > 0
             if (!hasData) continue
             const current = readObjectiveResult(control.id, objId)
-            const currentIsEmpty = Object.values(current).every((v) => v.trim() === '')
+            const currentIsEmpty = !current.interviews.trim() && !current.examine.trim() && !current.test.trim() &&
+              !current.overallComments.trim() && Object.keys(current.checklistInterviewNotes ?? {}).length === 0
             if (canWrite(currentIsEmpty, opts, summary)) {
               writeObjectiveResult(control.id, objId, incoming)
               summary.objectiveResultsWritten++

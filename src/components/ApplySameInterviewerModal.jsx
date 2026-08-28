@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import InterviewRolePickerModal from './InterviewRolePickerModal'
 import { readObjectiveInterviewedRoles, writeObjectiveInterviewedRoles } from '../utils/objectiveInterviewedRoles'
-import { readObjectiveResult } from '../utils/objectiveResults'
+import { combinedInterviewText, readObjectiveResult } from '../utils/objectiveResults'
 
 // "Apply Same Interviewer" — lets the assessor pick interviewed role(s) once,
 // then apply them across many objectives in the current modal scope (Bulk
@@ -33,7 +33,7 @@ export default function ApplySameInterviewerModal({
         return {
           ...item,
           hasRoles: existingRoles.length > 0,
-          hasComments: !!existingResult.interviews.trim(),
+          hasComments: !!combinedInterviewText(existingResult),
         }
       })
   }, [scopeObjectives, excludeKey])

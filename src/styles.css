@@ -10612,6 +10612,79 @@ button.evidence-type-chip:focus-visible {
   gap: var(--space-2);
 }
 
+.dibcac-checklist-note-toggle {
+  margin: 0.55rem 0 0 2rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.dibcac-checklist-note-toggle:hover,
+.dibcac-checklist-note-toggle--has-note {
+  color: var(--accent);
+}
+
+.dibcac-checklist-note-editor {
+  margin: 0.65rem 0 0 2rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-raised);
+}
+
+.dibcac-checklist-note-editor label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.dibcac-checklist-note-editor textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 5.5rem;
+}
+
+.dibcac-checklist-note-editor p {
+  margin: 0.4rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.dibcac-checklist-note-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.cd-synced-interview-notes {
+  margin-top: 0.6rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-raised);
+}
+
+.cd-synced-interview-note {
+  margin-top: 0.55rem;
+}
+
+.cd-synced-interview-note span,
+.cd-synced-interview-notes small {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.cd-synced-interview-note p {
+  margin: 0.2rem 0 0;
+  white-space: pre-wrap;
+}
+
 .dibcac-checklist-edit-row {
   display: flex;
   flex-direction: column;
@@ -11530,6 +11603,8 @@ button.evidence-type-chip:focus-visible {
 .dibcac-rail-header-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: var(--space-2);
 }
 
@@ -11548,6 +11623,12 @@ button.evidence-type-chip:focus-visible {
   background: var(--color-surface-alt);
   color: var(--color-text);
 }
+.dibcac-create-folder-btn.active {
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-border));
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
+}
+.dibcac-create-folder-btn:disabled { opacity: .45; cursor: not-allowed; }
 
 .dibcac-create-folder-form {
   display: flex;
@@ -11656,6 +11737,51 @@ button.evidence-type-chip:focus-visible {
   border-color: var(--color-accent, #3b82f6);
   background: color-mix(in srgb, var(--color-accent, #3b82f6) 6%, var(--color-surface));
 }
+
+.dibcac-group-card-obj-row--selected,
+.dibcac-group-card-obj-card.dibcac-group-card-obj-row--selected {
+  border-color: color-mix(in srgb, var(--color-accent) 65%, var(--color-border));
+  background: color-mix(in srgb, var(--color-accent) 11%, var(--color-surface));
+}
+
+.dibcac-cross-group-selection-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid color-mix(in srgb, var(--color-accent) 35%, var(--color-border));
+  border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 35%, var(--color-border));
+  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-surface));
+}
+
+.dibcac-cross-group-selection-bar > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dibcac-cross-group-selection-bar strong { color: var(--color-text); font-size: var(--text-sm); }
+.dibcac-cross-group-selection-bar span { color: var(--color-text-muted); font-size: var(--text-xs); }
+
+.dibcac-cross-group-create {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: var(--space-3) var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 42%, var(--color-border));
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+}
+
+.dibcac-cross-group-create h3 { margin: 0; color: var(--color-text); font-size: var(--text-base); }
+.dibcac-cross-group-create p { margin: 4px 0 0; color: var(--color-text-muted); font-size: var(--text-xs); line-height: 1.45; }
+.dibcac-cross-group-remove-option { display: flex; align-items: flex-start; gap: var(--space-2); color: var(--color-text); cursor: pointer; }
+.dibcac-cross-group-remove-option input { margin-top: 3px; accent-color: var(--color-accent); }
+.dibcac-cross-group-remove-option span { display: flex; flex-direction: column; gap: 3px; font-size: var(--text-xs); }
+.dibcac-cross-group-remove-option small { color: var(--color-text-muted); font-size: 10px; font-weight: 400; }
+.dibcac-cross-group-create-actions { display: flex; gap: var(--space-2); justify-content: flex-end; }
 
 .dibcac-group-select-checkbox {
   width: 14px;

@@ -3,7 +3,7 @@
 // agree on what counts as a warning.
 
 import { readObjectiveArtifacts } from './objectiveArtifacts'
-import { readObjectiveResult } from './objectiveResults'
+import { combinedInterviewText, readObjectiveResult } from './objectiveResults'
 import { readObjectiveInterviewedRoles } from './objectiveInterviewedRoles'
 import { getDibcacStandard } from '../data/dibcacAssessmentStandards'
 
@@ -17,7 +17,7 @@ export function getObjectiveWarnings(controlId, objectiveId) {
   const warnings = []
   if (artifacts.length === 0) warnings.push({ key: 'artifacts', text: 'No assigned artifacts.' })
   if (requiresScreenshare && roles.length === 0) warnings.push({ key: 'roles', text: 'Missing interviewed role.', fixable: true })
-  if (requiresScreenshare && !result.interviews.trim()) warnings.push({ key: 'interview', text: 'Missing interview comments.', fixable: true })
+  if (requiresScreenshare && !combinedInterviewText(result)) warnings.push({ key: 'interview', text: 'Missing interview comments.', fixable: true })
   if (!result.examine.trim()) warnings.push({ key: 'examine', text: 'Missing examine notes.' })
   return warnings
 }

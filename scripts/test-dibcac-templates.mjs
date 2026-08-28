@@ -39,11 +39,12 @@ const sampleGroups = [{
   comment: 'Assessment-specific comment that must not travel.',
   status: 'MET',
   objectives: [{ key: 'AC.L1-3.1.1::a', controlId: 'AC.L1-3.1.1', objId: 'a', objText: 'Authorized access is limited.', standard: 'CMMC' }],
-  checklist: [{ id: 'question-one', type: 'item', text: 'Inspect the approval record.', objKeys: ['AC.L1-3.1.1::a'], checked: true }],
+  checklist: [{ id: 'question-one', type: 'item', text: 'Inspect the approval record.', objKeys: ['AC.L1-3.1.1::a'], checked: true, interviewNote: 'Assessment-specific note.' }],
 }]
 const sampleFolders = [{ id: 'folder-one', name: 'Access Control', comment: 'Do not retain.' }]
 const custom = createDibcacTemplateFromCurrent('Reusable AC', sampleGroups, sampleFolders)
 assert.equal(custom.groups[0].checklist[0].checked, false)
+assert.equal('interviewNote' in custom.groups[0].checklist[0], false)
 assert.equal('comment' in custom.groups[0], false)
 assert.equal('status' in custom.groups[0], false)
 assert.deepEqual(custom.folders[0], { id: 'folder-one', name: 'Access Control' })
