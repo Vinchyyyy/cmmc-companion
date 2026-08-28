@@ -10562,6 +10562,13 @@ button.evidence-type-chip:focus-visible {
   background: var(--color-surface-alt);
 }
 
+.dibcac-rich-toolbar button.dibcac-rich-toolbar-btn--active {
+  color: #fff;
+  border-color: color-mix(in srgb, var(--color-accent) 72%, #fff 12%);
+  background: color-mix(in srgb, var(--color-accent) 24%, var(--color-surface-alt));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 28%, transparent), 0 0 10px color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
 .dibcac-rich-toolbar-separator {
   width: 1px;
   height: 20px;

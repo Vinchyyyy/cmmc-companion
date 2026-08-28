@@ -594,6 +594,7 @@ function RichInline({ node, referenceMap, onNavigate }) {
 function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) {
   const editorRef = useRef(null)
   const savedRangeRef = useRef(null)
+  const [listActive, setListActive] = useState(false)
   const [mention, setMention] = useState(null)
   const [activeIndex, setActiveIndex] = useState(0)
   const suggestions = mention ? searchChecklistReferences(referenceIndex, mention.query) : []
@@ -612,6 +613,7 @@ function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) 
       const selection = window.getSelection()
       if (editor && selection?.rangeCount && editor.contains(selection.anchorNode)) {
         savedRangeRef.current = selection.getRangeAt(0).cloneRange()
+        setListActive(closestRichBlock(selection.anchorNode, editor)?.dataset.type === 'bullet')
       }
     }
     document.addEventListener('selectionchange', rememberRange)
@@ -634,6 +636,7 @@ function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) 
     prefix.deleteContents()
     block.dataset.type = 'bullet'
     block.dataset.indent = block.dataset.indent ?? '0'
+    setListActive(true)
   }
 
   const normalizeTopicShortcut = () => {
@@ -770,6 +773,7 @@ function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) 
     const block = selection?.rangeCount ? closestRichBlock(selection.getRangeAt(0).startContainer, editorRef.current) : null
     if (!block) return
     updater(block)
+    setListActive(block.dataset.type === 'bullet')
     emitChange()
     editorRef.current?.focus()
   }
@@ -792,6 +796,7 @@ function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) 
       paragraphCaret.collapse(true)
       selection.removeAllRanges()
       selection.addRange(paragraphCaret)
+      setListActive(false)
       emitChange()
       return true
     }
@@ -812,6 +817,7 @@ function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) 
     nextCaret.collapse(true)
     selection.removeAllRanges()
     selection.addRange(nextCaret)
+    setListActive(nextBlock.dataset.type === 'bullet')
     emitChange()
     return true
   }
@@ -847,7 +853,7 @@ function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) 
     <div className="dibcac-planned-ask-editor">
       <div className="dibcac-rich-toolbar" aria-label="Planned Ask formatting">
         <button type="button" title="Bold" onMouseDown={(event) => { event.preventDefault(); applyCommand('bold') }}><strong>B</strong></button>
-        <button type="button" title="Bulleted list" onMouseDown={(event) => { event.preventDefault(); updateCurrentBlock((block) => {
+        <button type="button" className={listActive ? 'dibcac-rich-toolbar-btn--active' : ''} aria-pressed={listActive} title="Bulleted list" onMouseDown={(event) => { event.preventDefault(); updateCurrentBlock((block) => {
           const exitingList = block.dataset.type === 'bullet'
           block.dataset.type = exitingList ? 'paragraph' : 'bullet'
           if (exitingList) block.dataset.indent = '0'
