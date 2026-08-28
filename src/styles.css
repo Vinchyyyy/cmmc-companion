@@ -10475,6 +10475,84 @@ button.evidence-type-chip:focus-visible {
   white-space: pre-wrap;
 }
 
+.dibcac-group-display-number {
+  display: inline-flex;
+  margin-right: 7px;
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.dibcac-planned-ask-editor {
+  position: relative;
+}
+
+.dibcac-planned-ask-suggestions {
+  position: absolute;
+  z-index: 30;
+  right: 0;
+  left: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+}
+
+.dibcac-planned-ask-suggestion {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.dibcac-planned-ask-suggestion:last-child { border-bottom: 0; }
+.dibcac-planned-ask-suggestion:hover,
+.dibcac-planned-ask-suggestion--active { background: color-mix(in srgb, var(--color-accent) 14%, transparent); }
+.dibcac-planned-ask-suggestion strong { color: var(--color-accent); font-family: var(--font-mono); }
+.dibcac-planned-ask-suggestion small { color: var(--color-text-muted); }
+.dibcac-planned-ask-suggestion-empty { padding: 10px; color: var(--color-text-muted); font-size: var(--text-xs); }
+
+.dibcac-planned-ask-ref {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  margin: 1px 3px;
+  padding: 2px 6px;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 38%, var(--color-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.dibcac-planned-ask-ref strong { color: var(--color-accent); font-family: var(--font-mono); }
+.dibcac-planned-ask-ref:hover { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 17%, transparent); }
+.dibcac-planned-ask-ref--missing { border-color: color-mix(in srgb, #ef4444 55%, var(--color-border)); color: #fca5a5; cursor: default; }
+
+.dibcac-checklist-row--highlighted {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 17%, var(--color-surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
+  animation: dibcac-reference-highlight 1.8s ease-out;
+}
+
+@keyframes dibcac-reference-highlight {
+  0%, 30% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-accent) 35%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
 .dibcac-group-card-objs {
   display: flex;
   flex-direction: column;

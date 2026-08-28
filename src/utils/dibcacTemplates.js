@@ -1,8 +1,9 @@
 import { DEFAULT_DIBCAC_TEMPLATE_BASE64 } from '../data/defaultDibcacTemplate.js'
+import { normalizePlannedAskContent, remapPlannedAskContent } from './dibcacReferences.js'
 
 const STORAGE_KEY = 'cmmc-dibcac-templates'
 export const DIBCAC_TEMPLATE_KIND = 'cmmc-dibcac-template'
-export const DIBCAC_TEMPLATE_SCHEMA_VERSION = 1
+export const DIBCAC_TEMPLATE_SCHEMA_VERSION = 2
 
 const makeId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
 
@@ -48,6 +49,7 @@ export function normalizeDibcacTemplate(value, fallbackName = 'Imported DIBCAC T
       name: group.name.trim(),
       folderId: typeof group.folderId === 'string' && folderIds.has(group.folderId) ? group.folderId : null,
       plannedAsk: typeof group.plannedAsk === 'string' ? group.plannedAsk : '',
+      plannedAskContent: normalizePlannedAskContent(group.plannedAskContent, typeof group.plannedAsk === 'string' ? group.plannedAsk : ''),
       objectives: Array.isArray(group.objectives) ? group.objectives.map(cleanObjective).filter(Boolean) : [],
       checklist: Array.isArray(group.checklist) ? group.checklist.map(cleanChecklistEntry).filter(Boolean) : [],
     }))
@@ -142,14 +144,17 @@ export function instantiateDibcacTemplate(template) {
   const normalized = normalizeDibcacTemplate(template)
   const createdAt = new Date().toISOString()
   const folderIdMap = new Map(normalized.folders.map((folder) => [folder.id, makeId()]))
+  const groupIdMap = new Map(normalized.groups.map((group) => [group.id, makeId()]))
+  const itemIdMap = new Map(normalized.groups.flatMap((group) => group.checklist.map((item) => [item.id, makeId()])))
   const folders = normalized.folders.map((folder) => ({ id: folderIdMap.get(folder.id), name: folder.name, createdAt }))
   const groups = normalized.groups.map((group) => ({
-    id: makeId(),
+    id: groupIdMap.get(group.id),
     name: group.name,
     folderId: group.folderId ? folderIdMap.get(group.folderId) ?? null : null,
     plannedAsk: group.plannedAsk,
+    plannedAskContent: remapPlannedAskContent(group.plannedAskContent, groupIdMap, itemIdMap),
     objectives: group.objectives.map((item) => ({ ...item })),
-    checklist: group.checklist.map((item) => ({ ...item, id: makeId(), ...(item.type === 'item' ? { checked: false, objKeys: [...item.objKeys] } : {}) })),
+    checklist: group.checklist.map((item) => ({ ...item, id: itemIdMap.get(item.id), ...(item.type === 'item' ? { checked: false, objKeys: [...item.objKeys] } : {}) })),
     createdAt,
   }))
   return { groups, folders }

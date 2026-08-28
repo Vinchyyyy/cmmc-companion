@@ -36,6 +36,10 @@ const sampleGroups = [{
   name: 'Access Control Review',
   folderId: 'folder-one',
   plannedAsk: 'Show how access is approved.',
+  plannedAskContent: [
+    { type: 'text', text: 'Review ' },
+    { type: 'checklistRef', groupId: 'group-one', itemId: 'question-one' },
+  ],
   comment: 'Assessment-specific comment that must not travel.',
   status: 'MET',
   objectives: [{ key: 'AC.L1-3.1.1::a', controlId: 'AC.L1-3.1.1', objId: 'a', objText: 'Authorized access is limited.', standard: 'CMMC' }],
@@ -45,6 +49,7 @@ const sampleFolders = [{ id: 'folder-one', name: 'Access Control', comment: 'Do 
 const custom = createDibcacTemplateFromCurrent('Reusable AC', sampleGroups, sampleFolders)
 assert.equal(custom.groups[0].checklist[0].checked, false)
 assert.equal('interviewNote' in custom.groups[0].checklist[0], false)
+assert.deepEqual(custom.groups[0].plannedAskContent[1], { type: 'checklistRef', groupId: 'group-one', itemId: 'question-one' })
 assert.equal('comment' in custom.groups[0], false)
 assert.equal('status' in custom.groups[0], false)
 assert.deepEqual(custom.folders[0], { id: 'folder-one', name: 'Access Control' })
@@ -55,6 +60,9 @@ assert.notEqual(instantiated.folders[0].id, custom.folders[0].id)
 assert.equal(instantiated.groups[0].folderId, instantiated.folders[0].id)
 assert.equal(instantiated.groups[0].checklist[0].checked, false)
 assert.equal(instantiated.groups[0].plannedAsk, sampleGroups[0].plannedAsk)
+assert.notEqual(instantiated.groups[0].plannedAskContent[1].groupId, 'group-one')
+assert.equal(instantiated.groups[0].plannedAskContent[1].groupId, instantiated.groups[0].id)
+assert.equal(instantiated.groups[0].plannedAskContent[1].itemId, instantiated.groups[0].checklist[0].id)
 
 saveCustomDibcacTemplate(custom)
 assert.equal(readCustomDibcacTemplates().length, 1)

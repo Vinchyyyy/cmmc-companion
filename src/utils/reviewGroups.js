@@ -1,17 +1,26 @@
+import { withCanonicalGroupOrder } from './dibcacReferences.js'
+
 const STORAGE_KEY  = 'cmmc-companion-dibcac-review-groups'
 const FOLDERS_KEY  = 'cmmc-companion-dibcac-review-folders'
 
 export function getReviewGroups() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
+    const parsed = raw ? JSON.parse(raw) : []
+    const normalized = withCanonicalGroupOrder(parsed)
+    if (raw && JSON.stringify(parsed) !== JSON.stringify(normalized)) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized))
+    }
+    return normalized
   } catch {
     return []
   }
 }
 
 export function saveReviewGroups(groups) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(groups)) } catch { /* storage unavailable */ }
+  const normalized = withCanonicalGroupOrder(groups)
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized)) } catch { /* storage unavailable */ }
+  return normalized
 }
 
 // Normalize objective ref — groups may use `key` or `objectiveRef` field
@@ -21,9 +30,8 @@ function objRef(o) {
 
 export function createReviewGroup(group) {
   const groups = getReviewGroups()
-  const next = [{ ...group, createdAt: group.createdAt ?? new Date().toISOString() }, ...groups]
-  saveReviewGroups(next)
-  return next
+  const next = [...groups, { ...group, createdAt: group.createdAt ?? new Date().toISOString() }]
+  return saveReviewGroups(next)
 }
 
 export function updateReviewGroup(groupId, updates) {
@@ -31,15 +39,13 @@ export function updateReviewGroup(groupId, updates) {
   const next = groups.map((g) =>
     g.id === groupId ? { ...g, ...updates, updatedAt: new Date().toISOString() } : g
   )
-  saveReviewGroups(next)
-  return next
+  return saveReviewGroups(next)
 }
 
 export function deleteReviewGroup(groupId) {
   const groups = getReviewGroups()
   const next = groups.filter((g) => g.id !== groupId)
-  saveReviewGroups(next)
-  return next
+  return saveReviewGroups(next)
 }
 
 // objectiveData must have a `key` field ("AC.L1-3.1.1[a]") matching saved group shape
@@ -52,8 +58,7 @@ export function addObjectiveToGroup(groupId, objectiveData) {
     if (already) return g
     return { ...g, objectives: [...g.objectives, objectiveData], updatedAt: new Date().toISOString() }
   })
-  saveReviewGroups(next)
-  return next
+  return saveReviewGroups(next)
 }
 
 export function removeObjectiveFromGroup(groupId, ref) {
@@ -66,8 +71,7 @@ export function removeObjectiveFromGroup(groupId, ref) {
       updatedAt: new Date().toISOString(),
     }
   })
-  saveReviewGroups(next)
-  return next
+  return saveReviewGroups(next)
 }
 
 // Returns all groups that contain this objective ref

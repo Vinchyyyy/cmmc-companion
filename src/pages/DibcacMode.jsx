@@ -36,6 +36,22 @@ import FixInterviewDetailsModal from '../components/FixInterviewDetailsModal'
 import ApplySameInterviewerModal from '../components/ApplySameInterviewerModal'
 import { buildFinalText } from '../utils/findingStatementBuilder'
 import { reconcileChecklistInterviewNotes, removeGroupChecklistInterviewNotes, syncChecklistInterviewNote } from '../utils/checklistInterviewNotes'
+import {
+  buildChecklistReferenceIndex,
+  buildChecklistReferenceMap,
+  buildGroupNumberMap,
+  checklistItemDomId,
+  countPlannedAskReferences,
+  insertPlannedAskReference,
+  normalizePlannedAskContent,
+  numberChecklistEntries,
+  plannedAskFallbackText,
+  renderPlannedAskText,
+  reviewGroupDomId,
+  resolveChecklistNavigationTarget,
+  searchChecklistReferences,
+  updatePlannedAskContent,
+} from '../utils/dibcacReferences.js'
 
 // Persist small sets of ids (open folders, expanded groups) across route
 // changes — DibcacMode fully unmounts when navigating away, so plain
@@ -77,30 +93,6 @@ const METHOD_META = {
 
 const ALL_FAMILIES = [...new Set(controls.map((c) => c.family))]
 const CONTROL_BY_ID = new Map(controls.map((c) => [c.id, c]))
-
-function numberChecklistEntries(checklist) {
-  const numbers = new Map()
-  let topLevel = 0
-  let currentHeader = 0
-  let child = 0
-
-  for (const entry of checklist ?? []) {
-    if (entry.type === 'header') {
-      topLevel += 1
-      currentHeader = topLevel
-      child = 0
-      numbers.set(entry.id, String(currentHeader))
-    } else if (currentHeader > 0) {
-      child += 1
-      numbers.set(entry.id, `${currentHeader}.${child}`)
-    } else {
-      topLevel += 1
-      numbers.set(entry.id, String(topLevel))
-    }
-  }
-
-  return numbers
-}
 
 // ── Shared chips ──────────────────────────────────────────────────────────────
 
@@ -469,24 +461,134 @@ function GroupedBrowser({ flatObjs, builderMode, checkedKeys, onCheck, onPreview
 
 // ── Builder panel (new group OR editing existing) ─────────────────────────────
 
-function AutoExpandTextarea({ value, onChange, id, className, placeholder, rows }) {
-  const ref = useRef(null)
+function PlannedAskEditor({ content, onChange, referenceIndex }) {
+  const textareaRef = useRef(null)
+  const [mention, setMention] = useState(null)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const pendingCaret = useRef(null)
+  const value = renderPlannedAskText(content, referenceIndex)
+  const suggestions = mention ? searchChecklistReferences(referenceIndex, mention.query) : []
+
   useEffect(() => {
-    if (!ref.current) return
-    ref.current.style.height = 'auto'
-    ref.current.style.height = `${ref.current.scrollHeight}px`
+    if (pendingCaret.current === null || !textareaRef.current) return
+    textareaRef.current.focus()
+    textareaRef.current.setSelectionRange(pendingCaret.current, pendingCaret.current)
+    pendingCaret.current = null
+  }, [content])
+
+  useEffect(() => {
+    if (!textareaRef.current) return
+    textareaRef.current.style.height = 'auto'
+    textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
   }, [value])
+
+  const detectMention = (text, caret) => {
+    const start = text.lastIndexOf('@', Math.max(0, caret - 1))
+    if (start === -1 || (start > 0 && !/\s/.test(text[start - 1]))) return null
+    const query = text.slice(start + 1, caret)
+    if (query.includes('\n') || query.length > 100) return null
+    return { start, end: caret, query }
+  }
+
+  const handleChange = (event) => {
+    const nextText = event.target.value
+    const caret = event.target.selectionStart
+    onChange(updatePlannedAskContent(content, nextText, referenceIndex))
+    setMention(detectMention(nextText, caret))
+    setActiveIndex(0)
+  }
+
+  const chooseReference = (reference) => {
+    if (!mention) return
+    const inserted = insertPlannedAskReference(content, mention.start, mention.end, reference, referenceIndex)
+    pendingCaret.current = inserted.caret
+    onChange(inserted.content)
+    setMention(null)
+    setActiveIndex(0)
+  }
+
+  const handleKeyDown = (event) => {
+    if (!mention || suggestions.length === 0) {
+      if (event.key === 'Escape') setMention(null)
+      return
+    }
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setActiveIndex((current) => (current + 1) % suggestions.length)
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setActiveIndex((current) => (current - 1 + suggestions.length) % suggestions.length)
+    } else if (event.key === 'Enter') {
+      event.preventDefault()
+      chooseReference(suggestions[activeIndex])
+    } else if (event.key === 'Escape') {
+      event.preventDefault()
+      setMention(null)
+    }
+  }
+
   return (
-    <textarea
-      ref={ref}
-      id={id}
-      className={className}
-      value={value}
-      onChange={onChange}
-      rows={rows}
-      placeholder={placeholder}
-      style={{ resize: 'none', overflow: 'hidden' }}
-    />
+    <div className="dibcac-planned-ask-editor">
+      <textarea
+        ref={textareaRef}
+        id="planned-ask"
+        className="dibcac-builder-textarea"
+        value={value}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        rows={4}
+        placeholder="Describe what you plan to ask or review during this session… Type @ to reference a checklist item."
+        style={{ resize: 'none', overflow: 'hidden' }}
+        aria-autocomplete="list"
+        aria-expanded={!!mention}
+      />
+      {mention && (
+        <div className="dibcac-planned-ask-suggestions" role="listbox" aria-label="Checklist references">
+          {suggestions.length === 0 ? (
+            <div className="dibcac-planned-ask-suggestion-empty">No matching checklist items.</div>
+          ) : suggestions.map((reference, index) => (
+            <button
+              key={`${reference.groupId}:${reference.itemId}`}
+              type="button"
+              role="option"
+              aria-selected={index === activeIndex}
+              className={`dibcac-planned-ask-suggestion${index === activeIndex ? ' dibcac-planned-ask-suggestion--active' : ''}`}
+              onMouseDown={(event) => { event.preventDefault(); chooseReference(reference) }}
+            >
+              <span><strong>{reference.displayRef}</strong> — {reference.label}</span>
+              <small>{reference.groupName}</small>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PlannedAskReadOnly({ content, fallback, referenceIndex, onNavigate }) {
+  const normalized = normalizePlannedAskContent(content, fallback)
+  const referenceMap = buildChecklistReferenceMap(referenceIndex)
+  return (
+    <p className="dibcac-group-card-ask-text">
+      {normalized.map((segment, index) => {
+        if (segment.type === 'text') return <span key={index}>{segment.text}</span>
+        const reference = referenceMap.get(`${segment.groupId}:${segment.itemId}`)
+        if (!reference) {
+          return <span key={index} className="dibcac-planned-ask-ref dibcac-planned-ask-ref--missing">Missing checklist reference</span>
+        }
+        return (
+          <button
+            key={index}
+            type="button"
+            className="dibcac-planned-ask-ref"
+            onClick={() => onNavigate?.({ groupId: segment.groupId, itemId: segment.itemId })}
+            title={`Open ${reference.groupName}: ${reference.label}`}
+          >
+            <strong>{reference.displayRef}</strong><span>— {reference.label}</span>
+          </button>
+        )
+      })}
+    </p>
   )
 }
 
@@ -568,11 +670,12 @@ function ObjectiveAttachPicker({ attachedKeys, onAdd, onRemove, flatObjs, hideMe
   )
 }
 
-function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup }) {
+function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, editingGroup }) {
   const isEditing = !!editingGroup
 
+  const [groupId] = useState(() => editingGroup?.id ?? crypto.randomUUID())
   const [groupName, setGroupName] = useState(() => editingGroup?.name ?? '')
-  const [plannedAsk, setPlannedAsk] = useState(() => editingGroup?.plannedAsk ?? '')
+  const [plannedAskContent, setPlannedAskContent] = useState(() => normalizePlannedAskContent(editingGroup?.plannedAskContent, editingGroup?.plannedAsk ?? ''))
   const [selectedObjs, setSelectedObjs] = useState(() =>
     editingGroup ? [...editingGroup.objectives] : []
   )
@@ -584,6 +687,13 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
   const [addingChecklistHeader, setAddingChecklistHeader] = useState(false)
   const [newHeaderText, setNewHeaderText] = useState('')
   const [hideMetInChecklist, setHideMetInChecklist] = useState(false)
+  const referenceGroups = useMemo(() => {
+    const draft = { ...(editingGroup ?? {}), id: groupId, name: groupName || 'Untitled group', checklist, plannedAskContent }
+    const existingIndex = allGroups.findIndex((group) => group.id === groupId)
+    if (existingIndex === -1) return [...allGroups, draft]
+    return allGroups.map((group) => group.id === groupId ? draft : group)
+  }, [allGroups, checklist, editingGroup, groupId, groupName, plannedAskContent])
+  const referenceIndex = useMemo(() => buildChecklistReferenceIndex(referenceGroups), [referenceGroups])
 
   const objMap = useMemo(() => {
     const m = new Map()
@@ -657,7 +767,11 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
     setNewHeaderText('')
   }
 
-  const removeChecklistItem = (id) => setChecklist((prev) => prev.filter((i) => i.id !== id))
+  const removeChecklistItem = (id) => {
+    const referenceCount = countPlannedAskReferences(referenceGroups, groupId, id)
+    if (referenceCount > 0 && !window.confirm(`This checklist item is used by ${referenceCount} Planned Ask reference${referenceCount === 1 ? '' : 's'}. Delete it and leave those references marked as missing?`)) return
+    setChecklist((prev) => prev.filter((i) => i.id !== id))
+  }
 
   const updateChecklistItemText = (id, text) =>
     setChecklist((prev) => prev.map((i) => i.id === id ? { ...i, text } : i))
@@ -706,15 +820,17 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
       onSave({
         ...editingGroup,
         name: groupName.trim(),
-        plannedAsk: plannedAsk.trim(),
+        plannedAsk: plannedAskFallbackText(plannedAskContent, referenceIndex).trim(),
+        plannedAskContent,
         objectives: normObjs,
         checklist,
       })
     } else {
       onSave({
-        id: crypto.randomUUID(),
+        id: groupId,
         name: groupName.trim(),
-        plannedAsk: plannedAsk.trim(),
+        plannedAsk: plannedAskFallbackText(plannedAskContent, referenceIndex).trim(),
+        plannedAskContent,
         objectives: normObjs,
         checklist,
         createdAt: new Date().toISOString(),
@@ -804,14 +920,7 @@ function BuilderPanel({ checkedKeys, flatObjs, onSave, onCancel, editingGroup })
 
         <div className="dibcac-builder-field">
           <label className="dibcac-builder-label" htmlFor="planned-ask">Planned Ask</label>
-          <AutoExpandTextarea
-            id="planned-ask"
-            className="dibcac-builder-textarea"
-            value={plannedAsk}
-            onChange={(e) => setPlannedAsk(e.target.value)}
-            rows={4}
-            placeholder="Describe what you plan to ask or review during this session…"
-          />
+          <PlannedAskEditor content={plannedAskContent} onChange={setPlannedAskContent} referenceIndex={referenceIndex} />
         </div>
 
         <div className="dibcac-builder-field">
@@ -1285,6 +1394,7 @@ function SavedGroupCard({
   onMoveObjectives, onRemoveObjectives, onUpdateChecklist, selectionMode, isSelected, onToggleSelect, isExpanded, onToggleExpanded,
   objectiveSelectionMode = false, selectedCrossGroupObjectives, onToggleCrossGroupObjective,
   onSelectAllCrossGroupObjectives, onDeselectAllCrossGroupObjectives,
+  groupNumber, referenceIndex, onNavigateChecklistItem, highlightedChecklistItemId, onReorderGroup,
 }) {
   const expanded = isExpanded ?? false
   const [commentsKey, setCommentsKey] = useState(null) // `${controlId}[${objId}]`
@@ -1435,6 +1545,7 @@ function SavedGroupCard({
     const codes = new Set(group.objectives.map((o) => o.controlId.split('.')[0]))
     return [...codes].sort().join(' · ')
   }, [group.objectives])
+  const incomingReferenceCount = useMemo(() => countPlannedAskReferences(allGroups, group.id), [allGroups, group.id])
 
   const cycleStatus = useCallback((controlId, objId) => {
     const current = readObjectiveStatus(controlId, objId)
@@ -1459,7 +1570,7 @@ function SavedGroupCard({
   }, [commentsKey])
 
   return (
-    <div className={`dibcac-group-card${isSelected ? ' dibcac-group-card--selected' : ''}`}>
+    <div id={reviewGroupDomId(group.id)} data-group-id={group.id} className={`dibcac-group-card${isSelected ? ' dibcac-group-card--selected' : ''}`}>
       {commentsKey && commentsObjId && (
         <OverallCommentsPopover
           controlId={commentsControlId}
@@ -1493,7 +1604,7 @@ function SavedGroupCard({
         >
           <span className="dibcac-collapse-icon dibcac-group-card-chevron">{expanded ? '▼' : '▶'}</span>
           <div className="dibcac-group-card-info">
-            <span className="dibcac-group-card-name">{group.name}</span>
+            <span className="dibcac-group-card-name"><span className="dibcac-group-display-number">G{groupNumber}</span>{group.name}</span>
             <span className="dibcac-group-card-meta">
               {group.objectives.length} objective{group.objectives.length !== 1 ? 's' : ''}
               {familySummary ? ` · ${familySummary}` : ''}
@@ -1502,6 +1613,8 @@ function SavedGroupCard({
         </button>
 
         <div className="dibcac-group-card-actions">
+          <button type="button" className="dibcac-action-btn" disabled={groupNumber <= 1} onClick={() => onReorderGroup?.(group.id, -1)} title="Move group earlier in canonical order" aria-label={`Move ${group.name} earlier`}>↑</button>
+          <button type="button" className="dibcac-action-btn" disabled={groupNumber >= allGroups.length} onClick={() => onReorderGroup?.(group.id, 1)} title="Move group later in canonical order" aria-label={`Move ${group.name} later`}>↓</button>
           <button
             type="button"
             className="dibcac-action-btn"
@@ -1515,7 +1628,7 @@ function SavedGroupCard({
           >Findings</button>
           {confirmingGroupDelete ? (
             <div className="dibcac-inline-delete-confirm">
-              <span>Delete this group?</span>
+              <span>Delete this group?{incomingReferenceCount > 0 ? ` ${incomingReferenceCount} Planned Ask reference${incomingReferenceCount === 1 ? '' : 's'} will be marked missing.` : ''}</span>
               <button type="button" className="dibcac-action-btn dibcac-action-btn--delete" onClick={() => onDelete(group.id)}>Yes, delete</button>
               <button type="button" className="dibcac-action-btn" onClick={() => setConfirmingGroupDelete(false)}>Cancel</button>
             </div>
@@ -1546,10 +1659,15 @@ function SavedGroupCard({
 
       {expanded && (
         <div className="dibcac-group-card-body">
-          {group.plannedAsk && (
+          {(group.plannedAsk || group.plannedAskContent?.length > 0) && (
             <div className="dibcac-group-card-ask-block">
               <span className="dibcac-preview-section-label">Planned Ask</span>
-              <p className="dibcac-group-card-ask-text">{group.plannedAsk}</p>
+              <PlannedAskReadOnly
+                content={group.plannedAskContent}
+                fallback={group.plannedAsk}
+                referenceIndex={referenceIndex}
+                onNavigate={onNavigateChecklistItem}
+              />
             </div>
           )}
 
@@ -1565,7 +1683,13 @@ function SavedGroupCard({
                     <span>{item.text}</span>
                   </div>
                 ) : (
-                  <div key={item.id} className="dibcac-checklist-row">
+                  <div
+                    key={item.id}
+                    id={checklistItemDomId(item.id)}
+                    data-checklist-item-id={item.id}
+                    tabIndex={-1}
+                    className={`dibcac-checklist-row${highlightedChecklistItemId === item.id ? ' dibcac-checklist-row--highlighted' : ''}`}
+                  >
                     <div className="dibcac-checklist-row-main">
                       <input
                         type="checkbox"
@@ -1799,6 +1923,7 @@ function FolderSection({
   isOpen, onToggleOpen, expandedGroupIds, onToggleGroupExpanded,
   objectiveSelectionMode, selectedCrossGroupObjectives, onToggleCrossGroupObjective,
   onSelectAllCrossGroupObjectives, onDeselectAllCrossGroupObjectives,
+  groupNumberMap, referenceIndex, onNavigateChecklistItem, highlightedChecklistItemId, onReorderGroup,
 }) {
   const [confirming, setConfirming] = useState(false)
 
@@ -1849,6 +1974,11 @@ function FolderSection({
                 onToggleCrossGroupObjective={onToggleCrossGroupObjective}
                 onSelectAllCrossGroupObjectives={onSelectAllCrossGroupObjectives}
                 onDeselectAllCrossGroupObjectives={onDeselectAllCrossGroupObjectives}
+                groupNumber={groupNumberMap.get(group.id)}
+                referenceIndex={referenceIndex}
+                onNavigateChecklistItem={onNavigateChecklistItem}
+                highlightedChecklistItemId={highlightedChecklistItemId}
+                onReorderGroup={onReorderGroup}
               />
             ))
           )}
@@ -1866,8 +1996,9 @@ function SavedGroupsPanel({
   onCreateFromSelectedObjectives, onMoveSelectedObjectives,
   openFolderIds, onToggleFolderOpen, expandedGroupIds, onToggleGroupExpanded,
   railExpanded, onToggleRailExpanded,
+  groupNumberMap, referenceIndex, onNavigateChecklistItem, highlightedChecklistItemId, onReorderGroup,
 }) {
-  const [groupSort, setGroupSort] = useState('created') // 'name' | 'created'
+  const [groupSort, setGroupSort] = useState('order') // 'order' | 'name' | 'created'
   const [sortDir,   setSortDir]   = useState('asc')      // 'asc' | 'desc'
   const [creatingFolder, setCreatingFolder] = useState(false)
   const [newFolderName,  setNewFolderName]  = useState('')
@@ -1982,6 +2113,9 @@ function SavedGroupsPanel({
 
   const sortedGroups = useMemo(() => {
     const copy = [...savedGroups]
+    if (groupSort === 'order') {
+      return copy
+    }
     if (groupSort === 'name') {
       copy.sort((a, b) => {
         const cmp = parseGroupSortKey(a.name).localeCompare(parseGroupSortKey(b.name))
@@ -2145,6 +2279,11 @@ function SavedGroupsPanel({
             <span className="dibcac-sort-label">Sort:</span>
             <button
               type="button"
+              className={`dibcac-sort-btn${groupSort === 'order' ? ' dibcac-sort-btn--active' : ''}`}
+              onClick={() => setGroupSort('order')}
+            >Canonical Order</button>
+            <button
+              type="button"
               className={`dibcac-sort-btn${groupSort === 'name' ? ' dibcac-sort-btn--active' : ''}`}
               onClick={() => handleSortClick('name')}
             >Name{sortDirArrow('name')}</button>
@@ -2231,6 +2370,11 @@ function SavedGroupsPanel({
                   onToggleCrossGroupObjective={toggleCrossGroupObjective}
                   onSelectAllCrossGroupObjectives={selectAllCrossGroupObjectives}
                   onDeselectAllCrossGroupObjectives={deselectAllCrossGroupObjectives}
+                  groupNumberMap={groupNumberMap}
+                  referenceIndex={referenceIndex}
+                  onNavigateChecklistItem={onNavigateChecklistItem}
+                  highlightedChecklistItemId={highlightedChecklistItemId}
+                  onReorderGroup={onReorderGroup}
                 />
               ))}
               {ungrouped.length > 0 && (
@@ -2263,6 +2407,11 @@ function SavedGroupsPanel({
                         onToggleCrossGroupObjective={toggleCrossGroupObjective}
                         onSelectAllCrossGroupObjectives={selectAllCrossGroupObjectives}
                         onDeselectAllCrossGroupObjectives={deselectAllCrossGroupObjectives}
+                        groupNumber={groupNumberMap.get(group.id)}
+                        referenceIndex={referenceIndex}
+                        onNavigateChecklistItem={onNavigateChecklistItem}
+                        highlightedChecklistItemId={highlightedChecklistItemId}
+                        onReorderGroup={onReorderGroup}
                       />
                     ))}
                   </div>
@@ -2294,6 +2443,11 @@ function SavedGroupsPanel({
                   onToggleCrossGroupObjective={toggleCrossGroupObjective}
                   onSelectAllCrossGroupObjectives={selectAllCrossGroupObjectives}
                   onDeselectAllCrossGroupObjectives={deselectAllCrossGroupObjectives}
+                  groupNumber={groupNumberMap.get(group.id)}
+                  referenceIndex={referenceIndex}
+                  onNavigateChecklistItem={onNavigateChecklistItem}
+                  highlightedChecklistItemId={highlightedChecklistItemId}
+                  onReorderGroup={onReorderGroup}
                 />
               ))}
             </div>
@@ -2321,6 +2475,8 @@ function DibcacMode() {
   })
   const [savedGroups,  setSavedGroups]  = useState(getReviewGroups)
   const [savedFolders, setSavedFolders] = useState(getReviewFolders)
+  const referenceIndex = useMemo(() => buildChecklistReferenceIndex(savedGroups), [savedGroups])
+  const groupNumberMap = useMemo(() => buildGroupNumberMap(savedGroups), [savedGroups])
   // Lifted out of FolderSection/SavedGroupCard so open/expanded state survives
   // SavedGroupsPanel unmounting when entering builder mode to edit a group —
   // previously editing a group and saving would collapse every open folder.
@@ -2344,7 +2500,41 @@ function DibcacMode() {
   const [previewKey, setPreviewKey] = useState(null)
   const [templatesOpen, setTemplatesOpen] = useState(false)
   const [railExpanded, setRailExpanded] = useState(() => localStorage.getItem('cmmc-dibcac-rail-expanded') === 'true')
+  const [highlightedChecklistItemId, setHighlightedChecklistItemId] = useState(null)
+  const highlightTimerRef = useRef(null)
   const searchRef = useRef(null)
+
+  useEffect(() => () => clearTimeout(highlightTimerRef.current), [])
+
+  const navigateToChecklistItem = useCallback(({ groupId, itemId }) => {
+    const target = resolveChecklistNavigationTarget(savedGroups, referenceIndex, groupId, itemId)
+    if (!target) return false
+    setMode('browse')
+    setEditingGroup(null)
+    setRailExpanded(true)
+    localStorage.setItem('cmmc-dibcac-rail-expanded', 'true')
+    if (target.folderId) {
+      setOpenFolderIds((current) => {
+        const next = new Set(current).add(target.folderId)
+        writeIdSet('cmmc-dibcac-open-folder-ids', next)
+        return next
+      })
+    }
+    setExpandedGroupIds((current) => {
+      const next = new Set(current).add(groupId)
+      writeIdSet('cmmc-dibcac-expanded-group-ids', next)
+      return next
+    })
+    setHighlightedChecklistItemId(itemId)
+    clearTimeout(highlightTimerRef.current)
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const element = document.getElementById(checklistItemDomId(itemId))
+      element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      element?.focus({ preventScroll: true })
+      highlightTimerRef.current = setTimeout(() => setHighlightedChecklistItemId(null), 1800)
+    }))
+    return true
+  }, [referenceIndex, savedGroups])
 
   const allObjs = useMemo(() => {
     const list = []
@@ -2433,6 +2623,7 @@ function DibcacMode() {
       next = updateReviewGroup(group.id, {
         name: group.name,
         plannedAsk: group.plannedAsk,
+        plannedAskContent: group.plannedAskContent,
         objectives: group.objectives,
         checklist: group.checklist,
       })
@@ -2533,9 +2724,8 @@ function DibcacMode() {
       checklist: [],
       createdAt: now,
     }
-    const next = [newGroup, ...retainedGroups]
-    saveReviewGroups(next)
-    setSavedGroups(next)
+    const next = [...retainedGroups, newGroup]
+    setSavedGroups(saveReviewGroups(next))
     setExpandedGroupIds((current) => new Set(current).add(newGroup.id))
   }
 
@@ -2584,6 +2774,15 @@ function DibcacMode() {
     setSavedGroups(next)
   }
 
+  const handleReorderGroup = (groupId, direction) => {
+    const index = savedGroups.findIndex((group) => group.id === groupId)
+    const targetIndex = index + direction
+    if (index < 0 || targetIndex < 0 || targetIndex >= savedGroups.length) return
+    const next = [...savedGroups]
+    ;[next[index], next[targetIndex]] = [next[targetIndex], next[index]]
+    setSavedGroups(saveReviewGroups(next))
+  }
+
   const handleCreateFolder = (name) => {
     const next = createReviewFolder(name)
     setSavedFolders(next)
@@ -2611,9 +2810,9 @@ function DibcacMode() {
   }
 
   const handleApplyTemplate = ({ groups, folders }) => {
-    saveReviewGroups(groups)
+    const orderedGroups = saveReviewGroups(groups)
     saveReviewFolders(folders)
-    setSavedGroups(groups)
+    setSavedGroups(orderedGroups)
     setSavedFolders(folders)
     const nextOpenFolders = new Set(folders.map((folder) => folder.id))
     setOpenFolderIds(nextOpenFolders)
@@ -2753,6 +2952,7 @@ function DibcacMode() {
               <BuilderPanel
                 checkedKeys={checkedKeys}
                 flatObjs={allObjs}
+                allGroups={savedGroups}
                 onSave={handleSaveGroup}
                 onCancel={cancelBuilder}
                 editingGroup={editingGroup}
@@ -2776,6 +2976,11 @@ function DibcacMode() {
                         onUpdateChecklist={handleUpdateChecklist}
                         isExpanded={expandedGroupIds.has(group.id)}
                         onToggleExpanded={() => toggleGroupExpanded(group.id)}
+                        groupNumber={groupNumberMap.get(group.id)}
+                        referenceIndex={referenceIndex}
+                        onNavigateChecklistItem={navigateToChecklistItem}
+                        highlightedChecklistItemId={highlightedChecklistItemId}
+                        onReorderGroup={handleReorderGroup}
                       />
                     ))}
                   </div>
@@ -2809,6 +3014,11 @@ function DibcacMode() {
                 localStorage.setItem('cmmc-dibcac-rail-expanded', String(next))
                 return next
               })}
+              groupNumberMap={groupNumberMap}
+              referenceIndex={referenceIndex}
+              onNavigateChecklistItem={navigateToChecklistItem}
+              highlightedChecklistItemId={highlightedChecklistItemId}
+              onReorderGroup={handleReorderGroup}
             />
           )}
         </div>

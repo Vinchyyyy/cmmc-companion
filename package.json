@@ -1,7 +1,7 @@
 {
   "name": "cmmc-companion",
   "private": true,
-  "version": "4.9.0",
+  "version": "4.9.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,6 +12,7 @@
     "test:dibcac-templates": "node scripts/test-dibcac-templates.mjs",
     "test:checklist-interview-notes": "node scripts/test-checklist-interview-notes.mjs",
     "test:project-dibcac-roundtrip": "node scripts/test-project-dibcac-roundtrip.mjs",
+    "test:dibcac-references": "node scripts/test-dibcac-references.mjs",
     "test:global-evidence": "node scripts/test-global-evidence-pool.mjs",
     "test:crm-import": "node scripts/test-crm-bulk-import.mjs",
     "test:paste-formatting": "node scripts/test-paste-formatting.mjs",

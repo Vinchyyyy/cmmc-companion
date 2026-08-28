@@ -30,6 +30,10 @@ try {
       name: 'Primary Review',
       folderId: 'folder-auth',
       plannedAsk: 'Show authentication controls.',
+      plannedAskContent: [
+        { type: 'text', text: 'See ' },
+        { type: 'checklistRef', groupId: 'group-primary', itemId: 'item-mfa' },
+      ],
       objectives: [{ key: 'AC.L1-3.1.1[a]', controlId: 'AC.L1-3.1.1', objId: 'a', objText: controls[0].objectives[0].text, standard: 'screen_share' }],
       checklist: [
         { id: 'header-users', type: 'header', text: 'User authentication' },
@@ -67,8 +71,8 @@ try {
   })
 
   const exported = exportProjectState(controls)
-  assert.equal(SCHEMA_VERSION, 9)
-  assert.deepEqual(exported.reviewGroups, groups)
+  assert.equal(SCHEMA_VERSION, 10)
+  assert.deepEqual(exported.reviewGroups, getReviewGroups())
   assert.deepEqual(exported.reviewFolders, folders)
   assert.equal(exported.controls[0].objectiveResults.a.interviews, 'Manual objective interview text.')
   assert.equal(exported.controls[0].objectiveResults.a.checklistInterviewNotes['group-primary:item-mfa'].note, 'MFA was demonstrated live.')
@@ -78,7 +82,8 @@ try {
   memory.clear()
   const imported = importProjectState(exported, controls)
   assert.equal(imported.ok, true)
-  assert.deepEqual(getReviewGroups(), groups)
+  assert.deepEqual(getReviewGroups(), exported.reviewGroups)
+  assert.deepEqual(getReviewGroups()[0].plannedAskContent[1], { type: 'checklistRef', groupId: 'group-primary', itemId: 'item-mfa' })
   assert.deepEqual(getReviewFolders(), folders)
   assert.equal(readCustomDibcacTemplates()[0].name, 'Authentication Template')
   const restoredResult = readObjectiveResult('AC.L1-3.1.1', 'a')

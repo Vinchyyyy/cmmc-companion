@@ -12,8 +12,37 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v4.9.0 — current release, open by default */}
+      {/* v4.9.1 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.9.1</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+          <span style={{ color: 'var(--color-text)' }}>DIBCAC Planned Ask Cross-References</span>
+          <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>August 27, 2026</span>
+        </summary>
+        <div style={{ paddingLeft: 'var(--space-4)', paddingTop: 'var(--space-3)', borderLeft: '2px solid var(--color-accent)' }}>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+            Adds stable, clickable checklist cross-references to DIBCAC Planned Ask content with canonical group numbering and complete JSON/template portability.
+          </p>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>DIBCAC Planned Ask</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Typing @ opens a searchable checklist picker with keyboard and mouse selection.</li>
+            <li>References display dynamic labels such as G1-1.1 while retaining stable review-group and checklist-item targets.</li>
+            <li>Saved reference chips open the appropriate folder and group, scroll to the item, and briefly highlight it.</li>
+            <li>Missing or deleted targets render safely without damaging Planned Ask content.</li>
+          </ul>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-2)', marginTop: 'var(--space-4)' }}>Portability and Validation</h3>
+          <ul style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 'var(--leading-relaxed)', paddingLeft: 'var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <li>Added canonical review-group order, dynamic numbering, and explicit reorder controls.</li>
+            <li>Project JSON schema v10 preserves structured references and group order; DIBCAC template schema v2 remaps reference IDs when instantiated.</li>
+            <li>Legacy plain-text Planned Ask content and existing saved group order migrate automatically.</li>
+            <li>Verified populated browser exports and automated project/template round trips.</li>
+          </ul>
+        </div>
+      </details>
+
+      {/* v4.9.0 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.9.0</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>

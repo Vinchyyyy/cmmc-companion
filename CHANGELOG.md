@@ -1,4 +1,24 @@
 
+## Version 4.9.1 — DIBCAC Planned Ask Cross-References
+Date: August 27, 2026
+
+### Planned Ask References
+- Added an `@` checklist picker to Planned Ask fields with search, keyboard navigation, and mouse selection.
+- Saved references use stable review-group and checklist-item IDs while displaying compact dynamic references such as `G1-1.1`.
+- Reference chips open the correct folder and review group, scroll to the checklist item, and briefly highlight it.
+- Missing or deleted targets now display safely instead of breaking saved Planned Ask content.
+
+### Canonical Numbering and Persistence
+- Added a persistent canonical review-group order with explicit group numbering and reorder controls.
+- Checklist and group numbers update dynamically after canonical reordering without changing the saved reference target.
+- Project JSON schema v10 preserves group order and structured Planned Ask references.
+- DIBCAC template schema v2 preserves references and remaps group and checklist IDs when a template is instantiated.
+- Existing groups and plain-text Planned Ask content migrate automatically without data loss.
+
+### Validation
+- Added coverage for double-digit references, reorder stability, reference search and insertion, missing targets, click-target resolution, template remapping, and full-project JSON round trips.
+- Verified the browser export path with populated proof-of-concept data containing multiple groups, folders, and cross-group references.
+
 ## Version 3.3.1 — Findings and DIBCAC Workflow Patch
 Date: July 1, 2026
 
