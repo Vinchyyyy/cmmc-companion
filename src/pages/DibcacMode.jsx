@@ -652,7 +652,7 @@ function ObjectiveAttachPicker({ attachedKeys, onAdd, onRemove, flatObjs, hideMe
               <li
                 key={o.key}
                 className="provider-picker-result"
-                onMouseDown={(e) => { e.preventDefault(); onAdd(o.key); setQuery('') }}
+                onMouseDown={(e) => { e.preventDefault(); onAdd(o.key) }}
               >
                 <span className="mono">{o.controlId}[{o.objId}]</span> — {o.objText}
               </li>
@@ -664,7 +664,7 @@ function ObjectiveAttachPicker({ attachedKeys, onAdd, onRemove, flatObjs, hideMe
   )
 }
 
-function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, editingGroup }) {
+function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, editingGroup, hideMet, onToggleHideMet }) {
   const isEditing = !!editingGroup
 
   const [groupId] = useState(() => editingGroup?.id ?? crypto.randomUUID())
@@ -680,7 +680,6 @@ function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, edit
   const [newItemObjKeys, setNewItemObjKeys] = useState(() => new Set())
   const [addingChecklistHeader, setAddingChecklistHeader] = useState(false)
   const [newHeaderText, setNewHeaderText] = useState('')
-  const [hideMetInChecklist, setHideMetInChecklist] = useState(false)
   const referenceGroups = useMemo(() => {
     const draft = { ...(editingGroup ?? {}), id: groupId, name: groupName || 'Untitled group', checklist, plannedAskContent }
     const existingIndex = allGroups.findIndex((group) => group.id === groupId)
@@ -759,6 +758,8 @@ function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, edit
       text: newHeaderText.trim(),
     }])
     setNewHeaderText('')
+    setAddingChecklistHeader(false)
+    setAddingChecklistItem(true)
   }
 
   const removeChecklistItem = (id) => {
@@ -838,6 +839,19 @@ function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, edit
         <span className="dibcac-builder-title">
           {isEditing ? 'Edit Review Group' : 'Review Group Builder'}
         </span>
+        <div className="dibcac-builder-header-actions">
+          <button
+            type="button"
+            className="dibcac-builder-save"
+            onClick={handleSave}
+            disabled={!groupName.trim()}
+          >
+            {isEditing ? 'Save Changes' : 'Save Group'}
+          </button>
+          <button type="button" className="dibcac-builder-cancel" onClick={onCancel}>
+            Cancel
+          </button>
+        </div>
       </div>
 
       <div className="dibcac-builder-body">
@@ -923,11 +937,11 @@ function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, edit
             <button
               type="button"
               className="control-utility-toggle dibcac-checklist-hide-met-toggle"
-              onClick={() => setHideMetInChecklist((v) => !v)}
-              aria-pressed={hideMetInChecklist}
+              onClick={onToggleHideMet}
+              aria-pressed={hideMet}
             >
-              <span className="cl2-toggle-track" style={{ background: hideMetInChecklist ? 'var(--dash-accent)' : '#1C1C20' }}>
-                <span className="cl2-toggle-thumb" style={{ transform: hideMetInChecklist ? 'translateX(14px)' : 'translateX(0)' }} />
+              <span className="cl2-toggle-track" style={{ background: hideMet ? 'var(--dash-accent)' : '#1C1C20' }}>
+                <span className="cl2-toggle-thumb" style={{ transform: hideMet ? 'translateX(14px)' : 'translateX(0)' }} />
               </span>
               Hide MET objectives
             </button>
@@ -1010,7 +1024,7 @@ function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, edit
                       onAdd={(key) => toggleChecklistItemObj(item.id, key)}
                       onRemove={(key) => toggleChecklistItemObj(item.id, key)}
                       flatObjs={flatObjs}
-                      hideMet={hideMetInChecklist}
+                      hideMet={hideMet}
                     />
                   </div>
                 )
@@ -1068,7 +1082,7 @@ function BuilderPanel({ checkedKeys, flatObjs, allGroups, onSave, onCancel, edit
                 onAdd={(key) => toggleNewItemObj(key)}
                 onRemove={(key) => toggleNewItemObj(key)}
                 flatObjs={flatObjs}
-                hideMet={hideMetInChecklist}
+                hideMet={hideMet}
               />
               <div className="dibcac-checklist-add-actions">
                 <button type="button" className="dibcac-builder-save" onClick={addChecklistItem} disabled={!newItemText.trim()}>Add</button>
@@ -2950,6 +2964,8 @@ function DibcacMode() {
                 onSave={handleSaveGroup}
                 onCancel={cancelBuilder}
                 editingGroup={editingGroup}
+                hideMet={hideMet}
+                onToggleHideMet={toggleHideMet}
               />
               {savedGroups.length > 0 && (
                 <div className="dibcac-rail-saved-below">

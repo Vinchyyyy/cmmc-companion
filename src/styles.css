@@ -9743,9 +9743,27 @@ button.evidence-type-chip:focus-visible {
 }
 
 .dibcac-builder-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
+}
+
+.dibcac-builder-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.dibcac-builder-header-actions .dibcac-builder-save,
+.dibcac-builder-header-actions .dibcac-builder-cancel {
+  flex: none;
+  padding: 7px 12px;
+  white-space: nowrap;
 }
 
 .dibcac-builder-title {
