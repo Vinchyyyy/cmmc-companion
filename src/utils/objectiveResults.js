@@ -39,8 +39,24 @@ function normalizeChecklistInterviewNotes(value) {
 export function combinedInterviewText(result) {
   const manual = coerceString(result?.interviews).trim()
   const generated = Object.values(normalizeChecklistInterviewNotes(result?.checklistInterviewNotes))
-    .map((entry) => `Checklist — ${entry.label}:\n${entry.note}`)
+    .map((entry) => entry.note)
   return [manual, ...generated].filter(Boolean).join('\n\n')
+}
+
+export function applyCombinedInterviewEdit(result, value) {
+  const normalized = {
+    interviews: coerceString(result?.interviews),
+    examine: coerceString(result?.examine),
+    test: coerceString(result?.test),
+    overallComments: coerceString(result?.overallComments),
+    checklistInterviewNotes: normalizeChecklistInterviewNotes(result?.checklistInterviewNotes),
+  }
+  const edited = coerceString(value)
+  const generated = Object.values(normalized.checklistInterviewNotes).map((entry) => entry.note).filter(Boolean).join('\n\n')
+  if (generated && edited.endsWith(generated)) {
+    return { ...normalized, interviews: edited.slice(0, -generated.length).replace(/\n\n$/, '') }
+  }
+  return { ...normalized, interviews: edited, checklistInterviewNotes: {} }
 }
 
 export function objectiveResultHasWork(result) {

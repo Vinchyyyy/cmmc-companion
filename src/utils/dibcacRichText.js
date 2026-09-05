@@ -175,13 +175,13 @@ export function remapPlannedAskRichDocument(document, groupIdMap, itemIdMap, top
 
 export function buildTopicAnchorIndex(groups) {
   const topics = []
-  for (const group of groups ?? []) {
+  for (const [groupIndex, group] of (groups ?? []).entries()) {
     const document = normalizePlannedAskRichDocument(group?.plannedAskRichDocument, group?.plannedAskContent, group?.plannedAsk)
     document.blocks.forEach((block, blockIndex) => {
       if (block.type !== 'topic' || !block.topicAnchorId) return
       const label = block.children.filter((node) => node.type === 'text').map((node) => node.text).join('').trim()
       if (!label) return
-      topics.push({ topicAnchorId: block.topicAnchorId, groupId: group.id, label, groupName: group.name ?? '', folderId: group.folderId ?? null, blockIndex })
+      topics.push({ topicAnchorId: block.topicAnchorId, groupId: group.id, groupNumber: groupIndex + 1, label, groupName: group.name ?? '', folderId: group.folderId ?? null, blockIndex })
     })
   }
   return topics

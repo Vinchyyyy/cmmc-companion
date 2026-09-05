@@ -9249,6 +9249,11 @@ button.evidence-type-chip:focus-visible {
 
 .dibcac-topic-navigator-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--color-text-muted); font-size: var(--text-xs); font-weight: 750; letter-spacing: 0.04em; text-transform: uppercase; }
 .dibcac-topic-navigator-header input { width: min(220px, 48vw); padding: 5px 8px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface-alt); color: var(--color-text); font-size: var(--text-xs); text-transform: none; letter-spacing: normal; }
+.dibcac-topic-navigator-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 8px; }
+.dibcac-topic-navigator-group { min-width: 0; padding: 7px; border: 1px solid var(--color-border); border-radius: 7px; background: color-mix(in srgb, var(--color-surface-alt) 82%, transparent); }
+.dibcac-topic-navigator-group-label { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; min-width: 0; font-size: var(--text-xs); }
+.dibcac-topic-navigator-group-label span { flex: 0 0 auto; color: var(--color-accent); font-family: var(--font-mono); font-weight: 800; }
+.dibcac-topic-navigator-group-label strong { min-width: 0; overflow: hidden; color: var(--color-text); font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
 .dibcac-topic-navigator-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .dibcac-topic-navigator-chips button { padding: 4px 9px; border: 1px solid color-mix(in srgb, var(--color-accent) 38%, var(--color-border)); border-radius: 999px; background: color-mix(in srgb, var(--color-accent) 10%, transparent); color: var(--color-text); cursor: pointer; font-size: var(--text-xs); }
 .dibcac-topic-navigator-chips button:hover { border-color: var(--color-accent); color: var(--color-accent); }
@@ -11138,11 +11143,24 @@ button.evidence-type-chip:focus-visible {
   line-height: 1.4;
 }
 
+.dibcac-checklist-obj-comment {
+  grid-column: 2;
+  margin-top: -2px;
+  padding: 4px 7px;
+  border-left: 2px solid color-mix(in srgb, var(--color-accent) 36%, var(--color-border));
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--color-surface-alt) 74%, transparent);
+  color: var(--color-text-muted);
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
 @media (max-width: 720px) {
   .dibcac-checklist-obj-item {
     grid-template-columns: 1fr;
     gap: 1px;
   }
+  .dibcac-checklist-obj-comment { grid-column: 1; }
 }
 
 .dibcac-checklist-add-form {

@@ -43,7 +43,7 @@ import { findByName, findOrCreate } from '../utils/artifactRegistry.js'
 import ArtifactDetailModal from '../components/ArtifactDetailModal.jsx'
 import { getObjectiveArtifactSuggestions } from '../utils/evidenceRecommendations.js'
 import { evidenceTags } from '../data/evidenceTags.js'
-import { readObjectiveResult, writeObjectiveResult } from '../utils/objectiveResults'
+import { applyCombinedInterviewEdit, combinedInterviewText, objectiveResultHasWork, readObjectiveResult, writeObjectiveResult } from '../utils/objectiveResults'
 import FindingsBuilderModal from '../components/FindingsBuilderModal'
 import InterviewRolePickerModal from '../components/InterviewRolePickerModal'
 import BulkFindingsModal from '../components/BulkFindingsModal'
@@ -1098,7 +1098,7 @@ function ControlDetailView() {
   // been explicitly set — drives the rail's "In Progress" indicator below.
   const objectiveHasWork = (objId) => {
     const result = objectiveResults[objId]
-    if (result && Object.values(result).some((v) => (v ?? '').trim())) return true
+    if (objectiveResultHasWork(result)) return true
     if ((objectiveArtifacts[objId] ?? []).length > 0) return true
     if (objectiveFindings[objId]) return true
     if ((objectiveInterviewedRoles[objId] ?? []).length > 0) return true
@@ -1198,7 +1198,7 @@ function ControlDetailView() {
 
   const handleObjectiveResultChange = (objId, field, value) => {
     const current = objectiveResults[objId] ?? { interviews: '', examine: '', test: '', overallComments: '' }
-    const next = { ...current, [field]: value }
+    const next = field === 'interviews' ? applyCombinedInterviewEdit(current, value) : { ...current, [field]: value }
     setObjectiveResults((prev) => ({ ...prev, [objId]: next }))
     writeObjectiveResult(id, objId, next)
     promoteToInProgress(status, id, setStatus)
@@ -1861,7 +1861,8 @@ function ControlDetailView() {
                   const isInterviews = field === 'interviews'
                   const isExamine = field === 'examine'
                   const objRoles = isInterviews ? (objectiveInterviewedRoles[selectedObj.id] ?? []) : []
-                  const fieldValue = (objectiveResults[selectedObj.id] ?? {})[field] ?? ''
+                  const selectedResult = objectiveResults[selectedObj.id] ?? {}
+                  const fieldValue = isInterviews ? combinedInterviewText(selectedResult) : selectedResult[field] ?? ''
                   const cleanedFieldValue = normalizePastedText(fieldValue)
                   const canCleanFormatting = cleanedFieldValue !== fieldValue
                   const examineText = isExamine ? fieldValue : ''
@@ -1922,18 +1923,6 @@ function ControlDetailView() {
                         placeholder={placeholder}
                         maxLength={FIELD_CHAR_LIMITS[field]}
                       />
-                      {isInterviews && Object.keys((objectiveResults[selectedObj.id] ?? {}).checklistInterviewNotes ?? {}).length > 0 && (
-                        <div className="cd-synced-interview-notes">
-                          <strong>Synced DIBCAC checklist notes</strong>
-                          {Object.entries(objectiveResults[selectedObj.id].checklistInterviewNotes).map(([sourceId, entry]) => (
-                            <div key={sourceId} className="cd-synced-interview-note">
-                              <span>{entry.label}</span>
-                              <p>{entry.note}</p>
-                            </div>
-                          ))}
-                          <small>Edit these from their checklist item in DIBCAC Mode.</small>
-                        </div>
-                      )}
                       {canCleanFormatting && (
                         <div style={{ marginTop: 'var(--space-1)' }}>
                           <button

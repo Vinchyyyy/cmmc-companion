@@ -1804,7 +1804,12 @@ function SavedGroupCard({
     const objective = parsed
       ? CONTROL_BY_ID.get(parsed.controlId)?.objectives?.find((entry) => entry.id === parsed.objId)
       : null
-    return { reference: key, statement: objective?.text ?? 'Objective statement unavailable.' }
+    const result = parsed ? readObjectiveResult(parsed.controlId, parsed.objId) : null
+    return {
+      reference: key,
+      statement: objective?.text ?? 'Objective statement unavailable.',
+      overallComments: result?.overallComments?.trim() ?? '',
+    }
   }
 
   // For items with attached objectives, "checked" is derived live from
@@ -2091,6 +2096,9 @@ function SavedGroupCard({
                             <li key={key} className="dibcac-checklist-obj-item">
                               <span className="dibcac-checklist-obj-ref mono">{details.reference}</span>
                               <span className="dibcac-checklist-obj-statement">{details.statement}</span>
+                              {details.overallComments && (
+                                <span className="dibcac-checklist-obj-comment"><strong>Overall:</strong> {details.overallComments}</span>
+                              )}
                             </li>
                           )
                         })}
@@ -2852,6 +2860,20 @@ function TopicNavigator({ topics, onNavigate, compact = false }) {
     const normalized = query.trim().toLowerCase()
     return normalized ? topics.filter((topic) => topic.label.toLowerCase().includes(normalized)) : topics
   }, [query, topics])
+  const groupedTopics = useMemo(() => {
+    const groups = []
+    const byId = new Map()
+    for (const topic of visible) {
+      let group = byId.get(topic.groupId)
+      if (!group) {
+        group = { groupId: topic.groupId, groupNumber: topic.groupNumber, groupName: topic.groupName, topics: [] }
+        byId.set(topic.groupId, group)
+        groups.push(group)
+      }
+      group.topics.push(topic)
+    }
+    return groups
+  }, [visible])
   return (
     <section className={`dibcac-topic-navigator${compact ? ' dibcac-topic-navigator--compact' : ''}`} aria-label="Topic Navigator">
       <div className="dibcac-topic-navigator-header">
@@ -2860,14 +2882,24 @@ function TopicNavigator({ topics, onNavigate, compact = false }) {
           <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a topic…" aria-label="Search topics" />
         )}
       </div>
-      <div className="dibcac-topic-navigator-chips">
-        {visible.length > 0 ? visible.map((topic) => (
-          <button
-            key={`${topic.groupId}:${topic.topicAnchorId}`}
-            type="button"
-            onClick={() => onNavigate(topic)}
-            title={`Open topic in ${topic.groupName}`}
-          >{topic.label}</button>
+      <div className="dibcac-topic-navigator-groups">
+        {groupedTopics.length > 0 ? groupedTopics.map((group) => (
+          <div key={group.groupId} className="dibcac-topic-navigator-group">
+            <div className="dibcac-topic-navigator-group-label">
+              <span>G{group.groupNumber}</span>
+              <strong>{group.groupName}</strong>
+            </div>
+            <div className="dibcac-topic-navigator-chips">
+              {group.topics.map((topic) => (
+                <button
+                  key={`${topic.groupId}:${topic.topicAnchorId}`}
+                  type="button"
+                  onClick={() => onNavigate(topic)}
+                  title={`Open topic in ${topic.groupName}`}
+                >{topic.label}</button>
+              ))}
+            </div>
+          </div>
         )) : <span className="dibcac-topic-navigator-empty">{topics.length ? 'No matching topics.' : 'Add a heading such as !REMOTE ACCESS! in Planned Ask.'}</span>}
       </div>
     </section>

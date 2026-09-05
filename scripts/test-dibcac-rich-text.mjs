@@ -113,6 +113,8 @@ const groupsWithTopics = [
 ]
 const topics = buildTopicAnchorIndex(groupsWithTopics)
 assert.deepEqual(topics.map((topic) => topic.topicAnchorId), ['topic-remote', 'topic-duplicate', 'topic-second'])
+assert.deepEqual(topics.map((topic) => topic.groupNumber), [1, 1, 2])
+assert.deepEqual(topics.map((topic) => topic.groupName), ['First', 'First', 'Second'])
 assert.equal(topics.filter((topic) => topic.label === 'REMOTE ACCESS').length, 2)
 assert.equal(resolveTopicNavigationTarget(groupsWithTopics, topics, 'group-1', 'topic-duplicate').folderId, 'folder-1')
 assert.equal(resolveTopicNavigationTarget([...groupsWithTopics].reverse(), buildTopicAnchorIndex([...groupsWithTopics].reverse()), 'group-1', 'topic-remote').topicAnchorId, 'topic-remote')

@@ -8,7 +8,7 @@ globalThis.localStorage = {
   removeItem: (key) => memory.delete(key),
 }
 
-const { combinedInterviewText, readObjectiveResult, writeObjectiveResult } = await import('../src/utils/objectiveResults.js')
+const { applyCombinedInterviewEdit, combinedInterviewText, objectiveResultHasWork, readObjectiveResult, writeObjectiveResult } = await import('../src/utils/objectiveResults.js')
 const {
   reconcileChecklistInterviewNotes,
   removeGroupChecklistInterviewNotes,
@@ -30,6 +30,15 @@ for (const key of keys) {
 let result = readObjectiveResult('AC.L1-3.1.1', 'a')
 assert.match(combinedInterviewText(result), /Manual interview entry/)
 assert.match(combinedInterviewText(result), /Users authenticate with MFA/)
+assert.doesNotMatch(combinedInterviewText(result), /Checklist|Identity Review|Describe identity verification/)
+assert.equal(objectiveResultHasWork(result), true)
+
+const editedManualOnly = applyCombinedInterviewEdit(result, `${combinedInterviewText(result)} updated`)
+assert.equal(editedManualOnly.checklistInterviewNotes && Object.keys(editedManualOnly.checklistInterviewNotes).length, 0)
+assert.match(editedManualOnly.interviews, /updated$/)
+const preservedSources = applyCombinedInterviewEdit(result, `Revised manual text.\n\nUsers authenticate with MFA.`)
+assert.equal(Object.keys(preservedSources.checklistInterviewNotes).length, 1)
+assert.equal(preservedSources.interviews, 'Revised manual text.')
 
 syncChecklistInterviewNote(group, second, 'Managed devices are certificate-bound.')
 result = readObjectiveResult('AC.L1-3.1.1', 'a')
