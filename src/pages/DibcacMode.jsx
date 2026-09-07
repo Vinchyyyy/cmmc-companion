@@ -4,6 +4,7 @@ import { FolderPlus, Folder, LayoutTemplate } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
 import DibcacTemplatesModal from '../components/DibcacTemplatesModal.jsx'
 import DibcacPlanImportModal from '../components/DibcacPlanImportModal.jsx'
+import { deleteSelectedReviewGroups } from '../utils/deleteSelectedReviewGroups.js'
 import controls from '../data/controls/index'
 import { getDibcacStandard, DIBCAC_STANDARDS } from '../data/dibcacAssessmentStandards'
 import {
@@ -2384,7 +2385,7 @@ function FolderSection({
 function SavedGroupsPanel({
   savedGroups, savedFolders, onDelete, onEditRequest, onPreview, onEnterBuilder,
   onCreateFolder, onDeleteFolder, onMoveGroupToFolder, onBatchMove, onMoveObjectives, onRemoveObjectives, onUpdateChecklist,
-  onCreateFromSelectedObjectives, onMoveSelectedObjectives,
+  onCreateFromSelectedObjectives, onMoveSelectedObjectives, onDeleteSelectedGroups,
   openFolderIds, onToggleFolderOpen, expandedGroupIds, onToggleGroupExpanded,
   railExpanded, onToggleRailExpanded,
   groupNumberMap, referenceIndex, onNavigateChecklistItem, onNavigateTopic, highlightedChecklistItemId, highlightedTopicAnchorId, onReorderGroup,
@@ -2395,6 +2396,7 @@ function SavedGroupsPanel({
   const [newFolderName,  setNewFolderName]  = useState('')
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds,   setSelectedIds]   = useState(() => new Set())
+  const [deleteMessage, setDeleteMessage] = useState('')
   const [showMoveMenu,  setShowMoveMenu]  = useState(false)
   const [objectiveSelectionMode, setObjectiveSelectionMode] = useState(false)
   const [selectedCrossGroupObjectives, setSelectedCrossGroupObjectives] = useState(() => new Set())
@@ -2551,6 +2553,7 @@ function SavedGroupsPanel({
 
   return (
     <div className="dibcac-rail-panel">
+      {deleteMessage && <p role="status">{deleteMessage}</p>}
       <div className="dibcac-rail-header">
         <div className="dibcac-rail-title-group">
           {onToggleRailExpanded && (
@@ -2701,6 +2704,25 @@ function SavedGroupsPanel({
                 {selectedIds.size} group{selectedIds.size !== 1 ? 's' : ''} selected
               </span>
               <div className="dibcac-selection-actions">
+                <button type="button" className="dibcac-sort-btn"
+                  disabled={savedGroups.length === 0 || savedGroups.every((group) => selectedIds.has(group.id))}
+                  onClick={() => setSelectedIds(new Set(savedGroups.map((group) => group.id)))}>
+                  Select All
+                </button>
+                <button type="button" className="dibcac-sort-btn" disabled={selectedIds.size === 0} onClick={() => setSelectedIds(new Set())}>Deselect All</button>
+                <button type="button" className="dibcac-action-btn dibcac-action-btn--delete" disabled={!savedGroups.some((group) => selectedIds.has(group.id))}
+                  onClick={() => {
+                    setDeleteMessage('')
+                    try {
+                      const result = onDeleteSelectedGroups([...selectedIds])
+                      if (result) {
+                        setDeleteMessage(`Deleted ${result.count} review group${result.count === 1 ? '' : 's'}. Restore a full project backup to recover them.`)
+                        exitSelectionMode()
+                      }
+                    } catch (error) { setDeleteMessage(error.message) }
+                  }}>
+                  Delete Selected Groups
+                </button>
                 <div className="dibcac-move-menu-wrapper">
                   <button
                     type="button"
@@ -3478,6 +3500,11 @@ function DibcacMode() {
               onDeleteFolder={handleDeleteFolder}
               onMoveGroupToFolder={handleMoveGroupToFolder}
               onBatchMove={handleBatchMoveGroups}
+              onDeleteSelectedGroups={(ids) => {
+                const result = deleteSelectedReviewGroups(ids)
+                if (result) setSavedGroups(result.groups)
+                return result
+              }}
               onMoveObjectives={handleMoveObjectives}
               onRemoveObjectives={handleRemoveObjectives}
               onCreateFromSelectedObjectives={handleCreateFromSelectedObjectives}

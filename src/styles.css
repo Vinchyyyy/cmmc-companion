@@ -12249,6 +12249,7 @@ button.evidence-type-chip:focus-visible {
 
 .dibcac-selection-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
 }
