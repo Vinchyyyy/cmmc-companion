@@ -737,6 +737,7 @@ function ControlLibrary() {
   const queryString = searchParams.toString()
   const currentLibraryUrl = queryString ? `/controls?${queryString}` : '/controls'
   const detailLinkParams = new URLSearchParams({ from: currentLibraryUrl })
+  detailLinkParams.set('reviewControls', groups.flatMap((group) => group.controls.map((control) => control.id)).join(','))
   if (dibcacMethodSet.size > 0) {
     detailLinkParams.set('focus', [...dibcacMethodSet].join(','))
     if (dibcacHideMet) detailLinkParams.set('focusHideMet', '1')

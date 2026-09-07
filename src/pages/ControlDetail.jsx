@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Check } from 'lucide-react'
+import { resolveControlNavigation } from '../utils/controlNavigation.js'
 import DashSidebar from '../components/DashSidebar.jsx'
 import AutoResizeTextarea from '../components/AutoResizeTextarea'
 import { normalizePastedText } from '../utils/pasteFormatting'
@@ -1390,9 +1391,9 @@ function ControlDetailView() {
     : control.objectives
   const selectedObj = visibleObjectives.find((o) => o.id === selectedObjectiveId) ?? visibleObjectives[0] ?? null
 
-  const controlIndex = orderedControls.findIndex((c) => c.id === id)
-  const prevControl = controlIndex > 0 ? orderedControls[controlIndex - 1] : null
-  const nextControl = controlIndex < orderedControls.length - 1 ? orderedControls[controlIndex + 1] : null
+  const navigation = resolveControlNavigation(orderedControls, id, searchParams.get('reviewControls'))
+  const prevControl = navigation.previous
+  const nextControl = navigation.next
 
   return (
     <div className="dash-root">
@@ -1405,6 +1406,11 @@ function ControlDetailView() {
           <div className="cd-header-nav">
             <Link to={backUrl} className="cd-back-link">← Back to Control Library</Link>
             <div className="cd-prev-next">
+              {navigation.scoped && (
+                <span className="muted" aria-label="Position in library results">
+                  {navigation.position} of {navigation.total} library results
+                </span>
+              )}
               {prevControl ? (
                 <Link
                   to={`/controls/${encodeURIComponent(prevControl.id)}${location.search}`}
@@ -1430,7 +1436,7 @@ function ControlDetailView() {
             </div>
           </div>
           <h1 className="cd-title">
-            <Link to={`/controls/${control.id}`} className="mono">{control.id}</Link>
+            <Link to={`/controls/${control.id}${location.search}`} className="mono">{control.id}</Link>
             {' — '}{control.title}
           </h1>
         </div>
