@@ -4,6 +4,7 @@
   "version": "4.9.2",
   "type": "module",
   "scripts": {
+    "test:dibcac-plan-import": "node scripts/test-dibcac-plan-import.mjs",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",

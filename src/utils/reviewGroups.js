@@ -35,6 +35,33 @@ export function saveReviewGroups(groups) {
   return normalized
 }
 
+// Import commits are scoped to the two DIBCAC stores. Detect stale previews and
+// restore the original values if either write fails instead of reporting success.
+export function commitReviewPlan(plan) {
+  const current = { groups: getReviewGroups(), folders: getReviewFolders() }
+  if (JSON.stringify(current) !== plan.baseline) throw new Error('DIBCAC content changed after preview. Preview the file again before applying it.')
+  const oldGroups = localStorage.getItem(STORAGE_KEY)
+  const oldFolders = localStorage.getItem(FOLDERS_KEY)
+  const groups = normalizeGroups(plan.groups)
+  try {
+    localStorage.setItem(FOLDERS_KEY, JSON.stringify(plan.folders))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(groups))
+  } catch {
+    try {
+      if (localStorage.getItem(FOLDERS_KEY) !== oldFolders) {
+        if (oldFolders === null) localStorage.removeItem(FOLDERS_KEY)
+        else localStorage.setItem(FOLDERS_KEY, oldFolders)
+      }
+      if (localStorage.getItem(STORAGE_KEY) !== oldGroups) {
+        if (oldGroups === null) localStorage.removeItem(STORAGE_KEY)
+        else localStorage.setItem(STORAGE_KEY, oldGroups)
+      }
+    } catch { throw new Error('Import storage failed and rollback could not finish. Restore a project backup before continuing.') }
+    throw new Error('Import could not be saved. Your previous DIBCAC data was restored. Browser storage may be full or unavailable.')
+  }
+  return { groups, folders: plan.folders }
+}
+
 // Normalize objective ref — groups may use `key` or `objectiveRef` field
 function objRef(o) {
   return o.key ?? o.objectiveRef ?? null

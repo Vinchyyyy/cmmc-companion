@@ -9138,6 +9138,17 @@ button.evidence-type-chip:focus-visible {
   backdrop-filter: blur(4px);
 }
 
+.dibcac-plan-header-actions, .dibcac-plan-downloads { display: flex; flex-wrap: wrap; gap: 8px; }
+.dibcac-plan-downloads button { display: inline-flex; align-items: center; gap: 6px; }
+.dibcac-plan-help { color: var(--color-text-muted); font-size: var(--text-sm); line-height: 1.5; }
+.dibcac-plan-drop { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px; margin: 18px 0; border: 1px dashed var(--color-border-strong); border-radius: var(--radius-md); }
+.dibcac-plan-drop p { margin: 0; }
+.dibcac-plan-mode { display: flex; flex-direction: column; gap: 8px; font-weight: 600; }
+.dibcac-plan-preview-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--color-border); }
+.dibcac-plan-preview details { margin-top: 12px; }
+.dibcac-plan-preview summary { cursor: pointer; padding: 8px 0; }
+.dibcac-plan-preview pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--text-sm); }
+.dibcac-plan-modal { color: var(--color-text); }
 .dibcac-template-modal {
   position: relative;
   display: flex;

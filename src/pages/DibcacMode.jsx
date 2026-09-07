@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { FolderPlus, Folder, LayoutTemplate } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
 import DibcacTemplatesModal from '../components/DibcacTemplatesModal.jsx'
+import DibcacPlanImportModal from '../components/DibcacPlanImportModal.jsx'
 import controls from '../data/controls/index'
 import { getDibcacStandard, DIBCAC_STANDARDS } from '../data/dibcacAssessmentStandards'
 import {
@@ -2948,6 +2949,8 @@ function DibcacMode() {
   })
   const [previewKey, setPreviewKey] = useState(null)
   const [templatesOpen, setTemplatesOpen] = useState(false)
+  const [planImportOpen, setPlanImportOpen] = useState(false)
+  const [planImportMessage, setPlanImportMessage] = useState('')
   const [railExpanded, setRailExpanded] = useState(() => localStorage.getItem('cmmc-dibcac-rail-expanded') === 'true')
   const [highlightedChecklistItemId, setHighlightedChecklistItemId] = useState(null)
   const [highlightedTopicAnchorId, setHighlightedTopicAnchorId] = useState(null)
@@ -3302,18 +3305,30 @@ function DibcacMode() {
           onClose={() => setTemplatesOpen(false)}
         />
       )}
+      {planImportOpen && <DibcacPlanImportModal
+        onClose={() => setPlanImportOpen(false)}
+        onApply={({ groups, folders }) => {
+          setSavedGroups(groups)
+          setSavedFolders(folders)
+          setPlanImportMessage('DIBCAC plan imported successfully.')
+        }}
+      />}
 
       {/* ── Page header ──────────────────────────────────────────────────── */}
       <div className="dibcac-page-header">
         <div className="dibcac-page-header-row">
           <h1>DIBCAC Mode</h1>
-          <button type="button" className="dibcac-templates-btn" onClick={() => setTemplatesOpen(true)}><LayoutTemplate size={16} /> Templates</button>
+          <div className="dibcac-plan-header-actions">
+            <button type="button" className="dibcac-templates-btn" disabled={mode === 'builder'} title={mode === 'builder' ? 'Save or cancel the group editor before importing' : 'Import and export DIBCAC plans and download import instructions'} onClick={() => setPlanImportOpen(true)}>Import / Export</button>
+            <button type="button" className="dibcac-templates-btn" onClick={() => setTemplatesOpen(true)}><LayoutTemplate size={16} /> Templates</button>
+          </div>
         </div>
         <p className="dibcac-page-subtitle">
           Plan objective review sequences by DIBCAC assessment method.
           Use this workspace to group objectives efficiently before a live assessment session.
           Final assessment decisions remain the responsibility of the assessor.
         </p>
+        {planImportMessage && <p role="status">{planImportMessage}</p>}
       </div>
 
       {/* ── Toolbar ──────────────────────────────────────────────────────── */}
