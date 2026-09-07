@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams, useLocation } from 'react-router-dom'
 import { SlidersHorizontal, CheckSquare, Square, X } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
+import { createFamilyReviewGroups } from '../utils/familyReviewGroups.js'
 import controls from '../data/controls/index'
 import { PROVIDERS } from '../data/providers'
 import { FAMILY_ORDER, comparePracticeIds } from '../utils/controlOrder'
@@ -465,6 +466,7 @@ function ControlLibrary() {
   const [bulkDateAssessedModal, setBulkDateAssessedModal] = useState(null)
   const [copyAttrsModal, setCopyAttrsModal] = useState(null)
   const [copyAttrsResult, setCopyAttrsResult] = useState(null)
+  const [familyGroupResult, setFamilyGroupResult] = useState(null)
   const [showFilterModal, setShowFilterModal] = useState(false)
   const [hideMet, setHideMet] = useState(() => localStorage.getItem('cmmc-hide-met-controls') === 'true')
   const [openQuickLook, setOpenQuickLook] = useState(null)
@@ -768,6 +770,20 @@ function ControlLibrary() {
   const enterMultiSelect = () => { setMultiSelectMode(true); setOpenQuickLook(null) }
   const exitMultiSelect  = () => { setMultiSelectMode(false); setOpenQuickLook(null); setSelected(new Set()); setCopyAttrsResult(null) }
   const selectedControls = controls.filter((c) => selected.has(c.id))
+  const createFamilyGroups = () => {
+    try {
+      const created = createFamilyReviewGroups(selectedControls)
+      setFamilyGroupResult({
+        ok: true,
+        message: created.length
+          ? `Created ${created.length} DIBCAC group${created.length === 1 ? '' : 's'} with ${created.reduce((count, group) => count + group.objectives.length, 0)} objectives: ${created.map((group) => group.name).join(', ')}.`
+          : 'No groups created—all objectives in the selected controls are already MET.',
+      })
+      if (created.length) setSelected(new Set())
+    } catch (error) {
+      setFamilyGroupResult({ ok: false, message: error.message })
+    }
+  }
 
   const bulkSetStatus      = (s) => { for (const id of selected) writeStatus(id, s); forceUpdate() }
   const bulkSetInheritance = (v, source = '') => {
@@ -1063,11 +1079,21 @@ function ControlLibrary() {
               title="Reset assessment data, including Date Assessed, for selected controls">
               Clear Data
             </button>
+            <button onClick={createFamilyGroups}
+              title="Create one new group per family using all objectives not marked MET in the selected controls">
+              Create DIBCAC Groups by Family
+            </button>
             <button className="bulk-toolbar-clear" onClick={exitMultiSelect}><X size={14} /> Exit Multi-Select</button>
           </div>
         )}
         {copyAttrsResult && (
           <p className="feedback feedback--ok" style={{ marginTop: 'var(--space-2)' }}>{copyAttrsResult}</p>
+        )}
+        {familyGroupResult && (
+          <p role="status" className={`feedback${familyGroupResult.ok ? ' feedback--ok' : ''}`}>
+            {familyGroupResult.message}{' '}
+            {familyGroupResult.ok && <Link to="/dibcac-mode">Open DIBCAC Mode</Link>}
+          </p>
         )}
 
         {results.length === 0 ? (
