@@ -97,6 +97,8 @@ export default function FindingsBuilderModal({
     setValidationError('')
     onSave({
       includedArtifacts,
+      syncedAssignedArtifacts: [...assignedArtifacts],
+      syncedInterviewRoles: [...roles],
       hasDifferences,
       differencesText,
       finalText,

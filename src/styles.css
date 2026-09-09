@@ -12819,6 +12819,20 @@ button.evidence-type-chip:focus-visible {
 }
 
 .dash-mono { font-family: 'JetBrains Mono', monospace; }
+/* Normalize old and new release entries without changing archived content. */
+.version-history > details { padding: 16px 20px; margin-bottom: 14px !important; border: 1px solid var(--dash-border); border-radius: 12px; background: var(--dash-surface); }
+.version-history > details:first-of-type { border-color: var(--dash-accent2); background: var(--dash-accent-soft); }
+.version-history > details > summary { display: flex !important; flex-wrap: wrap; align-items: center; gap: 10px !important; padding: 0 !important; list-style: none !important; cursor: pointer; font-size: 14px !important; font-weight: 600; color: var(--dash-text-primary); }
+.version-history > details > summary::-webkit-details-marker { display: none; }
+.version-history > details > summary::before { content: '▸'; color: var(--dash-text-secondary); }
+.version-history > details[open] > summary::before { content: '▾'; }
+.version-history > details > summary > span:first-child { color: var(--dash-accent2) !important; font-family: var(--font-mono); }
+.version-history > details > summary > span:nth-child(2) { display: none; }
+.version-history > details > summary > span:nth-child(4) { margin-left: auto; color: var(--dash-text-secondary) !important; font-size: 12px !important; font-weight: 400; }
+.version-history > details:first-of-type > summary::after { content: 'Latest'; padding: 3px 8px; border-radius: 999px; color: var(--dash-text-primary); background: var(--dash-accent); font-size: 11px; }
+.version-history > details > ul, .version-history > details > div { margin-top: 16px; padding-left: 20px !important; border-left: 2px solid var(--dash-border) !important; color: var(--dash-text-secondary); font-size: 14px; line-height: 1.7; }
+.version-history > details > ul { list-style-position: outside; }
+@media (max-width: 600px) { .version-history > details > summary > span:nth-child(4) { flex-basis: 100%; margin-left: 22px !important; } }
 .dash-muted { color: var(--dash-text-tertiary); font-size: var(--text-xs); }
 
 /* Reset native button chrome (bg/border/font) so every control here is styled

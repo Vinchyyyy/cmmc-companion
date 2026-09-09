@@ -1,4 +1,14 @@
 
+## Version 4.11.0 — Findings Stay in Sync
+Date: September 9, 2026
+
+- Saving OSC assessment staff immediately synchronizes the Interviewed line in existing standardized findings, including Excel-imported statements.
+- Objective role and artifact changes synchronize their related sections; app startup runs an idempotent catch-up sweep.
+- Preserves differences, conclusions, unrelated prose, historical interviewees, and deliberately excluded artifacts. Freeform findings are not rewritten by synchronization.
+- Tracks role and artifact baselines in full JSON backups so subsequent edits and refreshes remain stable. Synchronization never creates a missing finding or changes assessment status.
+- Unified Version History entry layout, readable colors, and disclosure arrows; the latest release is highlighted with a Latest badge.
+- Added 320-objective synchronization tests covering staff rename/removal, local roles, artifact add/remove, refresh, JSON restore, protected text, and repeated runs.
+
 ## Version 4.10.1 — Normalize Findings When Marking MET
 Date: September 9, 2026
 

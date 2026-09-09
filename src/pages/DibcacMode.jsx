@@ -1562,6 +1562,8 @@ function GroupFindingsModal({ group, onClose }) {
     for (const row of eligibleRows) {
       writeObjectiveFinding(row.o.controlId, row.objId, {
         includedArtifacts: row.artifacts,
+        syncedAssignedArtifacts: [...row.artifacts],
+        syncedInterviewRoles: [...row.roles],
         hasDifferences: false,
         differencesText: '',
         finalText: buildFinalText({

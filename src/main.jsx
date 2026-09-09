@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import { runArtifactRegistryMigration } from './utils/artifactMigration'
 import './styles.css'
+import { synchronizeAllFindings } from './utils/findingSynchronization.js'
 
 // Promote artifact storage from name strings to artifact-id references before the
 // app renders. Self-healing reads mean a failed/late migration is non-fatal, so
@@ -16,6 +17,8 @@ try {
 } catch (err) {
   console.error('Artifact registry migration threw:', err)
 }
+
+try { synchronizeAllFindings() } catch (error) { console.error('Finding synchronization failed:', error) }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

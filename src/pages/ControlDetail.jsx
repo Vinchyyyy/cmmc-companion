@@ -1243,6 +1243,7 @@ function ControlDetailView() {
     writeObjectiveInterviewedRoles(id, objId, roles)
     setObjectiveInterviewedRoles((prev) => ({ ...prev, [objId]: roles }))
     setShowRolePickerModal(false)
+    setObjectiveFindings(loadObjectiveFindings(id, control))
   }
 
   const commitPoolInput = (raw) => {
@@ -1917,6 +1918,7 @@ function ControlDetailView() {
                                   const next = objRoles.filter((x) => x !== r)
                                   writeObjectiveInterviewedRoles(id, selectedObj.id, next)
                                   setObjectiveInterviewedRoles((prev) => ({ ...prev, [selectedObj.id]: next }))
+                                  setObjectiveFindings(loadObjectiveFindings(id, control))
                                 }}
                                 aria-label={`Remove ${r}`}
                               >×</button>}
@@ -2077,6 +2079,7 @@ function ControlDetailView() {
           onRolesSaved={(roles) => {
             writeObjectiveInterviewedRoles(id, selectedObj.id, roles)
             setObjectiveInterviewedRoles((prev) => ({ ...prev, [selectedObj.id]: roles }))
+            setObjectiveFindings(loadObjectiveFindings(id, control))
           }}
         />
       )}

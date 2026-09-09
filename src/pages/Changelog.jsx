@@ -1,11 +1,15 @@
 import { APP_VERSION } from '../utils/version'
 import DashSidebar from '../components/DashSidebar.jsx'
 
+function ReleaseSummary({ version, title, date }) {
+  return <summary><span>{version}</span><span>—</span><span>{title}</span><span>{date}</span></summary>
+}
+
 function Changelog() {
   return (
     <div className="dash-root">
       <DashSidebar />
-      <main className="dash-main page">
+      <main className="dash-main page version-history">
       <h1>Version History</h1>
       <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-6)' }}>
         A curated release history for CMMC Companion, focused on major milestones rather than every internal development note.
@@ -13,7 +17,16 @@ function Changelog() {
       </p>
 
       <details open style={{ marginBottom: 'var(--space-4)' }}>
-        <summary style={{ cursor: 'pointer', fontWeight: 600, padding: 'var(--space-3) 0' }}>v4.10.1 — Normalize Findings When Marking MET · September 9, 2026</summary>
+        <ReleaseSummary version="v4.11.0" title="Findings Stay in Sync" date="September 9, 2026" />
+        <ul>
+          <li>Saving assessment staff updates the Interviewed line in existing standardized findings immediately.</li>
+          <li>Objective role and artifact changes update their related finding sections. Refresh performs a catch-up check.</li>
+          <li>Assessor-written differences, conclusions, and unrelated text remain intact. Freeform findings are not rewritten.</li>
+          <li>Version History now uses a consistent layout with the latest release highlighted.</li>
+        </ul>
+      </details>
+      <details>
+        <ReleaseSummary version="v4.10.1" title="Normalize Findings When Marking MET" date="September 9, 2026" />
         <ul>
           <li>Marking MET now replaces nonstandard findings, including findings imported while an objective was unfinished.</li>
           <li>Applies to bulk control updates, individual objectives, and DIBCAC checklist actions. Correctly formatted findings remain unchanged.</li>
@@ -22,7 +35,7 @@ function Changelog() {
         </ul>
       </details>
       <details style={{ marginBottom: 'var(--space-4)' }}>
-        <summary style={{ cursor: 'pointer', fontWeight: 600, padding: 'var(--space-3) 0' }}>v4.10.0 — Assessment Workflow &amp; Export Safeguards · September 9, 2026</summary>
+        <ReleaseSummary version="v4.10.0" title="Assessment Workflow & Export Safeguards" date="September 9, 2026" />
         <ul>
           <li>Bulk MET updates all selected control objectives and drafts missing findings. Clear Data now supports selective fields.</li>
           <li>Simplified OSC Overview, shared interview staff, and direct tagging in the Overall Global Pool.</li>

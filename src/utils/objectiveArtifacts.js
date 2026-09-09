@@ -87,6 +87,8 @@ export function readObjectiveArtifactIds(controlId, objectiveId) {
 
 // Stores artifact ids directly, de-duplicating; an empty list removes the key.
 export function writeObjectiveArtifactIds(controlId, objectiveId, ids) {
+  const previous = readObjectiveArtifacts(controlId, objectiveId)
   const deduped = [...new Set((ids ?? []).filter((v) => typeof v === 'string' && v))]
   writeRaw(controlId, objectiveId, deduped)
+  return syncObjectiveFindingArtifacts(controlId, objectiveId, previous, idsToNames(deduped))
 }

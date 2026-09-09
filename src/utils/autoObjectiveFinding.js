@@ -33,6 +33,8 @@ export function ensureMetObjectiveFinding(control, objective, { replaceNonstanda
   const timestamp = new Date().toISOString()
   const finding = {
     includedArtifacts,
+    syncedAssignedArtifacts: [...includedArtifacts],
+    syncedInterviewRoles: [...roles],
     hasDifferences: false,
     differencesText: '',
     finalText: buildFinalText({

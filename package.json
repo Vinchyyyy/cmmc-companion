@@ -1,9 +1,10 @@
 {
   "name": "cmmc-companion",
   "private": true,
-  "version": "4.10.1",
+  "version": "4.11.0",
   "type": "module",
   "scripts": {
+    "test:finding-sync": "node scripts/test-finding-synchronization.mjs",
     "test:assessment-workflows": "node scripts/test-assessment-workflows.mjs",
     "test:dibcac-plan-import": "node scripts/test-dibcac-plan-import.mjs",
     "dev": "vite",

@@ -1,3 +1,4 @@
+import { synchronizeAllFindings } from './findingSynchronization.js'
 const STORAGE_KEY = 'cmmc-osc-profile'
 
 export const STANDARDS_ACCEPTANCE_VALUES = ['DIBCAC High', 'FedRAMP Moderate', 'FedRAMP High']
@@ -95,8 +96,12 @@ export function readOscProfile() {
 }
 
 export function writeOscProfile(value) {
+  const previousStaff = readAssessmentStaff()
   const normalized = normalizeOscProfile(value)
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized)) } catch { /* storage unavailable */ }
+  if (JSON.stringify(previousStaff) !== JSON.stringify(normalized.staffNames)) {
+    synchronizeAllFindings({ artifacts: false, previousStaff })
+  }
   return normalized
 }
 

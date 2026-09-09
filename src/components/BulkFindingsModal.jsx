@@ -203,6 +203,8 @@ export default function BulkFindingsModal({ title, controlsInScope, onClose }) {
       const preserveDifferences = row.hasSavedDifferences && includeDifferences
       writeObjectiveFinding(row.controlId, row.objId, {
         includedArtifacts: row.artifacts,
+        syncedAssignedArtifacts: [...row.artifacts],
+        syncedInterviewRoles: [...row.roles],
         hasDifferences: preserveDifferences,
         differencesText: preserveDifferences ? row.existingDifferencesText : '',
         finalText: buildFinalText({

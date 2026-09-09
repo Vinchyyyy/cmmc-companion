@@ -165,7 +165,7 @@ function OscProfile() {
                   <p>Enter one name per line. These participants are included in every objective’s interview roles and workbook Interviews cell.</p>
                   <textarea value={staffDraft} onChange={(e) => { setStaffDraft(e.target.value); setStaffSaved(false) }} placeholder={'John S.\nJane D.'} />
                   <button type="button" onClick={() => { saveProfile((current) => ({ ...current, staffNames: staffDraft.split('\n') })); setStaffSaved(true) }}>Save Staff</button>
-                  {staffSaved && <span role="status"> Saved for all objectives.</span>}
+                  {staffSaved && <span role="status"> Saved for all objectives. Existing standardized findings updated.</span>}
                 </Field>
               </div>
             </div>
