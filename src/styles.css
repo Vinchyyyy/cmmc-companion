@@ -12812,6 +12812,9 @@ button.evidence-type-chip:focus-visible {
   width: 100%;
   min-height: 100vh;
   background: var(--dash-bg);
+  /* Token overrides do not recompute body's inherited color. Establish the
+     dark workspace's foreground here for plain text, lists and controls. */
+  color: var(--dash-text-primary);
   font-family: 'Inter', sans-serif;
 }
 
