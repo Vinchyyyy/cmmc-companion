@@ -1161,7 +1161,7 @@ function ControlDetailView() {
     writeObjectiveStatus(id, objId, value)
     if (value === OBJECTIVE_STATUS_MET && previousValue !== OBJECTIVE_STATUS_MET) {
       const objective = control?.objectives?.find((item) => item.id === objId)
-      const createdFinding = ensureMetObjectiveFinding(control, objective)
+      const createdFinding = ensureMetObjectiveFinding(control, objective, { replaceNonstandard: true })
       if (createdFinding) setObjectiveFindings((prev) => ({ ...prev, [objId]: createdFinding }))
     }
     if (value !== OBJECTIVE_STATUS_UNREVIEWED) promoteToInProgress(status, id, setStatus)

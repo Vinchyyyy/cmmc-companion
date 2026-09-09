@@ -1850,7 +1850,7 @@ function SavedGroupCard({
       if (willBeChecked) {
         const control = CONTROL_BY_ID.get(parsed.controlId)
         const objective = control?.objectives?.find((item) => item.id === parsed.objId)
-        ensureMetObjectiveFinding(control, objective)
+        ensureMetObjectiveFinding(control, objective, { replaceNonstandard: true })
       }
       touchedControlIds.add(parsed.controlId)
     }
@@ -1939,7 +1939,7 @@ function SavedGroupCard({
     if (next === OBJECTIVE_STATUS_MET) {
       const control = CONTROL_BY_ID.get(controlId)
       const objective = control?.objectives?.find((item) => item.id === objId)
-      ensureMetObjectiveFinding(control, objective)
+      ensureMetObjectiveFinding(control, objective, { replaceNonstandard: true })
     }
     syncControlStatusFromObjectives(CONTROL_BY_ID.get(controlId))
     forceUpdate((n) => n + 1)

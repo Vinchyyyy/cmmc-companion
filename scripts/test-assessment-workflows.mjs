@@ -138,6 +138,27 @@ try {
   importer.applyWorkbookImport(parsed, controls, 'merge')
   assert.equal(findings.readObjectiveFinding(...args).finalText, 'Existing locally reviewed statement', 'merge preserves local findings')
 
+  // Regression: imported unfinished objective with nonstandard text, then bulk MET.
+  project.wipeProjectState()
+  importer.applyWorkbookImport({ controlData: { [ir.id]: {} }, objectiveData: { [ir.id]: {
+    a: { status: null, findings: malformed, interviews: 'Keep interview notes', examine: 'Keep examine notes', test: '', overallComments: 'Keep comments', artifacts: ['Incident Plan'] },
+  } }, allArtifactNames: ['Incident Plan'] }, controls, 'new')
+  assert.equal(status.readObjectiveStatus(ir.id, 'a'), 'Unreviewed')
+  assert.equal(findings.readObjectiveFinding(ir.id, 'a').finalText, malformed)
+  bulk.bulkSetControlStatus([ir], 'MET')
+  const normalized = findings.readObjectiveFinding(ir.id, 'a')
+  assert.ok(auto.matchesStandardFinding(normalized, ir, ir.objectives[0]))
+  assert.equal(normalized.replacedImportedText, malformed)
+  assert.deepEqual(normalized.includedArtifacts, ['Incident Plan'])
+  assert.equal(results.readObjectiveResult(ir.id, 'a').interviews, 'Keep interview notes')
+  assert.equal(results.readObjectiveResult(ir.id, 'a').overallComments, 'Keep comments')
+  bulk.bulkSetControlStatus([ir], 'MET')
+  assert.deepEqual(findings.readObjectiveFinding(ir.id, 'a'), normalized, 'repeated bulk MET preserves correct findings')
+  const repairedBackup = JSON.parse(JSON.stringify(project.exportProjectState(controls)))
+  project.wipeProjectState()
+  project.importProjectState(repairedBackup, controls)
+  assert.deepEqual(findings.readObjectiveFinding(ir.id, 'a'), normalized, 'repaired finding and original survive JSON restore')
+
   // Every real objective, repeat MET, then selective clear; exercises the full assessment.
   const started = performance.now()
   bulk.bulkSetControlStatus(controls, 'MET')

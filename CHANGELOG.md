@@ -1,4 +1,12 @@
 
+## Version 4.10.1 — Normalize Findings When Marking MET
+Date: September 9, 2026
+
+- Fixed importing an unfinished objective with an old finding, then bulk-marking its control MET: the nonstandard finding is now regenerated in the established format.
+- Applied the same format check to individual objective and DIBCAC MET actions. Correctly formatted findings remain unchanged.
+- Retains replaced original text in JSON backups and preserves interview notes, comments, and evidence assignments.
+- Added regression coverage for the exact import-then-bulk-MET sequence, repeated MET actions, and JSON restoration of the repaired finding.
+
 ## Version 4.10.0 — Assessment Workflow & Export Safeguards
 Date: September 9, 2026
 

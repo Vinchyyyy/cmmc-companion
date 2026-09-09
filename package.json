@@ -1,7 +1,7 @@
 {
   "name": "cmmc-companion",
   "private": true,
-  "version": "4.10.0",
+  "version": "4.10.1",
   "type": "module",
   "scripts": {
     "test:assessment-workflows": "node scripts/test-assessment-workflows.mjs",

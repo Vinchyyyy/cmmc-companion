@@ -13,6 +13,15 @@ function Changelog() {
       </p>
 
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, padding: 'var(--space-3) 0' }}>v4.10.1 — Normalize Findings When Marking MET · September 9, 2026</summary>
+        <ul>
+          <li>Marking MET now replaces nonstandard findings, including findings imported while an objective was unfinished.</li>
+          <li>Applies to bulk control updates, individual objectives, and DIBCAC checklist actions. Correctly formatted findings remain unchanged.</li>
+          <li>Original replaced text remains in JSON backups. Evidence, interview notes, and comments are preserved.</li>
+          <li>Regression-tested import → bulk MET → JSON backup and restore.</li>
+        </ul>
+      </details>
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, padding: 'var(--space-3) 0' }}>v4.10.0 — Assessment Workflow &amp; Export Safeguards · September 9, 2026</summary>
         <ul>
           <li>Bulk MET updates all selected control objectives and drafts missing findings. Clear Data now supports selective fields.</li>

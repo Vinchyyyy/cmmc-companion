@@ -25,7 +25,7 @@ export function bulkSetControlStatus(controls, status) {
     writeStatus(control.id, status)
     if (status === 'MET') for (const objective of control.objectives ?? []) {
       writeObjectiveStatus(control.id, objective.id, 'MET')
-      ensureMetObjectiveFinding(control, objective)
+      ensureMetObjectiveFinding(control, objective, { replaceNonstandard: true })
     }
   }
 }

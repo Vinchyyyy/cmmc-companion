@@ -20,8 +20,8 @@ export function matchesStandardFinding(finding, control, objective) {
 
 // Creates the same deterministic, objective-level statement produced by the
 // Findings Builder when an assessor marks an objective MET. Existing findings
-// are preserved on status clicks; Excel import can explicitly replace a
-// nonstandard imported statement, retaining its original text for reference.
+// are preserved unless the caller explicitly requests format normalization.
+// MET actions and Excel import normalize nonstandard text and retain the original.
 export function ensureMetObjectiveFinding(control, objective, { replaceNonstandard = false } = {}) {
   if (!control?.id || !objective?.id) return null
   const previous = readObjectiveFinding(control.id, objective.id)
@@ -46,7 +46,7 @@ export function ensureMetObjectiveFinding(control, objective, { replaceNonstanda
       statusContext: 'MET',
     }),
     autoCreatedFromMet: true,
-    ...(previous?.finalText ? { replacedImportedText: previous.finalText } : {}),
+    ...(previous?.finalText ? { replacedImportedText: previous.replacedImportedText || previous.finalText } : {}),
     createdAt: timestamp,
     updatedAt: timestamp,
   }
