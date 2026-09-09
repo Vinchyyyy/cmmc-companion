@@ -1,4 +1,18 @@
 
+## Version 4.10.0 — Assessment Workflow & Export Safeguards
+Date: September 9, 2026
+
+- Bulk MET now marks every objective in selected controls MET and drafts missing findings.
+- Clear Data supports individually selected fields, with Select All and Deselect All.
+- Simplified OSC Overview; existing hidden descriptions remain in project backups.
+- Shared assessment staff automatically appear in objective interview roles and Excel Interviews cells, one name per line.
+- Overall Global Pool artifacts can be tagged directly in OSC Profile.
+- Excel import drafts missing MET findings and replaces nonstandard imported findings, retaining original text in JSON backups. Merge mode preserves existing local findings.
+- Finding Drafted opens a read-only preview.
+- Fixed multi-provider export and restoration of provider standards acceptance, including FedRAMP.
+- Workbook export lists actionable warnings for untagged artifacts, missing findings, incomplete MET objective evidence, missing provider standards, and text-length limits. Includes bulk finding repair and Ignore All Warnings and Export.
+- Verified full-project JSON restore, real Excel round trips, unchanged template components, family-filtered exports, and all 110 controls / 320 objectives. Regression suites, lint, and production build pass.
+
 ## Version 4.9.2 — Project Restore Integrity Patch
 Date: August 27, 2026
 

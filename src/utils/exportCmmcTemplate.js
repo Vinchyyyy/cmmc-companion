@@ -18,11 +18,12 @@
 
 import JSZip from 'jszip'
 import { readObjectiveNote } from './objectiveNotes'
-import { combinedInterviewText, readObjectiveResult } from './objectiveResults'
+import { readObjectiveResult } from './objectiveResults'
+import { formatInterviewExport } from './interviewExport.js'
 import { readObjectiveArtifacts } from './objectiveArtifacts'
 import { readObjectiveFinding } from './objectiveFindings'
 import { readPool } from './evidencePool'
-import { readInheritance, readInheritanceSource } from './inheritance'
+import { readInheritance, readInheritanceSources } from './inheritance'
 import { readAssignedTo } from './assignment'
 import { readObjectiveStatus, OBJECTIVE_STATUS_MET, OBJECTIVE_STATUS_NOT_MET } from './objectiveStatus'
 import { getDibcacStandard } from '../data/dibcacAssessmentStandards'
@@ -159,7 +160,7 @@ function readObjectiveData(controlId, objId) {
   if (note?.trim())                   commentParts.push(note.trim())
 
   return {
-    interviews:      truncate(combinedInterviewText(result), CELL_OVERALL_LIMIT),
+    interviews:      truncate(formatInterviewExport(controlId, objId, result), CELL_OVERALL_LIMIT),
     examine:         truncate(result.examine?.trim()    ?? '', CELL_OVERALL_LIMIT),
     test:            truncate(result.test?.trim()       ?? '', CELL_OVERALL_LIMIT),
     overallComments: truncate(commentParts.join('\n\n'), CELL_OVERALL_LIMIT),
@@ -184,8 +185,12 @@ function buildObjectiveMap(controls) {
 
   for (const [templateId, ctrl] of companionByTemplateId) {
     const inheritance = readInheritance(ctrl.id)
-    const esp         = readInheritanceSource(ctrl.id)
-    const standardsAcceptance = readProviderStandardsAcceptance(esp)
+    const sources     = readInheritanceSources(ctrl.id)
+    const esp         = sources.join('\n')
+    const standardsAcceptance = sources.map((source) => {
+      const standard = readProviderStandardsAcceptance(source)
+      return standard ? (sources.length > 1 ? `${source}: ${standard}` : standard) : ''
+    }).filter(Boolean).join('\n')
     const assessedBy  = readAssignedTo(ctrl.id)
     const dateAssessed = readDateAssessed(ctrl.id)
     const pool        = readPool(ctrl.id)

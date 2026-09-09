@@ -73,11 +73,16 @@ function objectOrEmpty(value) {
 export function normalizeOscProfile(value) {
   const raw = objectOrEmpty(value)
   return {
+    staffNames: [...new Set((Array.isArray(raw.staffNames) ? raw.staffNames : []).filter((name) => typeof name === 'string').map((name) => name.trim()).filter(Boolean))],
     overview: { ...DEFAULT_OSC_PROFILE.overview, ...objectOrEmpty(raw.overview) },
     providers: Array.isArray(raw.providers) ? raw.providers.filter((item) => item && typeof item === 'object').map(normalizeProvider) : [],
     locations: Array.isArray(raw.locations) ? raw.locations.filter((item) => item && typeof item === 'object') : [],
     walkthrough: { ...DEFAULT_OSC_PROFILE.walkthrough, ...objectOrEmpty(raw.walkthrough) },
   }
+}
+
+export function readAssessmentStaff() {
+  return readOscProfile().staffNames
 }
 
 export function readOscProfile() {

@@ -1,2 +1,2 @@
-export const APP_VERSION = '4.9.2'
+export const APP_VERSION = '4.10.0'
 export const APP_DEPLOYMENT = 'Cloudflare Production'

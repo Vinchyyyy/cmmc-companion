@@ -12,8 +12,20 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      {/* v4.9.2 — current release, open by default */}
       <details open style={{ marginBottom: 'var(--space-4)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, padding: 'var(--space-3) 0' }}>v4.10.0 — Assessment Workflow &amp; Export Safeguards · September 9, 2026</summary>
+        <ul>
+          <li>Bulk MET updates all selected control objectives and drafts missing findings. Clear Data now supports selective fields.</li>
+          <li>Simplified OSC Overview, shared interview staff, and direct tagging in the Overall Global Pool.</li>
+          <li>Excel import drafts missing MET findings and reformats nonstandard imported findings, retaining original text in JSON backups.</li>
+          <li>Click Finding Drafted for a read-only preview.</li>
+          <li>Fixed multi-provider and FedRAMP standards round trips. Export warnings identify specific issues, offer repairs, and allow Ignore &amp; Export.</li>
+          <li>Verified JSON backup/restore, official workbook structure, and full-assessment regression tests.</li>
+        </ul>
+      </details>
+
+      {/* v4.9.2 */}
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 'var(--text-base)', padding: 'var(--space-3) 0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>v4.9.2</span>
           <span style={{ color: 'var(--color-text-muted)' }}>—</span>

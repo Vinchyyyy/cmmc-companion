@@ -43,7 +43,7 @@ import {
 import { getReviewGroups, saveReviewGroups, getReviewFolders, saveReviewFolders } from './reviewGroups'
 import { clearRegistry } from './artifactRegistry'
 import { readObjectiveFinding, writeObjectiveFinding } from './objectiveFindings'
-import { readObjectiveInterviewedRoles, writeObjectiveInterviewedRoles } from './objectiveInterviewedRoles'
+import { readStoredObjectiveInterviewedRoles, writeObjectiveInterviewedRoles } from './objectiveInterviewedRoles'
 import { readProjectMeta, writeProjectMeta } from './projectMeta'
 import { readGlobalEvidence, writeGlobalEvidence } from './globalEvidence'
 import { readOscProfile, writeOscProfile } from './oscProfile'
@@ -116,7 +116,7 @@ export function exportProjectState(controls) {
 
     const objectiveInterviewedRoles = {}
     for (const obj of control.objectives ?? []) {
-      const roles = readObjectiveInterviewedRoles(control.id, obj.id)
+      const roles = readStoredObjectiveInterviewedRoles(control.id, obj.id)
       if (roles.length > 0) objectiveInterviewedRoles[obj.id] = roles
     }
 
@@ -604,7 +604,7 @@ export function importProjectState(projectJson, controls, options = {}) {
           if (!knownObjectiveIds.has(objId)) { summary.skippedUnknownObjective++; continue }
           if (Array.isArray(roles)) {
             const filtered = roles.filter((r) => typeof r === 'string' && r.trim())
-            const currentIsEmpty = readObjectiveInterviewedRoles(control.id, objId).length === 0
+            const currentIsEmpty = readStoredObjectiveInterviewedRoles(control.id, objId).length === 0
             if (canWrite(currentIsEmpty, opts, summary)) {
               writeObjectiveInterviewedRoles(control.id, objId, filtered)
               if (filtered.length > 0) summary.objectiveInterviewedRolesWritten++

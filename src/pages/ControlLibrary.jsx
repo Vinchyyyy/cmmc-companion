@@ -3,22 +3,19 @@ import { Link, useSearchParams, useLocation } from 'react-router-dom'
 import { SlidersHorizontal, CheckSquare, Square, X } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
 import { createFamilyReviewGroups } from '../utils/familyReviewGroups.js'
+import { bulkSetControlStatus, clearSelectedControlFields, CLEAR_FIELDS } from '../utils/bulkAssessmentActions.js'
 import controls from '../data/controls/index'
 import { PROVIDERS } from '../data/providers'
 import { FAMILY_ORDER, comparePracticeIds } from '../utils/controlOrder'
 import { readCustomProviders } from '../utils/customProviders'
 import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
-import { readNote, writeNote } from '../utils/notes'
-import { hasObjectiveNotes, writeObjectiveNote } from '../utils/objectiveNotes'
-import { hasObjectiveArtifacts, writeObjectiveArtifacts } from '../utils/objectiveArtifacts'
-import { writeObjectiveResult } from '../utils/objectiveResults'
-import { clearObjectiveFinding } from '../utils/objectiveFindings'
+import { readNote } from '../utils/notes'
+import { hasObjectiveNotes } from '../utils/objectiveNotes'
+import { hasObjectiveArtifacts } from '../utils/objectiveArtifacts'
 import { readPool, writePool } from '../utils/evidencePool'
 import {
   getTrendingStatusFromStorage,
-  writeObjectiveStatus,
   readObjectiveStatus,
-  OBJECTIVE_STATUS_UNREVIEWED,
   OBJECTIVE_STATUS_MET,
   OBJECTIVE_STATUS_NOT_MET,
   getStatusConsistencyWarning,
@@ -461,6 +458,7 @@ function ControlLibrary() {
   const [selected, setSelected]         = useState(new Set())
   const [updateKey, setUpdateKey]       = useState(0)
   const [confirmClear, setConfirmClear] = useState(false)
+  const [clearFields, setClearFields] = useState(() => CLEAR_FIELDS.map(([key]) => key))
   const [bulkInheritanceModal, setBulkInheritanceModal] = useState(null)
   const [bulkAssignmentModal, setBulkAssignmentModal] = useState(null)
   const [bulkDateAssessedModal, setBulkDateAssessedModal] = useState(null)
@@ -785,7 +783,7 @@ function ControlLibrary() {
     }
   }
 
-  const bulkSetStatus      = (s) => { for (const id of selected) writeStatus(id, s); forceUpdate() }
+  const bulkSetStatus      = (s) => { bulkSetControlStatus(selectedControls, s); forceUpdate() }
   const bulkSetInheritance = (v, source = '') => {
     for (const id of selected) {
       const ctrl = controls.find((candidate) => candidate.id === id)
@@ -800,24 +798,7 @@ function ControlLibrary() {
     forceUpdate()
   }
   const bulkClearData      = () => {
-    for (const ctrl of selectedControls) {
-      writeStatus(ctrl.id, 'Not Started')
-      writeInheritance(ctrl.id, DEFAULT_INHERITANCE)
-      for (const source of readInheritanceSources(ctrl.id)) {
-        if (source) removeInheritanceSourceFromObjectives(ctrl, source)
-      }
-      writeInheritanceSource(ctrl.id, '')
-      writeDateAssessed(ctrl.id, '')
-      writeNote(ctrl.id, '')
-      writePool(ctrl.id, [])
-      for (const obj of ctrl.objectives ?? []) {
-        writeObjectiveNote(ctrl.id, obj.id, '')
-        writeObjectiveStatus(ctrl.id, obj.id, OBJECTIVE_STATUS_UNREVIEWED)
-        writeObjectiveArtifacts(ctrl.id, obj.id, [])
-        writeObjectiveResult(ctrl.id, obj.id, { interviews: '', examine: '', test: '', overallComments: '' })
-        clearObjectiveFinding(ctrl.id, obj.id)
-      }
-    }
+    clearSelectedControlFields(selectedControls, clearFields)
     forceUpdate()
   }
 
@@ -1859,25 +1840,21 @@ function ControlLibrary() {
 
       {confirmClear && (
         <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
-          <div className="confirm-dialog">
+          <div className="confirm-dialog confirm-dialog--wide">
             <h2 id="confirm-title">Clear selected control data?</h2>
-            <p>This will reset the selected controls to:</p>
-            <ul>
-              <li>Assessment Status: Not Started</li>
-              <li>Inheritance: None</li>
-              <li>Assessment Notes: deleted</li>
-              <li>Objective Notes: deleted</li>
-              <li>Objective Statuses: Unreviewed</li>
-              <li>Date Assessed: cleared</li>
-              <li>Evidence Pool entries: deleted</li>
-              <li>Objective Artifact references: deleted</li>
-            </ul>
+            <p>Choose which data to clear from {selectedControls.length} selected controls and their objectives.</p>
+            <button type="button" onClick={() => setClearFields(CLEAR_FIELDS.map(([key]) => key))}>Select All</button>{' '}
+            <button type="button" onClick={() => setClearFields([])}>Deselect All</button>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, margin: '16px 0' }}>
+              {CLEAR_FIELDS.map(([key, label]) => <label key={key}><input type="checkbox" checked={clearFields.includes(key)} onChange={(event) => setClearFields((current) => event.target.checked ? [...current, key] : current.filter((value) => value !== key))} /> {label}</label>)}
+            </div>
+            <p>Assessment-wide staff and shared DIBCAC checklist notes are managed separately and remain available. Clearing findings does not change statuses unless selected above.</p>
             <p>Scoring metadata, POA&amp;M eligibility, control text, evidence mappings, and relationships will not be changed.</p>
             <p>This only affects data stored in this browser.</p>
             <div className="confirm-dialog-buttons">
               <button onClick={() => setConfirmClear(false)}>Cancel</button>
-              <button className="bulk-toolbar-danger" onClick={() => { bulkClearData(); setConfirmClear(false) }}>
-                Clear Data
+              <button disabled={!clearFields.length} className="bulk-toolbar-danger" onClick={() => { bulkClearData(); setConfirmClear(false) }}>
+                Clear Selected Fields
               </button>
             </div>
           </div>

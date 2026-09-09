@@ -9,7 +9,8 @@ import {
   OBJECTIVE_STATUS_NOT_MET,
 } from './objectiveStatus'
 import { readObjectiveArtifacts } from './objectiveArtifacts'
-import { combinedInterviewText, readObjectiveResult } from './objectiveResults'
+import { readObjectiveResult } from './objectiveResults'
+import { formatInterviewExport } from './interviewExport.js'
 import { getDibcacStandard } from '../data/dibcacAssessmentStandards'
 import { getReviewGroups } from './reviewGroups'
 
@@ -125,7 +126,7 @@ function buildFamilyData(controls) {
           objStatus,
           dibcac ? dibcac.label : '',
           artifacts.join(', '),
-          combinedInterviewText(result),
+          formatInterviewExport(c.id, obj.id, result),
           result.examine,
           result.test,
           result.overallComments,

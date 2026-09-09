@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import useFocusTrap from './useFocusTrap'
+import { readAssessmentStaff } from '../utils/oscProfile.js'
 import { INTERVIEW_ROLE_CATEGORIES } from '../data/interviewRoles'
 import { readCustomInterviewRoles, addCustomInterviewRole, removeCustomInterviewRole } from '../utils/customInterviewRoles'
 
@@ -19,7 +20,8 @@ export default function InterviewRolePickerModal({ currentRoles, onSave, onClose
   const modalRef = useRef(null)
   useFocusTrap(modalRef, true)
 
-  const [selected, setSelected] = useState(() => new Set(currentRoles ?? []))
+  const [selected, setSelected] = useState(() => new Set([...readAssessmentStaff(), ...(currentRoles ?? [])]))
+  const [staff] = useState(readAssessmentStaff)
   const [query, setQuery] = useState('')
   const [customRoles, setCustomRoles] = useState(() => readCustomInterviewRoles())
   const [showCustomInput, setShowCustomInput] = useState(false)
@@ -38,6 +40,7 @@ export default function InterviewRolePickerModal({ currentRoles, onSave, onClose
   }, [])
 
   const toggleRole = (label) => {
+    if (staff.includes(label)) return
     setSelected((prev) => {
       const next = new Set(prev)
       if (next.has(label)) next.delete(label)
@@ -62,15 +65,15 @@ export default function InterviewRolePickerModal({ currentRoles, onSave, onClose
   }
 
   const allCategories = useMemo(() => {
-    if (customRoles.length === 0) return INTERVIEW_ROLE_CATEGORIES
     return [
+      ...(staff.length ? [{ category: 'Assessment Staff — managed in OSC Profile', roles: staff.map((name) => ({ id: `staff-${name}`, label: name, aliases: [] })) }] : []),
       ...INTERVIEW_ROLE_CATEGORIES,
       {
         category: 'Custom',
         roles: customRoles.map((r) => ({ id: `custom-${r.toLowerCase()}`, label: r, aliases: [] })),
       },
     ]
-  }, [customRoles])
+  }, [customRoles, staff])
 
   const visibleCategories = query.trim() ? filterCategories(allCategories, query) : allCategories
 
@@ -107,12 +110,12 @@ export default function InterviewRolePickerModal({ currentRoles, onSave, onClose
                 {[...selected].map((label) => (
                   <span key={label} className="cd-role-selected-chip">
                     {label}
-                    <button
+                    {!staff.includes(label) && <button
                       type="button"
                       className="cd-role-selected-chip-remove"
                       onClick={() => toggleRole(label)}
                       aria-label={`Remove ${label}`}
-                    >×</button>
+                    >×</button>}
                   </span>
                 ))}
               </div>
@@ -138,6 +141,8 @@ export default function InterviewRolePickerModal({ currentRoles, onSave, onClose
                             className={`cd-role-picker-btn${isSelected ? ' cd-role-picker-btn--selected' : ''}`}
                             onClick={() => toggleRole(role.label)}
                             aria-pressed={isSelected}
+                            aria-disabled={staff.includes(role.label)}
+                            title={staff.includes(role.label) ? 'Edit this participant in OSC Profile' : undefined}
                           >
                             {isSelected && <span className="cd-role-picker-btn-check" aria-hidden="true">✓ </span>}
                             {role.label}

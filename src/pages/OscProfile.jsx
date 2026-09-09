@@ -94,10 +94,8 @@ function OscProfile() {
 
   const chooseTab = (tab) => setSearchParams(tab === 'overview' ? {} : { tab })
   const saveProfile = (updater) => setProfile((current) => writeOscProfile(updater(current)))
-  const updateSection = (section, field, value) => saveProfile((current) => ({
-    ...current,
-    [section]: { ...current[section], [field]: value },
-  }))
+  const [staffDraft, setStaffDraft] = useState(() => profile.staffNames.join('\n'))
+  const [staffSaved, setStaffSaved] = useState(false)
 
   const updateCollection = (collection, id, field, value) => saveProfile((current) => ({
     ...current,
@@ -163,9 +161,12 @@ function OscProfile() {
                 <Field label="OSC / Client Name" hint="Used on the dashboard and pre-filled in export dialogs." wide>
                   <input className="export-dialog-input" value={projectMeta.oscName} placeholder="e.g. Acme Corp" autoComplete="organization" onChange={(e) => setProjectMeta(writeProjectMeta({ ...projectMeta, oscName: e.target.value }))} />
                 </Field>
-                <Field label="Business / Mission Description" wide><textarea value={profile.overview.businessDescription} onChange={(e) => updateSection('overview', 'businessDescription', e.target.value)} /></Field>
-                <Field label="Boundary Summary" wide><textarea value={profile.overview.boundarySummary} onChange={(e) => updateSection('overview', 'boundarySummary', e.target.value)} /></Field>
-                <Field label="How CUI Enters and Moves Through the Environment" wide><textarea value={profile.overview.cuiDescription} onChange={(e) => updateSection('overview', 'cuiDescription', e.target.value)} /></Field>
+                <Field label="Assessment Staff / Interview Participants" wide>
+                  <p>Enter one name per line. These participants are included in every objective’s interview roles and workbook Interviews cell.</p>
+                  <textarea value={staffDraft} onChange={(e) => { setStaffDraft(e.target.value); setStaffSaved(false) }} placeholder={'John S.\nJane D.'} />
+                  <button type="button" onClick={() => { saveProfile((current) => ({ ...current, staffNames: staffDraft.split('\n') })); setStaffSaved(true) }}>Save Staff</button>
+                  {staffSaved && <span role="status"> Saved for all objectives.</span>}
+                </Field>
               </div>
             </div>
           </section>

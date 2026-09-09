@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { CheckCircle2, FileText, ShieldCheck, Trash2 } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
+import EvidenceTagPickerModal from '../components/EvidenceTagPickerModal.jsx'
+import { findOrCreate, findByName, updateArtifactTags } from '../utils/artifactRegistry.js'
 import controls from '../data/controls/index.js'
 import { FAMILY_ORDER } from '../utils/controlOrder.js'
 import {
@@ -69,6 +71,7 @@ function GlobalEvidence({ embedded = false }) {
   const [config, setConfig] = useState(readConfigWithAppliedMigration)
   const [result, setResult] = useState(null)
   const [poolDraft, setPoolDraft] = useState('')
+  const [tagTarget, setTagTarget] = useState(null)
 
   const updateConfig = (updater) => {
     setConfig((current) => {
@@ -258,6 +261,7 @@ function GlobalEvidence({ embedded = false }) {
                   return (
                     <div className="ge-pool-item" key={name.toLowerCase()}>
                       <div><FileText size={15} /><span>{name}</span></div>
+                      <button type="button" className="ge-pool-tags" onClick={() => setTagTarget(findOrCreate(name))}>Edit Tags ({findByName(name)?.tags?.length ?? 0})</button>
                       {applied ? (
                         <span className="ge-applied-state ge-applied-state--compact" role="status"><CheckCircle2 size={16} /> Applied</span>
                       ) : (
@@ -328,6 +332,11 @@ function GlobalEvidence({ embedded = false }) {
             </div>
           </div>
         </section>
+      {tagTarget && <EvidenceTagPickerModal
+        key={tagTarget.id} isOpen artifact={tagTarget} initialSelectedTagIds={tagTarget.tags}
+        onCancel={() => setTagTarget(null)}
+        onSave={(tags) => { updateArtifactTags(tagTarget.id, tags); setTagTarget(null); setResult({ ok: true, message: `Tags saved for ${tagTarget.name}.` }) }}
+      />}
     </>
   )
 

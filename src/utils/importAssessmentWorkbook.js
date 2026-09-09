@@ -41,6 +41,8 @@ import {
 import { readStatus, writeStatus, DEFAULT_STATUS } from './status'
 import { objectiveResultHasWork, objectiveResultIsEmpty, readObjectiveResult, writeObjectiveResult } from './objectiveResults'
 import { readObjectiveFinding, writeObjectiveFinding } from './objectiveFindings'
+import { ensureMetObjectiveFinding } from './autoObjectiveFinding.js'
+import { readOscProfile, writeOscProfile, STANDARDS_ACCEPTANCE_VALUES } from './oscProfile.js'
 import { readObjectiveArtifactIds, writeObjectiveArtifactIds } from './objectiveArtifacts'
 import { findOrCreate, findByName } from './artifactRegistry'
 
@@ -548,6 +550,7 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
     colByField.set('overallComments', 'H')
     colByField.set('inherited',       'K')
     colByField.set('inheritedFrom',   'L')
+    colByField.set('standardsAcceptance', 'J')
     colByField.set('score',           'M')
     colByField.set('assessedBy',      'O')
     colByField.set('findings',        'P')
@@ -565,6 +568,7 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
   const colScore           = colByField.get('score')           ?? null
   const colAssessedBy      = colByField.get('assessedBy')      ?? null
   const colFindings        = colByField.get('findings')        ?? null
+  const colStandardsAcceptance = colByField.get('standardsAcceptance') ?? null
 
   // ---------------------------------------------------------------------------
   // Step 2: Parse all data rows
@@ -630,10 +634,11 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
     const score           = readCol(colScore)
     const assessedBy      = readCol(colAssessedBy)
     const findings        = readTextCol(colFindings)
+    const standardsAcceptance = readTextCol(colStandardsAcceptance)
 
     // Accumulate raw values for reconciliation (set deduplicates automatically)
     if (assessedBy.trim())   uniqueAssessedBy.add(assessedBy.trim())
-    if (inheritedFrom.trim()) uniqueInheritedFrom.add(inheritedFrom.trim())
+    for (const source of inheritedFrom.split(/\r?\n/).map((name) => name.trim()).filter(Boolean)) uniqueInheritedFrom.add(source)
 
     // Control-level data
     if (!controlData[companionControlId]) {
@@ -643,6 +648,7 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
     const normInheritance = normalizeInheritance(inherited)
     if (normInheritance)      controlData[companionControlId].inheritance      = normInheritance
     if (inheritedFrom.trim()) controlData[companionControlId].inheritanceSource = inheritedFrom.trim()
+    if (standardsAcceptance.trim()) controlData[companionControlId].standardsAcceptance = standardsAcceptance.trim()
     if (assessedBy.trim())   controlData[companionControlId].assignedTo        = assessedBy.trim()
 
     // Objective-level data
@@ -836,6 +842,7 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
   const { controlData, objectiveData, allArtifactNames, reconciliation } = parsedData
   const controlMap = new Map(controls.map((c) => [c.id, c]))
   const isNew = mode === 'new'
+  const importedFindings = new Set()
 
   if (isNew) wipeProjectState()
 
@@ -845,9 +852,12 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
     statusesWritten:           0,
     resultsWritten:            0,
     findingsWritten:           0,
+    findingsCreated:           0,
+    findingsReformatted:       0,
     artifactSetsWritten:       0,
     inheritanceWritten:        0,
     inheritanceSourcesWritten: 0,
+    providerStandardsWritten: 0,
     assignmentsWritten:        0,
   }
 
@@ -920,10 +930,25 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
     }
 
     if (ctrlData.inheritanceSource) {
-      const resolved = resolveSource(ctrlData.inheritanceSource)
-      if (resolved && (isNew || !readInheritanceSource(controlId).trim())) {
-        writeInheritanceSources(controlId, [resolved])
+      const sourcePairs = ctrlData.inheritanceSource.split(/\r?\n/).map((name) => name.trim()).filter(Boolean).map((raw) => ({ raw, resolved: resolveSource(raw) })).filter(({ resolved }) => resolved)
+      if (sourcePairs.length && (isNew || !readInheritanceSource(controlId).trim())) {
+        writeInheritanceSources(controlId, sourcePairs.map(({ resolved }) => resolved))
         summary.inheritanceSourcesWritten++
+        const profile = readOscProfile()
+        let changed = false
+        for (const { raw, resolved } of sourcePairs) {
+          const lines = String(ctrlData.standardsAcceptance ?? '').split(/\r?\n/)
+          const named = lines.find((line) => line.toLowerCase().startsWith(`${raw.toLowerCase()}: `))
+          const value = (named ? named.slice(raw.length + 2) : sourcePairs.length === 1 ? lines.join('') : '').trim()
+          const standard = STANDARDS_ACCEPTANCE_VALUES.find((item) => item.toLowerCase() === value.toLowerCase())
+          const provider = profile.providers.find((item) => item.name.toLowerCase() === resolved.toLowerCase())
+          if (standard && provider && (isNew || !provider.standardsAcceptance) && provider.standardsAcceptance !== standard) {
+            provider.standardsAcceptance = standard
+            summary.providerStandardsWritten++
+            changed = true
+          }
+        }
+        if (changed) writeOscProfile(profile)
       }
     }
 
@@ -990,6 +1015,7 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
             differencesText:      '',
           })
           summary.findingsWritten++
+          importedFindings.add(`${controlId}[${objId}]`)
           contentAppliedThisControl = true
         }
       }
@@ -1017,5 +1043,21 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
     }
   }
 
+  // Build only after all imported artifacts, notes, and statuses are available.
+  for (const control of controls) {
+    const importedObjectives = objectiveData[control.id]
+    if (!importedObjectives) continue
+    for (const objective of control.objectives ?? []) {
+      if (!importedObjectives[objective.id] || readObjectiveStatus(control.id, objective.id) !== 'MET') continue
+      const previous = readObjectiveFinding(control.id, objective.id)
+      const finding = ensureMetObjectiveFinding(control, objective, {
+        replaceNonstandard: isNew || importedFindings.has(`${control.id}[${objective.id}]`),
+      })
+      if (finding) {
+        if (previous?.finalText?.trim()) summary.findingsReformatted++
+        else summary.findingsCreated++
+      }
+    }
+  }
   return summary
 }

@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import FindingPreviewModal from '../components/FindingPreviewModal.jsx'
 import { Check } from 'lucide-react'
 import { resolveControlNavigation } from '../utils/controlNavigation.js'
+import { readAssessmentStaff } from '../utils/oscProfile.js'
 import DashSidebar from '../components/DashSidebar.jsx'
 import AutoResizeTextarea from '../components/AutoResizeTextarea'
 import { normalizePastedText } from '../utils/pasteFormatting'
@@ -1040,6 +1042,7 @@ function ControlDetailView() {
   const [showSuggestedModal, setShowSuggestedModal] = useState(false)
   // Findings Builder modal
   const [showFindingsModal, setShowFindingsModal] = useState(false)
+  const [findingPreview, setFindingPreview] = useState(null)
   const [showBulkFindingsModal, setShowBulkFindingsModal] = useState(false)
   const [objectiveFindings, setObjectiveFindings] = useState(() => loadObjectiveFindings(id, control))
   // Per-objective interviewed roles (separate from finding and from interview notes)
@@ -1102,7 +1105,7 @@ function ControlDetailView() {
     if (objectiveResultHasWork(result)) return true
     if ((objectiveArtifacts[objId] ?? []).length > 0) return true
     if (objectiveFindings[objId]) return true
-    if ((objectiveInterviewedRoles[objId] ?? []).length > 0) return true
+    if ((objectiveInterviewedRoles[objId] ?? []).some((role) => !readAssessmentStaff().includes(role))) return true
     return false
   }
 
@@ -1777,7 +1780,7 @@ function ControlDetailView() {
                     <span className="cd-obj-pills-label">Findings</span>
                     <div className="cd-obj-findings-row">
                       {objectiveFindings[selectedObj.id] && (
-                        <span className="cd-findings-drafted-chip">Finding Drafted</span>
+                        <button type="button" className="cd-findings-drafted-chip" onClick={() => setFindingPreview({ finding: objectiveFindings[selectedObj.id], objectiveRef: `${id}[${selectedObj.id}]` })}>Finding Drafted</button>
                       )}
                       <button
                         type="button"
@@ -1907,7 +1910,7 @@ function ControlDetailView() {
                           {objRoles.map((r) => (
                             <span key={r} className="cd-interviews-role-chip">
                               {r}
-                              <button
+                              {!readAssessmentStaff().includes(r) && <button
                                 type="button"
                                 className="cd-interviews-role-chip-remove"
                                 onClick={() => {
@@ -1916,7 +1919,7 @@ function ControlDetailView() {
                                   setObjectiveInterviewedRoles((prev) => ({ ...prev, [selectedObj.id]: next }))
                                 }}
                                 aria-label={`Remove ${r}`}
-                              >×</button>
+                              >×</button>}
                             </span>
                           ))}
                         </div>
@@ -2057,6 +2060,7 @@ function ControlDetailView() {
         />
       )}
 
+      {findingPreview && <FindingPreviewModal {...findingPreview} onClose={() => setFindingPreview(null)} />}
       {showFindingsModal && selectedObj && (
         <FindingsBuilderModal
           controlId={control.id}

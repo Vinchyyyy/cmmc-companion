@@ -1,4 +1,7 @@
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { collectExportWarnings } from '../utils/exportPreflight.js'
+import { createMissingMetFindings } from '../utils/bulkAssessmentActions.js'
 import { Download, Upload, FileSpreadsheet, AlertTriangle, Palette, Check } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
 import controls from '../data/controls/index.js'
@@ -38,6 +41,7 @@ function Settings() {
   const [workbookImportParsing, setWorkbookImportParsing] = useState(false)
   const [reconciliationChoices, setReconciliationChoices] = useState({ assignedTo: {}, inheritanceSources: {} })
   const [exportDialog, setExportDialog] = useState(null)
+  const [exportWarnings, setExportWarnings] = useState(null)
   const [xlsxResult, setXlsxResult] = useState(null)
   const [pendingJsonImport, setPendingJsonImport] = useState(null)
   const [importOptions, setImportOptions] = useState(DEFAULT_IMPORT_OPTIONS)
@@ -54,6 +58,7 @@ function Settings() {
   }
 
   const openExportDialog = (mode) => {
+    setExportWarnings(null)
     const meta = readExportMeta()
     setExportDialog({
       mode,
@@ -64,9 +69,14 @@ function Settings() {
   }
   const closeExportDialog = () => setExportDialog(null)
 
-  const confirmExport = async () => {
+  const confirmExport = async (ignoreWarnings = false) => {
     const { mode, osc, assessment, selectedFamilyCodes } = exportDialog
     if (mode === 'xlsx' && selectedFamilyCodes.length === 0) return
+    if (mode === 'xlsx' && ignoreWarnings !== true) {
+      const warnings = collectExportWarnings(controls.filter((control) => selectedFamilyCodes.includes(control.id.split('.')[0])))
+      setExportWarnings(warnings)
+      if (warnings.length) return
+    }
     writeExportMeta(osc, assessment)
     closeExportDialog()
 
@@ -265,6 +275,9 @@ function Settings() {
         p(result.statusesWritten,     'status',                 'statuses'),
         p(result.resultsWritten,      'result set',             'result sets'),
         p(result.findingsWritten,     'finding',                'findings'),
+        p(result.findingsCreated,     'missing finding drafted', 'missing findings drafted'),
+        p(result.findingsReformatted, 'finding reformatted',     'findings reformatted'),
+        p(result.providerStandardsWritten, 'provider standard restored', 'provider standards restored'),
         p(result.artifactSetsWritten, 'artifact set',           'artifact sets'),
       ].filter(Boolean)
       const modeLabel = mode === 'new' ? 'Imported as new project' : 'Merged into project'
@@ -435,7 +448,7 @@ function Settings() {
 
       {exportDialog && (
         <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="export-dialog-title">
-          <div className="confirm-dialog">
+          <div className="confirm-dialog confirm-dialog--wide">
             <h2 id="export-dialog-title">
               {exportDialog.mode === 'xlsx' ? 'Export Assessment Workbook' : 'Create Project Backup'}
             </h2>
@@ -478,16 +491,16 @@ function Settings() {
                   <div className="export-family-actions" aria-label="Control family selection actions">
                     <button
                       type="button"
-                      onClick={() => setExportDialog((d) => ({
+                      onClick={() => { setExportWarnings(null); setExportDialog((d) => ({
                         ...d,
                         selectedFamilyCodes: [...ALL_CONTROL_FAMILY_CODES],
-                      }))}
+                      })) }}
                     >
                       Select All
                     </button>
                     <button
                       type="button"
-                      onClick={() => setExportDialog((d) => ({ ...d, selectedFamilyCodes: [] }))}
+                      onClick={() => { setExportWarnings(null); setExportDialog((d) => ({ ...d, selectedFamilyCodes: [] })) }}
                     >
                       Deselect All
                     </button>
@@ -498,12 +511,12 @@ function Settings() {
                         <input
                           type="checkbox"
                           checked={exportDialog.selectedFamilyCodes.includes(code)}
-                          onChange={(e) => setExportDialog((d) => ({
+                          onChange={(e) => { setExportWarnings(null); setExportDialog((d) => ({
                             ...d,
                             selectedFamilyCodes: e.target.checked
                               ? [...d.selectedFamilyCodes, code]
                               : d.selectedFamilyCodes.filter((familyCode) => familyCode !== code),
-                          }))}
+                          })) }}
                         />
                         <span><strong>{code}</strong> — {name}</span>
                       </label>
@@ -517,13 +530,30 @@ function Settings() {
                 </div>
               </details>
             )}
+            {exportDialog.mode === 'xlsx' && exportWarnings?.length > 0 && (
+              <section className="export-preflight" aria-label="Export warnings">
+                <h3>{exportWarnings.length} export warnings</h3>
+                <p>Review these items, or explicitly ignore the warnings to export the current data.</p>
+                {exportWarnings.some((warning) => warning.kind === 'missingFinding') && <button type="button" onClick={() => {
+                  const selected = controls.filter((control) => exportDialog.selectedFamilyCodes.includes(control.id.split('.')[0]))
+                  createMissingMetFindings(selected)
+                  setExportWarnings(collectExportWarnings(selected))
+                }}>Create Findings for All Affected MET Objectives</button>}
+                <ul style={{ maxHeight: '28vh', overflowY: 'auto', textAlign: 'left', paddingLeft: '1.3rem' }}>
+                  {exportWarnings.map((warning, index) => <li key={`${warning.kind}-${index}`} style={{ marginBottom: '.65rem' }}>
+                    <strong>{warning.ref}</strong> — {warning.text} <Link to={warning.href} onClick={closeExportDialog}>Fix / Review</Link>
+                  </li>)}
+                </ul>
+                <button type="button" onClick={() => confirmExport(true)} disabled={!exportDialog.selectedFamilyCodes.length}>Ignore All Warnings and Export Sheet</button>
+              </section>
+            )}
             <div className="confirm-dialog-buttons">
               <button onClick={closeExportDialog}>Cancel</button>
               <button
                 onClick={confirmExport}
                 disabled={exportDialog.mode === 'xlsx' && exportDialog.selectedFamilyCodes.length === 0}
               >
-                {exportDialog.mode === 'xlsx' ? 'Export Assessment Workbook' : 'Create Backup'}
+                {exportDialog.mode === 'xlsx' ? (exportWarnings?.length ? 'Recheck Warnings' : 'Export Assessment Workbook') : 'Create Backup'}
               </button>
             </div>
           </div>
@@ -613,6 +643,7 @@ function Settings() {
             <div className="confirm-dialog confirm-dialog--wide">
               <h2 id="workbook-import-dialog-title">Import Assessment Workbook</h2>
               <p>Review the parsed workbook summary and reconcile any unrecognized values before importing.</p>
+              <p>For imported MET objectives, missing findings are drafted automatically. Imported findings outside the standard format are replaced; their original text is retained in project backups. Existing local findings are preserved in merge mode.</p>
 
               <div className="workbook-import-summary">
                 <p><strong>Workbook Summary</strong></p>
