@@ -70,6 +70,9 @@ try {
   assert.ok(warnings.some((warning) => warning.kind === 'untagged' && warning.ref === 'Device Inventory'))
   assert.ok(!warnings.some((warning) => warning.kind === 'untagged' && warning.ref === 'Policy & Procedures'))
   assert.ok(!warnings.some((warning) => warning.ref.startsWith(ir.id)))
+  const groups = preflight.groupExportWarnings([...warnings, warnings[0]])
+  assert.equal(groups.reduce((count, group) => count + group.items.length, 0), warnings.length, 'duplicate warnings collapse')
+  assert.ok(groups.some((group) => group.kind === 'examine' && group.title === 'Missing examine notes'))
   assert.equal(bulk.createMissingMetFindings([ac]), 1)
   assert.equal(bulk.createMissingMetFindings([ac]), 0)
   const longResult = results.readObjectiveResult(...args)
@@ -107,8 +110,10 @@ try {
   const parsed = await importer.parseAssessmentWorkbook(bytes, controls)
   assert.equal(parsed.ok, true)
   assert.equal(parsed.controlData[ac.id].inheritanceSource, 'Example CSP\nExample MSP')
-  assert.match(parsed.controlData[ac.id].standardsAcceptance, /Example CSP: FedRAMP High/)
-  assert.match(parsed.controlData[ac.id].standardsAcceptance, /Example MSP: DIBCAC High/)
+  assert.equal(parsed.controlData[ac.id].standardsAcceptance, 'FedRAMP High\nDIBCAC High')
+  for (const value of parsed.controlData[ac.id].standardsAcceptance.split('\n')) {
+    assert.ok(osc.STANDARDS_ACCEPTANCE_VALUES.includes(value), 'standards contain only allowed labels')
+  }
   const interviewText = 'John S.\nJane D.\nIT Administrator\n\nDemonstrated login.'
   assert.equal(parsed.objectiveData[ac.id][first.id].interviews, interviewText)
   const filtered = await excel.buildCmmcTemplateWorkbook(template, controls, { selectedFamilyCodes: ['IR'] })

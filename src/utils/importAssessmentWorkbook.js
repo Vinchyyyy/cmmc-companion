@@ -648,7 +648,7 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
     const normInheritance = normalizeInheritance(inherited)
     if (normInheritance)      controlData[companionControlId].inheritance      = normInheritance
     if (inheritedFrom.trim()) controlData[companionControlId].inheritanceSource = inheritedFrom.trim()
-    if (standardsAcceptance.trim()) controlData[companionControlId].standardsAcceptance = standardsAcceptance.trim()
+    if (standardsAcceptance.trim()) controlData[companionControlId].standardsAcceptance = standardsAcceptance
     if (assessedBy.trim())   controlData[companionControlId].assignedTo        = assessedBy.trim()
 
     // Objective-level data
@@ -936,10 +936,10 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
         summary.inheritanceSourcesWritten++
         const profile = readOscProfile()
         let changed = false
-        for (const { raw, resolved } of sourcePairs) {
+        for (const [sourceIndex, { raw, resolved }] of sourcePairs.entries()) {
           const lines = String(ctrlData.standardsAcceptance ?? '').split(/\r?\n/)
           const named = lines.find((line) => line.toLowerCase().startsWith(`${raw.toLowerCase()}: `))
-          const value = (named ? named.slice(raw.length + 2) : sourcePairs.length === 1 ? lines.join('') : '').trim()
+          const value = (named ? named.slice(raw.length + 2) : lines[sourceIndex] ?? '').trim()
           const standard = STANDARDS_ACCEPTANCE_VALUES.find((item) => item.toLowerCase() === value.toLowerCase())
           const provider = profile.providers.find((item) => item.name.toLowerCase() === resolved.toLowerCase())
           if (standard && provider && (isNew || !provider.standardsAcceptance) && provider.standardsAcceptance !== standard) {

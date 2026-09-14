@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { collectExportWarnings } from '../utils/exportPreflight.js'
+import { collectExportWarnings, groupExportWarnings } from '../utils/exportPreflight.js'
 import { createMissingMetFindings } from '../utils/bulkAssessmentActions.js'
 import { Download, Upload, FileSpreadsheet, AlertTriangle, Palette, Check } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
@@ -532,18 +532,31 @@ function Settings() {
             )}
             {exportDialog.mode === 'xlsx' && exportWarnings?.length > 0 && (
               <section className="export-preflight" aria-label="Export warnings">
-                <h3>{exportWarnings.length} export warnings</h3>
-                <p>Review these items, or explicitly ignore the warnings to export the current data.</p>
-                {exportWarnings.some((warning) => warning.kind === 'missingFinding') && <button type="button" onClick={() => {
-                  const selected = controls.filter((control) => exportDialog.selectedFamilyCodes.includes(control.id.split('.')[0]))
-                  createMissingMetFindings(selected)
-                  setExportWarnings(collectExportWarnings(selected))
-                }}>Create Findings for All Affected MET Objectives</button>}
-                <ul style={{ maxHeight: '28vh', overflowY: 'auto', textAlign: 'left', paddingLeft: '1.3rem' }}>
-                  {exportWarnings.map((warning, index) => <li key={`${warning.kind}-${index}`} style={{ marginBottom: '.65rem' }}>
-                    <strong>{warning.ref}</strong> — {warning.text} <Link to={warning.href} onClick={closeExportDialog}>Fix / Review</Link>
-                  </li>)}
-                </ul>
+                <h3>Export review</h3>
+                <p>{exportWarnings.length} items in {groupExportWarnings(exportWarnings).length} categories. Expand a category to review or fix its items.</p>
+                <div className="export-warning-groups">
+                  {groupExportWarnings(exportWarnings).map((group) => (
+                    <details className="export-warning-group" key={group.kind}>
+                      <summary><span>{group.title}</span><span className="export-warning-count">{group.items.length}</span></summary>
+                      <div className="export-warning-body">
+                        <p>{group.description}</p>
+                        {group.kind === 'missingFinding' && <button type="button" onClick={() => {
+                          const selected = controls.filter((control) => exportDialog.selectedFamilyCodes.includes(control.id.split('.')[0]))
+                          createMissingMetFindings(selected)
+                          setExportWarnings(collectExportWarnings(selected))
+                        }}>Create Findings for All Affected MET Objectives</button>}
+                        <ul>
+                          {group.items.map((warning, index) => <li key={`${warning.ref}-${index}`}>
+                            <strong>{warning.ref}</strong>
+                            {['provider', 'untagged', 'length'].includes(group.kind) && <span> — {warning.text}</span>}
+                            {' '}<Link to={warning.href} onClick={closeExportDialog}>Fix / Review</Link>
+                            {warning.refs?.length > 0 && <details className="export-warning-refs"><summary>Affected controls ({warning.refs.length})</summary><p>{warning.refs.join(', ')}</p></details>}
+                          </li>)}
+                        </ul>
+                      </div>
+                    </details>
+                  ))}
+                </div>
                 <button type="button" onClick={() => confirmExport(true)} disabled={!exportDialog.selectedFamilyCodes.length}>Ignore All Warnings and Export Sheet</button>
               </section>
             )}

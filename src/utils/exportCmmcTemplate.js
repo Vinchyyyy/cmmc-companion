@@ -187,10 +187,9 @@ function buildObjectiveMap(controls) {
     const inheritance = readInheritance(ctrl.id)
     const sources     = readInheritanceSources(ctrl.id)
     const esp         = sources.join('\n')
-    const standardsAcceptance = sources.map((source) => {
-      const standard = readProviderStandardsAcceptance(source)
-      return standard ? (sources.length > 1 ? `${source}: ${standard}` : standard) : ''
-    }).filter(Boolean).join('\n')
+    // Keep standards aligned with source lines, without provider names or prefixes.
+    // Blank lines represent providers without an acceptance standard.
+    const standardsAcceptance = sources.map(readProviderStandardsAcceptance).join('\n')
     const assessedBy  = readAssignedTo(ctrl.id)
     const dateAssessed = readDateAssessed(ctrl.id)
     const pool        = readPool(ctrl.id)
