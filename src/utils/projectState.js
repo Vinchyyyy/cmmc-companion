@@ -18,6 +18,8 @@ import {
   INHERITANCE_VALUES,
   DEFAULT_INHERITANCE,
   readInheritance,
+  readInheritanceAssignments,
+  writeInheritanceAssignments,
   writeInheritance,
   readInheritanceSource,
   writeInheritanceSource,
@@ -141,6 +143,7 @@ export function exportProjectState(controls) {
       inheritanceSource: readInheritanceSource(control.id),
       // Full multi-source array (v4+). Takes priority over inheritanceSource on import.
       inheritanceSources: inheritanceSourcesArr,
+      inheritanceAssignments: readInheritanceAssignments(control.id),
     }
 
     if (assignedTo) entry.assignedTo = assignedTo
@@ -434,6 +437,7 @@ export function importProjectState(projectJson, controls, options = {}) {
         const filtered = entry.inheritanceSources.filter((s) => typeof s === 'string' && s.trim())
         if (canWrite(readInheritanceSources(control.id).length === 0, opts, summary)) {
           writeInheritanceSources(control.id, filtered)
+          writeInheritanceAssignments(control.id, Array.isArray(entry.inheritanceAssignments) ? entry.inheritanceAssignments.filter((item) => item && filtered.includes(item.source)) : [])
           if (filtered.length > 0) summary.inheritanceSourcesWritten++
         }
       } else if (typeof entry.inheritanceSource === 'string') {

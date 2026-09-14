@@ -31,6 +31,8 @@ import {
   readInheritance,
   writeInheritance,
   readInheritanceSources,
+  readInheritanceAssignments,
+  writeInheritanceAssignments,
   writeInheritanceSources,
   readObjectiveInheritance,
   writeObjectiveInheritance,
@@ -1125,7 +1127,7 @@ function ControlDetailView() {
   const statusWarning = getStatusConsistencyWarning(status, trendingStatus)
 
   const handleStatusSelect      = (v) => { setStatus(v); writeStatus(id, v) }
-  const handleInheritanceSelect = (v) => { setInheritance(v); writeInheritance(id, v) }
+  const handleInheritanceSelect = (v) => { setInheritance(v); writeInheritance(id, v); writeInheritanceAssignments(id, inheritanceSources.map((source) => ({ source, level: v }))) }
   const addInheritanceSource = (name) => {
     const trimmed = name.trim()
     if (!trimmed || inheritanceSources.includes(trimmed)) return
@@ -1145,9 +1147,11 @@ function ControlDetailView() {
   const renameInheritanceSource = (oldName, newName) => {
     const trimmed = newName.trim()
     if (!trimmed || trimmed === oldName || inheritanceSources.includes(trimmed)) return
+    const assignments = readInheritanceAssignments(id).map((item) => ({ ...item, source: item.source === oldName ? trimmed : item.source }))
     const next = inheritanceSources.map((s) => (s === oldName ? trimmed : s))
     setInheritanceSources(next)
     writeInheritanceSources(id, next)
+    writeInheritanceAssignments(id, assignments)
     renameInheritanceSourceOnObjectives(control, oldName, trimmed)
     setObjectiveInheritance(loadObjectiveInheritance(id, control))
   }

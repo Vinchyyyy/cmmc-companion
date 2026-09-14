@@ -73,6 +73,7 @@ export function readInheritanceSource(controlId) {
 export function writeInheritanceSource(controlId, value) {
   if (!controlId) return
   try {
+    localStorage.removeItem(`cmmc-inheritance-levels-${controlId}`)
     if (!value || !value.trim()) {
       localStorage.removeItem(`${SOURCE_PREFIX}${controlId}`)
       localStorage.removeItem(`${SOURCES_PREFIX}${controlId}`)
@@ -110,7 +111,8 @@ export function readInheritanceSources(controlId) {
 export function writeInheritanceSources(controlId, sources) {
   if (!controlId) return
   try {
-    const filtered = sources.filter((s) => s && s.trim())
+    const filtered = [...new Set(sources.filter((s) => typeof s === 'string' && s.trim()).map((s) => s.trim()))]
+    writeInheritanceAssignments(controlId, readInheritanceAssignments(controlId).filter((item) => filtered.includes(item.source)))
     if (filtered.length === 0) {
       localStorage.removeItem(`${SOURCES_PREFIX}${controlId}`)
       localStorage.removeItem(`${SOURCE_PREFIX}${controlId}`)
@@ -209,4 +211,42 @@ export function getInheritanceSourceWarning(inheritance, source) {
       note: 'Inheritance Status identifies whether the control is inherited. Inherited From documents the provider, service, or source responsible for that inheritance.',
     }
   return null
+}
+
+// Per-source assignment levels supplement the legacy control summary.
+export function readInheritanceAssignments(controlId) {
+  let levels = {}
+  try { levels = JSON.parse(localStorage.getItem(`cmmc-inheritance-levels-${controlId}`)) || {} } catch { /* legacy project */ }
+  return readInheritanceSources(controlId).map((source) => ({
+    source,
+    level: ['Partial', 'Full'].includes(levels[source]) ? levels[source] : readInheritance(controlId),
+  }))
+}
+
+export function writeInheritanceAssignments(controlId, assignments) {
+  const levels = Object.fromEntries(assignments.filter((item) => ['Partial', 'Full'].includes(item.level)).map((item) => [item.source, item.level]))
+  localStorage.setItem(`cmmc-inheritance-levels-${controlId}`, JSON.stringify(levels))
+}
+
+export function applyControlInheritance(control, level, source = '', mode = 'replace') {
+  if (!control?.id) return
+  const previous = readInheritanceAssignments(control.id)
+  const trimmed = source.trim()
+  const next = level === 'None' ? [] : mode === 'add' ? [...previous] : []
+  if (level !== 'None' && trimmed) {
+    const existing = next.find((item) => item.source.toLowerCase() === trimmed.toLowerCase())
+    if (existing) existing.level = level
+    else next.push({ source: trimmed, level })
+  }
+  for (const item of previous) {
+    if (!next.some((entry) => entry.source === item.source)) removeInheritanceSourceFromObjectives(control, item.source)
+  }
+  writeInheritanceSources(control.id, next.map((item) => item.source))
+  writeInheritanceAssignments(control.id, next)
+  // Mixed source levels remain Partial; adding sources does not imply full coverage.
+  writeInheritance(control.id, next.length ? (next.every((item) => item.level === 'Full') ? 'Full' : 'Partial') : 'None')
+  if (trimmed && level !== 'None') {
+    const assigned = next.find((item) => item.source.toLowerCase() === trimmed.toLowerCase())
+    addInheritanceSourceToObjectives(control, assigned.source)
+  }
 }

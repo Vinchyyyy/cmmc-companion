@@ -28,7 +28,10 @@ import {
   writeInheritance,
   readInheritanceSource,
   readInheritanceSources,
-  writeInheritanceSource,
+  readInheritanceAssignments,
+  applyControlInheritance,
+  writeInheritanceSources,
+  writeInheritanceAssignments,
   getInheritanceSourceWarning,
   addInheritanceSourceToObjectives,
   removeInheritanceSourceFromObjectives,
@@ -43,7 +46,7 @@ import { IconNotes, IconPaperclip } from '../components/icons'
 import { readAssignedTo, writeAssignedTo, normalizeAssignee } from '../utils/assignment'
 import BulkFindingsModal from '../components/BulkFindingsModal'
 import { DIBCAC_STANDARDS, getDibcacStandard } from '../data/dibcacAssessmentStandards'
-import { findOscProvider, formatProviderReference, readOscProfile } from '../utils/oscProfile'
+import { findOscProvider, formatProviderReference, readOscProfile, writeOscProfile, ensureOscProvider, STANDARDS_ACCEPTANCE_VALUES } from '../utils/oscProfile'
 import { formatDateAssessed, readDateAssessed, writeDateAssessed } from '../utils/dateAssessed'
 
 // 'variable' covers objectives with no fixed DIBCAC standard mapping (getDibcacStandard returns null).
@@ -116,7 +119,7 @@ const CHIP_FILTER_KEYS = ['status', 'warnings', 'notes', 'artifacts', 'inheritan
 const SEARCH_DEBOUNCE_MS = 500
 
 function getProviderSuggestions(value, selectedProviderId = '') {
-  if (!value.trim()) return []
+  if (selectedProviderId) return []
   const q = value.toLowerCase()
   const oscMatches = readOscProfile().providers
     .filter((provider) => provider.id !== selectedProviderId && provider.name.trim() && (
@@ -124,7 +127,7 @@ function getProviderSuggestions(value, selectedProviderId = '') {
       provider.type.toLowerCase().includes(q) ||
       provider.service.toLowerCase().includes(q)
     ))
-    .map((provider) => ({ id: `osc-${provider.id}`, providerId: provider.id, name: provider.name.trim(), category: provider.type, inheritanceLevel: provider.inheritanceLevel }))
+    .map((provider) => ({ id: `osc-${provider.id}`, providerId: provider.id, name: provider.name.trim(), category: provider.type, inheritanceLevel: provider.inheritanceLevel, standardsAcceptance: provider.standardsAcceptance }))
   const catalogMatches = PROVIDERS.filter(
     (p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
   )
@@ -681,12 +684,12 @@ function ControlLibrary() {
   }
 
   const usedInheritanceSources = useMemo(() =>
-    [...new Set(controls.map((c) => readInheritanceSource(c.id).trim()).filter(Boolean))].sort()
+    [...new Set(controls.flatMap((c) => readInheritanceSources(c.id)).filter(Boolean))].sort()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   , [updateKey])
 
   const matchesInheritanceSource = (c) =>
-    inheritanceSourceSet.size === 0 || inheritanceSourceSet.has(readInheritanceSource(c.id).trim())
+    inheritanceSourceSet.size === 0 || readInheritanceSources(c.id).some((source) => inheritanceSourceSet.has(source.trim()))
 
   const usedAssignedTo = useMemo(() =>
     [...new Set(controls.map((c) => normalizeAssignee(readAssignedTo(c.id))).filter(Boolean))].sort()
@@ -784,16 +787,16 @@ function ControlLibrary() {
   }
 
   const bulkSetStatus      = (s) => { bulkSetControlStatus(selectedControls, s); forceUpdate() }
-  const bulkSetInheritance = (v, source = '') => {
+  const bulkSetInheritance = (v, source = '', mode = 'replace', standard = '') => {
+    if (source && v !== DEFAULT_INHERITANCE) {
+      const isNew = !findOscProvider(source)
+      const provider = ensureOscProvider(source)
+      const profile = readOscProfile()
+      writeOscProfile({ ...profile, providers: profile.providers.map((item) => item.id === provider.id
+        ? { ...item, standardsAcceptance: standard, inheritanceLevel: isNew ? v : item.inheritanceLevel } : item) })
+    }
     for (const id of selected) {
-      const ctrl = controls.find((candidate) => candidate.id === id)
-      const previousSources = readInheritanceSources(id)
-      writeInheritance(id, v)
-      writeInheritanceSource(id, v === DEFAULT_INHERITANCE ? '' : source)
-      for (const previousSource of previousSources) {
-        if (previousSource !== source) removeInheritanceSourceFromObjectives(ctrl, previousSource)
-      }
-      if (v !== DEFAULT_INHERITANCE && source) addInheritanceSourceToObjectives(ctrl, source)
+      applyControlInheritance(controls.find((candidate) => candidate.id === id), v, source, mode)
     }
     forceUpdate()
   }
@@ -1030,7 +1033,7 @@ function ControlLibrary() {
                 if (v === DEFAULT_INHERITANCE) {
                   bulkSetInheritance(DEFAULT_INHERITANCE)
                 } else {
-                  setBulkInheritanceModal({ value: v, source: '', providerId: '' })
+                  setBulkInheritanceModal({ value: v, source: '', providerId: '', standard: '' })
                 }
               }}>
               <option value="" disabled>Set inheritance…</option>
@@ -1142,7 +1145,7 @@ function ControlLibrary() {
                     const isSelected        = selected.has(control.id)
                     const isOpen            = openQuickLook === control.id
                     const panelId           = `quick-look-${control.id}`
-                    const inheritanceSource = readInheritanceSource(control.id)
+                    const inheritanceSource = readInheritanceAssignments(control.id).map((item) => `${item.source} (${item.level})`).join('; ')
                     const isWarnOpen        = openWarning === control.id
                     const warnPanelId       = `warning-panel-${control.id}`
 
@@ -1156,7 +1159,7 @@ function ControlLibrary() {
                         <span className={`status-badge ${STATUS_BADGE_CLASS[status]}`}>{status}</span>
                         {inheritance !== DEFAULT_INHERITANCE && (() => {
                           const inheritanceBadgeLabel = inheritanceSource.trim()
-                            ? `${inheritance} — ${formatProviderReference(inheritanceSource.trim())}`
+                            ? `${inheritance} — ${readInheritanceAssignments(control.id).map((item) => `${formatProviderReference(item.source)} (${item.level})`).join('; ')}`
                             : inheritance
                           return (
                             <span
@@ -1517,6 +1520,7 @@ function ControlLibrary() {
                       source,
                       providerId: provider?.id ?? '',
                       value: provider?.inheritanceLevel ?? prev.value,
+                      standard: provider?.standardsAcceptance ?? '',
                     }))
                   }}
                   placeholder="e.g. Microsoft 365 GCC High, AWS GovCloud"
@@ -1538,6 +1542,7 @@ function ControlLibrary() {
                             source: p.name,
                             providerId: p.providerId ?? '',
                             value: p.inheritanceLevel ?? prev.value,
+                            standard: p.standardsAcceptance ?? '',
                           }))
                         }}
                       >
@@ -1550,20 +1555,29 @@ function ControlLibrary() {
               <p style={{ marginTop: 'var(--space-1)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
                 {bulkInheritanceModal.providerId
                   ? 'OSC Profile provider selected. Its default level has been applied; you can change it above for this assignment.'
-                  : 'Enter the provider, service, or source responsible for the inherited control implementation.'}
+                  : 'Choose a provider or enter a new name to create it in the OSC Profile.'}
               </p>
             </div>
+            <div className="control-meta-field" style={{ marginTop: 'var(--space-3)' }}>
+              <label htmlFor="bulk-inheritance-standard">Standards Acceptance (optional)</label>
+              <select id="bulk-inheritance-standard" style={{ width: '100%' }} value={bulkInheritanceModal.standard}
+                onChange={(e) => setBulkInheritanceModal((prev) => ({ ...prev, standard: e.target.value }))}>
+                <option value="">Not specified</option>
+                {STANDARDS_ACCEPTANCE_VALUES.map((standard) => <option key={standard}>{standard}</option>)}
+              </select>
+              <p className="field-hint">Saved to this provider in the OSC Profile. Leave blank when no standard applies.</p>
+            </div>
+            <p>Add preserves existing sources. Replace removes all existing sources from the selected controls and their objectives. Providers remain in the OSC Profile.</p>
             <div className="confirm-dialog-buttons">
               <button onClick={() => setBulkInheritanceModal(null)}>Cancel</button>
-              <button
-                disabled={!bulkInheritanceModal.source.trim()}
-                onClick={() => {
-                  bulkSetInheritance(bulkInheritanceModal.value, bulkInheritanceModal.source.trim())
+              {['add', 'replace'].map((mode) => (
+                <button key={mode} disabled={!bulkInheritanceModal.source.trim()} onClick={() => {
+                  bulkSetInheritance(bulkInheritanceModal.value, bulkInheritanceModal.source.trim(), mode, bulkInheritanceModal.standard)
                   setBulkInheritanceModal(null)
-                }}
-              >
-                Apply Inheritance
-              </button>
+                }}>
+                  {mode === 'add' ? 'Add Inheritance' : 'Replace Inheritance'}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -1815,12 +1829,13 @@ function ControlLibrary() {
                       if (attrs.inheritanceSource) {
                         const target = controls.find((candidate) => candidate.id === targetId)
                         const previousSources = readInheritanceSources(targetId)
-                        const nextSource = readInheritanceSource(sourceId)
+                        const nextSources = readInheritanceSources(sourceId)
                         for (const previousSource of previousSources) {
-                          if (previousSource !== nextSource) removeInheritanceSourceFromObjectives(target, previousSource)
+                          if (!nextSources.includes(previousSource)) removeInheritanceSourceFromObjectives(target, previousSource)
                         }
-                        writeInheritanceSource(targetId, nextSource)
-                        if (nextSource) addInheritanceSourceToObjectives(target, nextSource)
+                        writeInheritanceSources(targetId, nextSources)
+                        writeInheritanceAssignments(targetId, readInheritanceAssignments(sourceId))
+                        for (const source of nextSources) addInheritanceSourceToObjectives(target, source)
                       }
                       if (attrs.evidencePool) writePool(targetId, readPool(sourceId))
                     }
