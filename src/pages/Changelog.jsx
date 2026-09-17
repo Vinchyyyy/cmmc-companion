@@ -16,7 +16,16 @@ function Changelog() {
         Current version: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{APP_VERSION}</span>
       </p>
 
-      <details open style={{ marginBottom: 'var(--space-4)' }}>
+      <details open>
+        <ReleaseSummary version="v4.12.0" title="Finding Format and Export Review" date="September 17, 2026" />
+        <ul>
+          <li>MET findings use A, B, and C only. The old generated D confirmation is removed from saved MET findings.</li>
+          <li>NOT MET findings require discrepancies or differences for the OSC in section D.</li>
+          <li>Add or replace multiple inheritance sources with optional standards acceptance.</li>
+          <li>Export warnings are grouped into expandable categories with counts; Excel standards omit provider names.</li>
+        </ul>
+      </details>
+      <details style={{ marginBottom: 'var(--space-4)' }}>
         <ReleaseSummary version="v4.11.0" title="Findings Stay in Sync" date="September 9, 2026" />
         <ul>
           <li>Saving assessment staff updates the Interviewed line in existing standardized findings immediately.</li>

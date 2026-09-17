@@ -12,10 +12,10 @@ export function matchesStandardFinding(finding, control, objective) {
   if (prefix && !prefix.startsWith('Interviewed:')) return false
   const sections = lines.slice(start)
   const method = getDibcacStandard(control.id, objective.id)?.standard
-  if (sections.length < 4 || sections[1] !== `B) ${buildObjectiveValidationStatement({ objectiveRef: `${control.id}[${objective.id}]`, objectiveText: objective.text, dibcacMethod: method })}`) return false
-  if (sections[2] !== 'C) No noted findings or differences.' && !sections[2].startsWith('C) Differences: ')) return false
-  if (sections.length > 4 && !sections[2].startsWith('C) Differences: ')) return false
-  return /^D\) Assessment team confirmed in interview, testing, and documentation that this objective is (not )?implemented\.$/.test(sections.at(-1))
+  if (sections.length < 3 || sections[1] !== `B) ${buildObjectiveValidationStatement({ objectiveRef: `${control.id}[${objective.id}]`, objectiveText: objective.text, dibcacMethod: method })}`) return false
+  if (sections.some((line) => line.startsWith('D) '))) return false
+  return sections[2] === 'C) No noted findings or differences.' || sections[2].startsWith('C) Differences: ')
+
 }
 
 // Creates the same deterministic, objective-level statement produced by the

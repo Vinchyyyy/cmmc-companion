@@ -1,3 +1,12 @@
+## Version 4.12.0 — Finding Format and Export Review
+Date: September 17, 2026
+
+- MET findings use sections A, B, and C only; the old generated D confirmation is removed from saved MET findings when read.
+- NOT MET findings reserve D for required assessor-entered discrepancies or differences to communicate to the OSC. Bulk generation skips NOT MET objectives until this text is entered.
+- Multiple inheritance sources can be added or replaced, with optional provider standards acceptance.
+- Export review groups warnings into expandable categories with counts and consolidates repeated provider warnings.
+- Excel standards acceptance exports approved labels without provider prefixes; JSON and Excel round trips remain supported.
+
 
 ## Version 4.11.0 — Findings Stay in Sync
 Date: September 9, 2026

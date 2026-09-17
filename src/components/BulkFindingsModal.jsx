@@ -87,7 +87,9 @@ export default function BulkFindingsModal({ title, controlsInScope, onClose }) {
         const differencesAllowed = !hasSavedDifferences || includeDifferences
 
         let skipReason = null
-        if (!statusAllowed) {
+        if (isNotMet && !existing?.differencesText?.trim()) {
+          skipReason = 'Enter discrepancies in the objective Findings Builder first'
+        } else if (!statusAllowed) {
           skipReason = isNotMet ? SKIP_NOT_MET : isInProgress ? SKIP_IN_PROGRESS : SKIP_UNREVIEWED
         } else if (!differencesAllowed) {
           skipReason = SKIP_DIFFERENCES
@@ -95,7 +97,7 @@ export default function BulkFindingsModal({ title, controlsInScope, onClose }) {
           skipReason = SKIP_EXISTING
         }
 
-        const eligible = statusAllowed && differencesAllowed && (!hasExisting || overwrite)
+        const eligible = skipReason === null
         const category = !eligible ? 'skipped' : (warnings.length > 0 ? 'attention' : 'ready')
 
         out.push({
@@ -200,7 +202,7 @@ export default function BulkFindingsModal({ title, controlsInScope, onClose }) {
 
   const handleGenerate = () => {
     for (const row of eligibleRows) {
-      const preserveDifferences = row.hasSavedDifferences && includeDifferences
+      const preserveDifferences = row.statusContext === 'NOT_MET' || (row.hasSavedDifferences && includeDifferences)
       writeObjectiveFinding(row.controlId, row.objId, {
         includedArtifacts: row.artifacts,
         syncedAssignedArtifacts: [...row.artifacts],

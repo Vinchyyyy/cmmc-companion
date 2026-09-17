@@ -36,6 +36,8 @@ export default function FindingsBuilderModal({
   const modalRef = useRef(null)
   useFocusTrap(modalRef, true)
 
+  const isNotMet = objStatus === 'NOT MET'
+  const statusContext = isNotMet ? 'NOT_MET' : objStatus === 'MET' ? 'MET' : 'UNREVIEWED'
   const objectiveRef = `${controlId}[${obj.id}]`
 
   // Roles — initialized from prop, can be updated via inline role picker
@@ -44,7 +46,7 @@ export default function FindingsBuilderModal({
   const [includedArtifacts, setIncludedArtifacts] = useState(
     () => resolveInitialIncluded(existingFinding, assignedArtifacts)
   )
-  const [hasDifferences, setHasDifferences] = useState(existingFinding?.hasDifferences ?? false)
+  const [hasDifferences] = useState(existingFinding?.hasDifferences ?? false)
   const [differencesText, setDifferencesText] = useState(existingFinding?.differencesText ?? '')
   const [validationError, setValidationError] = useState('')
   const [showClearConfirm, setShowClearConfirm] = useState(false)
@@ -70,7 +72,8 @@ export default function FindingsBuilderModal({
     dibcacMethod: dibcacStd?.standard,
     hasDifferences,
     differencesText,
-  }), [roles, includedArtifacts, objectiveRef, obj.text, dibcacStd, hasDifferences, differencesText])
+    statusContext,
+  }), [roles, includedArtifacts, objectiveRef, obj.text, dibcacStd, hasDifferences, differencesText, statusContext])
 
   const validationSentence = useMemo(
     () => buildObjectiveValidationStatement({ objectiveRef, objectiveText: obj.text, dibcacMethod: dibcacStd?.standard }),
@@ -90,8 +93,8 @@ export default function FindingsBuilderModal({
   }
 
   const handleSave = () => {
-    if (hasDifferences && !differencesText.trim()) {
-      setValidationError('Enter the noted findings or differences before saving.')
+    if ((isNotMet || hasDifferences) && !differencesText.trim()) {
+      setValidationError('Enter the discrepancies or differences to communicate to the OSC before saving.')
       return
     }
     setValidationError('')
@@ -99,7 +102,7 @@ export default function FindingsBuilderModal({
       includedArtifacts,
       syncedAssignedArtifacts: [...assignedArtifacts],
       syncedInterviewRoles: [...roles],
-      hasDifferences,
+      hasDifferences: isNotMet || hasDifferences,
       differencesText,
       finalText,
       updatedAt: new Date().toISOString(),
@@ -232,59 +235,17 @@ export default function FindingsBuilderModal({
               <div className="cd-findings-generated-line">{validationSentence}</div>
             </div>
 
-            {/* ── 4. Findings / Differences ── */}
             <div className="cd-findings-field">
-              <span className="cd-findings-field-label">C) Noted findings or differences?</span>
-              <div className="cd-findings-toggle-row">
-                <button
-                  type="button"
-                  className={`cd-findings-toggle-btn${!hasDifferences ? ' cd-findings-toggle-btn--active' : ''}`}
-                  onClick={() => { setHasDifferences(false); setValidationError('') }}
-                  aria-pressed={!hasDifferences}
-                >
-                  No
-                </button>
-                <button
-                  type="button"
-                  className={`cd-findings-toggle-btn cd-findings-toggle-btn--yes${hasDifferences ? ' cd-findings-toggle-btn--active cd-findings-toggle-btn--yes-active' : ''}`}
-                  onClick={() => setHasDifferences(true)}
-                  aria-pressed={hasDifferences}
-                >
-                  Yes
-                </button>
-              </div>
-              {hasDifferences && (
-                <div style={{ marginTop: 'var(--space-2)' }}>
-                  <label className="cd-findings-field-label" htmlFor="fb-differences">
-                    Describe noted findings or differences
-                  </label>
-                  <textarea
-                    id="fb-differences"
-                    className="cd-edit-textarea"
-                    rows={3}
-                    value={differencesText}
-                    onChange={(e) => { setDifferencesText(e.target.value); setValidationError('') }}
-                    placeholder="Describe the noted findings or differences…"
-                    autoFocus
-                  />
-                </div>
-              )}
-              {validationError && (
-                <p className="cd-findings-validation-error">{validationError}</p>
-              )}
+              <span className="cd-findings-field-label">C) Assessment Summary</span>
+              <div className="cd-findings-generated-line">{isNotMet ? 'Full implementation of this objective was not confirmed.' : statusContext === 'MET' ? 'No noted findings or differences.' : 'Assessment is incomplete; full implementation has not been confirmed.'}</div>
             </div>
-
-            {/* ── 5. Confirmation Statement (generated) ── */}
-            <div className="cd-findings-field">
-              <span className="cd-findings-field-label">D) Confirmation Statement</span>
-              <div className="cd-findings-generated-line">
-                Assessment team confirmed in interview, testing, and documentation that this objective is{' '}
-                {hasDifferences
-                  ? <strong className="cd-findings-not-implemented">not implemented.</strong>
-                  : <strong className="cd-findings-implemented">implemented.</strong>
-                }
-              </div>
-            </div>
+            {(isNotMet || hasDifferences) && <div className="cd-findings-field">
+              <label className="cd-findings-field-label" htmlFor="fb-differences">{isNotMet ? 'D) Discrepancies / Differences for the OSC (required)' : 'C) Existing differences'}</label>
+              <textarea id="fb-differences" className="cd-edit-textarea" rows={4} value={differencesText}
+                onChange={(e) => { setDifferencesText(e.target.value); setValidationError('') }}
+                placeholder="Describe the discrepancy and what the OSC needs to address…" />
+            </div>}
+            {validationError && <p className="cd-findings-validation-error" role="alert">{validationError}</p>}
 
             {/* ── Live Preview ── */}
             <div className="cd-findings-preview">

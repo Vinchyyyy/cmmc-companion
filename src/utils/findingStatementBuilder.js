@@ -55,27 +55,7 @@ export function buildArtifactsLine(artifacts) {
   return `A) Reviewed ${artifactsText ?? '[no artifact references entered]'}`
 }
 
-// D-line confirmation language. Differences always take priority (existing
-// behavior — "not implemented"). Otherwise the language is chosen by
-// statusContext so non-MET/override-generated findings never falsely claim
-// the objective is implemented.
-//
-// statusContext: 'MET' (default) | 'NOT_MET' | 'IN_PROGRESS' | 'UNREVIEWED'
-function buildConfirmationLine({ hasDifferences, statusContext }) {
-  if (hasDifferences) {
-    return 'D) Assessment team confirmed in interview, testing, and documentation that this objective is not implemented.'
-  }
-  if (statusContext === 'NOT_MET') {
-    return 'D) Assessment team did not confirm full implementation of this objective based on the reviewed evidence.'
-  }
-  if (statusContext === 'IN_PROGRESS' || statusContext === 'UNREVIEWED') {
-    return 'D) Assessment team has not confirmed full implementation of this objective at the time of this finding statement.'
-  }
-  return 'D) Assessment team confirmed in interview, testing, and documentation that this objective is implemented.'
-}
-
-// Full finding statement text (Interviewed / A / B / C / D), shared across
-// FindingsBuilderModal, DIBCAC group findings, and bulk findings generation.
+// MET uses A–C. D is reserved for assessor-entered NOT MET discrepancies.
 export function buildFinalText({
   roles,
   includedArtifacts,
@@ -96,13 +76,14 @@ export function buildFinalText({
   lines.push(buildArtifactsLine(includedArtifacts))
   lines.push(`B) ${buildObjectiveValidationStatement({ objectiveRef, objectiveText, dibcacMethod })}`)
 
-  if (hasDifferences) {
+  if (statusContext === 'NOT_MET') {
+    lines.push('C) Full implementation of this objective was not confirmed.')
+    lines.push(`D) Differences: ${(differencesText ?? '').trim()}`)
+  } else if (hasDifferences) {
     lines.push(`C) Differences: ${(differencesText ?? '').trim()}`)
   } else {
-    lines.push('C) No noted findings or differences.')
+    lines.push(statusContext === 'MET' ? 'C) No noted findings or differences.' : 'C) Assessment is incomplete; full implementation has not been confirmed.')
   }
-
-  lines.push(buildConfirmationLine({ hasDifferences, statusContext }))
 
   return lines.join('\n')
 }

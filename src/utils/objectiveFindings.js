@@ -1,6 +1,7 @@
 // Per-objective finding statements for the standardized Findings column.
 // Storage key: cmmc-objective-finding-{controlId}-{objectiveId}
 
+import { readObjectiveStatus } from './objectiveStatus.js'
 import { buildArtifactsLine } from './findingStatementBuilder'
 
 const FINDING_PREFIX = 'cmmc-objective-finding-'
@@ -16,6 +17,10 @@ export function readObjectiveFinding(controlId, objectiveId) {
     if (!raw) return null
     const parsed = JSON.parse(raw)
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
+    // Remove only the old generated confirmation, never assessor-written D text.
+    if (readObjectiveStatus(controlId, objectiveId) === 'MET' && typeof parsed.finalText === 'string') {
+      parsed.finalText = parsed.finalText.replace(/\r?\nD\) Assessment team confirmed in interview, testing, and documentation that this objective is (?:not )?implemented\.$/, '')
+    }
     return parsed
   } catch {
     return null
@@ -50,7 +55,7 @@ function sameArtifacts(a, b) {
 
 // Only recognize the managed envelope; never reconstruct B/C/D or freeform prose.
 export function findingHasManagedSections(finding) {
-  return typeof finding?.finalText === 'string' && /^(?:Interviewed:[^\r\n]*\r?\n\s*)?A\) Reviewed [^\r\n]*\r?\nB\) [\s\S]*\r?\nC\) [\s\S]*\r?\nD\) [\s\S]+$/.test(finding.finalText)
+  return typeof finding?.finalText === 'string' && /^(?:Interviewed:[^\r\n]*\r?\n\s*)?A\) Reviewed [^\r\n]*\r?\nB\) [\s\S]*\r?\nC\) [\s\S]+$/.test(finding.finalText)
 }
 
 export function syncObjectiveFindingRoles(controlId, objectiveId, roles, previousRoles = []) {
