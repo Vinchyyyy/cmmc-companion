@@ -235,7 +235,16 @@ export function applyControlInheritance(control, level, source = '', mode = 'rep
   // Mixed source levels remain Partial; adding sources does not imply full coverage.
   writeInheritance(control.id, next.length ? (next.every((item) => item.level === 'Full') ? 'Full' : 'Partial') : 'None')
   if (trimmed && level !== 'None') {
-    const assigned = next.find((item) => item.source.toLowerCase() === trimmed.toLowerCase())
-    addInheritanceSourceToObjectives(control, assigned.source)
+    // Only propagate to every objective when the source is genuinely new to
+    // this control. Re-applying an already-present source (e.g. clicking
+    // "Add Inheritance" again for the same provider, just to change its
+    // level) must not re-add it to objectives where the user deliberately
+    // removed it via the per-objective picker — see
+    // removeInheritanceSourceFromObjectives / addInheritanceSourceToObjectives.
+    const wasAlreadyPresent = previous.some((item) => item.source.toLowerCase() === trimmed.toLowerCase())
+    if (!wasAlreadyPresent) {
+      const assigned = next.find((item) => item.source.toLowerCase() === trimmed.toLowerCase())
+      addInheritanceSourceToObjectives(control, assigned.source)
+    }
   }
 }

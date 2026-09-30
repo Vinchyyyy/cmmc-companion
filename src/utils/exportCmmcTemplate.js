@@ -69,8 +69,13 @@ const ARTIFACT_VALUE_LIMIT   = 400
 const ARTIFACT_OVERALL_LIMIT = 4000
 const CELL_OVERALL_LIMIT     = 4000
 
+// Truncates by Unicode code point, not UTF-16 code unit — str.slice() would
+// split a surrogate pair (e.g. an emoji) in two, corrupting the character
+// left dangling at the cut point when the XML is serialized to UTF-8.
 function truncate(str, limit) {
-  return str.length > limit ? str.slice(0, limit) : str
+  if (str.length <= limit) return str
+  const chars = Array.from(str)
+  return chars.length > limit ? chars.slice(0, limit).join('') : str
 }
 
 // ---------------------------------------------------------------------------

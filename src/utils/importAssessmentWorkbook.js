@@ -29,8 +29,10 @@ import {
   writeInheritance,
   readInheritanceSource,
   writeInheritanceSources,
+  addInheritanceSourceToObjectives,
 } from './inheritance'
 import { normalizeAssignee, readAssignedTo, writeAssignedTo } from './assignment'
+import { readDateAssessed, writeDateAssessed, excelSerialToDateAssessed } from './dateAssessed'
 import {
   OBJECTIVE_STATUS_UNREVIEWED,
   readObjectiveStatus,
@@ -227,6 +229,7 @@ const COLUMN_ALIASES = {
   score:          ['score', 'assessment status'],
   assessedBy:     ['assessed by', 'assigned to', 'owner'],
   findings:       ['finding'],
+  dateAssessed:   ['date assessed'],
   // Explicitly skipped fields — no import:
   timeToAssess:   ['time to assess', 'time in minute'],
   standardsAcceptance: ['standards acceptance'],
@@ -554,6 +557,7 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
     colByField.set('score',           'M')
     colByField.set('assessedBy',      'O')
     colByField.set('findings',        'P')
+    colByField.set('dateAssessed',    'N')
     headerWarnings.push('Header row not found — using default official template column layout.')
   }
 
@@ -569,6 +573,7 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
   const colAssessedBy      = colByField.get('assessedBy')      ?? null
   const colFindings        = colByField.get('findings')        ?? null
   const colStandardsAcceptance = colByField.get('standardsAcceptance') ?? null
+  const colDateAssessed    = colByField.get('dateAssessed')    ?? null
 
   // ---------------------------------------------------------------------------
   // Step 2: Parse all data rows
@@ -587,6 +592,7 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
     testNotesFound:         0,
     overallCommentsFound:   0,
     unrecognizedStatuses:   0,
+    numericTextValuesSkipped: 0,
   }
 
   // Collect unique raw values for reconciliation
@@ -617,10 +623,17 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
     const readCol = (col) =>
       col ? extractCellText(rowXml, col, rowNum, sharedStrings) : ''
 
-    // Guard text fields against accidental numeric cell contamination
+    // Guard text fields against accidental numeric cell contamination (a stray
+    // formula-evaluated number landing in a text column). Surfaced as a count
+    // rather than dropped silently — a legitimate note that happens to be a
+    // bare number (a ticket/serial number, say) would otherwise vanish with
+    // no indication anything was skipped.
     const readTextCol = (col) => {
       const val = readCol(col)
-      if (isPurelyNumeric(val) && val.length > 4) return ''
+      if (isPurelyNumeric(val) && val.length > 4) {
+        counts.numericTextValuesSkipped++
+        return ''
+      }
       return val
     }
 
@@ -635,6 +648,7 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
     const assessedBy      = readCol(colAssessedBy)
     const findings        = readTextCol(colFindings)
     const standardsAcceptance = readTextCol(colStandardsAcceptance)
+    const dateAssessed     = excelSerialToDateAssessed(readCol(colDateAssessed))
 
     // Accumulate raw values for reconciliation (set deduplicates automatically)
     if (assessedBy.trim())   uniqueAssessedBy.add(assessedBy.trim())
@@ -650,6 +664,7 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
     if (inheritedFrom.trim()) controlData[companionControlId].inheritanceSource = inheritedFrom.trim()
     if (standardsAcceptance.trim()) controlData[companionControlId].standardsAcceptance = standardsAcceptance
     if (assessedBy.trim())   controlData[companionControlId].assignedTo        = assessedBy.trim()
+    if (dateAssessed)        controlData[companionControlId].dateAssessed      = dateAssessed
 
     // Objective-level data
     if (!objectiveData[companionControlId]) objectiveData[companionControlId] = {}
@@ -792,6 +807,11 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
       `${counts.unrecognizedStatuses} status value${counts.unrecognizedStatuses === 1 ? '' : 's'} could not be recognized and will be left blank.`
     )
   }
+  if (counts.numericTextValuesSkipped > 0) {
+    warnings.push(
+      `${counts.numericTextValuesSkipped} text value${counts.numericTextValuesSkipped === 1 ? ' was' : 's were'} skipped because ${counts.numericTextValuesSkipped === 1 ? 'it was' : 'they were'} a bare number longer than 4 digits (guards against accidental numeric cell contamination) — review the source file if any of these were meant to be kept.`
+    )
+  }
   if (existingObjectivesWithData > 0) {
     warnings.push(
       `${existingObjectivesWithData} current objective${existingObjectivesWithData === 1 ? '' : 's'} already contain app data.`
@@ -859,6 +879,7 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
     inheritanceSourcesWritten: 0,
     providerStandardsWritten: 0,
     assignmentsWritten:        0,
+    datesAssessedWritten:      0,
   }
 
   // ---------------------------------------------------------------------------
@@ -934,6 +955,14 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
       if (sourcePairs.length && (isNew || !readInheritanceSource(controlId).trim())) {
         writeInheritanceSources(controlId, sourcePairs.map(({ resolved }) => resolved))
         summary.inheritanceSourcesWritten++
+        // Every other write path that sets a control-level source (ControlDetail,
+        // ControlLibrary's bulk modal, CrmResponsibilityMapper) also propagates it
+        // to every objective on the control — do the same here, or the control
+        // shows "Inherited From X" while every objective still shows no inheritance.
+        const control = controlMap.get(controlId)
+        if (control) {
+          for (const { resolved } of sourcePairs) addInheritanceSourceToObjectives(control, resolved)
+        }
         const profile = readOscProfile()
         let changed = false
         for (const [sourceIndex, { raw, resolved }] of sourcePairs.entries()) {
@@ -957,6 +986,13 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
       if (resolved && (isNew || !readAssignedTo(controlId))) {
         writeAssignedTo(controlId, resolved)
         summary.assignmentsWritten++
+      }
+    }
+
+    if (ctrlData.dateAssessed) {
+      if (isNew || !readDateAssessed(controlId)) {
+        writeDateAssessed(controlId, ctrlData.dateAssessed)
+        summary.datesAssessedWritten++
       }
     }
   }

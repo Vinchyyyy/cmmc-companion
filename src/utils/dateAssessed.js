@@ -50,3 +50,16 @@ export function dateAssessedToExcelSerial(value) {
   const [year, month, day] = normalized.split('-').map(Number)
   return Math.floor(Date.UTC(year, month - 1, day) / 86400000) + 25569
 }
+
+// Inverse of dateAssessedToExcelSerial — converts an Excel 1900-date-system
+// serial (as read back from an imported workbook cell) into an ISO calendar
+// date. Returns '' for anything that isn't a plausible whole-number serial.
+export function excelSerialToDateAssessed(serial) {
+  const n = Number(serial)
+  if (!Number.isFinite(n) || !Number.isInteger(n) || n <= 0) return ''
+  const ms = (n - 25569) * 86400000
+  const date = new Date(ms)
+  if (Number.isNaN(date.getTime())) return ''
+  const iso = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`
+  return normalizeDate(iso)
+}

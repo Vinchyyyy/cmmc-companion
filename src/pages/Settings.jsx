@@ -279,6 +279,7 @@ function Settings() {
         p(result.findingsReformatted, 'finding reformatted',     'findings reformatted'),
         p(result.providerStandardsWritten, 'provider standard restored', 'provider standards restored'),
         p(result.artifactSetsWritten, 'artifact set',           'artifact sets'),
+        p(result.datesAssessedWritten, 'date assessed',         'dates assessed'),
       ].filter(Boolean)
       const modeLabel = mode === 'new' ? 'Imported as new project' : 'Merged into project'
       setWorkbookImportResult({

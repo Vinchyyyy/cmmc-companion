@@ -21,6 +21,7 @@
     "test:crm-import": "node scripts/test-crm-bulk-import.mjs",
     "test:paste-formatting": "node scripts/test-paste-formatting.mjs",
     "test:replace-restore": "node scripts/test-replace-restore.mjs",
+    "test:priority-fixes": "node scripts/test-priority-fixes.mjs",
     "validate": "node scripts/validate-data.cjs"
   },
   "dependencies": {

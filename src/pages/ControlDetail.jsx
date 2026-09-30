@@ -1172,17 +1172,28 @@ function ControlDetailView() {
     syncStatusToTrending(next)
   }
 
+  // Derives `next` from the functional updater's `prev`, not the render-time
+  // `objectiveInheritance` closure — two clicks in the same render cycle (the
+  // picker stays open after a click) would otherwise both read the same stale
+  // list and the second write would silently drop the first click's change,
+  // in both state and localStorage.
   const handleObjectiveInheritanceAdd = (objId, source) => {
-    const current = objectiveInheritance[objId] ?? []
-    if (current.includes(source)) return
-    const next = [...current, source]
-    setObjectiveInheritance((prev) => ({ ...prev, [objId]: next }))
+    let next
+    setObjectiveInheritance((prev) => {
+      const current = prev[objId] ?? []
+      if (current.includes(source)) { next = current; return prev }
+      next = [...current, source]
+      return { ...prev, [objId]: next }
+    })
     writeObjectiveInheritance(id, objId, next)
   }
 
   const handleObjectiveInheritanceRemove = (objId, source) => {
-    const next = (objectiveInheritance[objId] ?? []).filter((s) => s !== source)
-    setObjectiveInheritance((prev) => ({ ...prev, [objId]: next }))
+    let next
+    setObjectiveInheritance((prev) => {
+      next = (prev[objId] ?? []).filter((s) => s !== source)
+      return { ...prev, [objId]: next }
+    })
     writeObjectiveInheritance(id, objId, next)
   }
 
