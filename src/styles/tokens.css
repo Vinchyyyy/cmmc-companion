@@ -1,0 +1,312 @@
+/* -------------------------------------------------------------------------
+   Design tokens
+   ------------------------------------------------------------------------- */
+
+:root {
+  /* Type */
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --text-xs: 0.75rem;     /* 12px */
+  --text-sm: 0.875rem;    /* 14px */
+  --text-base: 0.9375rem; /* 15px — slightly tighter than default 16px for density */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.375rem;    /* 22px */
+  --text-2xl: 1.75rem;    /* 28px */
+
+  --leading-tight: 1.3;
+  --leading-normal: 1.55;
+  --leading-relaxed: 1.7;
+
+  /* Spacing scale (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* Slate palette — calm, neutral, GRC-appropriate */
+  --color-bg: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-surface-alt: #fafbfc;
+  --color-border: #e1e4e8;
+  --color-border-strong: #c8ccd1;
+  --color-text: #1f2328;
+  --color-text-muted: #57606a;
+  --color-text-subtle: #818a96;
+
+  /* Single accent — for links, focus rings, primary action */
+  --color-accent: #0969da;
+  --color-accent-hover: #0860c7;
+  --color-accent-bg: #ddf4ff;
+
+  /* Status semantic colors */
+  --color-met: #1a7f37;
+  --color-met-bg: #dafbe1;
+  --color-not-met: #c92a2a;
+  --color-not-met-bg: #ffebe9;
+  --color-in-progress: #d97706;
+  --color-in-progress-bg: #fff4e1;
+  --color-not-started: #6b7280;
+  --color-not-started-bg: #eff1f3;
+
+  /* Layout */
+  --container-max: 1100px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* Shadows — used sparingly, only for elevation cues */
+  --shadow-xs: 0 1px 0 rgba(31, 35, 40, 0.04);
+  --shadow-sm: 0 1px 3px rgba(31, 35, 40, 0.06), 0 1px 2px rgba(31, 35, 40, 0.04);
+
+  --transition: 120ms ease-out;
+}
+
+/* -------------------------------------------------------------------------
+   Dark theme overrides
+   Applied when document.documentElement has data-theme="dark"
+   ------------------------------------------------------------------------- */
+
+[data-theme="dark"] {
+  /* Surface & background */
+  --color-bg:           #0d1117;
+  --color-surface:      #161b22;
+  --color-surface-alt:  #1c2128;
+
+  /* Borders */
+  --color-border:        #30363d;
+  --color-border-strong: #444c56;
+
+  /* Text */
+  --color-text:         #e6edf3;
+  --color-text-muted:   #8b949e;
+  --color-text-subtle:  #6e7681;
+
+  /* Accent */
+  --color-accent:       #58a6ff;
+  --color-accent-hover: #79b8ff;
+  --color-accent-bg:    #0c2d6b;
+
+  /* Status semantic — text colors stay vivid; backgrounds become dark tints */
+  --color-met:              #3fb950;
+  --color-met-bg:           #0f2d1a;
+  --color-not-met:          #f85149;
+  --color-not-met-bg:       #2d0f0f;
+  --color-in-progress:      #e3b341;
+  --color-in-progress-bg:   #2d1f00;
+  --color-not-started:      #8b949e;
+  --color-not-started-bg:   #21262d;
+
+  /* Shadows — lighten slightly so they read on dark surfaces */
+  --shadow-xs: 0 1px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* -------------------------------------------------------------------------
+   Theme palette overrides
+   Applied via data-theme-palette="<value>" on document.documentElement.
+   Midnight = existing dark theme (no overrides needed — it is the default).
+   All palettes operate in dark-mode context (data-theme="dark").
+   Status semantic colors (met/not-met/in-progress) are never overridden.
+   ------------------------------------------------------------------------- */
+
+[data-theme="dark"][data-theme-palette="pure-black"] {
+  --color-bg:           #000000;
+  --color-surface:      #0a0a0a;
+  --color-surface-alt:  #111111;
+  --color-border:        #1e1e1e;
+  --color-border-strong: #303030;
+  --color-text:         #d8dde4;
+  --color-text-muted:   #7a8290;
+  --color-text-subtle:  #5a6270;
+  --color-accent:       #4a95f0;
+  --color-accent-hover: #6aaaf5;
+  --color-accent-bg:    #0a2050;
+  --shadow-xs: 0 1px 0 rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.7), 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"][data-theme-palette="slate-blue"] {
+  --color-bg:           #0e1520;
+  --color-surface:      #162030;
+  --color-surface-alt:  #1c2840;
+  --color-border:        #2a3850;
+  --color-border-strong: #3a4a68;
+  --color-text:         #d4dce8;
+  --color-text-muted:   #8898b0;
+  --color-text-subtle:  #687890;
+  --color-accent:       #5090d8;
+  --color-accent-hover: #68a0e0;
+  --color-accent-bg:    #0c2550;
+}
+
+[data-theme="dark"][data-theme-palette="sage"] {
+  --color-bg:           #0f1510;
+  --color-surface:      #161e18;
+  --color-surface-alt:  #1c2820;
+  --color-border:        #2a3830;
+  --color-border-strong: #3a4c40;
+  --color-text:         #d2d8d0;
+  --color-text-muted:   #86968a;
+  --color-text-subtle:  #66786a;
+  --color-accent:       #6a9872;
+  --color-accent-hover: #80b088;
+  --color-accent-bg:    #0f2c18;
+}
+
+[data-theme="dark"][data-theme-palette="warm-neutral"] {
+  --color-bg:           #141210;
+  --color-surface:      #1e1c18;
+  --color-surface-alt:  #262420;
+  --color-border:        #363028;
+  --color-border-strong: #484038;
+  --color-text:         #ddd8d0;
+  --color-text-muted:   #9a9088;
+  --color-text-subtle:  #786e68;
+  --color-accent:       #b89060;
+  --color-accent-hover: #c8a070;
+  --color-accent-bg:    #2c200c;
+}
+
+[data-theme="dark"][data-theme-palette="soft-mauve"] {
+  --color-bg:           #130f14;
+  --color-surface:      #1c1620;
+  --color-surface-alt:  #231c28;
+  --color-border:        #332838;
+  --color-border-strong: #483850;
+  --color-text:         #ddd0e0;
+  --color-text-muted:   #9a8aa0;
+  --color-text-subtle:  #786888;
+  --color-accent:       #9878c0;
+  --color-accent-hover: #aa90d0;
+  --color-accent-bg:    #1a0c30;
+}
+
+/* Palette-aware nav/input overrides (mirrors the dark-mode pattern below) */
+
+[data-theme="dark"][data-theme-palette="pure-black"] .nav   { background: #0a0a0a; border-bottom-color: #1e1e1e; }
+[data-theme="dark"][data-theme-palette="slate-blue"] .nav   { background: #162030; border-bottom-color: #2a3850; }
+[data-theme="dark"][data-theme-palette="sage"] .nav         { background: #161e18; border-bottom-color: #2a3830; }
+[data-theme="dark"][data-theme-palette="warm-neutral"] .nav { background: #1e1c18; border-bottom-color: #363028; }
+[data-theme="dark"][data-theme-palette="soft-mauve"] .nav   { background: #1c1620; border-bottom-color: #332838; }
+
+/* Appearance section */
+.home-appearance {
+  margin-top: var(--space-4);
+}
+
+.home-appearance-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text);
+  margin: 0 0 var(--space-2);
+}
+
+.home-appearance-helper {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin: var(--space-1) 0 var(--space-3);
+}
+
+.home-appearance-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.home-appearance-select {
+  font-size: var(--text-sm);
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  min-width: 160px;
+  cursor: pointer;
+}
+
+.home-appearance-swatches {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.home-appearance-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.1);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Hardcoded color overrides — badges and interactive states that use
+   literal hex values instead of variables */
+
+[data-theme="dark"] .nav {
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+}
+
+[data-theme="dark"] input[type="text"]:hover,
+[data-theme="dark"] input[type="search"]:hover,
+[data-theme="dark"] select:hover,
+[data-theme="dark"] textarea:hover {
+  border-color: #6e7681;
+}
+
+[data-theme="dark"] button:hover {
+  background: var(--color-surface-alt);
+  border-color: #6e7681;
+}
+
+[data-theme="dark"] button:active {
+  background: #21262d;
+}
+
+/* Inheritance badges */
+[data-theme="dark"] .inheritance-badge--full {
+  color: #c084fc;
+  background: #2d1b4e;
+}
+
+[data-theme="dark"] .inheritance-badge--partial {
+  color: #38bdf8;
+  background: #0c2d45;
+}
+
+/* POA&M non-eligible badge */
+[data-theme="dark"] .poam-badge {
+  color: #fca5a5;
+  background: #3b1414;
+}
+
+/* Feedback borders */
+[data-theme="dark"] .feedback--ok {
+  border-color: rgba(63, 185, 80, 0.3);
+}
+
+[data-theme="dark"] .feedback--error {
+  border-color: rgba(248, 81, 73, 0.3);
+}
+
+/* Bulk toolbar selected-item highlight */
+[data-theme="dark"] .bulk-toolbar {
+  border-color: rgba(88, 166, 255, 0.3);
+}
+
+/* Confirm / export dialog */
+[data-theme="dark"] .confirm-overlay {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] .confirm-dialog {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+

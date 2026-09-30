@@ -2,7 +2,6 @@ import { lazy, Suspense, useState } from 'react'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import PageLoadBoundary from './components/PageLoadBoundary.jsx'
 import StorageFailureBanner from './components/StorageFailureBanner.jsx'
-import Navigation from './components/Navigation.jsx'
 import { safeSetItem } from './utils/storageWrite.js'
 const Home = lazy(() => import('./pages/Home.jsx'))
 const ControlLibrary = lazy(() => import('./pages/ControlLibrary.jsx'))
@@ -76,14 +75,10 @@ function FirstRunNotice() {
 
 function App() {
   const location = useLocation()
-  // Redesigned pages render their own violet-themed <DashSidebar/> and hide the
-  // legacy shared <Navigation/>. Extend this list as more pages get redesigned.
-  const isRedesigned = location.pathname === '/' || location.pathname.startsWith('/controls') || location.pathname.startsWith('/evidence') || location.pathname.startsWith('/relationships') || location.pathname.startsWith('/dibcac-mode') || location.pathname.startsWith('/artifact-map') || location.pathname.startsWith('/osc-profile') || location.pathname.startsWith('/global-evidence') || location.pathname.startsWith('/settings') || location.pathname.startsWith('/about') || location.pathname.startsWith('/faq') || location.pathname.startsWith('/changelog')
   return (
     <div className="app">
       <StorageFailureBanner />
       <FirstRunNotice />
-      {!isRedesigned && <Navigation />}
       <main className="content">
         <PageLoadBoundary key={location.pathname}>
         <Suspense fallback={<p role="status" style={{ padding: '2rem' }}>Loading page…</p>}>

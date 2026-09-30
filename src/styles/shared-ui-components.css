@@ -1,0 +1,967 @@
+/* -------------------------------------------------------------------------
+   Page wrapper (existing class, refined)
+   ------------------------------------------------------------------------- */
+
+.page > h1:first-child,
+.page > p:first-child {
+  margin-top: 0;
+}
+
+/* The "back link" pattern at the top of detail pages */
+.page > p:first-of-type a {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.page > p:first-of-type a:hover {
+  color: var(--color-accent);
+}
+
+/* -------------------------------------------------------------------------
+   Cards — used implicitly by sections via the .page descendant selector,
+   plus the explicit .card class for opt-in card styling.
+   ------------------------------------------------------------------------- */
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5) var(--space-6);
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Make sections render as cards on detail-style pages */
+.page section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5) var(--space-6);
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-xs);
+}
+
+.page section h2:first-child {
+  margin-top: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Filter row — search + dropdowns sitting in a horizontal cluster
+   ------------------------------------------------------------------------- */
+
+/* ── Control Library filter toolbar ──────────────────────────────────────── */
+
+.cl-filter-toolbar {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.cl-filter-search {
+  flex: 1 1 260px;
+  min-width: 200px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+}
+
+.cl-filter-search:focus {
+  outline: none;
+  border-color: var(--color-link);
+}
+
+.cl-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cl-filter-btn:hover {
+  border-color: var(--color-link);
+}
+
+.cl-filter-btn--active {
+  border-color: var(--color-link);
+  color: var(--color-link);
+}
+
+.cl-filter-btn-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: var(--color-link);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 9px;
+  font-family: var(--font-mono);
+}
+
+/* ── Applied filter chips ─────────────────────────────────────────────────── */
+
+.cl-applied-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.cl-applied-chips-clear {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: 3px var(--space-3);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cl-applied-chips-clear:hover {
+  border-color: var(--color-not-met);
+  color: var(--color-not-met);
+}
+
+.cl-applied-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px 3px var(--space-2);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-link);
+  border-radius: 999px;
+  font-size: var(--text-xs);
+  color: var(--color-text);
+}
+
+.cl-applied-chip-label {
+  font-size: var(--text-xs);
+}
+
+.cl-applied-chip-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0;
+}
+
+.cl-applied-chip-x:hover {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+/* ── Filter modal ─────────────────────────────────────────────────────────── */
+
+.cl-filter-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.cl-filter-modal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  width: min(960px, calc(100vw - 48px));
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.32);
+  outline: none;
+}
+
+.cl-filter-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.cl-filter-modal-title {
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+
+.cl-filter-modal-close {
+  background: none;
+  border: none;
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius);
+  line-height: 1;
+}
+
+.cl-filter-modal-close:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+.cl-filter-modal-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-4) var(--space-5);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4) var(--space-6);
+}
+
+@media (max-width: 600px) {
+  .cl-filter-modal-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cl-filter-modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.cl-filter-modal-section-title {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.cl-filter-modal-section-hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin: var(--space-1) 0 var(--space-2);
+  line-height: 1.5;
+}
+
+.cl-filter-modal-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.cl-filter-pill {
+  padding: 5px var(--space-3);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color 0.1s, background 0.1s;
+  white-space: nowrap;
+}
+
+.cl-filter-pill:hover {
+  border-color: var(--color-link);
+}
+
+.cl-filter-pill--active {
+  background: var(--color-text);
+  border-color: var(--color-text);
+  color: var(--color-surface);
+  font-weight: 600;
+}
+
+.cl-filter-pill--active:hover {
+  opacity: 0.85;
+}
+
+.cl-filter-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.cl-filter-modal-clear {
+  font-size: var(--text-sm);
+  color: var(--color-not-met);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-1) 0;
+  opacity: 0.8;
+}
+
+.cl-filter-modal-clear:hover {
+  opacity: 1;
+}
+
+.cl-filter-modal-done {
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-link);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cl-filter-modal-done:hover {
+  opacity: 0.9;
+}
+
+/* -------------------------------------------------------------------------
+   Form controls — text inputs, selects, textareas
+   ------------------------------------------------------------------------- */
+
+input[type="text"],
+input[type="search"],
+select,
+textarea {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  line-height: var(--leading-normal);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+input[type="text"]:hover,
+input[type="search"]:hover,
+select:hover,
+textarea:hover {
+  border-color: #98a1ad;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.18);
+}
+
+input[type="text"]::placeholder,
+textarea::placeholder {
+  color: var(--color-text-subtle);
+}
+
+textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  font-family: var(--font-sans);
+  resize: vertical;
+  margin-top: var(--space-2);
+}
+
+select {
+  cursor: pointer;
+  padding-right: var(--space-6);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%2357606a' d='M2 4.5l4 4 4-4z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right var(--space-2) center;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+label strong {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  display: inline-block;
+  margin-bottom: var(--space-1);
+}
+
+/* -------------------------------------------------------------------------
+   Buttons
+   ------------------------------------------------------------------------- */
+
+button {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+
+button:hover {
+  background: var(--color-surface-alt);
+  border-color: #98a1ad;
+}
+
+button:active {
+  background: #f0f2f4;
+}
+
+button:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+/* Buttons inside <Link> wrappers — strip the link underline on hover */
+a:has(> button):hover {
+  text-decoration: none;
+}
+
+/* -------------------------------------------------------------------------
+   Status badges — replace the inline color spans
+   ------------------------------------------------------------------------- */
+
+.status-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.02em;
+  vertical-align: baseline;
+}
+
+.status-badge--met {
+  color: var(--color-met);
+  background: var(--color-met-bg);
+}
+
+.status-badge--not-met {
+  color: var(--color-not-met);
+  background: var(--color-not-met-bg);
+}
+
+.status-badge--in-progress {
+  color: var(--color-in-progress);
+  background: var(--color-in-progress-bg);
+}
+
+.status-badge--not-started {
+  color: var(--color-not-started);
+  background: var(--color-not-started-bg);
+}
+
+.notes-indicator {
+  display: inline-block;
+  font-size: var(--text-sm);
+  margin-left: var(--space-1);
+  cursor: help;
+}
+
+/* -------------------------------------------------------------------------
+   Control list — the Library page's <ul> of controls
+   ------------------------------------------------------------------------- */
+
+.control-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.control-list li {
+  padding: 0;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  transition: background var(--transition);
+  margin-bottom: 0;
+}
+
+/* Top row inside each list item — checkbox + link + eye button */
+.control-row-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-4) var(--space-4) 0;
+  min-width: 0;
+}
+
+/* Link fills remaining row space */
+.control-list-link {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Inline SVG icon wrapper — notes, paperclip, trending */
+.row-icon {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  flex-shrink: 0;
+  cursor: help;
+}
+
+/* Disclosure chevron — expand/collapse Assessment Progress panel */
+.quick-look-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.quick-look-btn:hover {
+  color: var(--color-accent);
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-alt);
+}
+.quick-look-btn[aria-expanded="true"] {
+  color: var(--color-accent);
+  border-color: var(--color-border-strong);
+  background: var(--color-accent-bg);
+}
+
+/* Inline progress panel — expands below the control row */
+.quick-look-panel {
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + 15px + var(--space-3) + var(--space-2));
+  background: var(--color-surface-alt);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  display: flex;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+/* Restore deeper indent when checkbox is present (multi-select mode) */
+.quick-look-panel--multiselect {
+  padding-left: 52px;
+}
+
+.quick-look-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quick-look-stat-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.quick-look-stat-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.control-list li:last-child {
+  border-bottom: none;
+}
+
+.control-list li:hover {
+  background: var(--color-surface-alt);
+}
+
+.control-list li .mono,
+.control-list li a {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+/* -------------------------------------------------------------------------
+   Result count — small muted text above lists
+   ------------------------------------------------------------------------- */
+
+.result-count {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin: var(--space-3) 0;
+}
+
+/* -------------------------------------------------------------------------
+   Notification / feedback messages (CSV import success/error)
+   ------------------------------------------------------------------------- */
+
+.feedback {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  margin-top: var(--space-3);
+  border: 1px solid transparent;
+}
+
+.feedback--ok {
+  color: var(--color-met);
+  background: var(--color-met-bg);
+  border-color: rgba(26, 127, 55, 0.2);
+}
+
+.feedback--error {
+  color: var(--color-not-met);
+  background: var(--color-not-met-bg);
+  border-color: rgba(201, 42, 42, 0.2);
+}
+
+/* -------------------------------------------------------------------------
+   Misc utilities
+   ------------------------------------------------------------------------- */
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.button-group {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin: var(--space-3) 0;
+}
+
+.button-group a {
+  text-decoration: none;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .content {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .nav {
+    padding: var(--space-3) var(--space-4);
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  .cl-filter-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cl-filter-search {
+    width: 100%;
+  }
+
+  textarea {
+    width: 100% !important;
+  }
+
+  h1 { font-size: var(--text-xl); }
+  h2 { font-size: var(--text-lg); }
+}
+
+/* -------------------------------------------------------------------------
+   Home — Assessment Progress total row + status grid
+   ------------------------------------------------------------------------- */
+
+.status-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  margin: 0 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.status-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  border-left-width: 4px;
+  background: var(--color-surface);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: background var(--transition), box-shadow var(--transition);
+}
+
+.status-card:hover {
+  background: var(--color-surface-alt);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.status-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.18);
+}
+
+.status-card-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.status-card-count {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+.status-card-pct {
+  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+}
+
+/* Left-border and count color per status */
+.status-card--met {
+  border-left-color: var(--color-met);
+}
+.status-card--met .status-card-count {
+  color: var(--color-met);
+}
+
+.status-card--not-met {
+  border-left-color: var(--color-not-met);
+}
+.status-card--not-met .status-card-count {
+  color: var(--color-not-met);
+}
+
+.status-card--in-progress {
+  border-left-color: var(--color-in-progress);
+}
+.status-card--in-progress .status-card-count {
+  color: var(--color-in-progress);
+}
+
+.status-card--not-started {
+  border-left-color: var(--color-not-started);
+}
+.status-card--not-started .status-card-count {
+  color: var(--color-not-started);
+}
+
+@media (max-width: 480px) {
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Home — Quick Search result groups
+   ------------------------------------------------------------------------- */
+
+.quick-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.quick-search-group-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-2);
+}
+
+.quick-search-group .control-list {
+  margin-top: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Home — Assessment Progress bar
+   ------------------------------------------------------------------------- */
+
+/* Header row: heading + family dropdown side by side */
+.progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+/* Family dropdown — compact, inherits form-control styling */
+.progress-family-select {
+  flex-shrink: 0;
+}
+
+/* Stacked bar container */
+.progress-bar {
+  display: flex;
+  height: 12px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-not-started-bg);
+  margin: var(--space-2) 0 var(--space-4);
+  gap: 2px;
+}
+
+/* Empty state — center the message instead of showing the bar */
+.progress-bar--empty {
+  align-items: center;
+  background: var(--color-border);
+}
+
+/* Individual segments */
+.progress-bar-segment {
+  height: 100%;
+  transition: width 300ms ease-out;
+  border-radius: 0;
+  min-width: 4px; /* visible even at < 1% */
+}
+
+/* First and last segments get outer radius so the bar still looks pill-shaped */
+.progress-bar-segment:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+.progress-bar-segment:last-child  { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.progress-bar-segment:only-child  { border-radius: var(--radius-sm); }
+
+/* Segment colours — mirror the status badge semantic colours */
+.progress-bar-segment--met         { background: var(--color-met); }
+.progress-bar-segment--not-met     { background: var(--color-not-met); }
+.progress-bar-segment--in-progress { background: var(--color-in-progress); }
+.progress-bar-segment--not-started { background: var(--color-not-started); }
+
+/* -------------------------------------------------------------------------
+   Inheritance badges
+   ------------------------------------------------------------------------- */
+
+/* Base badge — same shape as .status-badge */
+.inheritance-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.02em;
+  vertical-align: baseline;
+}
+
+/* None — gray (badge is hidden in the Library when value = None) */
+.inheritance-badge--none {
+  color: var(--color-not-started);
+  background: var(--color-not-started-bg);
+}
+
+/* Full — purple */
+.inheritance-badge--full {
+  color: #6d28d9;
+  background: #ede9fe;
+}
+
+/* Partial — blue */
+.inheritance-badge--partial {
+  color: #0369a1;
+  background: #e0f2fe;
+}
+
+/* -------------------------------------------------------------------------
+   Control Detail — status + inheritance side-by-side layout
+   ------------------------------------------------------------------------- */
+
+/* Flex row that holds the two meta fields (status + inheritance) */
+.control-meta-row {
+  display: flex;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+/* Each labelled field within the meta row */
+.control-meta-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.control-meta-field label strong {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+/* select + badge on the same horizontal line */
+.control-meta-input-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+@media (max-width: 640px) {
+  .control-meta-row {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+}
+
