@@ -13,6 +13,7 @@
 // No file contents, no uploads, no CUI.
 
 import { idsToNames, namesToIds } from './artifactRegistry'
+import { safeSetItem } from './storageWrite.js'
 
 const STORAGE_PREFIX = 'cmmc-pool-'
 
@@ -32,14 +33,10 @@ function readRaw(controlId) {
 
 function writeRaw(controlId, arr) {
   if (!controlId) return
-  try {
-    if (!Array.isArray(arr) || arr.length === 0) {
-      localStorage.removeItem(`${STORAGE_PREFIX}${controlId}`)
-    } else {
-      localStorage.setItem(`${STORAGE_PREFIX}${controlId}`, JSON.stringify(arr))
-    }
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
+  if (!Array.isArray(arr) || arr.length === 0) {
+    try { localStorage.removeItem(`${STORAGE_PREFIX}${controlId}`) } catch { /* unavailable */ }
+  } else {
+    safeSetItem(`${STORAGE_PREFIX}${controlId}`, JSON.stringify(arr))
   }
 }
 

@@ -1,3 +1,5 @@
+import { safeSetItem } from './storageWrite.js'
+
 const STORAGE_KEY = 'cmmc-project-meta'
 
 export const DEFAULT_PROJECT_META = {
@@ -26,10 +28,6 @@ export function writeProjectMeta(meta) {
   const normalized = {
     oscName: typeof meta?.oscName === 'string' ? meta.oscName : '',
   }
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized))
-  } catch {
-    // localStorage unavailable — proceed silently
-  }
+  safeSetItem(STORAGE_KEY, JSON.stringify(normalized))
   return normalized
 }

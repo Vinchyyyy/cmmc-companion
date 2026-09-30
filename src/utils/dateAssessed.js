@@ -1,3 +1,5 @@
+import { safeSetItem } from './storageWrite.js'
+
 const STORAGE_PREFIX = 'cmmc-date-assessed-'
 
 function normalizeDate(value) {
@@ -25,11 +27,10 @@ export function readDateAssessed(controlId) {
 export function writeDateAssessed(controlId, value) {
   if (!controlId) return
   const normalized = normalizeDate(value)
-  try {
-    if (normalized) localStorage.setItem(`${STORAGE_PREFIX}${controlId}`, normalized)
-    else localStorage.removeItem(`${STORAGE_PREFIX}${controlId}`)
-  } catch {
-    // localStorage may be unavailable.
+  if (normalized) {
+    safeSetItem(`${STORAGE_PREFIX}${controlId}`, normalized)
+  } else {
+    try { localStorage.removeItem(`${STORAGE_PREFIX}${controlId}`) } catch { /* unavailable */ }
   }
 }
 

@@ -1,6 +1,7 @@
 import { DEFAULT_DIBCAC_TEMPLATE_BASE64 } from '../data/defaultDibcacTemplate.js'
 import { normalizePlannedAskContent, remapPlannedAskContent } from './dibcacReferences.js'
 import { normalizePlannedAskRichDocument, remapPlannedAskRichDocument, richDocumentToLegacyContent } from './dibcacRichText.js'
+import { safeSetItem } from './storageWrite.js'
 
 const STORAGE_KEY = 'cmmc-dibcac-templates'
 export const DIBCAC_TEMPLATE_KIND = 'cmmc-dibcac-template'
@@ -121,7 +122,7 @@ export function writeCustomDibcacTemplates(templates) {
   const normalized = Array.isArray(templates)
     ? templates.map((item) => normalizeDibcacTemplate(item)).filter((item) => item.groups.length > 0)
     : []
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized)) } catch { /* storage unavailable */ }
+  safeSetItem(STORAGE_KEY, JSON.stringify(normalized))
   return normalized
 }
 

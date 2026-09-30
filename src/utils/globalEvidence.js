@@ -1,6 +1,7 @@
 import { readPool, writePool } from './evidencePool'
 import { readObjectiveArtifacts, writeObjectiveArtifacts } from './objectiveArtifacts'
 import { findOrCreate, normalizeName, updateArtifactTags } from './artifactRegistry'
+import { safeSetItem } from './storageWrite.js'
 
 const STORAGE_KEY = 'cmmc-global-evidence'
 
@@ -79,11 +80,7 @@ export function readGlobalEvidence() {
 
 export function writeGlobalEvidence(value) {
   const normalized = normalizeGlobalEvidence(value)
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized))
-  } catch {
-    // localStorage unavailable — proceed silently
-  }
+  safeSetItem(STORAGE_KEY, JSON.stringify(normalized))
   return normalized
 }
 

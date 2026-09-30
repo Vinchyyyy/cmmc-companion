@@ -6,6 +6,7 @@
 // as a suggestion across every control, the same way catalog providers do.
 
 import { PROVIDERS } from '../data/providers'
+import { safeSetItem } from './storageWrite.js'
 
 const STORAGE_KEY = 'cmmc-custom-providers'
 
@@ -25,11 +26,7 @@ export function readCustomProviders() {
 }
 
 function writeCustomProviders(list) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
-  }
+  safeSetItem(STORAGE_KEY, JSON.stringify(list))
 }
 
 export function isInCustomPool(name) {

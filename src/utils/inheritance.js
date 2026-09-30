@@ -6,6 +6,7 @@
 // environment) rather than being independently implemented by the organization.
 
 import { ensureOscProvider } from './oscProfile'
+import { safeSetItem } from './storageWrite.js'
 
 const STORAGE_PREFIX = 'cmmc-inheritance-'
 
@@ -34,11 +35,7 @@ export function readInheritance(controlId) {
 // Safe localStorage write — silently fails if storage is unavailable.
 export function writeInheritance(controlId, value) {
   if (!controlId) return
-  try {
-    localStorage.setItem(`${STORAGE_PREFIX}${controlId}`, value)
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
-  }
+  safeSetItem(`${STORAGE_PREFIX}${controlId}`, value)
 }
 
 // -------------------------------------------------------------------------
@@ -72,18 +69,16 @@ export function readInheritanceSource(controlId) {
 // Legacy single-value writer — kept so Control Library bulk ops still compile.
 export function writeInheritanceSource(controlId, value) {
   if (!controlId) return
-  try {
-    localStorage.removeItem(`cmmc-inheritance-levels-${controlId}`)
-    if (!value || !value.trim()) {
+  try { localStorage.removeItem(`cmmc-inheritance-levels-${controlId}`) } catch { /* unavailable */ }
+  if (!value || !value.trim()) {
+    try {
       localStorage.removeItem(`${SOURCE_PREFIX}${controlId}`)
       localStorage.removeItem(`${SOURCES_PREFIX}${controlId}`)
-    } else {
-      localStorage.setItem(`${SOURCE_PREFIX}${controlId}`, value)
-      localStorage.setItem(`${SOURCES_PREFIX}${controlId}`, JSON.stringify([value]))
-      ensureOscProvider(value)
-    }
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
+    } catch { /* unavailable */ }
+  } else {
+    safeSetItem(`${SOURCE_PREFIX}${controlId}`, value)
+    safeSetItem(`${SOURCES_PREFIX}${controlId}`, JSON.stringify([value]))
+    ensureOscProvider(value)
   }
 }
 
@@ -110,20 +105,18 @@ export function readInheritanceSources(controlId) {
 
 export function writeInheritanceSources(controlId, sources) {
   if (!controlId) return
-  try {
-    const filtered = [...new Set(sources.filter((s) => typeof s === 'string' && s.trim()).map((s) => s.trim()))]
-    writeInheritanceAssignments(controlId, readInheritanceAssignments(controlId).filter((item) => filtered.includes(item.source)))
-    if (filtered.length === 0) {
+  const filtered = [...new Set(sources.filter((s) => typeof s === 'string' && s.trim()).map((s) => s.trim()))]
+  writeInheritanceAssignments(controlId, readInheritanceAssignments(controlId).filter((item) => filtered.includes(item.source)))
+  if (filtered.length === 0) {
+    try {
       localStorage.removeItem(`${SOURCES_PREFIX}${controlId}`)
       localStorage.removeItem(`${SOURCE_PREFIX}${controlId}`)
-    } else {
-      localStorage.setItem(`${SOURCES_PREFIX}${controlId}`, JSON.stringify(filtered))
-      // Keep legacy key in sync so existing filter logic continues to see the first source
-      localStorage.setItem(`${SOURCE_PREFIX}${controlId}`, filtered[0])
-      for (const source of filtered) ensureOscProvider(source)
-    }
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
+    } catch { /* unavailable */ }
+  } else {
+    safeSetItem(`${SOURCES_PREFIX}${controlId}`, JSON.stringify(filtered))
+    // Keep legacy key in sync so existing filter logic continues to see the first source
+    safeSetItem(`${SOURCE_PREFIX}${controlId}`, filtered[0])
+    for (const source of filtered) ensureOscProvider(source)
   }
 }
 
@@ -149,15 +142,11 @@ export function readObjectiveInheritance(controlId, objectiveId) {
 
 export function writeObjectiveInheritance(controlId, objectiveId, sources) {
   if (!controlId || !objectiveId) return
-  try {
-    const filtered = (sources ?? []).filter((s) => s && s.trim())
-    if (filtered.length === 0) {
-      localStorage.removeItem(`${OBJ_INHERIT_PREFIX}${controlId}-${objectiveId}`)
-    } else {
-      localStorage.setItem(`${OBJ_INHERIT_PREFIX}${controlId}-${objectiveId}`, JSON.stringify(filtered))
-    }
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
+  const filtered = (sources ?? []).filter((s) => s && s.trim())
+  if (filtered.length === 0) {
+    try { localStorage.removeItem(`${OBJ_INHERIT_PREFIX}${controlId}-${objectiveId}`) } catch { /* unavailable */ }
+  } else {
+    safeSetItem(`${OBJ_INHERIT_PREFIX}${controlId}-${objectiveId}`, JSON.stringify(filtered))
   }
 }
 
@@ -225,7 +214,7 @@ export function readInheritanceAssignments(controlId) {
 
 export function writeInheritanceAssignments(controlId, assignments) {
   const levels = Object.fromEntries(assignments.filter((item) => ['Partial', 'Full'].includes(item.level)).map((item) => [item.source, item.level]))
-  localStorage.setItem(`cmmc-inheritance-levels-${controlId}`, JSON.stringify(levels))
+  safeSetItem(`cmmc-inheritance-levels-${controlId}`, JSON.stringify(levels))
 }
 
 export function applyControlInheritance(control, level, source = '', mode = 'replace') {

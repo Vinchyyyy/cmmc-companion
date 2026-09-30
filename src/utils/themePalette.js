@@ -1,3 +1,5 @@
+import { safeSetItem } from './storageWrite.js'
+
 export const PALETTE_KEY     = 'cmmc-theme-palette'
 export const PALETTE_DEFAULT = 'midnight'
 
@@ -22,11 +24,7 @@ export function readPalette() {
 }
 
 export function writePalette(value) {
-  try {
-    localStorage.setItem(PALETTE_KEY, value)
-  } catch {
-    // localStorage unavailable — proceed silently
-  }
+  safeSetItem(PALETTE_KEY, value)
 }
 
 export function applyPalette(value) {

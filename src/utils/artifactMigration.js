@@ -17,6 +17,7 @@
 //     ids are passed through, names are (re)resolved.
 
 import { ensureMany, isArtifactId, normalizeName, listArtifacts } from './artifactRegistry'
+import { notifyStorageFailure } from './storageWrite.js'
 
 export const CURRENT_DATA_VERSION = 3
 const DATA_VERSION_KEY = 'cmmc-data-version'
@@ -127,6 +128,7 @@ export function runArtifactRegistryMigration() {
     }
   } catch (err) {
     // Leave legacy data and the version untouched; reads self-heal via the registry.
+    notifyStorageFailure(DATA_VERSION_KEY, err)
     return { migrated: false, error: err?.message ?? String(err) }
   }
 }

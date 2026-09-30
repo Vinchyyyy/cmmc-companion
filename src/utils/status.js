@@ -2,6 +2,8 @@
 // All status-related logic lives here so the three pages that need it
 // (ControlDetail, ControlLibrary, Home) stay in sync automatically.
 
+import { safeSetItem } from './storageWrite.js'
+
 const STORAGE_PREFIX = 'cmmc-status-'
 
 export const STATUSES = ['Not Started', 'In Progress', 'MET', 'NOT MET']
@@ -39,9 +41,5 @@ export function readStatus(controlId) {
 
 export function writeStatus(controlId, value) {
   if (!controlId) return
-  try {
-    localStorage.setItem(`${STORAGE_PREFIX}${controlId}`, value)
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
-  }
+  safeSetItem(`${STORAGE_PREFIX}${controlId}`, value)
 }

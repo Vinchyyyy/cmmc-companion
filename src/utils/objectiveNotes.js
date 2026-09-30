@@ -7,6 +7,8 @@
 // repeat across every control — without controlId scoping, every control's
 // objective "a" would share one storage slot.
 
+import { safeSetItem } from './storageWrite.js'
+
 const STORAGE_PREFIX = 'cmmc-objective-note-'
 
 function objectiveNoteKey(controlId, objectiveId) {
@@ -25,14 +27,9 @@ export function readObjectiveNote(controlId, objectiveId) {
   }
 }
 
-// Safe localStorage write — silently fails if storage is unavailable.
 export function writeObjectiveNote(controlId, objectiveId, value) {
   if (!controlId || !objectiveId) return
-  try {
-    localStorage.setItem(objectiveNoteKey(controlId, objectiveId), value)
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
-  }
+  safeSetItem(objectiveNoteKey(controlId, objectiveId), value)
 }
 
 // True if any of the control's objectives has a non-empty note (whitespace

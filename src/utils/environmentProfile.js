@@ -1,3 +1,5 @@
+import { safeSetItem } from './storageWrite.js'
+
 const STORAGE_KEY = 'cmmc-environment-profile'
 
 export const DEFAULT_ENVIRONMENT_PROFILE = {
@@ -61,11 +63,7 @@ export function readEnvironmentProfile() {
 }
 
 export function writeEnvironmentProfile(profile) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile))
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
-  }
+  safeSetItem(STORAGE_KEY, JSON.stringify(profile))
 }
 
 // Returns all non-empty technology tag strings across all six tech fields.

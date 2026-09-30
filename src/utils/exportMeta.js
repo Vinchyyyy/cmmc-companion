@@ -1,4 +1,5 @@
 import { readProjectMeta } from './projectMeta'
+import { safeSetItem } from './storageWrite.js'
 
 const OSC_KEY        = 'cmmc-export-osc'
 const ASSESSMENT_KEY = 'cmmc-export-assessment'
@@ -13,11 +14,7 @@ export function readLastBackup() {
 }
 
 export function writeLastBackup() {
-  try {
-    localStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString())
-  } catch {
-    // localStorage unavailable — proceed silently
-  }
+  safeSetItem(LAST_BACKUP_KEY, new Date().toISOString())
 }
 
 export function formatLastBackup(isoString) {
@@ -45,12 +42,8 @@ export function readExportMeta() {
 }
 
 export function writeExportMeta(osc, assessment) {
-  try {
-    localStorage.setItem(OSC_KEY,        osc)
-    localStorage.setItem(ASSESSMENT_KEY, assessment)
-  } catch {
-    // localStorage unavailable — proceed silently
-  }
+  safeSetItem(OSC_KEY,        osc)
+  safeSetItem(ASSESSMENT_KEY, assessment)
 }
 
 // Sanitize a user-supplied name segment for use in a filename:

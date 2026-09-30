@@ -1,8 +1,10 @@
 import { lazy, Suspense, useState } from 'react'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import PageLoadBoundary from './components/PageLoadBoundary.jsx'
+import StorageFailureBanner from './components/StorageFailureBanner.jsx'
 import Navigation from './components/Navigation.jsx'
 import Home from './pages/Home.jsx'
+import { safeSetItem } from './utils/storageWrite.js'
 const ControlLibrary = lazy(() => import('./pages/ControlLibrary.jsx'))
 const EvidenceLookup = lazy(() => import('./pages/EvidenceLookup.jsx'))
 const ControlDetail = lazy(() => import('./pages/ControlDetail.jsx'))
@@ -27,7 +29,7 @@ function FirstRunNotice() {
   if (!visible) return null
 
   const handleContinue = () => {
-    localStorage.setItem(NOTICE_KEY, String(NOTICE_VERSION))
+    safeSetItem(NOTICE_KEY, String(NOTICE_VERSION))
     setVisible(false)
   }
 
@@ -79,6 +81,7 @@ function App() {
   const isRedesigned = location.pathname === '/' || location.pathname.startsWith('/controls') || location.pathname.startsWith('/evidence') || location.pathname.startsWith('/relationships') || location.pathname.startsWith('/dibcac-mode') || location.pathname.startsWith('/artifact-map') || location.pathname.startsWith('/osc-profile') || location.pathname.startsWith('/global-evidence') || location.pathname.startsWith('/settings') || location.pathname.startsWith('/about') || location.pathname.startsWith('/faq') || location.pathname.startsWith('/changelog')
   return (
     <div className="app">
+      <StorageFailureBanner />
       <FirstRunNotice />
       {!isRedesigned && <Navigation />}
       <main className="content">

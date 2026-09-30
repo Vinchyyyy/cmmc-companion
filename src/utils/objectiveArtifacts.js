@@ -14,6 +14,7 @@
 
 import { idsToNames, namesToIds } from './artifactRegistry'
 import { syncObjectiveFindingArtifacts } from './objectiveFindings'
+import { safeSetItem } from './storageWrite.js'
 
 const STORAGE_PREFIX = 'cmmc-obj-artifacts-'
 
@@ -37,14 +38,10 @@ function readRaw(controlId, objectiveId) {
 
 function writeRaw(controlId, objectiveId, arr) {
   if (!controlId || !objectiveId) return
-  try {
-    if (!Array.isArray(arr) || arr.length === 0) {
-      localStorage.removeItem(objectiveArtifactsKey(controlId, objectiveId))
-    } else {
-      localStorage.setItem(objectiveArtifactsKey(controlId, objectiveId), JSON.stringify(arr))
-    }
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
+  if (!Array.isArray(arr) || arr.length === 0) {
+    try { localStorage.removeItem(objectiveArtifactsKey(controlId, objectiveId)) } catch { /* unavailable */ }
+  } else {
+    safeSetItem(objectiveArtifactsKey(controlId, objectiveId), JSON.stringify(arr))
   }
 }
 

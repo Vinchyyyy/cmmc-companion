@@ -6,6 +6,7 @@
 // repeat across every control.
 
 import { writeStatus } from './status'
+import { safeSetItem } from './storageWrite.js'
 
 const STORAGE_PREFIX = 'cmmc-obj-status-'
 
@@ -39,14 +40,10 @@ export function readObjectiveStatus(controlId, objectiveId) {
 // stores value for MET or NOT MET, silently fails if storage is unavailable.
 export function writeObjectiveStatus(controlId, objectiveId, value) {
   if (!controlId || !objectiveId) return
-  try {
-    if (value === OBJECTIVE_STATUS_UNREVIEWED) {
-      localStorage.removeItem(objectiveStatusKey(controlId, objectiveId))
-    } else if (OBJECTIVE_STATUSES.includes(value)) {
-      localStorage.setItem(objectiveStatusKey(controlId, objectiveId), value)
-    }
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
+  if (value === OBJECTIVE_STATUS_UNREVIEWED) {
+    try { localStorage.removeItem(objectiveStatusKey(controlId, objectiveId)) } catch { /* unavailable */ }
+  } else if (OBJECTIVE_STATUSES.includes(value)) {
+    safeSetItem(objectiveStatusKey(controlId, objectiveId), value)
   }
 }
 

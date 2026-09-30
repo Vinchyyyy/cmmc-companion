@@ -8,6 +8,7 @@ import controls from '../data/controls/index'
 import { PROVIDERS } from '../data/providers'
 import { FAMILY_ORDER, comparePracticeIds } from '../utils/controlOrder'
 import { readCustomProviders } from '../utils/customProviders'
+import { safeSetItem } from '../utils/storageWrite.js'
 import { STATUSES, readStatus, writeStatus, STATUS_BADGE_CLASS } from '../utils/status'
 import { readNote } from '../utils/notes'
 import { hasObjectiveNotes } from '../utils/objectiveNotes'
@@ -180,11 +181,7 @@ function readCollapsedFamilies() {
 }
 
 function writeCollapsedFamilies(set) {
-  try {
-    localStorage.setItem(COLLAPSED_FAMILIES_KEY, JSON.stringify([...set]))
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
-  }
+  safeSetItem(COLLAPSED_FAMILIES_KEY, JSON.stringify([...set]))
 }
 
 function readSavedFilters() {
@@ -198,11 +195,7 @@ function readSavedFilters() {
 }
 
 function writeSavedFilters(list) {
-  try {
-    localStorage.setItem(SAVED_FILTERS_KEY, JSON.stringify(list))
-  } catch {
-    // localStorage unavailable — proceed silently
-  }
+  safeSetItem(SAVED_FILTERS_KEY, JSON.stringify(list))
 }
 
 // ── Filter pill — module-level to avoid "component created during render" ─────
@@ -518,13 +511,13 @@ function ControlLibrary() {
   // Persist the active filter set so it survives navigating away and back.
   useEffect(() => {
     const qs = searchParams.toString()
-    if (qs) localStorage.setItem(FILTERS_STORAGE_KEY, qs)
-    else localStorage.removeItem(FILTERS_STORAGE_KEY)
+    if (qs) safeSetItem(FILTERS_STORAGE_KEY, qs)
+    else { try { localStorage.removeItem(FILTERS_STORAGE_KEY) } catch { /* unavailable */ } }
   }, [searchParams])
 
   const toggleHideMet = () => setHideMet((prev) => {
     const next = !prev
-    localStorage.setItem('cmmc-hide-met-controls', String(next))
+    safeSetItem('cmmc-hide-met-controls', String(next))
     return next
   })
 
@@ -854,7 +847,7 @@ function ControlLibrary() {
   const handleFamilyNoteChange = (e) => {
     const val = e.target.value
     setFamilyNote(val)
-    if (rightPanelFamily) localStorage.setItem(`cmmc-family-note-${rightPanelFamily}`, val)
+    if (rightPanelFamily) safeSetItem(`cmmc-family-note-${rightPanelFamily}`, val)
   }
   const rightPanelControls = rightPanelFamily
     ? controls.filter((c) => c.family === rightPanelFamily)

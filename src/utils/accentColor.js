@@ -1,3 +1,5 @@
+import { safeSetItem } from './storageWrite.js'
+
 export const ACCENT_KEY = 'cmmc-accent-color'
 export const ACCENT_DEFAULT = 'violet'
 
@@ -22,11 +24,7 @@ export function readAccent() {
 }
 
 export function writeAccent(value) {
-  try {
-    localStorage.setItem(ACCENT_KEY, value)
-  } catch {
-    // localStorage unavailable — proceed silently
-  }
+  safeSetItem(ACCENT_KEY, value)
 }
 
 // Sets the three root-level override variables that --dash-accent / --dash-accent2

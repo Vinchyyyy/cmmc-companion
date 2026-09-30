@@ -3,6 +3,7 @@
 
 import { readObjectiveStatus } from './objectiveStatus.js'
 import { buildArtifactsLine, MET_CONFIRMATION } from './findingStatementBuilder'
+import { safeSetItem } from './storageWrite.js'
 
 const FINDING_PREFIX = 'cmmc-objective-finding-'
 
@@ -32,11 +33,7 @@ export function readObjectiveFinding(controlId, objectiveId) {
 
 export function writeObjectiveFinding(controlId, objectiveId, finding) {
   if (!controlId || !objectiveId) return
-  try {
-    localStorage.setItem(findingKey(controlId, objectiveId), JSON.stringify(finding))
-  } catch {
-    // storage unavailable
-  }
+  safeSetItem(findingKey(controlId, objectiveId), JSON.stringify(finding))
 }
 
 export function clearObjectiveFinding(controlId, objectiveId) {

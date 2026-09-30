@@ -4,6 +4,8 @@
 // Value: JSON array of role label strings (deduped case-insensitively, first
 // casing entered wins, sorted alphabetically).
 
+import { safeSetItem } from './storageWrite.js'
+
 const STORAGE_KEY = 'cmmc-custom-interview-roles'
 
 export function readCustomInterviewRoles() {
@@ -19,14 +21,10 @@ export function readCustomInterviewRoles() {
 }
 
 function writeCustomInterviewRoles(roles) {
-  try {
-    if (roles.length === 0) {
-      localStorage.removeItem(STORAGE_KEY)
-    } else {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(roles))
-    }
-  } catch {
-    // storage unavailable
+  if (roles.length === 0) {
+    try { localStorage.removeItem(STORAGE_KEY) } catch { /* unavailable */ }
+  } else {
+    safeSetItem(STORAGE_KEY, JSON.stringify(roles))
   }
 }
 

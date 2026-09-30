@@ -5,6 +5,7 @@ import DashSidebar from '../components/DashSidebar.jsx'
 import DibcacTemplatesModal from '../components/DibcacTemplatesModal.jsx'
 import DibcacPlanImportModal from '../components/DibcacPlanImportModal.jsx'
 import { deleteSelectedReviewGroups } from '../utils/deleteSelectedReviewGroups.js'
+import { safeSetItem } from '../utils/storageWrite.js'
 import controls from '../data/controls/index'
 import { getDibcacStandard, DIBCAC_STANDARDS } from '../data/dibcacAssessmentStandards'
 import {
@@ -76,11 +77,7 @@ function readIdSet(key) {
 }
 
 function writeIdSet(key, set) {
-  try {
-    localStorage.setItem(key, JSON.stringify([...set]))
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
-  }
+  safeSetItem(key, JSON.stringify([...set]))
 }
 
 const METHOD_ORDER = [
@@ -1788,7 +1785,7 @@ function SavedGroupCard({
 
   const setObjViewPersisted = (view) => {
     setObjView(view)
-    try { localStorage.setItem('cmmc-dibcac-group-obj-view', view) } catch { /* ignore */ }
+    safeSetItem('cmmc-dibcac-group-obj-view', view)
   }
 
   const checklist = useMemo(() => group.checklist ?? [], [group.checklist])
@@ -2943,7 +2940,7 @@ function DibcacMode() {
   const [hideMet, setHideMet] = useState(() => localStorage.getItem('cmmc-dibcac-hide-met') === 'true')
   const toggleHideMet = () => setHideMet((prev) => {
     const next = !prev
-    localStorage.setItem('cmmc-dibcac-hide-met', String(next))
+    safeSetItem('cmmc-dibcac-hide-met', String(next))
     return next
   })
   const [savedGroups,  setSavedGroups]  = useState(getReviewGroups)
@@ -2988,7 +2985,7 @@ function DibcacMode() {
     setMode('browse')
     setEditingGroup(null)
     setRailExpanded(true)
-    localStorage.setItem('cmmc-dibcac-rail-expanded', 'true')
+    safeSetItem('cmmc-dibcac-rail-expanded', 'true')
     if (target.folderId) {
       setOpenFolderIds((current) => {
         const next = new Set(current).add(target.folderId)
@@ -3519,7 +3516,7 @@ function DibcacMode() {
               railExpanded={railExpanded}
               onToggleRailExpanded={() => setRailExpanded((v) => {
                 const next = !v
-                localStorage.setItem('cmmc-dibcac-rail-expanded', String(next))
+                safeSetItem('cmmc-dibcac-rail-expanded', String(next))
                 return next
               })}
               groupNumberMap={groupNumberMap}

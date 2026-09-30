@@ -9,6 +9,8 @@
 // repeat across every control — without controlId scoping, every control's
 // objective "a" would share one storage slot.
 
+import { safeSetItem } from './storageWrite.js'
+
 const STORAGE_PREFIX = 'cmmc-objective-result-'
 
 const DEFAULT_RESULT = { interviews: '', examine: '', test: '', overallComments: '', checklistInterviewNotes: {} }
@@ -103,24 +105,20 @@ export function readObjectiveResult(controlId, objectiveId) {
 // removed to avoid accumulating empty-object noise. Fails silently on storage errors.
 export function writeObjectiveResult(controlId, objectiveId, result) {
   if (!controlId || !objectiveId) return
-  try {
-    const merged = {
-      interviews:      coerceString(result?.interviews),
-      examine:         coerceString(result?.examine),
-      test:            coerceString(result?.test),
-      overallComments: coerceString(result?.overallComments),
-      checklistInterviewNotes: normalizeChecklistInterviewNotes(result?.checklistInterviewNotes),
-    }
-    const allBlank = merged.interviews.trim() === '' && merged.examine.trim() === '' &&
-      merged.test.trim() === '' && merged.overallComments.trim() === '' &&
-      Object.keys(merged.checklistInterviewNotes).length === 0
-    if (allBlank) {
-      localStorage.removeItem(objectiveResultKey(controlId, objectiveId))
-    } else {
-      localStorage.setItem(objectiveResultKey(controlId, objectiveId), JSON.stringify(merged))
-    }
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
+  const merged = {
+    interviews:      coerceString(result?.interviews),
+    examine:         coerceString(result?.examine),
+    test:            coerceString(result?.test),
+    overallComments: coerceString(result?.overallComments),
+    checklistInterviewNotes: normalizeChecklistInterviewNotes(result?.checklistInterviewNotes),
+  }
+  const allBlank = merged.interviews.trim() === '' && merged.examine.trim() === '' &&
+    merged.test.trim() === '' && merged.overallComments.trim() === '' &&
+    Object.keys(merged.checklistInterviewNotes).length === 0
+  if (allBlank) {
+    try { localStorage.removeItem(objectiveResultKey(controlId, objectiveId)) } catch { /* unavailable */ }
+  } else {
+    safeSetItem(objectiveResultKey(controlId, objectiveId), JSON.stringify(merged))
   }
 }
 

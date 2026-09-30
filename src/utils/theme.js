@@ -1,3 +1,5 @@
+import { safeSetItem } from './storageWrite.js'
+
 export const THEME_KEY    = 'cmmc-theme'
 export const THEME_LIGHT  = 'light'
 export const THEME_DARK   = 'dark'
@@ -13,11 +15,7 @@ export function readTheme() {
 }
 
 export function writeTheme(value) {
-  try {
-    localStorage.setItem(THEME_KEY, value)
-  } catch {
-    // localStorage unavailable — proceed silently
-  }
+  safeSetItem(THEME_KEY, value)
 }
 
 export function applyTheme(value) {

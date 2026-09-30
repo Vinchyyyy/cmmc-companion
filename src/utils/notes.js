@@ -2,6 +2,8 @@
 // Mirrors the structure of status.js so the storage pattern stays consistent
 // across the app.
 
+import { safeSetItem } from './storageWrite.js'
+
 const STORAGE_PREFIX = 'cmmc-note-'
 
 // Safe localStorage read — returns an empty string if storage is unavailable
@@ -16,12 +18,9 @@ export function readNote(controlId) {
   }
 }
 
-// Safe localStorage write — silently fails if storage is unavailable.
+// localStorage write — a failure (private browsing, quota) is surfaced via
+// the shared storage-failure banner rather than swallowed.
 export function writeNote(controlId, value) {
   if (!controlId) return
-  try {
-    localStorage.setItem(`${STORAGE_PREFIX}${controlId}`, value)
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
-  }
+  safeSetItem(`${STORAGE_PREFIX}${controlId}`, value)
 }

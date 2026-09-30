@@ -1,3 +1,5 @@
+import { safeSetItem } from './storageWrite.js'
+
 const ASSIGNMENT_PREFIX = 'cmmc-assigned-to-'
 
 /**
@@ -31,14 +33,10 @@ export function readAssignedTo(controlId) {
 // Normalizes then persists the assignee string. Removes the key when blank.
 export function writeAssignedTo(controlId, value) {
   if (!controlId) return
-  try {
-    const normalized = normalizeAssignee(value)
-    if (!normalized) {
-      localStorage.removeItem(`${ASSIGNMENT_PREFIX}${controlId}`)
-    } else {
-      localStorage.setItem(`${ASSIGNMENT_PREFIX}${controlId}`, normalized)
-    }
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
+  const normalized = normalizeAssignee(value)
+  if (!normalized) {
+    try { localStorage.removeItem(`${ASSIGNMENT_PREFIX}${controlId}`) } catch { /* unavailable */ }
+  } else {
+    safeSetItem(`${ASSIGNMENT_PREFIX}${controlId}`, normalized)
   }
 }

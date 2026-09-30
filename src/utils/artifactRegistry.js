@@ -23,6 +23,8 @@
 //
 // These are metadata references only — names/labels, no file contents, no CUI.
 
+import { safeSetItem } from './storageWrite.js'
+
 const STORAGE_KEY = 'cmmc-artifacts'
 const ID_RE = /^art_[0-9a-f]{8}$/
 
@@ -73,14 +75,10 @@ function _load() {
 
 function _persist() {
   const raw = JSON.stringify(_cache)
-  try {
-    localStorage.setItem(STORAGE_KEY, raw)
-    _raw = raw
-  } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.). Leave _raw
-    // pointing at the last value actually persisted, so this session keeps working
-    // from its in-memory cache instead of silently reverting the failed write.
-  }
+  // Leave _raw pointing at the last value actually persisted on failure, so this
+  // session keeps working from its in-memory cache instead of silently reverting
+  // the failed write.
+  if (safeSetItem(STORAGE_KEY, raw)) _raw = raw
 }
 
 // Generates a fresh opaque id (art_ + 8 random hex chars), retrying on the

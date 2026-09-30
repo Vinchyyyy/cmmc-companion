@@ -1,5 +1,6 @@
 import { withCanonicalGroupOrder } from './dibcacReferences.js'
 import { normalizePlannedAskRichDocument, richDocumentToLegacyContent } from './dibcacRichText.js'
+import { safeSetItem, notifyStorageFailure } from './storageWrite.js'
 
 const STORAGE_KEY  = 'cmmc-companion-dibcac-review-groups'
 const FOLDERS_KEY  = 'cmmc-companion-dibcac-review-folders'
@@ -21,7 +22,7 @@ export function getReviewGroups() {
     const parsed = raw ? JSON.parse(raw) : []
     const normalized = normalizeGroups(parsed)
     if (raw && JSON.stringify(parsed) !== JSON.stringify(normalized)) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized))
+      safeSetItem(STORAGE_KEY, JSON.stringify(normalized))
     }
     return normalized
   } catch {
@@ -31,7 +32,7 @@ export function getReviewGroups() {
 
 export function saveReviewGroups(groups) {
   const normalized = normalizeGroups(groups)
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized)) } catch { /* storage unavailable */ }
+  safeSetItem(STORAGE_KEY, JSON.stringify(normalized))
   return normalized
 }
 
@@ -46,7 +47,8 @@ export function commitReviewPlan(plan) {
   try {
     localStorage.setItem(FOLDERS_KEY, JSON.stringify(plan.folders))
     localStorage.setItem(STORAGE_KEY, JSON.stringify(groups))
-  } catch {
+  } catch (err) {
+    notifyStorageFailure(STORAGE_KEY, err)
     try {
       if (localStorage.getItem(FOLDERS_KEY) !== oldFolders) {
         if (oldFolders === null) localStorage.removeItem(FOLDERS_KEY)
@@ -57,7 +59,7 @@ export function commitReviewPlan(plan) {
         else localStorage.setItem(STORAGE_KEY, oldGroups)
       }
     } catch { throw new Error('Import storage failed and rollback could not finish. Restore a project backup before continuing.') }
-    throw new Error('Import could not be saved. Your previous DIBCAC data was restored. Browser storage may be full or unavailable.')
+    throw new Error('Import could not be saved. Your previous DIBCAC data was restored. Browser storage may be full or unavailable.', { cause: err })
   }
   return { groups, folders: plan.folders }
 }
@@ -132,7 +134,7 @@ export function getReviewFolders() {
 }
 
 export function saveReviewFolders(folders) {
-  try { localStorage.setItem(FOLDERS_KEY, JSON.stringify(folders)) } catch { /* storage unavailable */ }
+  safeSetItem(FOLDERS_KEY, JSON.stringify(folders))
 }
 
 export function createReviewFolder(name) {
