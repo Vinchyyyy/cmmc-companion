@@ -56,6 +56,15 @@ writeObjectiveFinding(control.id, objective.id, { ...created, finalText: `${crea
 assert.equal(readObjectiveFinding(control.id, objective.id).finalText, created.finalText, 'legacy generated D removed from MET')
 writeObjectiveFinding(control.id, objective.id, { ...created, finalText: `${created.finalText}\nD) Assessor-written history.` })
 assert.match(readObjectiveFinding(control.id, objective.id).finalText, /D\) Assessor-written history/, 'custom historical prose is preserved')
+// Regression: re-marking MET (replaceNonstandard: true — bulk actions, single
+// objective "Mark MET", DIBCAC checklist, workbook import) must not wipe a
+// custom D) line out of the visible finding by regenerating from scratch.
+assert.equal(
+  ensureMetObjectiveFinding(control, objective, { replaceNonstandard: true }),
+  null,
+  'a finding with a custom D) addendum is not regenerated on re-MET'
+)
+assert.match(readObjectiveFinding(control.id, objective.id).finalText, /D\) Assessor-written history/, 'custom D) addendum survives a replaceNonstandard MET action')
 writeObjectiveFinding(control.id, objective.id, created)
 
 const secondAttempt = ensureMetObjectiveFinding(control, objective)

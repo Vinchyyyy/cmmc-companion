@@ -83,7 +83,11 @@ function parsePlainAsk(value, referenceIndex, path) {
     const source = bullet ? bullet[2] : line
     const children = []
     let position = 0
-    for (const match of source.matchAll(/@G\d[\w.-]*/g)) {
+    // Requires the "-N" group/item separator before treating a token as an
+    // attempted reference — a bare "@G4" in ordinary prose (no such syntax
+    // intended) would otherwise fail the stricter check below as "malformed"
+    // and block the entire plan import over incidental text.
+    for (const match of source.matchAll(/@G\d+-[\w.]*/g)) {
       const token = match[0].replace(/\.+$/, '')
       if (!/^@G\d+-\d+(?:\.\d+)?$/.test(token)) fail(path, `malformed checklist reference ${token}`)
       if (match.index > position) children.push({ type: 'text', text: source.slice(position, match.index) })

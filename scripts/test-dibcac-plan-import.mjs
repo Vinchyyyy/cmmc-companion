@@ -77,6 +77,14 @@ try {
   invalid((v) => { v.groups[1].plannedAskRichDocument.blocks[1].indent = 5 }, /indent/)
   invalid((v) => { v.groups[1].plannedAsk = 'Conflicting plain text' }, /not both/)
   invalid((v) => { v.groups[0].plannedAsk = '   - odd indentation' }, /two spaces/)
+  // Regression: ordinary prose mentioning "@G4" (no "-N" item suffix, so not
+  // an attempted checklist-reference token) must not block the whole import
+  // by being misread as a malformed reference.
+  const plainMention = clone(exampleDibcacPlan)
+  plainMention.groups[0].plannedAsk = 'Confirm firmware rev @G4 on the switch stack'
+  const plainMentionPlan = prepareDibcacPlan(plainMention)
+  const plainMentionText = plainMentionPlan.groups[0].plannedAskRichDocument.blocks[0].children.map((c) => c.text ?? '').join('')
+  assert.match(plainMentionText, /@G4/, 'a bare "@G4" mention passes through as plain text instead of throwing')
   const now = getReviewGroups()
   const removed = exportDibcacPlan(now, getReviewFolders())
   removed.groups[0].checklist.pop()

@@ -16,13 +16,21 @@ export default function DibcacPlanImportModal({ onClose, onApply }) {
   const [error, setError] = useState('')
   const [reading, setReading] = useState(false)
   useFocusTrap(dialog, true)
+  // Mount/unmount only — not keyed on `onClose`. The only caller
+  // (DibcacMode.jsx) passes a fresh `() => setPlanImportOpen(false)` arrow on
+  // every render, so depending on it here reran this effect's cleanup (which
+  // bumps readVersion.current to invalidate an in-flight readFile) on every
+  // unrelated re-render of that large page, not just on real close/unmount —
+  // silently dropping a file read that happened to be pending mid-parse and
+  // leaving the "Reading file…" spinner stuck.
   useEffect(() => {
     const requestVersion = readVersion
     dialog.current?.focus()
     const keydown = (event) => { if (event.key === 'Escape') onClose() }
     document.addEventListener('keydown', keydown)
     return () => { document.removeEventListener('keydown', keydown); requestVersion.current++ }
-  }, [onClose])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const validate = (value, nextMode) => {
     setPreview(null); setError('')

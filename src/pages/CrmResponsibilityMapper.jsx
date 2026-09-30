@@ -230,13 +230,22 @@ function CrmResponsibilityMapper() {
 
   if (!provider) return <Navigate to="/osc-profile?tab=providers" replace />
 
-  const saveMappings = (mappings) => setProfile((current) => writeOscProfile({
-    ...current,
-    providers: current.providers.map((item) => item.id === providerId ? { ...item, crmMappings: mappings } : item),
-  }))
+  // `updateFn` receives the *current* crmMappings from the setState updater's
+  // `current`, never the render-time `provider` closure — otherwise two edits
+  // landing in the same render cycle (e.g. two quick pill removals, or two
+  // checkbox toggles in the same card) would each compute from the same stale
+  // array and the second write would silently drop the first one.
+  const saveMappings = (updateFn) => setProfile((current) => {
+    const currentMappings = current.providers.find((item) => item.id === providerId)?.crmMappings ?? []
+    const nextMappings = updateFn(currentMappings)
+    return writeOscProfile({
+      ...current,
+      providers: current.providers.map((item) => item.id === providerId ? { ...item, crmMappings: nextMappings } : item),
+    })
+  })
 
-  const updateMapping = (next) => saveMappings(provider.crmMappings.map((mapping) => mapping.id === next.id ? next : mapping))
-  const loadExamples = () => saveMappings([...provider.crmMappings, ...EXAMPLES.map(createMapping)])
+  const updateMapping = (next) => saveMappings((mappings) => mappings.map((mapping) => mapping.id === next.id ? next : mapping))
+  const loadExamples = () => saveMappings((mappings) => [...mappings, ...EXAMPLES.map(createMapping)])
   const applyBulkImport = (selectedRows, assignments) => {
     const appliedAt = new Date().toISOString()
     const importedMappings = selectedRows.map((row) => createMapping({
@@ -253,9 +262,6 @@ function CrmResponsibilityMapper() {
     }))
 
     const importedKeys = new Set(importedMappings.map((mapping) => `${mapping.controls.join(',')}|${mapping.treatment}`))
-    const retainedMappings = provider.crmMappings.filter((mapping) => (
-      mapping.sourceSection !== 'Bulk CRM import' || !importedKeys.has(`${mapping.controls.join(',')}|${mapping.treatment}`)
-    ))
 
     for (const assignment of assignments) {
       const control = findAppControl(assignment.requirement)
@@ -266,7 +272,12 @@ function CrmResponsibilityMapper() {
       addInheritanceSourceToObjectives(control, provider.name)
     }
 
-    saveMappings([...retainedMappings, ...importedMappings])
+    saveMappings((mappings) => [
+      ...mappings.filter((mapping) => (
+        mapping.sourceSection !== 'Bulk CRM import' || !importedKeys.has(`${mapping.controls.join(',')}|${mapping.treatment}`)
+      )),
+      ...importedMappings,
+    ])
     setBulkImportResult({ rows: selectedRows.length, assignments: assignments.length })
     setBulkImportOpen(false)
   }
@@ -291,9 +302,9 @@ function CrmResponsibilityMapper() {
 
         {activeView === 'assign' && (
           <>
-            <div className="crm-toolbar"><div><h2>CRM Responsibility Rows</h2><p>Enter rows individually or paste the Control ID and inheritance columns from a CRM.</p></div><div><button type="button" className="crm-secondary" onClick={loadExamples}><FileSpreadsheet size={16} /> Load 2 Examples</button><button type="button" className="crm-secondary" onClick={() => setBulkImportOpen(true)}><ClipboardPaste size={16} /> Bulk Paste CRM</button><button type="button" onClick={() => saveMappings([...provider.crmMappings, createMapping()])}><Plus size={16} /> Add CRM Row</button></div></div>
+            <div className="crm-toolbar"><div><h2>CRM Responsibility Rows</h2><p>Enter rows individually or paste the Control ID and inheritance columns from a CRM.</p></div><div><button type="button" className="crm-secondary" onClick={loadExamples}><FileSpreadsheet size={16} /> Load 2 Examples</button><button type="button" className="crm-secondary" onClick={() => setBulkImportOpen(true)}><ClipboardPaste size={16} /> Bulk Paste CRM</button><button type="button" onClick={() => saveMappings((mappings) => [...mappings, createMapping()])}><Plus size={16} /> Add CRM Row</button></div></div>
             {bulkImportResult && <div className="crm-import-success"><Check size={16} /> Imported {bulkImportResult.rows} CRM row{bulkImportResult.rows === 1 ? '' : 's'} and applied reviewed inheritance to {bulkImportResult.assignments} CMMC requirement{bulkImportResult.assignments === 1 ? '' : 's'}.</div>}
-            {provider.crmMappings.length === 0 ? <div className="op-empty crm-empty">No CRM rows yet. Load the supplied AC-2 examples or add a blank row.</div> : <div className="crm-map-list">{provider.crmMappings.map((mapping) => <MappingCard key={mapping.id} mapping={mapping} providerName={provider.name} onChange={updateMapping} onRemove={() => saveMappings(provider.crmMappings.filter((item) => item.id !== mapping.id))} />)}</div>}
+            {provider.crmMappings.length === 0 ? <div className="op-empty crm-empty">No CRM rows yet. Load the supplied AC-2 examples or add a blank row.</div> : <div className="crm-map-list">{provider.crmMappings.map((mapping) => <MappingCard key={mapping.id} mapping={mapping} providerName={provider.name} onChange={updateMapping} onRemove={() => saveMappings((mappings) => mappings.filter((item) => item.id !== mapping.id))} />)}</div>}
           </>
         )}
 

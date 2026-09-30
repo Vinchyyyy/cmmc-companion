@@ -4,6 +4,13 @@ import { readObjectiveFinding, writeObjectiveFinding } from './objectiveFindings
 import { readObjectiveInterviewedRoles } from './objectiveInterviewedRoles.js'
 import { buildFinalText, buildObjectiveValidationStatement } from './findingStatementBuilder.js'
 
+// Only the old generated D confirmation line makes a finding "nonstandard"
+// here — an assessor's own D) addendum (e.g. remediation/retest history) must
+// never be treated as a reason to regenerate finalText from scratch, which
+// would silently drop it from the visible finding. Matches the same legacy
+// text objectiveFindings.js strips on read.
+const LEGACY_MET_CONFIRMATION_D = /^D\) Assessment team confirmed in interview, testing, and documentation that this objective is (?:not )?implemented\.$/
+
 export function matchesStandardFinding(finding, control, objective) {
   const lines = String(finding?.finalText ?? '').replace(/\r\n/g, '\n').trim().split('\n')
   const start = lines.findIndex((line) => line.startsWith('A) Reviewed '))
@@ -13,7 +20,7 @@ export function matchesStandardFinding(finding, control, objective) {
   const sections = lines.slice(start)
   const method = getDibcacStandard(control.id, objective.id)?.standard
   if (sections.length < 3 || sections[1] !== `B) ${buildObjectiveValidationStatement({ objectiveRef: `${control.id}[${objective.id}]`, objectiveText: objective.text, dibcacMethod: method })}`) return false
-  if (sections.some((line) => line.startsWith('D) '))) return false
+  if (sections.some((line) => line.startsWith('D) ') && LEGACY_MET_CONFIRMATION_D.test(line))) return false
   return sections[2] === 'C) No noted findings or differences.' || sections[2].startsWith('C) Differences: ')
 
 }
