@@ -13,7 +13,7 @@ function visit(chunk) {
 }
 chunks.filter((chunk) => chunk.isEntry).forEach(visit)
 const initialModules = [...initial].flatMap((file) => Object.keys(byFile.get(file).modules))
-for (const page of ['Settings', 'ControlDetail', 'ControlLibrary', 'DibcacMode', 'OscProfile', 'Changelog']) {
+for (const page of ['Home', 'Settings', 'ControlDetail', 'ControlLibrary', 'DibcacMode', 'OscProfile', 'Changelog']) {
   assert.ok(!initialModules.some((id) => id.endsWith(`/pages/${page}.jsx`)), `${page} must stay out of startup dependencies`)
   assert.ok(chunks.some((chunk) => Object.keys(chunk.modules).some((id) => id.endsWith(`/pages/${page}.jsx`))), `${page} is included in a deferred chunk`)
 }
@@ -22,5 +22,5 @@ const zipChunk = chunks.find((chunk) => Object.keys(chunk.modules).some((id) => 
 assert.ok(zipChunk && chunks.some((chunk) => chunk.dynamicImports.includes(zipChunk.fileName)), 'Excel ZIP library is dynamically loaded')
 const bytes = [...initial].reduce((n, file) => n + Buffer.byteLength(byFile.get(file).code), 0)
 const compressed = [...initial].reduce((n, file) => n + gzipSync(byFile.get(file).code).length, 0)
-assert.ok(bytes < 1_200_000, 'startup JavaScript must remain below 1.2 MB')
+assert.ok(bytes < 400_000, 'startup JavaScript must remain below 400 KB (Home and its control/evidence/relationship data must stay out of the initial chunk)')
 console.log(`Lazy-loading checks passed. Initial JavaScript including shared dependencies: ${bytes} bytes; gzip ${compressed} bytes.`)

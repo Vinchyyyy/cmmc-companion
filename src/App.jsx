@@ -3,8 +3,8 @@ import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import PageLoadBoundary from './components/PageLoadBoundary.jsx'
 import StorageFailureBanner from './components/StorageFailureBanner.jsx'
 import Navigation from './components/Navigation.jsx'
-import Home from './pages/Home.jsx'
 import { safeSetItem } from './utils/storageWrite.js'
+const Home = lazy(() => import('./pages/Home.jsx'))
 const ControlLibrary = lazy(() => import('./pages/ControlLibrary.jsx'))
 const EvidenceLookup = lazy(() => import('./pages/EvidenceLookup.jsx'))
 const ControlDetail = lazy(() => import('./pages/ControlDetail.jsx'))

@@ -1,152 +1,44 @@
+# Project State — Durable Reference Notes
 
-## Phase 2 Milestone Checkpoint — Artifact Tagging & Tag-Aware Reuse
+This file holds facts that don't belong in the CHANGELOG (locked control-ID
+corrections, schema constants, format rules) because they aren't tied to a
+single release — they're standing constraints future work must respect.
 
-Date: June 18, 2026 · Status: ✅ Checkpoint (post-cleanup)
+**For current app state, recent features, and release history, see
+[CHANGELOG.md](CHANGELOG.md).** The app is well past initial V1 delivery
+(see CHANGELOG's Version 4.x entries for DIBCAC Mode, findings
+synchronization, Excel round-trip, and everything since); this file no
+longer tracks phase/milestone status to avoid drifting out of sync with it.
 
-Captures the state after the artifact evidence-tagging and tag-aware reuse work, including the cleanup pass completed after the initial checkpoint.
+## Current Dataset Totals
 
-### Completed in Phase 2
-
-1. **ExpectedTags foundation complete** across all CMMC L2 objectives (`primary` / `acceptable` evidence tag ids per objective).
-2. **Artifact records support controlled evidence tags** — `artifact.tags` on registry records, drawn from the controlled `evidenceTags.js` vocabulary.
-3. **Artifact Map modal tag editing** — modal-based evidence tag picker.
-4. **ControlDetail assigned artifact chips** open `ArtifactDetailModal` for tag view/edit.
-5. **Evidence Pool artifacts** open `ArtifactDetailModal`.
-6. **Suggested Existing Artifact names** open `ArtifactDetailModal`.
-7. **Untagged artifacts** show a NOT MET-style warning tint (attention cue only).
-8. **Expected evidence type chips** expand to show tag definition/role details.
-9. **Relationship-based reuse ranking rewrite isolated** — commit `fcb9032` (`refactor: improve reuse opportunity ranking`): 4-factor relationship score (relationship confidence, objective evidence confidence, evidence class, relationship type); relationship-gated candidate discovery preserved; public suggestion output shape unchanged; no tag logic.
-10. **ControlDetail tag-aware reuse labels/ranking complete** — commit `ccbb504` (`feat: add tag-aware reuse labels`): new `src/utils/evidenceTagMatch.js`; `tagAlignment` metadata attached to suggestions; tier-first ordering ahead of the existing reuse score; neutral alignment labels + overlap chips and a section helper in Suggested Existing Artifacts.
-
-Latest commit hashes: `fcb9032` (scoring rewrite), `ccbb504` (tag-aware reuse), `d1ce8d3` (remove ArtifactTagEditor), `3917bd6` (ControlDetail lint), `ae40c97` (ArtifactMap lint), `94a974e` (hide Common Artifacts UI), `4405d5c` (Artifact Map tag-gated reuse), `39ebb52` (untagged visual state), `ffabcba` (tag picker selected-state UI).
-
-### Current behavior (important)
-
-- Artifact tags are **classification aids** — they describe what kind of evidence an artifact is.
-- Tags **do not** determine whether an objective is satisfied; no pass/fail/compliance meaning.
-- **No tag-only candidates** are added; candidate discovery remains **relationship-gated** in both ControlDetail and Artifact Map.
-- **Objective status does not change** from artifact tags.
-- Recommendation / matching / scoring / status / data behavior remains untouched **except** for reuse suggestion ranking and labels in ControlDetail and Artifact Map.
-
-### Intentionally out of scope (deferred future work)
-
-1. Tag-only candidate discovery is **intentionally deferred**.
-2. Expected-evidence hints inside `ArtifactDetailModal` are **deferred**.
-
-### Cleanup completed (post-checkpoint)
-
-- `ArtifactTagEditor.jsx` removed — commit `d1ce8d3`. No remaining references.
-- `ControlDetail.jsx` lint debt fixed — commit `3917bd6`. `set-state-in-effect` issues and unused variables resolved. Now lint-clean.
-- `ArtifactMap.jsx` lint debt fixed — commit `ae40c97`. Both `set-state-in-effect` issues replaced with guarded render-time state adjustments. Now lint-clean.
-- **Common Artifacts UI hidden** — commit `94a974e`. The Common Artifacts heading and static bullet list were removed from ControlDetail. `commonArtifacts` data in all control JSON files is preserved. `commonArtifacts` search indexing in `ControlLibrary.jsx` and `Home.jsx` is preserved. Common Evidence and Expected Evidence Types remain visible.
-
-New Phase 2 files (`evidenceTagMatch.js`) and the modified `evidenceRecommendations.js` were already lint-clean at checkpoint.
-
-### Post-checkpoint features completed
-
-- **Artifact Map tag-gated reuse** — commit `4405d5c`. Reuse opportunities are hidden for untagged artifacts; shown (paginated, 5 per page) for tagged artifacts. Tag-aware ranking applied using `evidenceTagMatch.js` helpers. Relationship-gated candidate discovery unchanged. No tag-only candidates added.
-- **Untagged Artifact Map visual state** — commit `39ebb52`. Untagged artifact titles are red/tinted using the existing NOT MET theme color. A compact inside-card callout ("Add evidence tags to see reuse opportunities.") appears inside the Artifact evidence tags box. No duplicate external helper text.
-- **Evidence tag picker selected-state UI** — commit `ffabcba`. Modal now shows an "Assigned tags" area above the search input. Selected tags render as removable chips with accessible × buttons. Removing a chip updates local modal state and unchecks the corresponding checkbox. Cancel discards; Done persists. Old selected-count footer removed.
-
-### ControlDetail current UI state
-
-ControlDetail currently shows (per objective):
-
-- Common Evidence
-- Expected Evidence Types
-
-ControlDetail currently shows (per control):
-
-- Assigned Artifacts
-- Evidence Pool
-- Suggested Existing Artifacts (with tag-aware reuse labels)
-
-ControlDetail no longer shows:
-
-- Common Artifacts static bullet list (data preserved in source JSON; hidden from UI in `94a974e`)
-
-### Artifact Map current UI state
-
-Artifact Map currently shows (per artifact, when expanded):
-
-- Artifact evidence tags (with compact callout if untagged)
-- Potential Reuse Opportunities — paginated at 5 per page, **only for tagged artifacts**; relationship-gated; tag-aware ranking
-- Current usage locations
-
-Artifact Map currently shows (per artifact title):
-
-- Red/tinted title when untagged; normal title when tagged
-
-Artifact Map no longer shows:
-
-- Reuse opportunities for untagged artifacts (hidden in `4405d5c`)
-- Full-width untagged callout (narrowed to inline in `39ebb52`)
-
-### Next recommended steps (future phases)
-
-1. (Future phase) Add expected-evidence hints inside `ArtifactDetailModal`.
-2. (Future phase) Consider tag-only candidate discovery (intentionally deferred).
-3. (Future phase) Release / changelog / version work.
-4. (Future phase) Broader UI/layout redesign.
-
-## Version History
-
-| Version | Date | Summary |
-|---|---|---|
-| 1.2.0 | June 4, 2026 | Evidence Pool MVP — control-level pool, objective artifact references, typeahead, status promotion, JSON backup/restore support (schema v2), 📎 indicator + filter in Control Library |
-| 1.1.2 | June 4, 2026 | Auto-resizing textareas; auto-status Not Started ↔ In Progress based on notes; hide MET controls toggle; ownership/copyright/independence disclosures |
-| 1.1.1 | June 3, 2026 | Import hardening (extension + MIME + size validation, JSON restore confirmation); export filename timestamps |
-| 1.0.1 | June 3, 2026 | First production deployment; bulk Clear Data / Set Status bug fix; Clear Data confirmation dialog |
-| 1.0.0 | June 3, 2026 | Initial release — all 14 CMMC Level 2 families complete |
-
-## Deployment
-
-| Target | Status | URL |
-|---|---|---|
-| GitHub | Live | https://github.com/Vinchyyyy/cmmc-companion |
-| Cloudflare Pages | Live | https://cmmc-companion.pages.dev |
-
-CI/CD: push to `main` automatically triggers Cloudflare Pages build and deploy. Build command: `npm run build`. Output: `dist/`. SPA routing handled by `public/_redirects`.
-
-## Current Dataset Totals (as of MP merge — V1 COMPLETE)
+Run `npm run validate` for live, authoritative counts. As of this writing:
 
 | Dataset | Count |
 |---|---|
 | Controls | 110 |
+| Objectives | 320 |
 | Evidence Types | 130 |
 | Relationships | 189 |
-| Scoring entries | 110 |
+| Evidence Tags | 66 |
 | Non-POA&Mable controls | 6 |
 
-## Completed Control Families (14 of 14 in scope — V1 COMPLETE)
+## Non-POA&Mable Controls (confirmed)
 
-| Family | Code | Controls | Status |
+| Control | Family | Score | Reason |
 |---|---|---|---|
-| Access Control | AC | 22 | ✅ Complete |
-| Identification and Authentication | IA | 11 | ✅ Complete |
-| System and Communications Protection | SC | 16 | ✅ Complete |
-| Audit and Accountability | AU | 9 | ✅ Complete |
-| Configuration Management | CM | 9 | ✅ Complete |
-| Incident Response | IR | 3 | ✅ Complete |
-| Risk Assessment | RA | 3 | ✅ Complete |
-| Security Assessment | CA | 4 | ✅ Complete |
-| System and Information Integrity | SI | 7 | ✅ Complete |
-| Personnel Security | PS | 2 | ✅ Complete |
-| Physical Protection | PE | 6 | ✅ Complete |
-| Awareness and Training | AT | 3 | ✅ Complete |
-| Maintenance | MA | 6 | ✅ Complete |
-| Media Protection | MP | 9 | ✅ Complete |
-
-## Remaining Families
-
-None. All 14 families complete. V1 control coverage is done.
+| AC.L1-3.1.20 | Access Control | -1 | Fundamental control — cannot be deferred |
+| AC.L1-3.1.22 | Access Control | -1 | Fundamental control — cannot be deferred |
+| CA.L2-3.12.4 | Security Assessment | -1 | SSP must exist at time of assessment |
+| PE.L1-3.10.3 | Physical Protection | -3 | Level 1 FAR-referenced practice — cannot be deferred |
+| PE.L1-3.10.4 | Physical Protection | -1 | Level 1 FAR-referenced practice — cannot be deferred |
+| PE.L1-3.10.5 | Physical Protection | -1 | Level 1 FAR-referenced practice — cannot be deferred |
 
 ## MP Control ID Note (LOCKED)
 
 MP.L1-3.8.3 (Media Disposal) is a Level 1 FAR-referenced practice (FAR Clause 52.204-21 b.1.vii).
 There is NO MP.L2-3.8.3 — the NIST 800-171 practice 3.8.3 carries the L1 designation in the Assessment Guide.
 The Level 2 MP controls are: MP.L2-3.8.1, MP.L2-3.8.2, MP.L2-3.8.4, MP.L2-3.8.5, MP.L2-3.8.6, MP.L2-3.8.7, MP.L2-3.8.8, MP.L2-3.8.9.
-PROJECT_STATE.md previously described the range as "MP.L2-3.8.1 through MP.L2-3.8.9" — this was misleading because it implied MP.L2-3.8.3 exists as L2. The count (~9) was correct.
 
 The CMMC Scoring Methodology text references "MP.L2-3.8.3" in the 5-point basic list — this refers to the same practice 3.8.3 but uses the L2 label loosely. The Assessment Guide control ID is authoritative: MP.L1-3.8.3, scored at -5.
 
@@ -160,19 +52,6 @@ All 6 MA practices confirmed against CMMC Assessment Guide Level 2 (pages 149–
 - MA.L2-3.7.5 (Nonlocal Maintenance)
 - MA.L2-3.7.6 (Maintenance Personnel)
 
-PROJECT_STATE.md previously listed range as "through MA.L2-3.7.5" — MA.L2-3.7.6 was missed in the estimate. All 6 are now implemented.
-
-## Non-POA&Mable Controls (confirmed)
-
-| Control | Family | Score | Reason |
-|---|---|---|---|
-| AC.L1-3.1.20 | Access Control | -1 | Fundamental control — cannot be deferred |
-| AC.L1-3.1.22 | Access Control | -1 | Fundamental control — cannot be deferred |
-| CA.L2-3.12.4 | Security Assessment | -1 | SSP must exist at time of assessment |
-| PE.L1-3.10.3 | Physical Protection | -3 | Level 1 FAR-referenced practice — cannot be deferred |
-| PE.L1-3.10.4 | Physical Protection | -1 | Level 1 FAR-referenced practice — cannot be deferred |
-| PE.L1-3.10.5 | Physical Protection | -1 | Level 1 FAR-referenced practice — cannot be deferred |
-
 ## PE Control ID Note (LOCKED)
 
 PE Level 1 practices carry L1 designations confirmed against the Assessment Guide. Do not change:
@@ -182,8 +61,6 @@ PE Level 1 practices carry L1 designations confirmed against the Assessment Guid
 - PE.L1-3.10.5 (Manage Physical Access) — non-POA&Mable
 
 Only PE.L2-3.10.2 and PE.L2-3.10.6 are Level 2.
-
-Note: An earlier draft of this file incorrectly listed these as PE.L2-3.10.3/4/5. The correct IDs with L1 designations are confirmed from the CMMC Assessment Guide Level 2, pages 177–181.
 
 ## SI Control ID Note (LOCKED)
 
@@ -195,46 +72,6 @@ SI Level 1 practices retain their L1 ID designations. Do not change:
 
 Only SI.L2-3.14.3, SI.L2-3.14.6, SI.L2-3.14.7 are Level 2.
 
-## Known Issues (open)
-
-None.
-
-## Known Issues (resolved)
-
-| Issue | Resolution |
-|---|---|
-| EvidenceLookup PE filter not returning results | Investigated — filter was already working correctly. `familyById` maps all PE control IDs to "Physical Protection" and the dropdown value matches exactly. Malformed JSX labels were fixed during PE integration; no additional code change needed. |
-| Verify all family dropdowns synchronized | Confirmed during PE integration — all four UI files (ControlLibrary, Home, EvidenceLookup, RelationshipExplorer) have consistent family lists through MP. |
-
-## Feature Implementation Status
-
-| Feature | Status | Files |
-|---|---|---|
-| Assessment status tracking | ✅ Complete | status.js |
-| Control-level notes | ✅ Complete | notes.js |
-| Objective-level notes | ✅ Complete | objectiveNotes.js |
-| Inheritance tracking | ✅ Complete | inheritance.js |
-| Scoring metadata | ✅ Complete | scoring.json, scoring.js |
-| POA&M eligibility | ✅ Complete | scoring.json, scoring.js |
-| Multi-select bulk actions | ✅ Complete | ControlLibrary.jsx |
-| Progress dashboard with family selector | ✅ Complete | Home.jsx |
-| CSV export/import | ✅ Complete | Home.jsx |
-| Project JSON backup/restore | ✅ Complete | projectState.js, Home.jsx |
-| Quick Search | ✅ Complete | Home.jsx |
-| Scoring search term indexing | ✅ Complete | getScoringSearchTerms() wired into Home.jsx searchControls(); Quick Search now matches "basic", "derived", "5 point", "poam", etc. |
-| URL-persisted filters | ✅ Complete | ControlLibrary.jsx |
-| Clear Filters button | ✅ Complete | ControlLibrary.jsx |
-| Score badge (n) format | ✅ Complete | ControlLibrary.jsx |
-| Scoring section in ControlDetail | ❌ Removed by design | — |
-| Validator (8 categories) | ✅ Complete | scripts/validate-data.cjs |
-
-## Remaining V1 Work (post-family-completion)
-
-1. Reorder controls into official CMMC assessment order
-2. Add About page
-3. Add Version History / Changelog page
-4. Final V1 cleanup pass
-
 ## Scoring Badge Format (LOCKED)
 
 Score badges display as `(5)`, `(3)`, `(1)` — not `-5`, `-3`, `-1`.
@@ -245,17 +82,29 @@ Score metadata intentionally absent from ControlDetail page (removed as UI refin
 
 ControlLibrary URL filter keys:
 
-['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam']
-
 ```
+['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam']
+```
+
 Any new filter must be added to this array to be included in Clear Filters behavior.
 
 ## Project JSON Schema Version
 
-SCHEMA_VERSION = 2
-ACCEPTED_SCHEMA_VERSIONS = [1, 2]
+`SCHEMA_VERSION` and `ACCEPTED_SCHEMA_VERSIONS` are defined in `src/utils/projectState.js` —
+check that file for the current value rather than trusting a number here, since it
+changes with each schema-affecting feature (currently 11, accepting 1–11).
 
-Exports per control: status, note, objectiveNotes, inheritance, evidencePool (when non-empty), objectiveArtifacts (when non-empty).
-Does NOT export: scoring metadata (read-only, never stored in localStorage).
-V1 imports accepted — missing evidencePool/objectiveArtifacts fields are no-ops (do not clear existing local data).
-```
+Import/export coverage per control now spans far more than the original v2 fields
+(findings, objective results, inheritance sources/assignments, DIBCAC review groups
+and folders, checklist interview notes, provider profiles, etc.) — see
+`DEFAULT_IMPORT_OPTIONS` in `projectState.js` for the current category list, and
+CHANGELOG.md for when each category was added.
+
+## Deployment
+
+| Target | Status | URL |
+|---|---|---|
+| GitHub | Live | https://github.com/Vinchyyyy/cmmc-companion |
+| Cloudflare Pages | Live | https://cmmc-companion.pages.dev |
+
+CI/CD: push to `main` automatically triggers Cloudflare Pages build and deploy. Build command: `npm run build`. Output: `dist/`. SPA routing handled by `public/_redirects`.
