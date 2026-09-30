@@ -76,8 +76,8 @@ export default function FindingsBuilderModal({
   }), [roles, includedArtifacts, objectiveRef, obj.text, dibcacStd, hasDifferences, differencesText, statusContext])
 
   const validationSentence = useMemo(
-    () => buildObjectiveValidationStatement({ objectiveRef, objectiveText: obj.text, dibcacMethod: dibcacStd?.standard }),
-    [objectiveRef, obj.text, dibcacStd]
+    () => buildObjectiveValidationStatement({ objectiveRef, objectiveText: obj.text, dibcacMethod: dibcacStd?.standard, statusContext }),
+    [objectiveRef, obj.text, dibcacStd, statusContext]
   )
 
   const toggleArtifact = (name) => {

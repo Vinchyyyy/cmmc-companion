@@ -39,6 +39,7 @@ assert.match(created.finalText, /AC\.L1-3\.1\.1\[a\]/)
 assert.match(created.finalText, /Additional documentation was reviewed/)
 assert.match(created.finalText, /C\) No noted findings or differences\./)
 assert.doesNotMatch(created.finalText, /^D\)/m)
+assert.match(created.finalText, /^B\) .*Assessment team confirmed in interview, testing, and documentation that this objective is implemented\.$/m)
 assert.ok(created.createdAt && created.updatedAt)
 assert.deepEqual(readObjectiveFinding(control.id, objective.id), created, 'created finding is persisted')
 
@@ -48,6 +49,9 @@ const notMetText = buildFinalText({ includedArtifacts: ['Policy'], objectiveRef:
 assert.match(notMetText, /D\) Differences: Access review missing\.\nNotify the OSC\.$/)
 assert.doesNotMatch(notMetText, /this objective is implemented/)
 writeObjectiveStatus(control.id, objective.id, 'MET')
+const confirmation = 'Assessment team confirmed in interview, testing, and documentation that this objective is implemented.'
+writeObjectiveFinding(control.id, objective.id, { ...created, finalText: created.finalText.replace(` ${confirmation}`, '') })
+assert.equal(readObjectiveFinding(control.id, objective.id).finalText, created.finalText, 'existing A–C MET findings gain confirmation in B')
 writeObjectiveFinding(control.id, objective.id, { ...created, finalText: `${created.finalText}\nD) Assessment team confirmed in interview, testing, and documentation that this objective is implemented.` })
 assert.equal(readObjectiveFinding(control.id, objective.id).finalText, created.finalText, 'legacy generated D removed from MET')
 writeObjectiveFinding(control.id, objective.id, { ...created, finalText: `${created.finalText}\nD) Assessor-written history.` })

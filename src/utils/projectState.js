@@ -44,7 +44,7 @@ import {
 } from './inheritance'
 import { getReviewGroups, saveReviewGroups, getReviewFolders, saveReviewFolders } from './reviewGroups'
 import { clearRegistry } from './artifactRegistry'
-import { readObjectiveFinding, writeObjectiveFinding } from './objectiveFindings'
+import { readObjectiveFinding, writeObjectiveFinding, clearObjectiveFinding } from './objectiveFindings'
 import { readStoredObjectiveInterviewedRoles, writeObjectiveInterviewedRoles } from './objectiveInterviewedRoles'
 import { readProjectMeta, writeProjectMeta } from './projectMeta'
 import { readGlobalEvidence, writeGlobalEvidence } from './globalEvidence'
@@ -195,6 +195,33 @@ const INHERITANCE_NORMALIZER = INHERITANCE_VALUES.reduce((acc, v) => {
   acc[v.toLowerCase()] = v
   return acc
 }, {})
+
+// Replace mode treats the backup as authoritative for each control it contains.
+// Backups omit empty fields, so without this reset any local value the backup
+// does not mention (a finding, status, artifact, etc.) would survive the restore
+// and mix two projects together. Only the selected categories are reset.
+// Findings are cleared first so later artifact/role resets do not rewrite them.
+function resetControlCategories(control, categories) {
+  const objectives = control.objectives ?? []
+  const each = (fn) => { for (const obj of objectives) fn(obj.id) }
+  if (categories.objectiveFindings) each((objId) => clearObjectiveFinding(control.id, objId))
+  if (categories.statuses) writeStatus(control.id, DEFAULT_STATUS)
+  if (categories.notes) writeNote(control.id, '')
+  if (categories.objectiveNotes) each((objId) => writeObjectiveNote(control.id, objId, ''))
+  if (categories.objectiveStatuses) each((objId) => writeObjectiveStatus(control.id, objId, OBJECTIVE_STATUS_UNREVIEWED))
+  if (categories.inheritance) writeInheritance(control.id, DEFAULT_INHERITANCE)
+  if (categories.inheritanceSource) {
+    writeInheritanceSources(control.id, [])
+    writeInheritanceAssignments(control.id, [])
+    each((objId) => writeObjectiveInheritance(control.id, objId, []))
+  }
+  if (categories.assignments) writeAssignedTo(control.id, '')
+  if (categories.datesAssessed) writeDateAssessed(control.id, '')
+  if (categories.evidencePool) writePoolIds(control.id, [])
+  if (categories.objectiveArtifacts) each((objId) => writeObjectiveArtifactIds(control.id, objId, []))
+  if (categories.objectiveResults) each((objId) => writeObjectiveResult(control.id, objId, {}))
+  if (categories.objectiveInterviewedRoles) each((objId) => writeObjectiveInterviewedRoles(control.id, objId, []))
+}
 
 export function importProjectState(projectJson, controls, options = {}) {
   const controlMap = new Map(controls.map((c) => [c.id, c]))
@@ -351,6 +378,8 @@ export function importProjectState(projectJson, controls, options = {}) {
     if (!control) { summary.skippedUnknownId++; continue }
 
     summary.controlsProcessed++
+
+    if (opts.mode === 'replace') resetControlCategories(control, opts.categories)
 
     const knownObjectiveIds = new Set((control.objectives ?? []).map((o) => o.id))
 

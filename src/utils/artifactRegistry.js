@@ -28,15 +28,28 @@ const ID_RE = /^art_[0-9a-f]{8}$/
 
 // In-memory cache so the per-call lookups added to readPool/readObjectiveArtifacts
 // cost a Map.get rather than a JSON.parse (buildArtifactIndex reads every control).
+// _raw tracks the storage string _cache was built from (or last persisted to), so
+// an external write — another tab, an import, a project wipe — is detected by
+// comparing against the live storage value on every _load() rather than trusting
+// a cache that was only ever invalidated by this module's own mutators.
 let _cache = null      // { [id]: record }
 let _nameIndex = null   // Map<normalizedName, id>
+let _raw = null         // storage string _cache currently reflects
 
 function _load() {
-  if (_cache) return
+  let raw
+  try {
+    raw = localStorage.getItem(STORAGE_KEY)
+  } catch {
+    // Storage unreadable (private browsing, etc.) — keep whatever cache exists.
+    if (!_cache) { _cache = {}; _nameIndex = new Map() }
+    return
+  }
+  if (_cache && raw === _raw) return
+  _raw = raw
   _cache = {}
   _nameIndex = new Map()
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return
     const parsed = JSON.parse(raw)
     if (!parsed || typeof parsed !== 'object') return
@@ -52,17 +65,21 @@ function _load() {
       _nameIndex.set(normalizeName(rec.name), id)
     }
   } catch {
-    // Corrupt/unavailable storage — operate from an empty cache.
+    // Corrupt storage — operate from an empty cache.
     _cache = {}
     _nameIndex = new Map()
   }
 }
 
 function _persist() {
+  const raw = JSON.stringify(_cache)
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(_cache))
+    localStorage.setItem(STORAGE_KEY, raw)
+    _raw = raw
   } catch {
-    // localStorage may be unavailable (private browsing, quota, etc.)
+    // localStorage may be unavailable (private browsing, quota, etc.). Leave _raw
+    // pointing at the last value actually persisted, so this session keeps working
+    // from its in-memory cache instead of silently reverting the failed write.
   }
 }
 
@@ -226,6 +243,7 @@ export function updateArtifactTags(id, tags) {
 export function _resetCache() {
   _cache = null
   _nameIndex = null
+  _raw = null
 }
 
 // Remove all artifact registry data from localStorage and reset the in-memory
@@ -234,4 +252,5 @@ export function clearRegistry() {
   try { localStorage.removeItem(STORAGE_KEY) } catch { /* unavailable */ }
   _cache = null
   _nameIndex = null
+  _raw = null
 }

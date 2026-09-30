@@ -12,6 +12,8 @@ export function normalizeObjectivePhrase(text) {
     .trim()
 }
 
+export const MET_CONFIRMATION = 'Assessment team confirmed in interview, testing, and documentation that this objective is implemented.'
+
 const FALLBACK_SENTENCE = 'Additional assessment evidence was reviewed to support the objective.'
 
 // dibcacMethod: the `standard` value from getDibcacStandard() —
@@ -39,9 +41,9 @@ export function buildMethodValidationSentence(dibcacMethod, objectiveText) {
 }
 
 // Full SSP validation line: existing generic sentence + the new method-aware sentence.
-export function buildObjectiveValidationStatement({ objectiveRef, objectiveText, dibcacMethod }) {
+export function buildObjectiveValidationStatement({ objectiveRef, objectiveText, dibcacMethod, statusContext = 'MET' }) {
   const methodSentence = buildMethodValidationSentence(dibcacMethod, objectiveText)
-  return `Validation is described in the corresponding ${objectiveRef} section of the SSP. ${methodSentence}`
+  return `Validation is described in the corresponding ${objectiveRef} section of the SSP. ${methodSentence}${statusContext === 'MET' ? ` ${MET_CONFIRMATION}` : ''}`
 }
 
 function buildArtifactsText(artifacts) {
@@ -74,7 +76,7 @@ export function buildFinalText({
   }
 
   lines.push(buildArtifactsLine(includedArtifacts))
-  lines.push(`B) ${buildObjectiveValidationStatement({ objectiveRef, objectiveText, dibcacMethod })}`)
+  lines.push(`B) ${buildObjectiveValidationStatement({ objectiveRef, objectiveText, dibcacMethod, statusContext })}`)
 
   if (statusContext === 'NOT_MET') {
     lines.push('C) Full implementation of this objective was not confirmed.')

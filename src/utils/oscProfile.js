@@ -82,17 +82,37 @@ export function normalizeOscProfile(value) {
   }
 }
 
+// Cache only decoded data, never pending writes. Checking the saved string on
+// every read catches changes from imports, project wipes and other tabs without
+// relying on event delivery. Consumers receive copies so unsaved edits cannot
+// leak into subsequent reads.
+let profileSnapshot = null
+
+function readProfileSnapshot() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (profileSnapshot && profileSnapshot.raw === raw) return profileSnapshot
+    const profile = raw ? normalizeOscProfile(JSON.parse(raw)) : normalizeOscProfile(DEFAULT_OSC_PROFILE)
+    const providersByName = new Map()
+    for (const provider of profile.providers) {
+      const name = provider.name.trim().toLowerCase()
+      if (!providersByName.has(name)) providersByName.set(name, provider)
+    }
+    profileSnapshot = { raw, profile, providersByName }
+    return profileSnapshot
+  } catch {
+    // Never return stale assessment data when storage cannot be read.
+    profileSnapshot = null
+    return { profile: normalizeOscProfile(DEFAULT_OSC_PROFILE), providersByName: new Map() }
+  }
+}
+
 export function readAssessmentStaff() {
-  return readOscProfile().staffNames
+  return [...readProfileSnapshot().profile.staffNames]
 }
 
 export function readOscProfile() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    return saved ? normalizeOscProfile(JSON.parse(saved)) : normalizeOscProfile(DEFAULT_OSC_PROFILE)
-  } catch {
-    return normalizeOscProfile(DEFAULT_OSC_PROFILE)
-  }
+  return structuredClone(readProfileSnapshot().profile)
 }
 
 export function writeOscProfile(value) {
@@ -119,13 +139,14 @@ export function ensureOscProvider(name) {
 export function readProviderStandardsAcceptance(name) {
   const normalizedName = String(name ?? '').trim().toLowerCase()
   if (!normalizedName) return ''
-  return readOscProfile().providers.find((provider) => provider.name.trim().toLowerCase() === normalizedName)?.standardsAcceptance ?? ''
+  return readProfileSnapshot().providersByName.get(normalizedName)?.standardsAcceptance ?? ''
 }
 
 export function findOscProvider(name) {
   const normalizedName = String(name ?? '').trim().toLowerCase()
   if (!normalizedName) return null
-  return readOscProfile().providers.find((provider) => provider.name.trim().toLowerCase() === normalizedName) ?? null
+  const provider = readProfileSnapshot().providersByName.get(normalizedName)
+  return provider ? structuredClone(provider) : null
 }
 
 export function formatProviderReference(name) {

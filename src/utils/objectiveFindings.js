@@ -2,7 +2,7 @@
 // Storage key: cmmc-objective-finding-{controlId}-{objectiveId}
 
 import { readObjectiveStatus } from './objectiveStatus.js'
-import { buildArtifactsLine } from './findingStatementBuilder'
+import { buildArtifactsLine, MET_CONFIRMATION } from './findingStatementBuilder'
 
 const FINDING_PREFIX = 'cmmc-objective-finding-'
 
@@ -19,6 +19,9 @@ export function readObjectiveFinding(controlId, objectiveId) {
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
     // Remove only the old generated confirmation, never assessor-written D text.
     if (readObjectiveStatus(controlId, objectiveId) === 'MET' && typeof parsed.finalText === 'string') {
+      if (findingHasManagedSections(parsed)) {
+        parsed.finalText = parsed.finalText.replace(/^B\) Validation is described in the corresponding [^\r\n]+/m, (line) => line.includes(MET_CONFIRMATION) ? line : `${line} ${MET_CONFIRMATION}`)
+      }
       parsed.finalText = parsed.finalText.replace(/\r?\nD\) Assessment team confirmed in interview, testing, and documentation that this objective is (?:not )?implemented\.$/, '')
     }
     return parsed

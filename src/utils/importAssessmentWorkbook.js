@@ -21,7 +21,6 @@
 // All data flows through the existing write utilities — same localStorage
 // keys, same shapes, same JSON export/import paths.
 
-import JSZip from 'jszip'
 import { wipeProjectState } from './projectState'
 import {
   INHERITANCE_VALUES,
@@ -463,6 +462,7 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
   // Open as ZIP
   let zip
   try {
+    const { default: JSZip } = await import('jszip')
     zip = await JSZip.loadAsync(fileBuffer)
   } catch {
     return { ok: false, error: 'This file does not appear to be a supported CMMC Assessment Results Template.' }

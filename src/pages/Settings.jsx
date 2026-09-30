@@ -15,7 +15,6 @@ import {
   ACCEPTED_SCHEMA_VERSIONS,
 } from '../utils/projectState'
 import { readExportMeta, writeExportMeta, buildExportFilename, readLastBackup, writeLastBackup, formatLastBackup } from '../utils/exportMeta'
-import { buildCmmcTemplateWorkbook, downloadCmmcTemplate, formatWarningSummary } from '../utils/exportCmmcTemplate'
 import { parseAssessmentWorkbook, applyWorkbookImport } from '../utils/importAssessmentWorkbook'
 import { PROVIDERS } from '../data/providers'
 import { ACCENT_PALETTES, readAccent, writeAccent, applyAccent } from '../utils/accentColor'
@@ -83,6 +82,7 @@ function Settings() {
     if (mode === 'xlsx') {
       setXlsxResult(null)
       try {
+        const { buildCmmcTemplateWorkbook, downloadCmmcTemplate, formatWarningSummary } = await import('../utils/exportCmmcTemplate.js')
         const res = await fetch('/templates/CMMC_Level2_AssessmentResults_Template.xlsx')
         if (!res.ok) throw new Error(`Failed to fetch bundled template (HTTP ${res.status}).`)
         const buffer = await res.arrayBuffer()
@@ -904,6 +904,8 @@ function Settings() {
                         ['evidencePool',      'Evidence Pool'],
                         ['objectiveArtifacts','Objective Artifacts'],
                         ['objectiveResults',  'Objective Results'],
+                        ['objectiveFindings', 'Findings'],
+                        ['objectiveInterviewedRoles', 'Interviewed Roles'],
                       ].map(([key, label]) => (
                         <label key={key} className="import-option-row">
                           <input

@@ -16,7 +16,6 @@
 //  - L1→L2 prefix normalization applied for 17 controls.
 //  - Export continues even if a template row has no companion source; a warning summary is returned.
 
-import JSZip from 'jszip'
 import { readObjectiveNote } from './objectiveNotes'
 import { readObjectiveResult } from './objectiveResults'
 import { formatInterviewExport } from './interviewExport.js'
@@ -444,6 +443,7 @@ function patchWorksheetXml(wsXml, sharedStrings, objectiveData, controlData) {
  * @returns {Promise<{ workbook: JSZip, warnings: object }>}
  */
 export async function buildCmmcTemplateWorkbook(templateBuffer, controls, options = {}) {
+  const { default: JSZip } = await import('jszip')
   const zip = await JSZip.loadAsync(templateBuffer)
 
   const selectedFamilyCodes = options.selectedFamilyCodes == null

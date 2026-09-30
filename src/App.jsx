@@ -1,18 +1,19 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
+import PageLoadBoundary from './components/PageLoadBoundary.jsx'
 import Navigation from './components/Navigation.jsx'
 import Home from './pages/Home.jsx'
-import ControlLibrary from './pages/ControlLibrary.jsx'
-import EvidenceLookup from './pages/EvidenceLookup.jsx'
-import ControlDetail from './pages/ControlDetail.jsx'
-import RelationshipExplorer from './pages/RelationshipExplorer.jsx'
-import About from './pages/About.jsx'
-import Changelog from './pages/Changelog.jsx'
-import ArtifactMap from './pages/ArtifactMap.jsx'
-import DibcacMode from './pages/DibcacMode.jsx'
-import Settings from './pages/Settings.jsx'
-import OscProfile from './pages/OscProfile.jsx'
-import CrmResponsibilityMapper from './pages/CrmResponsibilityMapper.jsx'
+const ControlLibrary = lazy(() => import('./pages/ControlLibrary.jsx'))
+const EvidenceLookup = lazy(() => import('./pages/EvidenceLookup.jsx'))
+const ControlDetail = lazy(() => import('./pages/ControlDetail.jsx'))
+const RelationshipExplorer = lazy(() => import('./pages/RelationshipExplorer.jsx'))
+const About = lazy(() => import('./pages/About.jsx'))
+const Changelog = lazy(() => import('./pages/Changelog.jsx'))
+const ArtifactMap = lazy(() => import('./pages/ArtifactMap.jsx'))
+const DibcacMode = lazy(() => import('./pages/DibcacMode.jsx'))
+const Settings = lazy(() => import('./pages/Settings.jsx'))
+const OscProfile = lazy(() => import('./pages/OscProfile.jsx'))
+const CrmResponsibilityMapper = lazy(() => import('./pages/CrmResponsibilityMapper.jsx'))
 
 const NOTICE_VERSION = 1
 const NOTICE_KEY = 'cmmc-notice-version'
@@ -81,6 +82,8 @@ function App() {
       <FirstRunNotice />
       {!isRedesigned && <Navigation />}
       <main className="content">
+        <PageLoadBoundary key={location.pathname}>
+        <Suspense fallback={<p role="status" style={{ padding: '2rem' }}>Loading page…</p>}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/controls" element={<ControlLibrary />} />
@@ -98,6 +101,8 @@ function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Home />} />
         </Routes>
+        </Suspense>
+        </PageLoadBoundary>
       </main>
     </div>
   )
