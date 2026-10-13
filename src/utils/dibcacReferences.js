@@ -1,3 +1,21 @@
+import { getDibcacStandard } from '../data/dibcacAssessmentStandards.js'
+
+export function checklistAssessmentMethods(objKeys) {
+  const methods = new Set()
+  for (const key of objKeys ?? []) {
+    const match = String(key).match(/^(.+)\[([^\]]+)\]$/)
+    const standard = match ? getDibcacStandard(match[1], match[2])?.standard : null
+    if (standard === 'artifact_and_screen_share') {
+      methods.add('artifact')
+      methods.add('screen_share')
+    } else {
+      methods.add(standard ?? 'unknown')
+    }
+  }
+  if (methods.size === 0) methods.add('unknown')
+  return ['document', 'artifact', 'screen_share', 'physical_review', 'unknown'].filter((method) => methods.has(method))
+}
+
 export function withCanonicalGroupOrder(groups) {
   return (Array.isArray(groups) ? groups : []).map((group, index) => ({ ...group, order: index + 1 }))
 }
@@ -43,6 +61,7 @@ export function buildChecklistReferenceIndex(groups) {
         label: item.text,
         folderId: group.folderId ?? null,
         checked: !!item.checked,
+        assessmentMethods: checklistAssessmentMethods(item.objKeys),
       })
     }
   }

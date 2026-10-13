@@ -85,6 +85,23 @@
 .dibcac-plan-preview summary { cursor: pointer; padding: 8px 0; }
 .dibcac-plan-preview pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--text-sm); }
 .dibcac-plan-modal { color: var(--color-text); }
+.dibcac-instructions-modal { color: var(--color-text); }
+.dibcac-instructions-body section + section { margin-top: 22px; }
+.dibcac-instructions-body h3 { margin: 0 0 8px; font-size: var(--text-base); }
+.dibcac-instructions-body p { margin: 8px 0; line-height: 1.6; }
+.dibcac-instructions-body pre {
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 0.8rem/1.7 var(--font-mono);
+}
+.dibcac-instructions-checklist { display: grid; gap: 6px; padding: 12px; border-left: 3px solid var(--color-accent); }
+.dibcac-instructions-checklist small { color: var(--color-text-muted); }
+.dibcac-instructions-legend { display: flex; flex-wrap: wrap; gap: 12px; }
+.dibcac-instructions-legend > span { display: inline-flex; align-items: center; gap: 5px; }
 .dibcac-template-modal {
   position: relative;
   display: flex;
@@ -1719,6 +1736,21 @@
 }
 
 .dibcac-planned-ask-ref strong { color: var(--color-accent); font-family: var(--font-mono); }
+.dibcac-reference-method {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  border: 1px solid;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+}
 .dibcac-planned-ask-ref:hover { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 17%, transparent); }
 .dibcac-planned-ask-ref--missing { border-color: color-mix(in srgb, #ef4444 55%, var(--color-border)); color: #fca5a5; cursor: default; }
 
@@ -3522,4 +3554,3 @@
     max-height: 85vh;
   }
 }
-

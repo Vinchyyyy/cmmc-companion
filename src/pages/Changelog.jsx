@@ -17,6 +17,13 @@ function Changelog() {
       </p>
 
       <details open>
+        <ReleaseSummary version="v4.13.0" title="DIBCAC Walkthrough Guide and Method Badges" date="October 13, 2026" />
+        <ul>
+          <li>Planned Ask links show colored Document, Artifact, Screen Share, Physical Review, and Variable badges from their mapped objectives.</li>
+          <li>A new Instructions button explains groups, checklists, concise asks, topics, links, badges, and backups with practical examples.</li>
+        </ul>
+      </details>
+      <details>
         <ReleaseSummary version="v4.12.0" title="Finding Format and Export Review" date="September 17, 2026" />
         <ul>
           <li>MET findings use A, B, and C only. The old generated D confirmation is removed from saved MET findings.</li>

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import {
   buildChecklistReferenceIndex,
+  checklistAssessmentMethods,
   buildGroupNumberMap,
   detectPlannedAskMention,
   insertPlannedAskReference,
@@ -30,6 +31,16 @@ const groups = Array.from({ length: 12 }, (_, groupIndex) => ({
 }))
 
 const canonical = withCanonicalGroupOrder(groups)
+// Method hints come from attached objectives, including mixed and combined methods.
+assert.deepEqual(checklistAssessmentMethods(['CM.L2-3.4.1[a]', 'CM.L2-3.4.1[b]', 'CM.L2-3.4.6[b]', 'CM.L2-3.4.1[a]']), ['document', 'artifact', 'screen_share'])
+assert.deepEqual(checklistAssessmentMethods(['SC.L2-3.13.11[a]']), ['artifact', 'screen_share'])
+assert.deepEqual(checklistAssessmentMethods(['PE.L1-3.10.1[b]']), ['physical_review'])
+assert.deepEqual(checklistAssessmentMethods(['MA.L2-3.7.1[a]']), ['unknown'])
+assert.deepEqual(checklistAssessmentMethods([]), ['unknown'])
+const methodGroup = [{ id: 'methods', checklist: [{ id: 'method-item', type: 'item', text: 'Baseline', objKeys: ['CM.L2-3.4.1[a]'] }] }]
+assert.deepEqual(buildChecklistReferenceIndex(methodGroup)[0].assessmentMethods, ['document'])
+methodGroup[0].checklist[0].objKeys = ['CM.L2-3.4.6[b]']
+assert.deepEqual(buildChecklistReferenceIndex(methodGroup)[0].assessmentMethods, ['screen_share'])
 const index = buildChecklistReferenceIndex(canonical)
 assert.equal(buildGroupNumberMap(canonical).get('group-1'), 1)
 assert.equal(index.find((entry) => entry.itemId === 'item-0-a').displayRef, 'G1-1.1')

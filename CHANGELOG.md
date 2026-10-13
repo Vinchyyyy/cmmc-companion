@@ -1,3 +1,9 @@
+## Version 4.13.0 — DIBCAC Walkthrough Guide and Method Badges
+Date: October 13, 2026
+
+- Planned Ask checklist links show colored method badges derived from their mapped objectives, including mixed methods and Variable.
+- An Instructions button provides short examples for groups, checklists, Planned Ask formatting, topics, references, method badges, and backup workflows.
+
 ## Version 4.12.0 — Finding Format and Export Review
 Date: September 17, 2026
 

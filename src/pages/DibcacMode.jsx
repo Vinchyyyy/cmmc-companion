@@ -4,6 +4,7 @@ import { FolderPlus, Folder, LayoutTemplate } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
 import DibcacTemplatesModal from '../components/DibcacTemplatesModal.jsx'
 import DibcacPlanImportModal from '../components/DibcacPlanImportModal.jsx'
+import DibcacInstructionsModal from '../components/DibcacInstructionsModal.jsx'
 import { deleteSelectedReviewGroups } from '../utils/deleteSelectedReviewGroups.js'
 import { safeSetItem } from '../utils/storageWrite.js'
 import controls from '../data/controls/index'
@@ -571,12 +572,25 @@ function richDocumentFromEditor(editor) {
   return normalizePlannedAskRichDocument({ version: 1, blocks })
 }
 
+function ReferenceMethodBadges({ methods }) {
+  const letters = { document: 'D', artifact: 'A', screen_share: 'S', physical_review: 'P', unknown: 'V' }
+  return (methods ?? []).map((method) => (
+    <span
+      key={method}
+      className={`dibcac-reference-method dibcac-chip--${method}`}
+      title={METHOD_META[method]?.label ?? 'Variable'}
+      aria-label={METHOD_META[method]?.label ?? 'Variable'}
+    >{letters[method]}</span>
+  ))
+}
+
 function RichInline({ node, referenceMap, onNavigate }) {
   if (node.type === 'checklistRef') {
     const reference = referenceMap.get(`${node.groupId}:${node.itemId}`)
     if (!reference) return <span className="dibcac-planned-ask-ref dibcac-planned-ask-ref--missing">Missing checklist reference</span>
     return (
       <button type="button" className="dibcac-planned-ask-ref" onClick={() => onNavigate?.({ groupId: node.groupId, itemId: node.itemId })} title={`Open ${reference.groupName}: ${reference.label}`}>
+        <ReferenceMethodBadges methods={reference.assessmentMethods} />
         <strong>{reference.displayRef}</strong><span>— {reference.label}</span>
       </button>
     )
@@ -2970,6 +2984,8 @@ function DibcacMode() {
   })
   const [previewKey, setPreviewKey] = useState(null)
   const [templatesOpen, setTemplatesOpen] = useState(false)
+  const [instructionsOpen, setInstructionsOpen] = useState(false)
+  const closeInstructions = useCallback(() => setInstructionsOpen(false), [])
   const [planImportOpen, setPlanImportOpen] = useState(false)
   const [planImportMessage, setPlanImportMessage] = useState('')
   const [railExpanded, setRailExpanded] = useState(() => localStorage.getItem('cmmc-dibcac-rail-expanded') === 'true')
@@ -3318,6 +3334,7 @@ function DibcacMode() {
       {previewKey && (
         <ObjectivePreview previewKey={previewKey} onClose={() => setPreviewKey(null)} />
       )}
+      {instructionsOpen && <DibcacInstructionsModal onClose={closeInstructions} />}
       {templatesOpen && (
         <DibcacTemplatesModal
           currentGroups={savedGroups}
@@ -3340,6 +3357,7 @@ function DibcacMode() {
         <div className="dibcac-page-header-row">
           <h1>DIBCAC Mode</h1>
           <div className="dibcac-plan-header-actions">
+            <button type="button" className="dibcac-templates-btn" onClick={() => setInstructionsOpen(true)}>Instructions</button>
             <button type="button" className="dibcac-templates-btn" disabled={mode === 'builder'} title={mode === 'builder' ? 'Save or cancel the group editor before importing' : 'Import and export DIBCAC plans and download import instructions'} onClick={() => setPlanImportOpen(true)}>Import / Export</button>
             <button type="button" className="dibcac-templates-btn" onClick={() => setTemplatesOpen(true)}><LayoutTemplate size={16} /> Templates</button>
           </div>
