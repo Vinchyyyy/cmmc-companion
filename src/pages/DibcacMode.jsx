@@ -589,10 +589,12 @@ function RichInline({ node, referenceMap, onNavigate }) {
     const reference = referenceMap.get(`${node.groupId}:${node.itemId}`)
     if (!reference) return <span className="dibcac-planned-ask-ref dibcac-planned-ask-ref--missing">Missing checklist reference</span>
     return (
-      <button type="button" className="dibcac-planned-ask-ref" onClick={() => onNavigate?.({ groupId: node.groupId, itemId: node.itemId })} title={`Open ${reference.groupName}: ${reference.label}`}>
-        <ReferenceMethodBadges methods={reference.assessmentMethods} />
-        <strong>{reference.displayRef}</strong><span>— {reference.label}</span>
-      </button>
+      <span className="dibcac-reference-with-methods">
+        <button type="button" className="dibcac-planned-ask-ref" onClick={() => onNavigate?.({ groupId: node.groupId, itemId: node.itemId })} title={`Open ${reference.groupName}: ${reference.label}`}>
+          <strong>{reference.displayRef}</strong><span>— {reference.label}</span>
+        </button>
+        <span className="dibcac-reference-methods"><ReferenceMethodBadges methods={reference.assessmentMethods} /></span>
+      </span>
     )
   }
   const style = {

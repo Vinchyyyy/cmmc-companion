@@ -1736,6 +1736,16 @@
 }
 
 .dibcac-planned-ask-ref strong { color: var(--color-accent); font-family: var(--font-mono); }
+.dibcac-reference-with-methods {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  gap: 5px;
+  margin: 1px 3px;
+  vertical-align: middle;
+}
+.dibcac-reference-with-methods > .dibcac-planned-ask-ref { margin: 0; min-width: 0; }
+.dibcac-reference-methods { display: inline-flex; flex: 0 0 auto; gap: 3px; }
 .dibcac-reference-method {
   display: inline-flex;
   align-items: center;

@@ -17,6 +17,10 @@ function Changelog() {
       </p>
 
       <details open>
+        <ReleaseSummary version="v4.13.1" title="Separate Method Badges" date="October 13, 2026" />
+        <ul><li>Method circles now sit to the right of each Planned Ask link, outside the clickable label.</li></ul>
+      </details>
+      <details>
         <ReleaseSummary version="v4.13.0" title="DIBCAC Walkthrough Guide and Method Badges" date="October 13, 2026" />
         <ul>
           <li>Planned Ask links show colored Document, Artifact, Screen Share, Physical Review, and Variable badges from their mapped objectives.</li>

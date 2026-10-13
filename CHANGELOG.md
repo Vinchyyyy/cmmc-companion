@@ -1,3 +1,8 @@
+## Version 4.13.1 — Separate Method Badges
+Date: October 13, 2026
+
+- Method circles appear to the right of Planned Ask links, outside the clickable reference label.
+
 ## Version 4.13.0 — DIBCAC Walkthrough Guide and Method Badges
 Date: October 13, 2026
 
