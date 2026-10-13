@@ -2127,6 +2127,12 @@
   white-space: nowrap;
 }
 
+.dibcac-checklist-objective-with-methods {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .dibcac-checklist-obj-statement {
   color: color-mix(in srgb, var(--color-text) 78%, var(--color-text-muted));
   line-height: 1.4;

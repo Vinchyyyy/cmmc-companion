@@ -1,3 +1,9 @@
+## Version 4.13.2 — Checklist Objective Method Badges
+Date: October 13, 2026
+
+- Each mapped checklist objective shows its own method circles beside its ID, distinguishing document, artifact, screen share, physical review, and variable methods.
+- The Instructions guide explains individual checklist badges versus the combined Planned Ask badges.
+
 ## Version 4.13.1 — Separate Method Badges
 Date: October 13, 2026
 

@@ -17,6 +17,10 @@ function Changelog() {
       </p>
 
       <details open>
+        <ReleaseSummary version="v4.13.2" title="Checklist Objective Method Badges" date="October 13, 2026" />
+        <ul><li>Each checklist objective now shows its own method circles beside the objective ID.</li></ul>
+      </details>
+      <details>
         <ReleaseSummary version="v4.13.1" title="Separate Method Badges" date="October 13, 2026" />
         <ul><li>Method circles now sit to the right of each Planned Ask link, outside the clickable label.</li></ul>
       </details>

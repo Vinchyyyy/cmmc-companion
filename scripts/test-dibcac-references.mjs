@@ -33,6 +33,9 @@ const groups = Array.from({ length: 12 }, (_, groupIndex) => ({
 const canonical = withCanonicalGroupOrder(groups)
 // Method hints come from attached objectives, including mixed and combined methods.
 assert.deepEqual(checklistAssessmentMethods(['CM.L2-3.4.1[a]', 'CM.L2-3.4.1[b]', 'CM.L2-3.4.6[b]', 'CM.L2-3.4.1[a]']), ['document', 'artifact', 'screen_share'])
+// Individual objective hints must stay distinct beneath a mixed-method item.
+assert.deepEqual(checklistAssessmentMethods(['CM.L2-3.4.1[a]']), ['document'])
+assert.deepEqual(checklistAssessmentMethods(['CM.L2-3.4.1[b]']), ['artifact'])
 assert.deepEqual(checklistAssessmentMethods(['SC.L2-3.13.11[a]']), ['artifact', 'screen_share'])
 assert.deepEqual(checklistAssessmentMethods(['PE.L1-3.10.1[b]']), ['physical_review'])
 assert.deepEqual(checklistAssessmentMethods(['MA.L2-3.7.1[a]']), ['unknown'])

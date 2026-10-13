@@ -43,6 +43,7 @@ import { reconcileChecklistInterviewNotes, removeGroupChecklistInterviewNotes, s
 import {
   buildChecklistReferenceIndex,
   buildChecklistReferenceMap,
+  checklistAssessmentMethods,
   buildGroupNumberMap,
   checklistItemDomId,
   numberChecklistEntries,
@@ -2111,7 +2112,10 @@ function SavedGroupCard({
                           const details = objectiveDetailsFor(key)
                           return (
                             <li key={key} className="dibcac-checklist-obj-item">
-                              <span className="dibcac-checklist-obj-ref mono">{details.reference}</span>
+                              <span className="dibcac-checklist-objective-with-methods">
+                                <span className="dibcac-checklist-obj-ref mono">{details.reference}</span>
+                                <span className="dibcac-reference-methods"><ReferenceMethodBadges methods={checklistAssessmentMethods([key])} /></span>
+                              </span>
                               <span className="dibcac-checklist-obj-statement">{details.statement}</span>
                               {details.overallComments && (
                                 <span className="dibcac-checklist-obj-comment"><strong>Overall:</strong> {details.overallComments}</span>

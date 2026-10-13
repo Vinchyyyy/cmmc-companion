@@ -68,7 +68,7 @@ export default function DibcacInstructionsModal({ onClose }) {
                 ['unknown', 'V', 'Variable'],
               ].map(([method, letter, label]) => <span key={method}><span className={`dibcac-reference-method dibcac-chip--${method}`} aria-hidden="true">{letter}</span> {label}</span>)}
             </div>
-            <p>Badges come from the linked item's objective methods. Several badges mean several methods; Variable means no fixed method. Use these cues to request the document, artifact, screen share, or physical review you need.</p>
+            <p>Planned Ask badges summarize the linked item's objective methods. In the checklist, badges beside each objective show that objective's own method. Several badges mean several methods; Variable means no fixed method. Use these cues to request the document, artifact, screen share, or physical review you need.</p>
           </section>
           <section>
             <h3>6. Review and save</h3>
