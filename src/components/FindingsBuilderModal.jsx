@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import useFocusTrap from './useFocusTrap'
 import InterviewRolePickerModal from './InterviewRolePickerModal'
 import { buildFinalText, buildObjectiveValidationStatement } from '../utils/findingStatementBuilder'
+import { getDiscrepancyHelper } from '../utils/discrepancyHelper'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -12,7 +13,7 @@ function resolveInitialIncluded(existingFinding, assignedArtifacts) {
     const assignedSet = new Set(assignedArtifacts)
     const saved = existingFinding.includedArtifacts.filter((a) => assignedSet.has(a))
     // If none of the saved ones are still assigned, fall back to all assigned.
-    return saved.length > 0 ? saved : [...assignedArtifacts]
+    return saved
   }
   return [...assignedArtifacts]
 }
@@ -47,10 +48,17 @@ export default function FindingsBuilderModal({
     () => resolveInitialIncluded(existingFinding, assignedArtifacts)
   )
   const [hasDifferences] = useState(existingFinding?.hasDifferences ?? false)
-  const [differencesText, setDifferencesText] = useState(existingFinding?.differencesText ?? '')
+  const [differencesText, setDifferencesText] = useState(() => {
+    const saved = existingFinding?.differencesText ?? ''
+    const initialHelper = getDiscrepancyHelper(obj.text)
+    return saved.trim() || !isNotMet || !initialHelper.autoDraft ? saved : initialHelper.statement
+  })
   const [validationError, setValidationError] = useState('')
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [showRolePicker, setShowRolePicker] = useState(false)
+  const [selectedComponents, setSelectedComponents] = useState(existingFinding?.helperComponents ?? [])
+  const helper = useMemo(() => getDiscrepancyHelper(obj.text), [obj.text])
+  const customAddendum = existingFinding?.finalText?.match(/\nD\) (?!Differences:)[\s\S]*/)?.[0] ?? ''
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape' && !showRolePicker) onClose() }
@@ -73,7 +81,7 @@ export default function FindingsBuilderModal({
     hasDifferences,
     differencesText,
     statusContext,
-  }), [roles, includedArtifacts, objectiveRef, obj.text, dibcacStd, hasDifferences, differencesText, statusContext])
+  }) + customAddendum, [roles, includedArtifacts, objectiveRef, obj.text, dibcacStd, hasDifferences, differencesText, statusContext, customAddendum])
 
   const validationSentence = useMemo(
     () => buildObjectiveValidationStatement({ objectiveRef, objectiveText: obj.text, dibcacMethod: dibcacStd?.standard, statusContext }),
@@ -99,12 +107,16 @@ export default function FindingsBuilderModal({
     }
     setValidationError('')
     onSave({
+      ...existingFinding,
       includedArtifacts,
       syncedAssignedArtifacts: [...assignedArtifacts],
       syncedInterviewRoles: [...roles],
       hasDifferences: isNotMet || hasDifferences,
       differencesText,
+      helperComponents: selectedComponents,
       finalText,
+      statusContext,
+      autoCreatedFromNotMet: isNotMet,
       updatedAt: new Date().toISOString(),
     })
   }
@@ -235,15 +247,31 @@ export default function FindingsBuilderModal({
               <div className="cd-findings-generated-line">{validationSentence}</div>
             </div>
 
-            <div className="cd-findings-field">
+            {!isNotMet && <div className="cd-findings-field">
               <span className="cd-findings-field-label">C) Assessment Summary</span>
               <div className="cd-findings-generated-line">{isNotMet ? 'Full implementation of this objective was not confirmed.' : statusContext === 'MET' ? 'No noted findings or differences.' : 'Assessment is incomplete; full implementation has not been confirmed.'}</div>
-            </div>
+            </div>}
             {(isNotMet || hasDifferences) && <div className="cd-findings-field">
-              <label className="cd-findings-field-label" htmlFor="fb-differences">{isNotMet ? 'D) Discrepancies / Differences for the OSC (required)' : 'C) Existing differences'}</label>
+              <label className="cd-findings-field-label" htmlFor="fb-differences">C) Discrepancies / Differences {isNotMet ? '(required)' : ''}</label>
+              {isNotMet && <div className="cd-discrepancy-helper">
+                <strong>Statement helper</strong>
+                <p className="cd-findings-field-note">{helper.components.length ? 'Select the missing components to build a statement.' : helper.autoDraft ? 'The discrepancy is drafted automatically. Edit it below as needed.' : 'Use the suggested statement or enter your own below.'} Review the wording against your evidence.</p>
+                {helper.components.length ? <div className="cd-findings-artifact-chips">
+                  {helper.components.map((component) => <label key={component} className="cd-discrepancy-choice">
+                    <input type="checkbox" checked={selectedComponents.includes(component)} onChange={(event) => {
+                      const next = event.target.checked ? [...selectedComponents, component] : selectedComponents.filter((item) => item !== component)
+                      setSelectedComponents(next)
+                      setDifferencesText(helper.build(next))
+                      setValidationError('')
+                    }} /> {component}
+                  </label>)}
+                </div> : !helper.autoDraft && <button type="button" className="cd-edit-btn-secondary" onClick={() => { setDifferencesText(helper.statement); setValidationError('') }}>Use statement: {helper.statement}</button>}
+                <button type="button" className="cd-findings-manage-roles-btn" onClick={() => { setSelectedComponents([]); document.getElementById('fb-differences')?.focus() }}>Enter your own / edit statement</button>
+              </div>}
               <textarea id="fb-differences" className="cd-edit-textarea" rows={4} value={differencesText}
-                onChange={(e) => { setDifferencesText(e.target.value); setValidationError('') }}
-                placeholder="Describe the discrepancy and what the OSC needs to address…" />
+                onChange={(e) => { setDifferencesText(e.target.value); setSelectedComponents([]); setValidationError('') }}
+                placeholder="Describe the observed discrepancy and why the evidence did not satisfy this objective…" />
+
             </div>}
             {validationError && <p className="cd-findings-validation-error" role="alert">{validationError}</p>}
 
@@ -254,6 +282,7 @@ export default function FindingsBuilderModal({
             </div>
 
             {/* ── Clear Finding ── */}
+            {existingFinding?.previousFinding?.finalText && <details className="cd-findings-field"><summary>Previous finding preserved</summary><pre className="cd-findings-preview-text">{existingFinding.previousFinding.finalText}</pre></details>}
             {existingFinding && (
               <div className="cd-findings-danger-zone">
                 {showClearConfirm ? (

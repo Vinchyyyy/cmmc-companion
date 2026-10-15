@@ -5,6 +5,8 @@ import App from './App.jsx'
 import { runArtifactRegistryMigration } from './utils/artifactMigration'
 import './styles.css'
 import { synchronizeAllFindings } from './utils/findingSynchronization.js'
+import controls from './data/controls/index.js'
+import { upgradeExistingNotMetFindings } from './utils/findingWorkflowMigration.js'
 
 // Promote artifact storage from name strings to artifact-id references before the
 // app renders. Self-healing reads mean a failed/late migration is non-fatal, so
@@ -18,6 +20,7 @@ try {
   console.error('Artifact registry migration threw:', err)
 }
 
+try { upgradeExistingNotMetFindings(controls) } catch (error) { console.error('Finding workflow upgrade failed:', error) }
 try { synchronizeAllFindings() } catch (error) { console.error('Finding synchronization failed:', error) }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

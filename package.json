@@ -1,9 +1,11 @@
 {
   "name": "cmmc-companion",
   "private": true,
-  "version": "4.13.2",
+  "version": "4.14.0",
   "type": "module",
   "scripts": {
+    "test:finding-export": "node scripts/test-finding-export-roundtrip.mjs",
+    "test:not-met-findings": "node scripts/test-not-met-findings.mjs",
     "test:finding-sync": "node scripts/test-finding-synchronization.mjs",
     "test:assessment-workflows": "node scripts/test-assessment-workflows.mjs",
     "test:dibcac-plan-import": "node scripts/test-dibcac-plan-import.mjs",
@@ -22,7 +24,8 @@
     "test:paste-formatting": "node scripts/test-paste-formatting.mjs",
     "test:replace-restore": "node scripts/test-replace-restore.mjs",
     "test:priority-fixes": "node scripts/test-priority-fixes.mjs",
-    "validate": "node scripts/validate-data.cjs"
+    "validate": "node scripts/validate-data.cjs",
+    "test:finding-upgrade": "node scripts/test-finding-workflow-migration.mjs"
   },
   "dependencies": {
     "jszip": "^3.10.1",

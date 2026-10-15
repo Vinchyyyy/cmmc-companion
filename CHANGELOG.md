@@ -1,3 +1,13 @@
+## Version 4.14.0 — Objective Findings Workflow
+Date: October 15, 2026
+
+- NOT MET findings use the same A–C structure as MET, with the assessment conclusion in B and discrepancies in C.
+- Selecting NOT MET automatically drafts binary discrepancies. Multipart objectives offer component selection and editable wording.
+- Existing NOT MET objectives receive the new workflow on refresh. Preserves discrepancies, evidence exclusions, notes, custom narrative, and prior statements; repeated refreshes are idempotent.
+- Artifact and interview references remain synchronized with findings. Discrepancies remain specific to each objective.
+- Excel re-import restores editable discrepancies and preserves deliberately excluded reviewed evidence. Export review flags incomplete NOT MET findings.
+- Added existing-data upgrade and mixed-result Excel/JSON round-trip regression checks.
+
 ## Version 4.13.2 — Checklist Objective Method Badges
 Date: October 13, 2026
 

@@ -33,7 +33,7 @@ import {
   assignGroupToFolder,
 } from '../utils/reviewGroups'
 import { readObjectiveFinding, writeObjectiveFinding } from '../utils/objectiveFindings'
-import { ensureMetObjectiveFinding } from '../utils/autoObjectiveFinding'
+import { ensureMetObjectiveFinding, ensureNotMetObjectiveFinding } from '../utils/autoObjectiveFinding'
 import { readObjectiveInterviewedRoles } from '../utils/objectiveInterviewedRoles'
 import { getObjectiveWarnings } from '../utils/objectiveWarnings'
 import FixInterviewDetailsModal from '../components/FixInterviewDetailsModal'
@@ -1957,6 +1957,10 @@ function SavedGroupCard({
       const objective = control?.objectives?.find((item) => item.id === objId)
       ensureMetObjectiveFinding(control, objective, { replaceNonstandard: true })
     }
+    if (next === OBJECTIVE_STATUS_NOT_MET) {
+      const control = CONTROL_BY_ID.get(controlId)
+      ensureNotMetObjectiveFinding(control, control?.objectives?.find((item) => item.id === objId))
+    }
     syncControlStatusFromObjectives(CONTROL_BY_ID.get(controlId))
     forceUpdate((n) => n + 1)
   }, [])
@@ -2279,6 +2283,7 @@ function SavedGroupCard({
                       </div>
                       <div className="dibcac-group-card-obj-actions">
                         <MethodChip standard={o.standard} />
+                        {status === OBJECTIVE_STATUS_NOT_MET && !readObjectiveFinding(o.controlId, objId)?.differencesText?.trim() && <Link className="cd-discrepancy-required" to={`/controls/${o.controlId}#objective-${objId}`}>Discrepancy required — Add discrepancy [{objId}]</Link>}
                         <button
                           type="button"
                           className={`dibcac-status-cycle-btn dibcac-status-cycle-btn--${status === OBJECTIVE_STATUS_MET ? 'met' : status === OBJECTIVE_STATUS_NOT_MET ? 'not-met' : 'unreviewed'}`}

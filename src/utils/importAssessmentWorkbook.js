@@ -41,10 +41,10 @@ import {
 } from './objectiveStatus'
 import { readStatus, writeStatus, DEFAULT_STATUS } from './status'
 import { objectiveResultHasWork, objectiveResultIsEmpty, readObjectiveResult, writeObjectiveResult } from './objectiveResults'
-import { readObjectiveFinding, writeObjectiveFinding } from './objectiveFindings'
+import { readObjectiveFinding, writeObjectiveFinding, parseFindingFields } from './objectiveFindings'
 import { ensureMetObjectiveFinding } from './autoObjectiveFinding.js'
 import { readOscProfile, writeOscProfile, STANDARDS_ACCEPTANCE_VALUES } from './oscProfile.js'
-import { readObjectiveArtifactIds, writeObjectiveArtifactIds } from './objectiveArtifacts'
+import { readObjectiveArtifacts, readObjectiveArtifactIds, writeObjectiveArtifactIds } from './objectiveArtifacts'
 import { findOrCreate, findByName } from './artifactRegistry'
 
 // ---------------------------------------------------------------------------
@@ -1038,24 +1038,6 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
         }
       }
 
-      // Findings — preserve finalText as the source of truth
-      if (objEntry.findings) {
-        if (isNew || readObjectiveFinding(controlId, objId) === null) {
-          writeObjectiveFinding(controlId, objId, {
-            finalText:            objEntry.findings,
-            importedFromWorkbook: true,
-            updatedAt:            new Date().toISOString(),
-            interviewedRoles:     [],
-            includedArtifacts:    [],
-            hasDifferences:       false,
-            differencesText:      '',
-          })
-          summary.findingsWritten++
-          importedFindings.add(`${controlId}[${objId}]`)
-          contentAppliedThisControl = true
-        }
-      }
-
       // Objective artifacts — map display names → registry IDs
       if (objEntry.artifacts.length > 0) {
         if (isNew || readObjectiveArtifactIds(controlId, objId).length === 0) {
@@ -1069,6 +1051,27 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
           }
         }
       }
+      // Apply findings after assignments so import does not re-add artifacts
+      // deliberately excluded from A) Reviewed. Preserve the visible statement
+      // and restore the editable discrepancy independently of any D) addendum.
+      if (objEntry.findings) {
+        if (isNew || readObjectiveFinding(controlId, objId) === null) {
+          const status = readObjectiveStatus(controlId, objId)
+          writeObjectiveFinding(controlId, objId, {
+            finalText: objEntry.findings,
+            importedFromWorkbook: true,
+            updatedAt: new Date().toISOString(),
+            interviewedRoles: [],
+            ...parseFindingFields(objEntry.findings),
+            syncedAssignedArtifacts: readObjectiveArtifacts(controlId, objId),
+            statusContext: status === 'NOT MET' ? 'NOT_MET' : status === 'MET' ? 'MET' : 'UNREVIEWED',
+          })
+          summary.findingsWritten++
+          importedFindings.add(`${controlId}[${objId}]`)
+          contentAppliedThisControl = true
+        }
+      }
+
     }
 
     // Derive and write control-level status so dashboard shows In Progress

@@ -17,6 +17,14 @@ function Changelog() {
       </p>
 
       <details open>
+        <ReleaseSummary version="v4.14.0" title="Objective Findings Workflow" date="October 15, 2026" />
+        <ul>
+          <li>NOT MET findings use A–C with automatic binary discrepancies and a component chooser for multipart objectives.</li>
+          <li>Existing NOT MET objectives upgrade on refresh while preserving saved discrepancies, evidence, notes, and history.</li>
+          <li>Excel re-import preserves editable discrepancies and reviewed evidence choices; export review flags incomplete findings.</li>
+        </ul>
+      </details>
+      <details>
         <ReleaseSummary version="v4.13.2" title="Checklist Objective Method Badges" date="October 13, 2026" />
         <ul><li>Each checklist objective now shows its own method circles beside the objective ID.</li></ul>
       </details>

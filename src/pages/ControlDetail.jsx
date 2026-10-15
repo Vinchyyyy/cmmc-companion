@@ -57,7 +57,7 @@ import {
   writeObjectiveFinding,
   clearObjectiveFinding,
 } from '../utils/objectiveFindings'
-import { ensureMetObjectiveFinding } from '../utils/autoObjectiveFinding'
+import { ensureMetObjectiveFinding, ensureNotMetObjectiveFinding } from '../utils/autoObjectiveFinding'
 import {
   readObjectiveInterviewedRoles,
   writeObjectiveInterviewedRoles,
@@ -1168,6 +1168,11 @@ function ControlDetailView() {
       const createdFinding = ensureMetObjectiveFinding(control, objective, { replaceNonstandard: true })
       if (createdFinding) setObjectiveFindings((prev) => ({ ...prev, [objId]: createdFinding }))
     }
+    if (value === OBJECTIVE_STATUS_NOT_MET && previousValue !== OBJECTIVE_STATUS_NOT_MET) {
+      const objective = control?.objectives?.find((item) => item.id === objId)
+      const finding = ensureNotMetObjectiveFinding(control, objective)
+      if (finding) setObjectiveFindings((prev) => ({ ...prev, [objId]: finding }))
+    }
     if (value !== OBJECTIVE_STATUS_UNREVIEWED) promoteToInProgress(status, id, setStatus)
     syncStatusToTrending(next)
   }
@@ -1796,7 +1801,7 @@ function ControlDetailView() {
                     <span className="cd-obj-pills-label">Findings</span>
                     <div className="cd-obj-findings-row">
                       {objectiveFindings[selectedObj.id] && (
-                        <button type="button" className="cd-findings-drafted-chip" onClick={() => setFindingPreview({ finding: objectiveFindings[selectedObj.id], objectiveRef: `${id}[${selectedObj.id}]` })}>Finding Drafted</button>
+                        <button type="button" className="cd-findings-drafted-chip" onClick={() => setFindingPreview({ objectiveId: selectedObj.id, objectiveRef: `${id}[${selectedObj.id}]` })}>{objectiveStatuses[selectedObj.id] === 'NOT MET' && !objectiveFindings[selectedObj.id]?.differencesText?.trim() ? 'Draft — incomplete' : 'Finding Drafted'}</button>
                       )}
                       <button
                         type="button"
@@ -1806,6 +1811,7 @@ function ControlDetailView() {
                         {objectiveFindings[selectedObj.id] ? 'Edit Finding' : 'Create Finding'}
                       </button>
                     </div>
+                    {objectiveStatuses[selectedObj.id] === 'NOT MET' && !objectiveFindings[selectedObj.id]?.differencesText?.trim() && <button type="button" className="cd-discrepancy-required" onClick={() => setShowFindingsModal(true)}>Discrepancy required — Add discrepancy</button>}
                   </div>
                 </div>
               </div>
@@ -2077,7 +2083,7 @@ function ControlDetailView() {
         />
       )}
 
-      {findingPreview && <FindingPreviewModal {...findingPreview} onClose={() => setFindingPreview(null)} />}
+      {findingPreview && <FindingPreviewModal {...findingPreview} finding={objectiveFindings[findingPreview.objectiveId] ?? {}} onClose={() => setFindingPreview(null)} />}
       {showFindingsModal && selectedObj && (
         <FindingsBuilderModal
           controlId={control.id}

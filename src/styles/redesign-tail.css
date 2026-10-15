@@ -1257,3 +1257,26 @@
 .export-warning-body li { margin-bottom: .6rem; }
 .export-warning-refs { margin-top: .25rem; font-size: .85em; overflow-wrap: anywhere; }
 .export-warning-refs > summary { cursor: pointer; }
+/* Objective discrepancies: visible draft state and low-friction statement helper. */
+.cd-discrepancy-required {
+  display: block;
+  margin-top: 8px;
+  padding: 10px 14px;
+  border: 1px solid #dc6666;
+  border-radius: 8px;
+  background: #fff0f0;
+  color: #9c2020;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.cd-discrepancy-required:focus-visible { outline: 3px solid #b42318; outline-offset: 3px; }
+.cd-discrepancy-helper {
+  margin: 10px 0;
+  padding: 12px;
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 8px;
+}
+.cd-discrepancy-choice { display: flex; align-items: baseline; gap: 8px; padding: 6px 8px; cursor: pointer; }
+.cd-discrepancy-choice input { flex-shrink: 0; }

@@ -46,7 +46,7 @@ assert.deepEqual(readObjectiveFinding(control.id, objective.id), created, 'creat
 const { buildFinalText } = await vite.ssrLoadModule('/src/utils/findingStatementBuilder.js')
 const { writeObjectiveStatus } = await vite.ssrLoadModule('/src/utils/objectiveStatus.js')
 const notMetText = buildFinalText({ includedArtifacts: ['Policy'], objectiveRef: 'AC.L1-3.1.1[a]', objectiveText: objective.text, statusContext: 'NOT_MET', differencesText: 'Access review missing.\nNotify the OSC.' })
-assert.match(notMetText, /D\) Differences: Access review missing\.\nNotify the OSC\.$/)
+assert.match(notMetText, /C\) Differences: Access review missing\.\nNotify the OSC\.$/)
 assert.doesNotMatch(notMetText, /this objective is implemented/)
 writeObjectiveStatus(control.id, objective.id, 'MET')
 const confirmation = 'Assessment team confirmed in interview, testing, and documentation that this objective is implemented.'

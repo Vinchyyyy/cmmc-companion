@@ -42,6 +42,7 @@ export function buildMethodValidationSentence(dibcacMethod, objectiveText) {
 
 // Full SSP validation line: existing generic sentence + the new method-aware sentence.
 export function buildObjectiveValidationStatement({ objectiveRef, objectiveText, dibcacMethod, statusContext = 'MET' }) {
+  if (statusContext === 'NOT_MET') return `Implementation as described in the corresponding ${objectiveRef} section of the SSP was assessed through examination of documentation, interviews, and testing. The assessment team determined that this objective was not fully satisfied.`
   const methodSentence = buildMethodValidationSentence(dibcacMethod, objectiveText)
   return `Validation is described in the corresponding ${objectiveRef} section of the SSP. ${methodSentence}${statusContext === 'MET' ? ` ${MET_CONFIRMATION}` : ''}`
 }
@@ -57,7 +58,7 @@ export function buildArtifactsLine(artifacts) {
   return `A) Reviewed ${artifactsText ?? '[no artifact references entered]'}`
 }
 
-// MET uses A–C. D is reserved for assessor-entered NOT MET discrepancies.
+// Both results use A–C; discrepancies are assessor-entered or helper-assisted.
 export function buildFinalText({
   roles,
   includedArtifacts,
@@ -79,8 +80,7 @@ export function buildFinalText({
   lines.push(`B) ${buildObjectiveValidationStatement({ objectiveRef, objectiveText, dibcacMethod, statusContext })}`)
 
   if (statusContext === 'NOT_MET') {
-    lines.push('C) Full implementation of this objective was not confirmed.')
-    lines.push(`D) Differences: ${(differencesText ?? '').trim()}`)
+    lines.push(`C) Differences: ${(differencesText ?? '').trim() || '[Discrepancy required]'}`)
   } else if (hasDifferences) {
     lines.push(`C) Differences: ${(differencesText ?? '').trim()}`)
   } else {

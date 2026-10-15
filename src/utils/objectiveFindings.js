@@ -2,7 +2,7 @@
 // Storage key: cmmc-objective-finding-{controlId}-{objectiveId}
 
 import { readObjectiveStatus } from './objectiveStatus.js'
-import { buildArtifactsLine, MET_CONFIRMATION } from './findingStatementBuilder'
+import { buildArtifactsLine, buildObjectiveValidationStatement, MET_CONFIRMATION } from './findingStatementBuilder'
 import { safeSetItem } from './storageWrite.js'
 
 const FINDING_PREFIX = 'cmmc-objective-finding-'
@@ -18,8 +18,17 @@ export function readObjectiveFinding(controlId, objectiveId) {
     if (!raw) return null
     const parsed = JSON.parse(raw)
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
+    // Upgrade only the exact legacy generated NOT MET envelope. Preserve all
+    // assessor discrepancy text and unrelated addenda.
+    if (readObjectiveStatus(controlId, objectiveId) === 'NOT MET' && findingHasManagedSections(parsed) &&
+      /\r?\nC\) Full implementation of this objective was not confirmed\.\r?\nD\) Differences:/.test(parsed.finalText)) {
+      parsed.finalText = parsed.finalText
+        .replace(/^B\) Validation is described in the corresponding [^\r\n]+/m, () => `B) ${buildObjectiveValidationStatement({ objectiveRef: `${controlId}[${objectiveId}]`, statusContext: 'NOT_MET' })}`)
+        .replace(/C\) Full implementation of this objective was not confirmed\.\r?\nD\) Differences:/, 'C) Differences:')
+      parsed.statusContext = 'NOT_MET'
+    }
     // Remove only the old generated confirmation, never assessor-written D text.
-    if (readObjectiveStatus(controlId, objectiveId) === 'MET' && typeof parsed.finalText === 'string') {
+    if (readObjectiveStatus(controlId, objectiveId) === 'MET' && parsed.statusContext !== 'NOT_MET' && typeof parsed.finalText === 'string') {
       if (findingHasManagedSections(parsed)) {
         parsed.finalText = parsed.finalText.replace(/^B\) Validation is described in the corresponding [^\r\n]+/m, (line) => line.includes(MET_CONFIRMATION) ? line : `${line} ${MET_CONFIRMATION}`)
       }
@@ -56,6 +65,17 @@ function sameArtifacts(a, b) {
 // Only recognize the managed envelope; never reconstruct B/C/D or freeform prose.
 export function findingHasManagedSections(finding) {
   return typeof finding?.finalText === 'string' && /^(?:Interviewed:[^\r\n]*\r?\n\s*)?A\) Reviewed [^\r\n]*\r?\nB\) [\s\S]*\r?\nC\) [\s\S]+$/.test(finding.finalText)
+}
+
+// Excel stores the visible finding, so rebuild its editable fields on import.
+// Parse only our managed envelope; keep freeform assessor text unchanged.
+export function parseFindingFields(finalText) {
+  if (!findingHasManagedSections({ finalText })) return { includedArtifacts: [], hasDifferences: false, differencesText: '' }
+  const reviewed = finalText.match(/^A\) Reviewed ([^\r\n]*)/m)?.[1] ?? ''
+  const includedArtifacts = reviewed === '[no artifact references entered]' ? [] : reviewed.split(';').map((item) => item.trim()).filter(Boolean)
+  const match = /^(?:C|D)\) Differences:[ \t]*/m.exec(finalText)
+  const text = match ? finalText.slice(match.index + match[0].length).split(/\r?\n[A-Z]\) /)[0].trim() : ''
+  return { includedArtifacts, hasDifferences: !!match, differencesText: text === '[Discrepancy required]' ? '' : text }
 }
 
 export function syncObjectiveFindingRoles(controlId, objectiveId, roles, previousRoles = []) {

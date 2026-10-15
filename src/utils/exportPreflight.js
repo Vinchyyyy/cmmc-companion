@@ -1,5 +1,5 @@
 import { readObjectiveStatus } from './objectiveStatus.js'
-import { readObjectiveFinding } from './objectiveFindings.js'
+import { readObjectiveFinding, parseFindingFields } from './objectiveFindings.js'
 import { readObjectiveArtifacts } from './objectiveArtifacts.js'
 import { readPool } from './evidencePool.js'
 import { findByName } from './artifactRegistry.js'
@@ -46,7 +46,15 @@ export function collectExportWarnings(controls) {
       for (const [field, value] of Object.entries(fields)) if (value.length > 4000) {
         warnings.push({ kind: 'length', ref, text: `${field} has ${value.length} characters. The workbook exporter will shorten it to 4,000 characters; the full text remains in the project JSON.`, href })
       }
-      if (readObjectiveStatus(control.id, objective.id) !== 'MET') continue
+      const status = readObjectiveStatus(control.id, objective.id)
+      if (status === 'NOT MET') {
+        const finding = readObjectiveFinding(control.id, objective.id)
+        if (!finding?.finalText?.trim()) warnings.push({ kind: 'missingFinding', ref, text: 'Objective is NOT MET but has no drafted finding.', href })
+        else if (!finding.differencesText?.trim() && !parseFindingFields(finding.finalText).differencesText) {
+          warnings.push({ kind: 'missingDiscrepancy', ref, text: 'Objective is NOT MET but its discrepancy has not been entered. The finding is incomplete.', href })
+        }
+      }
+      if (status !== 'MET') continue
       if (!readObjectiveFinding(control.id, objective.id)?.finalText?.trim()) {
         warnings.push({ kind: 'missingFinding', ref, text: 'Objective is MET but has no drafted finding.', href })
       }
@@ -64,7 +72,8 @@ const WARNING_CATEGORIES = {
   examine: { title: 'Missing examine notes', description: 'These MET objectives have no examine notes.' },
   interview: { title: 'Missing interview comments', description: 'These MET objectives require interview comments.' },
   roles: { title: 'Missing interviewed roles', description: 'These MET objectives require an interviewed role.' },
-  missingFinding: { title: 'Missing findings', description: 'These MET objectives have no drafted finding.' },
+  missingFinding: { title: 'Missing findings', description: 'These assessed objectives have no drafted finding.' },
+  missingDiscrepancy: { title: 'Incomplete NOT MET findings', description: 'These NOT MET objectives still need a discrepancy.' },
   artifacts: { title: 'Missing objective artifacts', description: 'These MET objectives have no assigned artifacts.' },
   untagged: { title: 'Evidence missing tags', description: 'These artifacts have no evidence tags.' },
   missingProvider: { title: 'Missing inheritance providers', description: 'Inheritance is enabled for these controls, but no provider is selected.' },
