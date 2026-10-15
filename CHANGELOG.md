@@ -1,3 +1,10 @@
+## Version 4.14.1 — Apply Evidence Pool Across a Family
+Date: October 15, 2026
+
+- Added Apply to Entire Control beside Apply to All Objectives in the Evidence Pool.
+- Copies the current pool to every control and objective in the same family (for example, all 22 AC controls and 70 objectives).
+- Preserves existing evidence, assessment results, and discrepancies; updates findings and skips duplicate assignments.
+
 ## Version 4.14.0 — Objective Findings Workflow
 Date: October 15, 2026
 

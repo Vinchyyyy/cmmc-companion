@@ -1256,6 +1256,8 @@
   flex-wrap: wrap;
 }
 
+.cd-pool-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
 .cd-pool-apply-all-btn {
   flex-shrink: 0;
   font-size: var(--text-xs);

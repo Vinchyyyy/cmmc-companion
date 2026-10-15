@@ -17,6 +17,10 @@ function Changelog() {
       </p>
 
       <details open>
+        <ReleaseSummary version="v4.14.1" title="Apply Evidence Pool Across a Family" date="October 15, 2026" />
+        <ul><li>Apply to Entire Control copies the current Evidence Pool across all controls and objectives in the same family, preserving existing evidence and assessment results.</li></ul>
+      </details>
+      <details>
         <ReleaseSummary version="v4.14.0" title="Objective Findings Workflow" date="October 15, 2026" />
         <ul>
           <li>NOT MET findings use A–C with automatic binary discrepancies and a component chooser for multipart objectives.</li>

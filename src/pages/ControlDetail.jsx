@@ -42,6 +42,7 @@ import {
 } from '../utils/inheritance'
 import { readAssignedTo, writeAssignedTo, normalizeAssignee } from '../utils/assignment'
 import { readPool, writePool } from '../utils/evidencePool'
+import { applyEvidencePoolToFamily } from '../utils/familyEvidencePool.js'
 import { readObjectiveArtifacts, writeObjectiveArtifacts } from '../utils/objectiveArtifacts'
 import { buildArtifactIndex } from '../utils/artifactIndex.js'
 import { findByName, findOrCreate } from '../utils/artifactRegistry.js'
@@ -1024,6 +1025,7 @@ function ControlDetailView() {
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [pool, setPool]               = useState(() => readPool(id))
   const [poolInput, setPoolInput]     = useState('')
+  const [familyPoolResult, setFamilyPoolResult] = useState(null)
   const [objectiveStatuses, setObjectiveStatuses]         = useState(() => loadObjectiveStatuses(id, control))
   const [objectiveArtifacts, setObjectiveArtifacts]       = useState(() => loadObjectiveArtifacts(id, control))
   const [objectiveResults, setObjectiveResults]           = useState(() => loadObjectiveResults(id, control))
@@ -1325,6 +1327,14 @@ function ControlDetailView() {
     promoteToInProgress(status, id, setStatus)
   }
 
+  const handleApplyPoolToFamily = () => {
+    const result = applyEvidencePoolToFamily(controls, id)
+    setObjectiveArtifacts(loadObjectiveArtifacts(id, control))
+    setObjectiveFindings(loadObjectiveFindings(id, control))
+    setStatus(readStatus(id))
+    setFamilyPoolResult(result)
+  }
+
   const getObjSuggestions = (objId) => {
     const input = (objArtifactInputs[objId] ?? '').trim()
     if (!input) return []
@@ -1545,7 +1555,7 @@ function ControlDetailView() {
               <label htmlFor="pool-input">
                 <strong>Evidence Pool{pool.length > 0 ? ` (${pool.length})` : ''}</strong>
               </label>
-              {pool.length > 0 && (
+              {pool.length > 0 && (<div className="cd-pool-actions">
                 <button
                   type="button"
                   className="cd-pool-apply-all-btn"
@@ -1554,8 +1564,13 @@ function ControlDetailView() {
                 >
                   Apply to All Objectives
                 </button>
-              )}
+                <button type="button" className="cd-pool-apply-all-btn" onClick={handleApplyPoolToFamily}
+                  title={`Add this pool to every control and objective in the ${id.split('.')[0]} family. Existing evidence and assessment results are preserved.`}>
+                  Apply to Entire Control
+                </button>
+              </div>)}
             </div>
+            {familyPoolResult && <p className="muted" role="status" style={{ fontSize: 'var(--text-xs)' }}>Applied {familyPoolResult.artifacts} artifact{familyPoolResult.artifacts === 1 ? '' : 's'} across all {familyPoolResult.controls} {id.split('.')[0]} controls and {familyPoolResult.objectives} objectives.</p>}
             <p className="muted" style={{ fontSize: 'var(--text-xs)', margin: 'var(--space-1) 0 var(--space-2)' }}>
               Artifact names only — no file contents, no sensitive data. Examples: SSP.pdf, RBAC Policy.docx
             </p>
