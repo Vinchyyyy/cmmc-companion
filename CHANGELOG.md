@@ -1,3 +1,10 @@
+## Version 4.14.2 — Assessment Date Calendar
+Date: October 15, 2026
+
+- Date Assessed opens a mini calendar with clickable days, month/year selectors, and a Today shortcut.
+- Reopens at the saved date when selected controls share the same date; supports clearing and retains the existing Excel/JSON date format.
+- Calendar remains scrollable on smaller screens and returns focus after selection or Escape.
+
 ## Version 4.14.1 — Apply Evidence Pool Across a Family
 Date: October 15, 2026
 

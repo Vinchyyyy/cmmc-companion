@@ -17,6 +17,10 @@ function Changelog() {
       </p>
 
       <details open>
+        <ReleaseSummary version="v4.14.2" title="Assessment Date Calendar" date="October 15, 2026" />
+        <ul><li>Choose Date Assessed from a mini calendar with month/year selectors and a Today shortcut. Saved dates, clearing, and Excel/JSON exports retain their existing behavior.</li></ul>
+      </details>
+      <details>
         <ReleaseSummary version="v4.14.1" title="Apply Evidence Pool Across a Family" date="October 15, 2026" />
         <ul><li>Apply to Entire Control copies the current Evidence Pool across all controls and objectives in the same family, preserving existing evidence and assessment results.</li></ul>
       </details>

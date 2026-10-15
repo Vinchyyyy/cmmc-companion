@@ -49,6 +49,7 @@ import BulkFindingsModal from '../components/BulkFindingsModal'
 import { DIBCAC_STANDARDS, getDibcacStandard } from '../data/dibcacAssessmentStandards'
 import { findOscProvider, formatProviderReference, readOscProfile, writeOscProfile, ensureOscProvider, STANDARDS_ACCEPTANCE_VALUES } from '../utils/oscProfile'
 import { formatDateAssessed, readDateAssessed, writeDateAssessed } from '../utils/dateAssessed'
+import AssessmentDatePicker from '../components/AssessmentDatePicker.jsx'
 
 // 'variable' covers objectives with no fixed DIBCAC standard mapping (getDibcacStandard returns null).
 const DIBCAC_FILTER_VALUES = [...DIBCAC_STANDARDS, { value: 'variable', label: 'Variable' }]
@@ -1035,7 +1036,10 @@ function ControlLibrary() {
             <button onClick={() => setBulkAssignmentModal({ assignedTo: '' })}>
               Set Assignment
             </button>
-            <button onClick={() => setBulkDateAssessedModal({ date: '' })}>
+            <button onClick={() => {
+              const dates = new Set([...selected].map(readDateAssessed))
+              setBulkDateAssessedModal({ date: dates.size === 1 ? [...dates][0] : '' })
+            }}>
               Set Date Assessed
             </button>
             <button
@@ -1578,20 +1582,17 @@ function ControlLibrary() {
 
       {bulkDateAssessedModal && (
         <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="bulk-date-assessed-title">
-          <div className="confirm-dialog">
+          <div className="confirm-dialog assessment-date-dialog">
             <h2 id="bulk-date-assessed-title">Set Date Assessed</h2>
             <p>Set a manually selected assessment date for {selectedCount} control{selectedCount === 1 ? '' : 's'}.</p>
             <div className="control-meta-field" style={{ marginTop: 'var(--space-3)' }}>
               <label htmlFor="bulk-date-assessed-input" style={{ display: 'block', marginBottom: 'var(--space-1)', fontWeight: 600, fontSize: 'var(--text-sm)' }}>
                 Date Assessed
               </label>
-              <input
+              <AssessmentDatePicker
                 id="bulk-date-assessed-input"
-                type="date"
                 value={bulkDateAssessedModal.date}
-                onChange={(e) => setBulkDateAssessedModal({ date: e.target.value })}
-                style={{ width: '100%', boxSizing: 'border-box' }}
-                autoFocus
+                onChange={(date) => setBulkDateAssessedModal({ date })}
               />
               <p style={{ marginTop: 'var(--space-1)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
                 This date is never generated automatically and will populate Date Assessed in the official Excel export.
