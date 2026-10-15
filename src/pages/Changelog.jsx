@@ -17,6 +17,14 @@ function Changelog() {
       </p>
 
       <details open>
+        <ReleaseSummary version="v4.15.0" title="Excel Formatting and Column Selection" date="October 15, 2026" />
+        <ul>
+          <li>Standards Acceptance shows the highest inherited level; provider names are separated with commas.</li>
+          <li>Advanced export options let you leave selected columns blank while retaining the official template layout and your saved project data.</li>
+          <li>Excel re-import preserves the original provider standards mapping.</li>
+        </ul>
+      </details>
+      <details>
         <ReleaseSummary version="v4.14.2" title="Assessment Date Calendar" date="October 15, 2026" />
         <ul><li>Choose Date Assessed from a mini calendar with month/year selectors and a Today shortcut. Saved dates, clearing, and Excel/JSON exports retain their existing behavior.</li></ul>
       </details>

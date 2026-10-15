@@ -103,14 +103,14 @@ try {
   const { workbook } = await excel.buildCmmcTemplateWorkbook(template, controls)
   const originalZip = await JSZip.loadAsync(template)
   for (const [path, entry] of Object.entries(originalZip.files)) {
-    if (entry.dir || path === 'xl/worksheets/sheet3.xml') continue
+    if (entry.dir || path === 'xl/worksheets/sheet3.xml' || path === 'docProps/custom.xml') continue
     assert.deepEqual(await workbook.file(path).async('nodebuffer'), await entry.async('nodebuffer'), `template component unchanged: ${path}`)
   }
   const bytes = await workbook.generateAsync({ type: 'nodebuffer' })
   const parsed = await importer.parseAssessmentWorkbook(bytes, controls)
   assert.equal(parsed.ok, true)
-  assert.equal(parsed.controlData[ac.id].inheritanceSource, 'Example CSP\nExample MSP')
-  assert.equal(parsed.controlData[ac.id].standardsAcceptance, 'FedRAMP High\nDIBCAC High')
+  assert.equal(parsed.controlData[ac.id].inheritanceSource, 'Example CSP, Example MSP')
+  assert.equal(parsed.controlData[ac.id].standardsAcceptance, 'FedRAMP High')
   for (const value of parsed.controlData[ac.id].standardsAcceptance.split('\n')) {
     assert.ok(osc.STANDARDS_ACCEPTANCE_VALUES.includes(value), 'standards contain only allowed labels')
   }

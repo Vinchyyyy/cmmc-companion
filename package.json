@@ -1,7 +1,7 @@
 {
   "name": "cmmc-companion",
   "private": true,
-  "version": "4.14.2",
+  "version": "4.15.0",
   "type": "module",
   "scripts": {
     "test:finding-export": "node scripts/test-finding-export-roundtrip.mjs",
@@ -26,7 +26,8 @@
     "test:priority-fixes": "node scripts/test-priority-fixes.mjs",
     "validate": "node scripts/validate-data.cjs",
     "test:finding-upgrade": "node scripts/test-finding-workflow-migration.mjs",
-    "test:family-evidence": "node scripts/test-family-evidence-pool.mjs"
+    "test:family-evidence": "node scripts/test-family-evidence-pool.mjs",
+    "test:excel-options": "node scripts/test-excel-export-options.mjs"
   },
   "dependencies": {
     "jszip": "^3.10.1",

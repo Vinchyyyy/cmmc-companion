@@ -5,8 +5,8 @@
 //   - Opens the bundled template as a raw ZIP archive.
 //   - Resolves the Requirement Objectives worksheet path via workbook.xml + rels.
 //   - Patches editable cells (D/E/F/G/H/I/J/K/L/M/N/O/P) in place.
-//   - All other ZIP entries (styles, customXml, docMetadata, other sheets, rels, etc.)
-//     are passed through completely untouched.
+//   - Provider mappings are retained in an Excel custom property for re-import.
+//   - Styles, other worksheets, shared strings, and relationships stay untouched.
 //
 // Key rules:
 //  - Columns A, B, C are never touched.
@@ -28,6 +28,7 @@ import { readObjectiveStatus, OBJECTIVE_STATUS_MET, OBJECTIVE_STATUS_NOT_MET } f
 import { getDibcacStandard } from '../data/dibcacAssessmentStandards'
 import { readProviderStandardsAcceptance } from './oscProfile'
 import { dateAssessedToExcelSerial, readDateAssessed } from './dateAssessed'
+import { EXCEL_EXPORT_COLUMNS, highestAcceptanceStandard, formatProviderList } from './excelExportOptions.js'
 
 // ---------------------------------------------------------------------------
 // L1 → L2 prefix normalization
@@ -190,10 +191,8 @@ function buildObjectiveMap(controls) {
   for (const [templateId, ctrl] of companionByTemplateId) {
     const inheritance = readInheritance(ctrl.id)
     const sources     = readInheritanceSources(ctrl.id)
-    const esp         = sources.join('\n')
-    // Keep standards aligned with source lines, without provider names or prefixes.
-    // Blank lines represent providers without an acceptance standard.
-    const standardsAcceptance = sources.map(readProviderStandardsAcceptance).join('\n')
+    const esp         = formatProviderList(sources)
+    const standardsAcceptance = highestAcceptanceStandard(sources.map(readProviderStandardsAcceptance))
     const assessedBy  = readAssignedTo(ctrl.id)
     const dateAssessed = readDateAssessed(ctrl.id)
     const pool        = readPool(ctrl.id)
@@ -333,7 +332,7 @@ function patchMultilineCell(rowContent, addr, value) {
   const m = rowContent.match(cellRe)
   if (!m) return rowContent
   const sMatch = m[1].match(/s="(\d+)"/)
-  return rowContent.replace(cellRe, makeMultilineInlineCell(addr, sMatch?.[1], value))
+  return rowContent.replace(cellRe, () => makeMultilineInlineCell(addr, sMatch?.[1], value))
 }
 
 // Replace a single cell with a numeric value.
@@ -345,7 +344,7 @@ function patchNumericCell(rowContent, addr, value) {
   const m = rowContent.match(cellRe)
   if (!m) return rowContent
   const sMatch = m[1].match(/s="(\d+)"/)
-  return rowContent.replace(cellRe, makeNumericCell(addr, sMatch?.[1], value))
+  return rowContent.replace(cellRe, () => makeNumericCell(addr, sMatch?.[1], value))
 }
 
 // Replace a single cell within a row's inner XML.
@@ -363,7 +362,7 @@ function patchCell(rowContent, addr, value) {
   if (!m) return rowContent
 
   const sMatch = m[1].match(/s="(\d+)"/)
-  return rowContent.replace(cellRe, makeInlineCell(addr, sMatch?.[1], value))
+  return rowContent.replace(cellRe, () => makeInlineCell(addr, sMatch?.[1], value))
 }
 
 // ---------------------------------------------------------------------------
@@ -373,7 +372,7 @@ function patchCell(rowContent, addr, value) {
 // Walks every data row (row ≥ 6), reads the template key from the B column
 // (shared string), looks up field data, and patches editable columns in place.
 // Returns the modified worksheet XML string.
-function patchWorksheetXml(wsXml, sharedStrings, objectiveData, controlData) {
+function patchWorksheetXml(wsXml, sharedStrings, objectiveData, controlData, omittedColumns) {
   return wsXml.replace(
     /<row r="(\d+)"([^>]*)>([\s\S]*?)<\/row>/g,
     (full, rowNum, rowAttrs, rowContent) => {
@@ -426,6 +425,13 @@ function patchWorksheetXml(wsXml, sharedStrings, objectiveData, controlData) {
         content = patchMultilineCell(content, `P${r}`, objDat.findingText)
       }
 
+      for (const { key, column } of EXCEL_EXPORT_COLUMNS) if (omittedColumns.has(key)) {
+        const addr = `${column}${r}`
+        content = content.replace(new RegExp(`<c r="${addr}"([^>]*?)(?:\\s*/>|>[\\s\\S]*?<\\/c>)`), (_, attrs) => {
+          const style = attrs.match(/s="(\d+)"/)?.[1]
+          return `<c r="${addr}"${style ? ` s="${style}"` : ''}/>`
+        })
+      }
       return `<row r="${rowNum}"${rowAttrs}>${content}</row>`
     }
   )
@@ -440,11 +446,11 @@ function patchWorksheetXml(wsXml, sharedStrings, objectiveData, controlData) {
  * ArrayBuffer using JSZip, patches the Requirement Objectives worksheet
  * in place, and returns { workbook: JSZip, warnings }.
  *
- * Nothing outside the Requirement Objectives worksheet XML is modified.
+ * Only the Requirement Objectives worksheet and the provider-mapping custom property are modified.
  *
  * @param {ArrayBuffer} templateBuffer
  * @param {Array}       controls
- * @param {{ selectedFamilyCodes?: string[] }} [options]
+ * @param {{ selectedFamilyCodes?: string[], omittedColumns?: string[] }} [options]
  * @returns {Promise<{ workbook: JSZip, warnings: object }>}
  */
 export async function buildCmmcTemplateWorkbook(templateBuffer, controls, options = {}) {
@@ -486,8 +492,27 @@ export async function buildCmmcTemplateWorkbook(templateBuffer, controls, option
   }
 
   // Patch and store the modified worksheet XML
-  const patchedXml = patchWorksheetXml(wsXml, sharedStrings, objectiveData, controlData)
+  const omittedColumns = new Set(options.omittedColumns ?? [])
+  const patchedXml = patchWorksheetXml(wsXml, sharedStrings, objectiveData, controlData, omittedColumns)
   zip.file(sheetPath, patchedXml)
+
+  // The visible standards cell is a rollup. Standard Excel custom properties
+  // retain the exact provider mapping for a lossless Companion re-import.
+  // Omitted fields are never retained in this metadata.
+  const propertyFile = zip.file('docProps/custom.xml')
+  if (propertyFile) {
+    let xml = await propertyFile.async('string')
+    xml = xml.replace(/<property\b[^>]*name="CMMCCompanionProviderStandards"[^>]*>[\s\S]*?<\/property>/g, '')
+    if (!omittedColumns.has('standardsAcceptance') && !omittedColumns.has('esp')) {
+      const providers = controlsToExport.filter((control) => readInheritance(control.id) !== 'None').map((control) => ({
+        id: control.id,
+        sources: readInheritanceSources(control.id).map((name) => ({ name, standard: readProviderStandardsAcceptance(name) })),
+      }))
+      const pid = Math.max(1, ...[...xml.matchAll(/\bpid="(\d+)"/g)].map((match) => Number(match[1]))) + 1
+      xml = xml.replace('</Properties>', () => `<property fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" pid="${pid}" name="CMMCCompanionProviderStandards"><vt:lpwstr>${escXml(JSON.stringify({ version: 1, providers }))}</vt:lpwstr></property></Properties>`)
+    }
+    zip.file('docProps/custom.xml', xml)
+  }
 
   const warningRows = selectedFamilyCodes == null
     ? allTemplateRows

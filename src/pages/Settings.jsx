@@ -5,6 +5,7 @@ import { createMissingMetFindings } from '../utils/bulkAssessmentActions.js'
 import { Download, Upload, FileSpreadsheet, AlertTriangle, Palette, Check } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
 import controls from '../data/controls/index.js'
+import { EXCEL_EXPORT_COLUMNS } from '../utils/excelExportOptions.js'
 import {
   exportProjectState,
   importProjectState,
@@ -64,15 +65,16 @@ function Settings() {
       osc: meta.osc,
       assessment: meta.assessment,
       selectedFamilyCodes: mode === 'xlsx' ? [...ALL_CONTROL_FAMILY_CODES] : [],
+      omittedColumns: [],
     })
   }
   const closeExportDialog = () => setExportDialog(null)
 
   const confirmExport = async (ignoreWarnings = false) => {
-    const { mode, osc, assessment, selectedFamilyCodes } = exportDialog
+    const { mode, osc, assessment, selectedFamilyCodes, omittedColumns } = exportDialog
     if (mode === 'xlsx' && selectedFamilyCodes.length === 0) return
     if (mode === 'xlsx' && ignoreWarnings !== true) {
-      const warnings = collectExportWarnings(controls.filter((control) => selectedFamilyCodes.includes(control.id.split('.')[0])))
+      const warnings = collectExportWarnings(controls.filter((control) => selectedFamilyCodes.includes(control.id.split('.')[0])), { omittedColumns })
       setExportWarnings(warnings)
       if (warnings.length) return
     }
@@ -88,6 +90,7 @@ function Settings() {
         const buffer = await res.arrayBuffer()
         const { workbook, warnings } = await buildCmmcTemplateWorkbook(buffer, controls, {
           selectedFamilyCodes,
+          omittedColumns,
         })
         const sanitize = (s) => (s ?? '').trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '_')
         const parts = ['CMMC_Companion']
@@ -483,6 +486,7 @@ function Settings() {
                   Advanced Options
                   <span className="export-family-summary-count">
                     {exportDialog.selectedFamilyCodes.length} of {CONTROL_FAMILIES.length} families
+                    {' · '}{EXCEL_EXPORT_COLUMNS.length - exportDialog.omittedColumns.length} of {EXCEL_EXPORT_COLUMNS.length} columns
                   </span>
                 </summary>
                 <div className="advanced-options-body">
@@ -528,6 +532,21 @@ function Settings() {
                       Select at least one control family to export.
                     </p>
                   )}
+                  <h3>Columns to populate</h3>
+                  <p className="advanced-options-hint">Uncheck a column to leave its cells blank. Column headings, formatting, and your saved project data stay in place.</p>
+                  <div className="export-family-actions">
+                    <button type="button" onClick={() => { setExportWarnings(null); setExportDialog((d) => ({ ...d, omittedColumns: [] })) }}>Populate All Columns</button>
+                    <button type="button" onClick={() => { setExportWarnings(null); setExportDialog((d) => ({ ...d, omittedColumns: EXCEL_EXPORT_COLUMNS.map(({ key }) => key) })) }}>Leave All Blank</button>
+                  </div>
+                  <div className="export-family-grid">
+                    {EXCEL_EXPORT_COLUMNS.map(({ key, label }) => <label key={key} className="import-option-row export-family-option">
+                      <input type="checkbox" checked={!exportDialog.omittedColumns.includes(key)} onChange={(event) => {
+                        setExportWarnings(null)
+                        setExportDialog((d) => ({ ...d, omittedColumns: event.target.checked ? d.omittedColumns.filter((item) => item !== key) : [...d.omittedColumns, key] }))
+                      }} />
+                      <span>{label}</span>
+                    </label>)}
+                  </div>
                 </div>
               </details>
             )}

@@ -11,12 +11,14 @@ import { readObjectiveNote } from './objectiveNotes.js'
 import { formatInterviewExport } from './interviewExport.js'
 
 // Read-only checks, scoped to precisely the families being exported.
-export function collectExportWarnings(controls) {
+export function collectExportWarnings(controls, { omittedColumns = [] } = {}) {
+  const included = (key) => !omittedColumns.includes(key)
   const warnings = []
   const artifacts = new Map()
   const providers = new Map()
   for (const control of controls) {
     const addArtifact = (name, ref) => {
+      if (!included('artifacts')) return
       if (findByName(name)?.tags?.length) return
       const key = name.trim().toLowerCase()
       if (!artifacts.has(key)) artifacts.set(key, { name, refs: new Set() })
@@ -26,7 +28,7 @@ export function collectExportWarnings(controls) {
     if (readInheritance(control.id) !== 'None') {
       const sources = readInheritanceSources(control.id)
       if (!sources.length) warnings.push({ kind: 'missingProvider', ref: control.id, text: 'Inheritance is enabled, but no service provider is selected.', href: `/controls/${control.id}` })
-      for (const source of sources) if (!readProviderStandardsAcceptance(source)) {
+      for (const source of sources) if (included('standardsAcceptance') && !readProviderStandardsAcceptance(source)) {
         const key = source.trim().toLowerCase()
         if (!providers.has(key)) providers.set(key, { name: source, refs: new Set() })
         providers.get(key).refs.add(control.id)
@@ -43,11 +45,13 @@ export function collectExportWarnings(controls) {
         'Overall comments': [result.overallComments.trim(), readObjectiveNote(control.id, objective.id).trim()].filter(Boolean).join('\n\n'),
         Finding: readObjectiveFinding(control.id, objective.id)?.finalText?.trim() ?? '',
       }
+      const fieldKeys = { Interviews: 'interviews', Examine: 'examine', Test: 'test', 'Overall comments': 'overallComments', Finding: 'findingText' }
       for (const [field, value] of Object.entries(fields)) if (value.length > 4000) {
+        if (!included(fieldKeys[field])) continue
         warnings.push({ kind: 'length', ref, text: `${field} has ${value.length} characters. The workbook exporter will shorten it to 4,000 characters; the full text remains in the project JSON.`, href })
       }
       const status = readObjectiveStatus(control.id, objective.id)
-      if (status === 'NOT MET') {
+      if (status === 'NOT MET' && included('findingText')) {
         const finding = readObjectiveFinding(control.id, objective.id)
         if (!finding?.finalText?.trim()) warnings.push({ kind: 'missingFinding', ref, text: 'Objective is NOT MET but has no drafted finding.', href })
         else if (!finding.differencesText?.trim() && !parseFindingFields(finding.finalText).differencesText) {
@@ -55,10 +59,11 @@ export function collectExportWarnings(controls) {
         }
       }
       if (status !== 'MET') continue
-      if (!readObjectiveFinding(control.id, objective.id)?.finalText?.trim()) {
+      if (included('findingText') && !readObjectiveFinding(control.id, objective.id)?.finalText?.trim()) {
         warnings.push({ kind: 'missingFinding', ref, text: 'Objective is MET but has no drafted finding.', href })
       }
       for (const warning of getObjectiveWarnings(control.id, objective.id)) {
+        if (!included(({ interview: 'interviews', roles: 'interviews' })[warning.key] ?? warning.key)) continue
         warnings.push({ kind: warning.key, ref, text: warning.text, href })
       }
     }

@@ -1,3 +1,13 @@
+## Version 4.15.0 — Excel Formatting and Column Selection
+Date: October 15, 2026
+
+- Standards Acceptance exports one highest inherited level instead of repeated provider entries. High takes precedence over Moderate; ties retain the first provider's standard label.
+- Inherited From / ESP exports comma-separated provider names, with quoting for names that contain commas.
+- Advanced export options let assessors leave any editable column blank while retaining the official template's columns, headings, and formatting.
+- Column choices affect only the exported workbook. Saved project data and full JSON backups remain intact.
+- Excel custom properties retain each provider's original standards mapping for re-import; changing the visible rollup or provider list invalidates that mapping.
+- Added column-selection, provider-formatting, template-preservation, and import/export regression checks.
+
 ## Version 4.14.2 — Assessment Date Calendar
 Date: October 15, 2026
 

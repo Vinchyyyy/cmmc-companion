@@ -46,6 +46,7 @@ import { ensureMetObjectiveFinding } from './autoObjectiveFinding.js'
 import { readOscProfile, writeOscProfile, STANDARDS_ACCEPTANCE_VALUES } from './oscProfile.js'
 import { readObjectiveArtifacts, readObjectiveArtifactIds, writeObjectiveArtifactIds } from './objectiveArtifacts'
 import { findOrCreate, findByName } from './artifactRegistry'
+import { parseProviderList, formatProviderList, highestAcceptanceStandard } from './excelExportOptions.js'
 
 // ---------------------------------------------------------------------------
 // L2 → L1 denormalization (inverse of the L1_TO_L2 map in exportCmmcTemplate)
@@ -652,7 +653,7 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
 
     // Accumulate raw values for reconciliation (set deduplicates automatically)
     if (assessedBy.trim())   uniqueAssessedBy.add(assessedBy.trim())
-    for (const source of inheritedFrom.split(/\r?\n/).map((name) => name.trim()).filter(Boolean)) uniqueInheritedFrom.add(source)
+    for (const source of parseProviderList(inheritedFrom)) uniqueInheritedFrom.add(source)
 
     // Control-level data
     if (!controlData[companionControlId]) {
@@ -698,6 +699,20 @@ export async function parseAssessmentWorkbook(fileBuffer, controls) {
   if (matchedRows < 3) {
     return { ok: false, error: 'This file does not appear to be a supported CMMC Assessment Results Template.' }
   }
+
+  // Only trust the saved per-provider mapping while its visible source list
+  // and highest-standard rollup still match. Edits made in Excel take priority.
+  try {
+    const xml = await zip.file('docProps/custom.xml')?.async('string')
+    const payload = xml?.match(/<property\b[^>]*name="CMMCCompanionProviderStandards"[^>]*>[\s\S]*?<vt:lpwstr>([\s\S]*?)<\/vt:lpwstr>[\s\S]*?<\/property>/)?.[1]
+    const metadata = payload ? JSON.parse(unescXml(payload)) : null
+    if (metadata?.version === 1 && Array.isArray(metadata.providers)) for (const entry of metadata.providers) {
+      const row = controlData[entry?.id]
+      if (!row || !Array.isArray(entry.sources) || !entry.sources.every((item) => typeof item?.name === 'string' && typeof item.standard === 'string')) continue
+      if (formatProviderList(entry.sources.map((item) => item.name)) !== row.inheritanceSource || highestAcceptanceStandard(entry.sources.map((item) => item.standard)) !== row.standardsAcceptance) continue
+      row.providerStandards = entry.sources
+    }
+  } catch { /* Optional metadata never prevents importing an ordinary workbook. */ }
 
   // ---------------------------------------------------------------------------
   // Step 3: Compute derived-status counts
@@ -951,7 +966,7 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
     }
 
     if (ctrlData.inheritanceSource) {
-      const sourcePairs = ctrlData.inheritanceSource.split(/\r?\n/).map((name) => name.trim()).filter(Boolean).map((raw) => ({ raw, resolved: resolveSource(raw) })).filter(({ resolved }) => resolved)
+      const sourcePairs = parseProviderList(ctrlData.inheritanceSource).map((raw) => ({ raw, resolved: resolveSource(raw) })).filter(({ resolved }) => resolved)
       if (sourcePairs.length && (isNew || !readInheritanceSource(controlId).trim())) {
         writeInheritanceSources(controlId, sourcePairs.map(({ resolved }) => resolved))
         summary.inheritanceSourcesWritten++
@@ -968,7 +983,8 @@ export function applyWorkbookImport(parsedData, controls, mode, reconciliationCh
         for (const [sourceIndex, { raw, resolved }] of sourcePairs.entries()) {
           const lines = String(ctrlData.standardsAcceptance ?? '').split(/\r?\n/)
           const named = lines.find((line) => line.toLowerCase().startsWith(`${raw.toLowerCase()}: `))
-          const value = (named ? named.slice(raw.length + 2) : lines[sourceIndex] ?? '').trim()
+          const saved = ctrlData.providerStandards?.find((item) => item.name === raw)
+          const value = (saved ? saved.standard : named ? named.slice(raw.length + 2) : sourcePairs.length === 1 || lines.length > 1 ? lines[sourceIndex] ?? '' : '').trim()
           const standard = STANDARDS_ACCEPTANCE_VALUES.find((item) => item.toLowerCase() === value.toLowerCase())
           const provider = profile.providers.find((item) => item.name.toLowerCase() === resolved.toLowerCase())
           if (standard && provider && (isNew || !provider.standardsAcceptance) && provider.standardsAcceptance !== standard) {
