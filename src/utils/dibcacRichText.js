@@ -15,6 +15,30 @@ export function parseTopicAnchorSyntax(value) {
 
 export const topicAnchorDomId = (groupId, topicAnchorId) => `dibcac-topic-${String(groupId).replace(/[^a-zA-Z0-9_-]/g, '-')}-${String(topicAnchorId).replace(/[^a-zA-Z0-9_-]/g, '-')}`
 
+export const plannedAskReferenceDomId = ({ groupId, blockIndex, nodeIndex }) =>
+  `dibcac-ask-ref-${encodeURIComponent(groupId)}-${blockIndex}-${nodeIndex}`
+
+// Keep each occurrence: the same observation can appear in several live pivots.
+export function buildPlannedAskBacklinkIndex(groups) {
+  return (groups ?? []).flatMap((group) => {
+    const document = normalizePlannedAskRichDocument(group.plannedAskRichDocument, group.plannedAskContent, group.plannedAsk)
+    return document.blocks.flatMap((block, blockIndex) => block.children.flatMap((node, nodeIndex) =>
+      node.type === 'checklistRef' ? [{
+        groupId: group.id, folderId: group.folderId ?? null, blockIndex, nodeIndex,
+        targetGroupId: node.groupId, itemId: node.itemId,
+      }] : []))
+  })
+}
+
+export function resolvePlannedAskBacklink(index, groupId, itemId, preferred) {
+  const matches = (index ?? []).filter((entry) => entry.targetGroupId === groupId && entry.itemId === itemId)
+  return matches.find((entry) => preferred && entry.groupId === preferred.groupId &&
+    entry.blockIndex === preferred.blockIndex && entry.nodeIndex === preferred.nodeIndex)
+    ?? matches.find((entry) => entry.groupId === groupId)
+    ?? matches[0]
+    ?? null
+}
+
 const makeText = (text, marks = {}) => ({
   type: 'text',
   text: String(text ?? ''),

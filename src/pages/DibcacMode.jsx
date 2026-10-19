@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { FolderPlus, Folder, LayoutTemplate } from 'lucide-react'
+import { FolderPlus, Folder, LayoutTemplate, CornerUpLeft } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
 import DibcacTemplatesModal from '../components/DibcacTemplatesModal.jsx'
 import DibcacPlanImportModal from '../components/DibcacPlanImportModal.jsx'
@@ -63,6 +63,9 @@ import {
   richDocumentToEditorHtml,
   richDocumentToLegacyContent,
   topicAnchorDomId,
+  plannedAskReferenceDomId,
+  buildPlannedAskBacklinkIndex,
+  resolvePlannedAskBacklink,
 } from '../utils/dibcacRichText.js'
 
 // Persist small sets of ids (open folders, expanded groups) across route
@@ -585,13 +588,13 @@ function ReferenceMethodBadges({ methods }) {
   ))
 }
 
-function RichInline({ node, referenceMap, onNavigate }) {
+function RichInline({ node, referenceMap, onNavigate, source }) {
   if (node.type === 'checklistRef') {
     const reference = referenceMap.get(`${node.groupId}:${node.itemId}`)
     if (!reference) return <span className="dibcac-planned-ask-ref dibcac-planned-ask-ref--missing">Missing checklist reference</span>
     return (
       <span className="dibcac-reference-with-methods">
-        <button type="button" className="dibcac-planned-ask-ref" onClick={() => onNavigate?.({ groupId: node.groupId, itemId: node.itemId })} title={`Open ${reference.groupName}: ${reference.label}`}>
+        <button id={source ? plannedAskReferenceDomId(source) : undefined} type="button" className="dibcac-planned-ask-ref" onClick={() => onNavigate?.({ groupId: node.groupId, itemId: node.itemId, source })} title={`Open ${reference.groupName}: ${reference.label}`}>
           <strong>{reference.displayRef}</strong><span>— {reference.label}</span>
         </button>
         <span className="dibcac-reference-methods"><ReferenceMethodBadges methods={reference.assessmentMethods} /></span>
@@ -945,7 +948,7 @@ function PlannedAskReadOnly({ document, content, fallback, referenceIndex, onNav
           tabIndex={-1}
           className={`dibcac-rich-topic${highlightedTopicAnchorId === `${groupId}:${block.topicAnchorId}` ? ' dibcac-rich-topic--highlighted' : ''}`}
         >
-          {block.children.map((node, nodeIndex) => <RichInline key={nodeIndex} node={node} referenceMap={referenceMap} onNavigate={onNavigate} />)}
+          {block.children.map((node, nodeIndex) => <RichInline key={nodeIndex} node={node} referenceMap={referenceMap} onNavigate={onNavigate} source={{ groupId, blockIndex, nodeIndex }} />)}
         </div>
       ) : (
         <div
@@ -953,7 +956,7 @@ function PlannedAskReadOnly({ document, content, fallback, referenceIndex, onNav
           className={`dibcac-rich-block dibcac-rich-block--${block.type}${isRichBlockComplete(block, referenceIndex) ? ' dibcac-rich-block--complete' : ''}`}
           style={{ '--rich-indent': block.indent }}
         >
-          {block.children.map((node, nodeIndex) => <RichInline key={nodeIndex} node={node} referenceMap={referenceMap} onNavigate={onNavigate} />)}
+          {block.children.map((node, nodeIndex) => <RichInline key={nodeIndex} node={node} referenceMap={referenceMap} onNavigate={onNavigate} source={{ groupId, blockIndex, nodeIndex }} />)}
         </div>
       ))}
     </div>
@@ -1807,6 +1810,8 @@ function SavedGroupCard({
 
   const checklist = useMemo(() => group.checklist ?? [], [group.checklist])
   const checklistNumbers = useMemo(() => numberChecklistEntries(checklist), [checklist])
+  const backlinkItemIds = useMemo(() => new Set(buildPlannedAskBacklinkIndex(allGroups?.length ? allGroups : [group])
+    .filter((entry) => entry.targetGroupId === group.id).map((entry) => entry.itemId)), [allGroups, group])
   const navigatorTopics = useMemo(() => buildTopicAnchorIndex(allGroups?.length ? allGroups : [group]), [allGroups, group])
 
   // Checklist items may attach objectives outside this group's own objective
@@ -2109,6 +2114,17 @@ function SavedGroupCard({
                       <span className={`dibcac-checklist-text${isItemMet(item) ? ' dibcac-checklist-text--done' : ''}`}>
                         {item.text}
                       </span>
+                      {backlinkItemIds.has(item.id) && (
+                        <button
+                          type="button"
+                          className="dibcac-checklist-back-to-ask"
+                          title="Back to Planned Ask"
+                          aria-label={`Back to Planned Ask for ${checklistNumbers.get(item.id)} ${item.text}`}
+                          onClick={() => onNavigateChecklistItem?.({ groupId: group.id, itemId: item.id, returnToPlannedAsk: true })}
+                        >
+                          <CornerUpLeft size={15} aria-hidden="true" />
+                        </button>
+                      )}
                     </div>
                     {(item.objKeys ?? []).length > 0 && (
                       <ul className="dibcac-checklist-obj-list">
@@ -2971,6 +2987,8 @@ function DibcacMode() {
   const [savedGroups,  setSavedGroups]  = useState(getReviewGroups)
   const [savedFolders, setSavedFolders] = useState(getReviewFolders)
   const referenceIndex = useMemo(() => buildChecklistReferenceIndex(savedGroups), [savedGroups])
+  const backlinkIndex = useMemo(() => buildPlannedAskBacklinkIndex(savedGroups), [savedGroups])
+  const checklistOriginsRef = useRef(new Map())
   const topicIndex = useMemo(() => buildTopicAnchorIndex(savedGroups), [savedGroups])
   const groupNumberMap = useMemo(() => buildGroupNumberMap(savedGroups), [savedGroups])
   // Lifted out of FolderSection/SavedGroupCard so open/expanded state survives
@@ -3036,10 +3054,17 @@ function DibcacMode() {
     return true
   }, [])
 
-  const navigateToChecklistItem = useCallback(({ groupId, itemId }) => {
+  const navigateToChecklistItem = useCallback(({ groupId, itemId, source, returnToPlannedAsk }) => {
+    const key = JSON.stringify([groupId, itemId])
+    if (returnToPlannedAsk) {
+      const origin = resolvePlannedAskBacklink(backlinkIndex, groupId, itemId, checklistOriginsRef.current.get(key))
+      if (!origin) return false
+      return revealSavedGroupTarget(origin, plannedAskReferenceDomId(origin), setHighlightedTopicAnchorId, null)
+    }
+    if (source) checklistOriginsRef.current.set(key, source)
     const target = resolveChecklistNavigationTarget(savedGroups, referenceIndex, groupId, itemId)
     return revealSavedGroupTarget(target, checklistItemDomId(itemId), setHighlightedChecklistItemId, itemId)
-  }, [referenceIndex, revealSavedGroupTarget, savedGroups])
+  }, [backlinkIndex, referenceIndex, revealSavedGroupTarget, savedGroups])
 
   const navigateToTopic = useCallback(({ groupId, topicAnchorId }) => {
     const target = resolveTopicNavigationTarget(savedGroups, topicIndex, groupId, topicAnchorId)

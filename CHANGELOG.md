@@ -1,3 +1,10 @@
+## Version 4.15.1 — Return to Planned Ask
+Date: October 19, 2026
+
+- Checklist observations with Planned Ask references show a return arrow beside their label.
+- Returns to the exact reference used to open the observation, including across groups and folders.
+- Directly opened observations jump to a matching Planned Ask reference; the destination receives focus and an outline.
+
 ## Version 4.15.0 — Excel Formatting and Column Selection
 Date: October 15, 2026
 

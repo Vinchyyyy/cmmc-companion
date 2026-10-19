@@ -1913,6 +1913,34 @@
   gap: var(--space-2);
 }
 
+.dibcac-checklist-back-to-ask {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.dibcac-checklist-back-to-ask:hover,
+.dibcac-checklist-back-to-ask:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--color-surface);
+}
+
+.dibcac-planned-ask-ref:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  scroll-margin-block: 100px;
+}
+
 .dibcac-checklist-note-toggle {
   margin: 0.55rem 0 0 2rem;
   padding: 0;

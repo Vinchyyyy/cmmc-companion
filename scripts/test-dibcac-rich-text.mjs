@@ -12,6 +12,9 @@ import {
   richDocumentToEditorHtml,
   richDocumentToLegacyContent,
   stressCloneRichDocument,
+  buildPlannedAskBacklinkIndex,
+  resolvePlannedAskBacklink,
+  plannedAskReferenceDomId,
 } from '../src/utils/dibcacRichText.js'
 
 assert.equal(parseTopicAnchorSyntax('!REMOTE ACCESS!'), 'REMOTE ACCESS')
@@ -19,6 +22,26 @@ assert.equal(parseTopicAnchorSyntax(' ! Identity   Verification ! '), 'Identity 
 assert.equal(parseTopicAnchorSyntax('Wow! This is normal punctuation.'), null)
 assert.equal(parseTopicAnchorSyntax('!!'), null)
 assert.equal(parseTopicAnchorSyntax('!?!'), null)
+
+// Return to the precise clicked occurrence, including across folders/groups.
+const backlinkGroups = [
+  { id: 'source', folderId: 'folder-a', plannedAskRichDocument: { blocks: [
+    { type: 'bullet', children: [{ type: 'text', text: 'First ' }, { type: 'checklistRef', groupId: 'target', itemId: 'item' }] },
+    { type: 'bullet', children: [{ type: 'checklistRef', groupId: 'target', itemId: 'item' }] },
+  ] } },
+  { id: 'target', plannedAskContent: [{ type: 'text', text: 'Local ' }, { type: 'checklistRef', groupId: 'target', itemId: 'item' }] },
+]
+const backlinks = buildPlannedAskBacklinkIndex(backlinkGroups)
+assert.equal(backlinks.length, 3)
+const origin = resolvePlannedAskBacklink(backlinks, 'target', 'item', { groupId: 'source', blockIndex: 1, nodeIndex: 0 })
+assert.equal(origin.groupId, 'source')
+assert.equal(origin.folderId, 'folder-a')
+assert.equal(origin.blockIndex, 1)
+assert.notEqual(plannedAskReferenceDomId(origin), plannedAskReferenceDomId(backlinks[0]))
+assert.equal(resolvePlannedAskBacklink(backlinks, 'target', 'item').groupId, 'target')
+assert.equal(resolvePlannedAskBacklink(backlinks, 'target', 'item', { groupId: 'deleted', blockIndex: 9, nodeIndex: 0 }).groupId, 'target')
+assert.equal(resolvePlannedAskBacklink(backlinks.slice(0, 2), 'target', 'item').groupId, 'source')
+assert.equal(resolvePlannedAskBacklink(backlinks, 'target', 'missing'), null)
 
 const referenceIndex = [{
   groupId: 'group-1', itemId: 'item-1', displayRef: 'G1-1.1',
