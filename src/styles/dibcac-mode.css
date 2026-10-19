@@ -1771,6 +1771,14 @@
   animation: dibcac-reference-highlight 1.8s ease-out;
 }
 
+.dibcac-rich-block.dibcac-rich-block--highlighted {
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-accent) 17%, var(--color-surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
+  animation: dibcac-reference-highlight 1.8s ease-out;
+  opacity: 1;
+}
+
 @keyframes dibcac-reference-highlight {
   0%, 30% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-accent) 35%, transparent); }
   100% { box-shadow: 0 0 0 0 transparent; }

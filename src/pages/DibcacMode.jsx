@@ -935,7 +935,7 @@ function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) 
   )
 }
 
-function PlannedAskReadOnly({ document, content, fallback, referenceIndex, onNavigate, groupId, highlightedTopicAnchorId }) {
+function PlannedAskReadOnly({ document, content, fallback, referenceIndex, onNavigate, groupId, highlightedAskTargetId }) {
   const normalized = normalizePlannedAskRichDocument(document, content, fallback)
   const referenceMap = buildChecklistReferenceMap(referenceIndex)
   return (
@@ -946,14 +946,14 @@ function PlannedAskReadOnly({ document, content, fallback, referenceIndex, onNav
           id={topicAnchorDomId(groupId, block.topicAnchorId)}
           data-topic-anchor-id={block.topicAnchorId}
           tabIndex={-1}
-          className={`dibcac-rich-topic${highlightedTopicAnchorId === `${groupId}:${block.topicAnchorId}` ? ' dibcac-rich-topic--highlighted' : ''}`}
+          className={`dibcac-rich-topic${highlightedAskTargetId === `${groupId}:${block.topicAnchorId}` ? ' dibcac-rich-topic--highlighted' : ''}`}
         >
           {block.children.map((node, nodeIndex) => <RichInline key={nodeIndex} node={node} referenceMap={referenceMap} onNavigate={onNavigate} source={{ groupId, blockIndex, nodeIndex }} />)}
         </div>
       ) : (
         <div
           key={blockIndex}
-          className={`dibcac-rich-block dibcac-rich-block--${block.type}${isRichBlockComplete(block, referenceIndex) ? ' dibcac-rich-block--complete' : ''}`}
+          className={`dibcac-rich-block dibcac-rich-block--${block.type}${isRichBlockComplete(block, referenceIndex) ? ' dibcac-rich-block--complete' : ''}${block.children.some((node, nodeIndex) => node.type === 'checklistRef' && highlightedAskTargetId === plannedAskReferenceDomId({ groupId, blockIndex, nodeIndex })) ? ' dibcac-rich-block--highlighted' : ''}`}
           style={{ '--rich-indent': block.indent }}
         >
           {block.children.map((node, nodeIndex) => <RichInline key={nodeIndex} node={node} referenceMap={referenceMap} onNavigate={onNavigate} source={{ groupId, blockIndex, nodeIndex }} />)}
@@ -1789,7 +1789,7 @@ function SavedGroupCard({
   onMoveObjectives, onRemoveObjectives, onUpdateChecklist, selectionMode, isSelected, onToggleSelect, isExpanded, onToggleExpanded,
   objectiveSelectionMode = false, selectedCrossGroupObjectives, onToggleCrossGroupObjective,
   onSelectAllCrossGroupObjectives, onDeselectAllCrossGroupObjectives,
-  groupNumber, referenceIndex, onNavigateChecklistItem, onNavigateTopic, highlightedChecklistItemId, highlightedTopicAnchorId, onReorderGroup,
+  groupNumber, referenceIndex, onNavigateChecklistItem, onNavigateTopic, highlightedChecklistItemId, highlightedAskTargetId, onReorderGroup,
 }) {
   const expanded = isExpanded ?? false
   const [commentsKey, setCommentsKey] = useState(null) // `${controlId}[${objId}]`
@@ -2076,7 +2076,7 @@ function SavedGroupCard({
                 referenceIndex={referenceIndex}
                 onNavigate={onNavigateChecklistItem}
                 groupId={group.id}
-                highlightedTopicAnchorId={highlightedTopicAnchorId}
+                highlightedAskTargetId={highlightedAskTargetId}
               />
             </div>
           )}
@@ -2353,7 +2353,7 @@ function FolderSection({
   isOpen, onToggleOpen, expandedGroupIds, onToggleGroupExpanded,
   objectiveSelectionMode, selectedCrossGroupObjectives, onToggleCrossGroupObjective,
   onSelectAllCrossGroupObjectives, onDeselectAllCrossGroupObjectives,
-  groupNumberMap, referenceIndex, onNavigateChecklistItem, onNavigateTopic, highlightedChecklistItemId, highlightedTopicAnchorId, onReorderGroup,
+  groupNumberMap, referenceIndex, onNavigateChecklistItem, onNavigateTopic, highlightedChecklistItemId, highlightedAskTargetId, onReorderGroup,
 }) {
   const [confirming, setConfirming] = useState(false)
 
@@ -2409,7 +2409,7 @@ function FolderSection({
                 onNavigateChecklistItem={onNavigateChecklistItem}
                 onNavigateTopic={onNavigateTopic}
                 highlightedChecklistItemId={highlightedChecklistItemId}
-                highlightedTopicAnchorId={highlightedTopicAnchorId}
+                highlightedAskTargetId={highlightedAskTargetId}
                 onReorderGroup={onReorderGroup}
               />
             ))
@@ -2428,7 +2428,7 @@ function SavedGroupsPanel({
   onCreateFromSelectedObjectives, onMoveSelectedObjectives, onDeleteSelectedGroups,
   openFolderIds, onToggleFolderOpen, expandedGroupIds, onToggleGroupExpanded,
   railExpanded, onToggleRailExpanded,
-  groupNumberMap, referenceIndex, onNavigateChecklistItem, onNavigateTopic, highlightedChecklistItemId, highlightedTopicAnchorId, onReorderGroup,
+  groupNumberMap, referenceIndex, onNavigateChecklistItem, onNavigateTopic, highlightedChecklistItemId, highlightedAskTargetId, onReorderGroup,
 }) {
   const [groupSort, setGroupSort] = useState('order') // 'order' | 'name' | 'created'
   const [sortDir,   setSortDir]   = useState('asc')      // 'asc' | 'desc'
@@ -2828,7 +2828,7 @@ function SavedGroupsPanel({
                   onNavigateChecklistItem={onNavigateChecklistItem}
                   onNavigateTopic={onNavigateTopic}
                   highlightedChecklistItemId={highlightedChecklistItemId}
-                  highlightedTopicAnchorId={highlightedTopicAnchorId}
+                  highlightedAskTargetId={highlightedAskTargetId}
                   onReorderGroup={onReorderGroup}
                 />
               ))}
@@ -2867,7 +2867,7 @@ function SavedGroupsPanel({
                         onNavigateChecklistItem={onNavigateChecklistItem}
                         onNavigateTopic={onNavigateTopic}
                         highlightedChecklistItemId={highlightedChecklistItemId}
-                        highlightedTopicAnchorId={highlightedTopicAnchorId}
+                        highlightedAskTargetId={highlightedAskTargetId}
                         onReorderGroup={onReorderGroup}
                       />
                     ))}
@@ -2905,7 +2905,7 @@ function SavedGroupsPanel({
                   onNavigateChecklistItem={onNavigateChecklistItem}
                   onNavigateTopic={onNavigateTopic}
                   highlightedChecklistItemId={highlightedChecklistItemId}
-                  highlightedTopicAnchorId={highlightedTopicAnchorId}
+                  highlightedAskTargetId={highlightedAskTargetId}
                   onReorderGroup={onReorderGroup}
                 />
               ))}
@@ -3019,7 +3019,7 @@ function DibcacMode() {
   const [planImportMessage, setPlanImportMessage] = useState('')
   const [railExpanded, setRailExpanded] = useState(() => localStorage.getItem('cmmc-dibcac-rail-expanded') === 'true')
   const [highlightedChecklistItemId, setHighlightedChecklistItemId] = useState(null)
-  const [highlightedTopicAnchorId, setHighlightedTopicAnchorId] = useState(null)
+  const [highlightedAskTargetId, setHighlightedAskTargetId] = useState(null)
   const highlightTimerRef = useRef(null)
   const searchRef = useRef(null)
 
@@ -3043,6 +3043,8 @@ function DibcacMode() {
       writeIdSet('cmmc-dibcac-expanded-group-ids', next)
       return next
     })
+    setHighlightedChecklistItemId(null)
+    setHighlightedAskTargetId(null)
     setHighlight(highlightKey)
     clearTimeout(highlightTimerRef.current)
     requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -3059,7 +3061,7 @@ function DibcacMode() {
     if (returnToPlannedAsk) {
       const origin = resolvePlannedAskBacklink(backlinkIndex, groupId, itemId, checklistOriginsRef.current.get(key))
       if (!origin) return false
-      return revealSavedGroupTarget(origin, plannedAskReferenceDomId(origin), setHighlightedTopicAnchorId, null)
+      return revealSavedGroupTarget(origin, plannedAskReferenceDomId(origin), setHighlightedAskTargetId, plannedAskReferenceDomId(origin))
     }
     if (source) checklistOriginsRef.current.set(key, source)
     const target = resolveChecklistNavigationTarget(savedGroups, referenceIndex, groupId, itemId)
@@ -3068,7 +3070,7 @@ function DibcacMode() {
 
   const navigateToTopic = useCallback(({ groupId, topicAnchorId }) => {
     const target = resolveTopicNavigationTarget(savedGroups, topicIndex, groupId, topicAnchorId)
-    return revealSavedGroupTarget(target, topicAnchorDomId(groupId, topicAnchorId), setHighlightedTopicAnchorId, `${groupId}:${topicAnchorId}`)
+    return revealSavedGroupTarget(target, topicAnchorDomId(groupId, topicAnchorId), setHighlightedAskTargetId, `${groupId}:${topicAnchorId}`)
   }, [revealSavedGroupTarget, savedGroups, topicIndex])
 
   const allObjs = useMemo(() => {
@@ -3533,7 +3535,7 @@ function DibcacMode() {
                         onNavigateChecklistItem={navigateToChecklistItem}
                         onNavigateTopic={navigateToTopic}
                         highlightedChecklistItemId={highlightedChecklistItemId}
-                        highlightedTopicAnchorId={highlightedTopicAnchorId}
+                        highlightedAskTargetId={highlightedAskTargetId}
                         onReorderGroup={handleReorderGroup}
                       />
                     ))}
@@ -3578,7 +3580,7 @@ function DibcacMode() {
               onNavigateChecklistItem={navigateToChecklistItem}
               onNavigateTopic={navigateToTopic}
               highlightedChecklistItemId={highlightedChecklistItemId}
-              highlightedTopicAnchorId={highlightedTopicAnchorId}
+              highlightedAskTargetId={highlightedAskTargetId}
               onReorderGroup={handleReorderGroup}
             />
           )}

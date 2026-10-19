@@ -17,6 +17,10 @@ function Changelog() {
       </p>
 
       <details open>
+        <ReleaseSummary version="v4.15.2" title="Planned Ask Return Highlight" date="October 19, 2026" />
+        <ul><li>Returning from a checklist item highlights the exact Planned Ask line in gold so you can immediately resume the conversation.</li></ul>
+      </details>
+      <details>
         <ReleaseSummary version="v4.15.1" title="Return to Planned Ask" date="October 19, 2026" />
         <ul><li>Use the return arrow beside a checklist observation to jump back to the Planned Ask reference you came from, including across groups.</li></ul>
       </details>

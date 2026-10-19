@@ -1,3 +1,10 @@
+## Version 4.15.2 — Planned Ask Return Highlight
+Date: October 19, 2026
+
+- Returning from a checklist observation briefly highlights the exact originating Planned Ask line in gold, matching checklist navigation.
+- Highlights completed lines too and clears the previous navigation highlight on each jump.
+- Added rendered navigation checks for repeated references, cross-group returns, completed lines, and topic navigation.
+
 ## Version 4.15.1 — Return to Planned Ask
 Date: October 19, 2026
 

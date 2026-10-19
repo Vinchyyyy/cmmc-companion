@@ -1,7 +1,7 @@
 {
   "name": "cmmc-companion",
   "private": true,
-  "version": "4.15.1",
+  "version": "4.15.2",
   "type": "module",
   "scripts": {
     "test:finding-export": "node scripts/test-finding-export-roundtrip.mjs",
@@ -27,7 +27,8 @@
     "validate": "node scripts/validate-data.cjs",
     "test:finding-upgrade": "node scripts/test-finding-workflow-migration.mjs",
     "test:family-evidence": "node scripts/test-family-evidence-pool.mjs",
-    "test:excel-options": "node scripts/test-excel-export-options.mjs"
+    "test:excel-options": "node scripts/test-excel-export-options.mjs",
+    "test:dibcac-navigation-highlight": "node scripts/test-dibcac-navigation-highlight.mjs"
   },
   "dependencies": {
     "jszip": "^3.10.1",
