@@ -17,6 +17,10 @@ function Changelog() {
       </p>
 
       <details open>
+        <ReleaseSummary version="v4.16.0" title="Interview Notes in Overall Comments" date="October 21, 2026" />
+        <ul><li>Excel export Advanced Options can replace Overall Comments with interview notes, without the participant-name block. Includes DIBCAC checklist notes and preserves saved project comments.</li></ul>
+      </details>
+      <details>
         <ReleaseSummary version="v4.15.2" title="Planned Ask Return Highlight" date="October 19, 2026" />
         <ul><li>Returning from a checklist item highlights the exact Planned Ask line in gold so you can immediately resume the conversation.</li></ul>
       </details>

@@ -1,3 +1,11 @@
+## Version 4.16.0 — Interview Notes in Overall Comments
+Date: October 21, 2026
+
+- Excel export Advanced Options can replace Overall Comments with interview text and DIBCAC checklist interview notes, excluding the participant-name block.
+- Replacement applies to the exported workbook only; saved comments and the Interviews column retain their existing behavior. Objectives without interview notes export blank Overall Comments when enabled.
+- Respects selected families, omitted columns, and the 4,000-character cell limit; preflight warnings reflect the chosen comments source.
+- Added workbook checks for default behavior, names, re-imported participant prefixes, checklist notes, blank interviews, truncation, and unchanged saved project data.
+
 ## Version 4.15.2 — Planned Ask Return Highlight
 Date: October 19, 2026
 

@@ -8,10 +8,10 @@ import { readInheritance, readInheritanceSources } from './inheritance.js'
 import { readProviderStandardsAcceptance } from './oscProfile.js'
 import { readObjectiveResult } from './objectiveResults.js'
 import { readObjectiveNote } from './objectiveNotes.js'
-import { formatInterviewExport } from './interviewExport.js'
+import { formatInterviewExport, formatInterviewNotesExport } from './interviewExport.js'
 
 // Read-only checks, scoped to precisely the families being exported.
-export function collectExportWarnings(controls, { omittedColumns = [] } = {}) {
+export function collectExportWarnings(controls, { omittedColumns = [], overallCommentsFromInterviewNotes = false } = {}) {
   const included = (key) => !omittedColumns.includes(key)
   const warnings = []
   const artifacts = new Map()
@@ -42,7 +42,9 @@ export function collectExportWarnings(controls, { omittedColumns = [] } = {}) {
       const fields = {
         Interviews: formatInterviewExport(control.id, objective.id, result),
         Examine: result.examine.trim(), Test: result.test.trim(),
-        'Overall comments': [result.overallComments.trim(), readObjectiveNote(control.id, objective.id).trim()].filter(Boolean).join('\n\n'),
+        'Overall comments': overallCommentsFromInterviewNotes
+          ? formatInterviewNotesExport(control.id, objective.id, result)
+          : [result.overallComments.trim(), readObjectiveNote(control.id, objective.id).trim()].filter(Boolean).join('\n\n'),
         Finding: readObjectiveFinding(control.id, objective.id)?.finalText?.trim() ?? '',
       }
       const fieldKeys = { Interviews: 'interviews', Examine: 'examine', Test: 'test', 'Overall comments': 'overallComments', Finding: 'findingText' }

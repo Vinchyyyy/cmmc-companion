@@ -18,7 +18,7 @@
 
 import { readObjectiveNote } from './objectiveNotes'
 import { readObjectiveResult } from './objectiveResults'
-import { formatInterviewExport } from './interviewExport.js'
+import { formatInterviewExport, formatInterviewNotesExport } from './interviewExport.js'
 import { readObjectiveArtifacts } from './objectiveArtifacts'
 import { readObjectiveFinding } from './objectiveFindings'
 import { readPool } from './evidencePool'
@@ -153,7 +153,7 @@ function toTemplateInherited(companionInheritance) {
 // Objective data builder
 // ---------------------------------------------------------------------------
 
-function readObjectiveData(controlId, objId) {
+function readObjectiveData(controlId, objId, options) {
   const result    = readObjectiveResult(controlId, objId)
   const note      = readObjectiveNote(controlId, objId)
   const artifacts = readObjectiveArtifacts(controlId, objId)
@@ -168,7 +168,9 @@ function readObjectiveData(controlId, objId) {
     interviews:      truncate(formatInterviewExport(controlId, objId, result), CELL_OVERALL_LIMIT),
     examine:         truncate(result.examine?.trim()    ?? '', CELL_OVERALL_LIMIT),
     test:            truncate(result.test?.trim()       ?? '', CELL_OVERALL_LIMIT),
-    overallComments: truncate(commentParts.join('\n\n'), CELL_OVERALL_LIMIT),
+    overallComments: truncate(options.overallCommentsFromInterviewNotes
+      ? formatInterviewNotesExport(controlId, objId, result)
+      : commentParts.join('\n\n'), CELL_OVERALL_LIMIT),
     artifacts:       formatArtifactList(artifacts),
     score:           toTemplateScore(status),
     findingText:     truncate(finding?.finalText?.trim() ?? '', CELL_OVERALL_LIMIT),
@@ -179,7 +181,7 @@ function readObjectiveData(controlId, objId) {
 // Field map builder
 // ---------------------------------------------------------------------------
 
-function buildObjectiveMap(controls) {
+function buildObjectiveMap(controls, options) {
   const companionByTemplateId = new Map()
   for (const ctrl of controls) {
     companionByTemplateId.set(normalizeControlId(ctrl.id), ctrl)
@@ -209,7 +211,7 @@ function buildObjectiveMap(controls) {
     for (const obj of ctrl.objectives ?? []) {
       const templateKey = `${templateId}[${obj.id}]`
       const dibcacStd   = getDibcacStandard(ctrl.id, obj.id)
-      const data        = readObjectiveData(ctrl.id, obj.id)
+      const data        = readObjectiveData(ctrl.id, obj.id, options)
       data.timeToAssess = timeToAssess(templateKey, dibcacStd)
       objectiveData.set(templateKey, data)
     }
@@ -475,7 +477,7 @@ export async function buildCmmcTemplateWorkbook(templateBuffer, controls, option
   const sharedStrings = parseSharedStrings(ssXml)
 
   // Build field maps from app state
-  const { objectiveData, controlData } = buildObjectiveMap(controlsToExport)
+  const { objectiveData, controlData } = buildObjectiveMap(controlsToExport, options)
 
   // Collect template row list for warning summary (before patching)
   const wsXml = await zip.file(sheetPath).async('string')

@@ -66,15 +66,16 @@ function Settings() {
       assessment: meta.assessment,
       selectedFamilyCodes: mode === 'xlsx' ? [...ALL_CONTROL_FAMILY_CODES] : [],
       omittedColumns: [],
+      overallCommentsFromInterviewNotes: false,
     })
   }
   const closeExportDialog = () => setExportDialog(null)
 
   const confirmExport = async (ignoreWarnings = false) => {
-    const { mode, osc, assessment, selectedFamilyCodes, omittedColumns } = exportDialog
+    const { mode, osc, assessment, selectedFamilyCodes, omittedColumns, overallCommentsFromInterviewNotes } = exportDialog
     if (mode === 'xlsx' && selectedFamilyCodes.length === 0) return
     if (mode === 'xlsx' && ignoreWarnings !== true) {
-      const warnings = collectExportWarnings(controls.filter((control) => selectedFamilyCodes.includes(control.id.split('.')[0])), { omittedColumns })
+      const warnings = collectExportWarnings(controls.filter((control) => selectedFamilyCodes.includes(control.id.split('.')[0])), { omittedColumns, overallCommentsFromInterviewNotes })
       setExportWarnings(warnings)
       if (warnings.length) return
     }
@@ -91,6 +92,7 @@ function Settings() {
         const { workbook, warnings } = await buildCmmcTemplateWorkbook(buffer, controls, {
           selectedFamilyCodes,
           omittedColumns,
+          overallCommentsFromInterviewNotes,
         })
         const sanitize = (s) => (s ?? '').trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '_')
         const parts = ['CMMC_Companion']
@@ -547,6 +549,24 @@ function Settings() {
                       <span>{label}</span>
                     </label>)}
                   </div>
+                  <h3>Overall Comments</h3>
+                  <label className="import-option-row">
+                    <input
+                      type="checkbox"
+                      checked={exportDialog.overallCommentsFromInterviewNotes}
+                      disabled={exportDialog.omittedColumns.includes('overallComments')}
+                      onChange={(event) => {
+                        setExportWarnings(null)
+                        setExportDialog((d) => ({ ...d, overallCommentsFromInterviewNotes: event.target.checked }))
+                      }}
+                    />
+                    <span>Replace Overall Comments with interview notes (without interviewee names)</span>
+                  </label>
+                  <p className="advanced-options-hint">
+                    Includes interview text and DIBCAC checklist interview notes. Replaces comments in this workbook only;
+                    objectives without interview notes export blank comments. Saved project comments stay unchanged.
+                    {exportDialog.omittedColumns.includes('overallComments') && ' Enable the Overall Comments column above to use this option.'}
+                  </p>
                 </div>
               </details>
             )}
@@ -563,7 +583,7 @@ function Settings() {
                         {group.kind === 'missingFinding' && <button type="button" onClick={() => {
                           const selected = controls.filter((control) => exportDialog.selectedFamilyCodes.includes(control.id.split('.')[0]))
                           createMissingMetFindings(selected)
-                          setExportWarnings(collectExportWarnings(selected))
+                          setExportWarnings(collectExportWarnings(selected, { omittedColumns: exportDialog.omittedColumns, overallCommentsFromInterviewNotes: exportDialog.overallCommentsFromInterviewNotes }))
                         }}>Create Findings for All Affected MET Objectives</button>}
                         <ul>
                           {group.items.map((warning, index) => <li key={`${warning.ref}-${index}`}>
