@@ -18,7 +18,7 @@
 
 import { readObjectiveNote } from './objectiveNotes'
 import { readObjectiveResult } from './objectiveResults'
-import { formatInterviewExport, formatInterviewNotesExport } from './interviewExport.js'
+import { formatInterviewExport, formatInterviewNotesExport, formatInterviewNamesExport } from './interviewExport.js'
 import { readObjectiveArtifacts } from './objectiveArtifacts'
 import { readObjectiveFinding } from './objectiveFindings'
 import { readPool } from './evidencePool'
@@ -166,6 +166,7 @@ function readObjectiveData(controlId, objId, options) {
 
   return {
     interviews:      truncate(formatInterviewExport(controlId, objId, result), CELL_OVERALL_LIMIT),
+    interviewNames:  truncate(formatInterviewNamesExport(controlId, objId), CELL_OVERALL_LIMIT),
     examine:         truncate(result.examine?.trim()    ?? '', CELL_OVERALL_LIMIT),
     test:            truncate(result.test?.trim()       ?? '', CELL_OVERALL_LIMIT),
     overallComments: truncate(options.overallCommentsFromInterviewNotes
@@ -429,6 +430,10 @@ function patchWorksheetXml(wsXml, sharedStrings, objectiveData, controlData, omi
 
       for (const { key, column } of EXCEL_EXPORT_COLUMNS) if (omittedColumns.has(key)) {
         const addr = `${column}${r}`
+        if (key === 'interviews' && objDat?.interviewNames) {
+          content = patchCell(content, addr, objDat.interviewNames)
+          continue
+        }
         content = content.replace(new RegExp(`<c r="${addr}"([^>]*?)(?:\\s*/>|>[\\s\\S]*?<\\/c>)`), (_, attrs) => {
           const style = attrs.match(/s="(\d+)"/)?.[1]
           return `<c r="${addr}"${style ? ` s="${style}"` : ''}/>`
@@ -452,7 +457,7 @@ function patchWorksheetXml(wsXml, sharedStrings, objectiveData, controlData, omi
  *
  * @param {ArrayBuffer} templateBuffer
  * @param {Array}       controls
- * @param {{ selectedFamilyCodes?: string[], omittedColumns?: string[] }} [options]
+ * @param {{ selectedFamilyCodes?: string[], omittedColumns?: string[], overallCommentsFromInterviewNotes?: boolean }} [options]
  * @returns {Promise<{ workbook: JSZip, warnings: object }>}
  */
 export async function buildCmmcTemplateWorkbook(templateBuffer, controls, options = {}) {

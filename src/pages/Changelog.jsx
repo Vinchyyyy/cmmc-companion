@@ -17,6 +17,13 @@ function Changelog() {
       </p>
 
       <details open>
+        <ReleaseSummary version="v4.17.0" title="Note Autosave and Persistent Interview Names" date="October 21, 2026" />
+        <ul>
+          <li>Checklist interview notes autosave as you type. Save note closes the editor, and opening another note closes the previous one.</li>
+          <li>Excel export keeps interviewee names when Interviews is unchecked; only the interview text is omitted.</li>
+        </ul>
+      </details>
+      <details>
         <ReleaseSummary version="v4.16.0" title="Interview Notes in Overall Comments" date="October 21, 2026" />
         <ul><li>Excel export Advanced Options can replace Overall Comments with interview notes, without the participant-name block. Includes DIBCAC checklist notes and preserves saved project comments.</li></ul>
       </details>

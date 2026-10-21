@@ -1,6 +1,10 @@
 import { combinedInterviewText } from './objectiveResults.js'
 import { readObjectiveInterviewedRoles } from './objectiveInterviewedRoles.js'
 
+export function formatInterviewNamesExport(controlId, objectiveId) {
+  return readObjectiveInterviewedRoles(controlId, objectiveId).join('\n')
+}
+
 export function formatInterviewNotesExport(controlId, objectiveId, result) {
   const notes = combinedInterviewText(result).trim()
   const names = new Set(readObjectiveInterviewedRoles(controlId, objectiveId).map((name) => name.trim()))
@@ -13,7 +17,7 @@ export function formatInterviewNotesExport(controlId, objectiveId, result) {
 }
 
 export function formatInterviewExport(controlId, objectiveId, result) {
-  const names = readObjectiveInterviewedRoles(controlId, objectiveId).join('\n')
+  const names = formatInterviewNamesExport(controlId, objectiveId)
   const notes = combinedInterviewText(result).trim()
   // A previously exported participant block may already be present after Excel import.
   if (!names || notes === names || notes.startsWith(`${names}\n`)) return notes

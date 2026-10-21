@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import { useState, useMemo, useRef, useEffect, useCallback, createContext, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { FolderPlus, Folder, LayoutTemplate, CornerUpLeft } from 'lucide-react'
 import DashSidebar from '../components/DashSidebar.jsx'
@@ -1758,6 +1758,8 @@ function GroupFindingsModal({ group, onClose }) {
 
 // ── Saved group card ──────────────────────────────────────────────────────────
 
+const ChecklistNoteContext = createContext(null)
+
 function ChecklistInterviewNoteEditor({ item, onSave, onClose }) {
   const [note, setNote] = useState(item.interviewNote ?? '')
   const objectiveCount = item.objKeys?.length ?? 0
@@ -1768,13 +1770,17 @@ function ChecklistInterviewNoteEditor({ item, onSave, onClose }) {
       <textarea
         id={`checklist-note-${item.id}`}
         value={note}
-        onChange={(event) => setNote(event.target.value)}
+        onChange={(event) => {
+          const value = event.target.value
+          setNote(value)
+          onSave(value)
+        }}
         placeholder="Capture what was said during the interview…"
         rows={4}
       />
-      <p>Syncs to {objectiveCount} attached objective{objectiveCount === 1 ? '' : 's'} without replacing manually entered interview text.</p>
+      <p>Autosaves as you type. Syncs to {objectiveCount} attached objective{objectiveCount === 1 ? '' : 's'} without replacing manually entered interview text.</p>
       <div className="dibcac-checklist-note-actions">
-        <button type="button" className="dibcac-builder-save" onClick={() => onSave(note)}>Save note</button>
+        <button type="button" className="dibcac-builder-save" onClick={() => { onSave(note); onClose() }}>Save note</button>
         {item.interviewNote?.trim() && (
           <button type="button" className="dibcac-action-btn dibcac-action-btn--delete" onClick={() => { setNote(''); onSave('') }}>Clear note</button>
         )}
@@ -1799,7 +1805,7 @@ function SavedGroupCard({
   const [selectedObjKeys, setSelectedObjKeys] = useState(() => new Set())
   const [confirmingGroupDelete, setConfirmingGroupDelete] = useState(false)
   const [confirmingObjectiveRemove, setConfirmingObjectiveRemove] = useState(false)
-  const [openChecklistNoteIds, setOpenChecklistNoteIds] = useState(() => new Set())
+  const { openChecklistNoteKey, setOpenChecklistNoteKey } = useContext(ChecklistNoteContext)
   const [objView, setObjView] = useState(() => localStorage.getItem('cmmc-dibcac-group-obj-view') === 'cards' ? 'cards' : 'list')
   const isObjectiveSelecting = objectiveSelectionMode || objSelectMode
 
@@ -1894,11 +1900,8 @@ function SavedGroupCard({
   }
 
   const toggleChecklistNote = (itemId) => {
-    setOpenChecklistNoteIds((previous) => {
-      const next = new Set(previous)
-      next.has(itemId) ? next.delete(itemId) : next.add(itemId)
-      return next
-    })
+    const key = JSON.stringify([group.id, itemId])
+    setOpenChecklistNoteKey((previous) => previous === key ? null : key)
   }
 
   const otherGroups = useMemo(
@@ -2149,16 +2152,16 @@ function SavedGroupCard({
                       type="button"
                       className={`dibcac-checklist-note-toggle${item.interviewNote?.trim() ? ' dibcac-checklist-note-toggle--has-note' : ''}`}
                       onClick={() => toggleChecklistNote(item.id)}
-                      aria-expanded={openChecklistNoteIds.has(item.id)}
+                      aria-expanded={openChecklistNoteKey === JSON.stringify([group.id, item.id])}
                     >
                       {item.interviewNote?.trim() ? 'Edit Interview Notes' : '+ Interview Notes'}
                     </button>
-                    {openChecklistNoteIds.has(item.id) && (
+                    {openChecklistNoteKey === JSON.stringify([group.id, item.id]) && (
                       <ChecklistInterviewNoteEditor
-                        key={`${item.id}:${item.interviewNote ?? ''}`}
+                        key={item.id}
                         item={item}
                         onSave={(note) => saveChecklistInterviewNote(item, note)}
-                        onClose={() => toggleChecklistNote(item.id)}
+                        onClose={() => setOpenChecklistNoteKey(null)}
                       />
                     )}
                   </div>
@@ -2972,6 +2975,7 @@ function TopicNavigator({ topics, onNavigate, compact = false }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 function DibcacMode() {
+  const [openChecklistNoteKey, setOpenChecklistNoteKey] = useState(null)
   const [mode, setMode] = useState('browse')        // 'browse' | 'builder'
   const [editingGroup, setEditingGroup] = useState(null) // null = new group; group obj = edit mode
   const [search, setSearch] = useState('')
@@ -3364,6 +3368,7 @@ function DibcacMode() {
 
 
   return (
+    <ChecklistNoteContext.Provider value={{ openChecklistNoteKey, setOpenChecklistNoteKey }}>
     <div className="dash-root">
       <DashSidebar />
 
@@ -3588,6 +3593,7 @@ function DibcacMode() {
       </div>
       </main>
     </div>
+    </ChecklistNoteContext.Provider>
   )
 }
 

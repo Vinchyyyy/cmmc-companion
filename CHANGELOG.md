@@ -1,3 +1,12 @@
+## Version 4.17.0 — Checklist Note Autosave and Persistent Interview Names
+Date: October 21, 2026
+
+- DIBCAC checklist interview notes save and sync to mapped objectives on each text change. Save note closes the editor; opening another note closes the previous editor across groups.
+- Stable editor identity preserves typing and cursor position during autosave. Clear note removes that checklist source without replacing manual interviews or other checklist notes.
+- Excel export always retains the interviewee-name block for selected objectives, even with Interviews unchecked or all optional columns unchecked. Unchecking Interviews omits only interview notes.
+- The interview-notes-to-Overall-Comments option still excludes the name block and works independently of the Interviews checkbox.
+- Added rendered note workflow and workbook regression checks.
+
 ## Version 4.16.0 — Interview Notes in Overall Comments
 Date: October 21, 2026
 

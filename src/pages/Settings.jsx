@@ -535,10 +535,10 @@ function Settings() {
                     </p>
                   )}
                   <h3>Columns to populate</h3>
-                  <p className="advanced-options-hint">Uncheck a column to leave its cells blank. Column headings, formatting, and your saved project data stay in place.</p>
+                  <p className="advanced-options-hint">Uncheck a column to leave its cells blank. Unchecking Interviews removes only the notes; interviewee names stay included. Column headings, formatting, and saved project data stay in place.</p>
                   <div className="export-family-actions">
                     <button type="button" onClick={() => { setExportWarnings(null); setExportDialog((d) => ({ ...d, omittedColumns: [] })) }}>Populate All Columns</button>
-                    <button type="button" onClick={() => { setExportWarnings(null); setExportDialog((d) => ({ ...d, omittedColumns: EXCEL_EXPORT_COLUMNS.map(({ key }) => key) })) }}>Leave All Blank</button>
+                    <button type="button" onClick={() => { setExportWarnings(null); setExportDialog((d) => ({ ...d, omittedColumns: EXCEL_EXPORT_COLUMNS.map(({ key }) => key) })) }}>Leave All Blank Except Names</button>
                   </div>
                   <div className="export-family-grid">
                     {EXCEL_EXPORT_COLUMNS.map(({ key, label }) => <label key={key} className="import-option-row export-family-option">
@@ -546,7 +546,7 @@ function Settings() {
                         setExportWarnings(null)
                         setExportDialog((d) => ({ ...d, omittedColumns: event.target.checked ? d.omittedColumns.filter((item) => item !== key) : [...d.omittedColumns, key] }))
                       }} />
-                      <span>{label}</span>
+                      <span>{key === 'interviews' ? 'Interviews — notes (names always included)' : label}</span>
                     </label>)}
                   </div>
                   <h3>Overall Comments</h3>
