@@ -48,7 +48,7 @@ import { readAssignedTo, writeAssignedTo, normalizeAssignee } from '../utils/ass
 import BulkFindingsModal from '../components/BulkFindingsModal'
 import { DIBCAC_STANDARDS, getDibcacStandard } from '../data/dibcacAssessmentStandards'
 import { findOscProvider, formatProviderReference, readOscProfile, writeOscProfile, ensureOscProvider, STANDARDS_ACCEPTANCE_VALUES } from '../utils/oscProfile'
-import { formatDateAssessed, readDateAssessed, writeDateAssessed } from '../utils/dateAssessed'
+import { formatDateAssessed, readDateAssessed, writeDateAssessed, matchesDateAssessed } from '../utils/dateAssessed'
 import AssessmentDatePicker from '../components/AssessmentDatePicker.jsx'
 
 // 'variable' covers objectives with no fixed DIBCAC standard mapping (getDibcacStandard returns null).
@@ -99,6 +99,9 @@ const DEFAULTS = {
   assignedTo: 'All',
   dibcacMethod: 'All',
   dibcacHideMet: 'All',
+  dateAssessed: '',
+  dateAssessedFrom: '',
+  dateAssessedTo: '',
 }
 
 // Family name -> 2-letter code (the prefix of every control ID in that family)
@@ -116,8 +119,8 @@ const STATUS_VAR_COLOR = {
   'Not Started': 'var(--color-not-started)',
 }
 
-const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'warnings', 'inheritanceSource', 'assignedTo', 'dibcacMethod', 'dibcacHideMet']
-const CHIP_FILTER_KEYS = ['status', 'warnings', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'inheritanceSource', 'assignedTo', 'dibcacMethod', 'dibcacHideMet']
+const FILTER_KEYS = ['search', 'family', 'status', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'warnings', 'inheritanceSource', 'assignedTo', 'dibcacMethod', 'dibcacHideMet', 'dateAssessed', 'dateAssessedFrom', 'dateAssessedTo']
+const CHIP_FILTER_KEYS = ['status', 'warnings', 'notes', 'artifacts', 'inheritance', 'score', 'poam', 'inheritanceSource', 'assignedTo', 'dibcacMethod', 'dibcacHideMet', 'dateAssessed', 'dateAssessedFrom', 'dateAssessedTo']
 const SEARCH_DEBOUNCE_MS = 500
 
 function getProviderSuggestions(value, selectedProviderId = '') {
@@ -150,6 +153,9 @@ function getProviderSuggestions(value, selectedProviderId = '') {
 const DIBCAC_FILTER_LABEL = new Map(DIBCAC_FILTER_VALUES.map((d) => [d.value, d.label]))
 
 function chipLabel(key, value) {
+  if (key === 'dateAssessed') return ({ dated: 'Date Assessed: Has date', undated: 'Date Assessed: No date', range: 'Date Assessed: Date range' })[value] ?? value
+  if (key === 'dateAssessedFrom') return `Assessed from: ${formatDateAssessed(value) || value}`
+  if (key === 'dateAssessedTo') return `Assessed through: ${formatDateAssessed(value) || value}`
   if (key === 'artifacts')         return value === 'Yes' ? 'Has artifacts' : 'No artifacts'
   if (key === 'score')             return `Score: (${Math.abs(Number(value))}) pts`
   if (key === 'poam')              return value === 'Allowed' ? 'POA&M Allowed' : 'Non-POA&Mable'
@@ -219,6 +225,8 @@ function FilterModal({
   onClose,
   toggleMultiFilter,
   handleClearFilters,
+  dateFilter,
+  onDateFilterChange,
   statusSet,
   warningsSet,
   notesSet,
@@ -295,6 +303,29 @@ function FilterModal({
               </div>
             </section>
           )}
+
+          <section className="cl-filter-modal-section">
+            <div className="cl-filter-modal-section-title">Date Assessed</div>
+            <div className="cl-date-filter-fields">
+              <label>
+                Show
+                <select aria-label="Date Assessed filter" value={dateFilter.mode} onChange={(event) => onDateFilterChange({ mode: event.target.value })}>
+                  <option value="">Any date</option>
+                  <option value="dated">Has date</option>
+                  <option value="undated">No date</option>
+                  <option value="range">Date range</option>
+                </select>
+              </label>
+              {dateFilter.mode === 'range' && <>
+                <label>From<input type="date" aria-label="Date Assessed from" value={dateFilter.from} onChange={(event) => onDateFilterChange({ from: event.target.value })} /></label>
+                <label>Through<input type="date" aria-label="Date Assessed through" value={dateFilter.to} onChange={(event) => onDateFilterChange({ to: event.target.value })} /></label>
+              </>}
+            </div>
+            {dateFilter.mode === 'range' && <p className="cl-filter-modal-section-hint">
+              Dates are inclusive. Use the same date for both fields to show one day; leave either blank for an open range.
+            </p>}
+            {dateFilter.mode === 'range' && dateFilter.from && dateFilter.to && dateFilter.from > dateFilter.to && <p role="alert">From must be on or before Through.</p>}
+          </section>
 
           <section className="cl-filter-modal-section">
             <div className="cl-filter-modal-section-title">Status</div>
@@ -437,6 +468,11 @@ function ControlLibrary() {
 
   const urlSearch      = searchParams.get('search') ?? DEFAULTS.search
   const familyFilter   = searchParams.get('family') ?? DEFAULTS.family
+  const dateFilter = {
+    mode: searchParams.get('dateAssessed') ?? '',
+    from: searchParams.get('dateAssessedFrom') ?? '',
+    to: searchParams.get('dateAssessedTo') ?? '',
+  }
   const statusSet      = parseMultiFilter(searchParams.get('status'))
   const notesSet       = parseMultiFilter(searchParams.get('notes'))
   const artifactsSet   = parseMultiFilter(searchParams.get('artifacts'))
@@ -554,6 +590,10 @@ function ControlLibrary() {
     const current = parseMultiFilter(searchParams.get(key))
     current.delete(value)
     const next = new URLSearchParams(searchParams)
+    if (key === 'dateAssessed') {
+      next.delete('dateAssessedFrom')
+      next.delete('dateAssessedTo')
+    }
     if (current.size === 0) next.delete(key)
     else next.set(key, [...current].join(','))
     setSearchParams(next)
@@ -613,6 +653,20 @@ function ControlLibrary() {
   }
 
   const term = urlSearch.trim().toLowerCase()
+
+  const changeDateFilter = (patch) => {
+    const nextFilter = { ...dateFilter, ...patch }
+    const next = new URLSearchParams(searchParams)
+    for (const [key, value] of Object.entries({
+      dateAssessed: nextFilter.mode,
+      dateAssessedFrom: nextFilter.mode === 'range' ? nextFilter.from : '',
+      dateAssessedTo: nextFilter.mode === 'range' ? nextFilter.to : '',
+    })) {
+      if (value) next.set(key, value)
+      else next.delete(key)
+    }
+    setSearchParams(next)
+  }
 
   const matchesSearch = (c) => {
     if (term === '') return true
@@ -718,7 +772,7 @@ function ControlLibrary() {
     matchesNotes(c) && matchesArtifacts(c) && matchesInheritance(c) &&
     matchesScore(c) && matchesPoam(c) && matchesHideMet(c) &&
     matchesWarnings(c) && matchesInheritanceSource(c) && matchesAssignedTo(c) &&
-    matchesDibcacMethod(c)
+    matchesDibcacMethod(c) && matchesDateAssessed(readDateAssessed(c.id), dateFilter)
   )
 
   // Group by family in official CMMC order
@@ -1460,6 +1514,8 @@ function ControlLibrary() {
           onClose={() => setShowFilterModal(false)}
           toggleMultiFilter={toggleMultiFilter}
           handleClearFilters={handleClearFilters}
+          dateFilter={dateFilter}
+          onDateFilterChange={changeDateFilter}
           statusSet={statusSet}
           warningsSet={warningsSet}
           notesSet={notesSet}

@@ -1,7 +1,7 @@
 {
   "name": "cmmc-companion",
   "private": true,
-  "version": "4.17.0",
+  "version": "4.18.0",
   "type": "module",
   "scripts": {
     "test:finding-export": "node scripts/test-finding-export-roundtrip.mjs",
@@ -29,7 +29,8 @@
     "test:family-evidence": "node scripts/test-family-evidence-pool.mjs",
     "test:excel-options": "node scripts/test-excel-export-options.mjs",
     "test:dibcac-navigation-highlight": "node scripts/test-dibcac-navigation-highlight.mjs",
-    "test:dibcac-note-autosave": "node scripts/test-dibcac-note-autosave.mjs"
+    "test:dibcac-note-autosave": "node scripts/test-dibcac-note-autosave.mjs",
+    "test:date-assessed-filter": "node scripts/test-date-assessed-filter.mjs"
   },
   "dependencies": {
     "jszip": "^3.10.1",

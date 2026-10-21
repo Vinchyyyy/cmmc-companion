@@ -17,6 +17,10 @@ function Changelog() {
       </p>
 
       <details open>
+        <ReleaseSummary version="v4.18.0" title="Date Assessed Filter" date="October 21, 2026" />
+        <ul><li>Filter controls by whether Date Assessed is set or by an inclusive date range. Supports single-day and open-ended ranges, saved filters, and removable filter chips.</li></ul>
+      </details>
+      <details>
         <ReleaseSummary version="v4.17.0" title="Note Autosave and Persistent Interview Names" date="October 21, 2026" />
         <ul>
           <li>Checklist interview notes autosave as you type. Save note closes the editor, and opening another note closes the previous one.</li>

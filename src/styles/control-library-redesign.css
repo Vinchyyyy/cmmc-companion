@@ -272,3 +272,30 @@
   .dash-root .cl-filter-modal-body { grid-template-columns: 1fr; }
 }
 
+
+.cl-date-filter-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+
+.cl-date-filter-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+}
+
+.cl-date-filter-fields input,
+.cl-date-filter-fields select {
+  min-height: 34px;
+  max-width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  color-scheme: dark;
+}

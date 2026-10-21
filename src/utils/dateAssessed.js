@@ -43,6 +43,17 @@ export function formatDateAssessed(value) {
   }).format(new Date(Date.UTC(year, month - 1, day)))
 }
 
+export function matchesDateAssessed(value, { mode = '', from = '', to = '' } = {}) {
+  const date = normalizeDate(value)
+  if (mode === 'dated') return !!date
+  if (mode === 'undated') return !date
+  if (mode !== 'range') return true
+  const start = normalizeDate(from)
+  const end = normalizeDate(to)
+  if (!date || (from && !start) || (to && !end)) return false
+  return (!start || date >= start) && (!end || date <= end)
+}
+
 // Convert an ISO calendar date into Excel's default 1900-date-system serial.
 export function dateAssessedToExcelSerial(value) {
   const normalized = normalizeDate(value)

@@ -1,3 +1,11 @@
+## Version 4.18.0 — Date Assessed Filter
+Date: October 21, 2026
+
+- Control Library filters include Date Assessed: any date, has date, no date, or an inclusive date range.
+- Supports a single day or open-ended ranges, shows reversed-range validation, and combines with existing control filters.
+- Date criteria appear as removable chips, can be saved with named filters, persist through navigation, and reset with Clear Filters.
+- Added date-matching and rendered control/filter regression checks.
+
 ## Version 4.17.0 — Checklist Note Autosave and Persistent Interview Names
 Date: October 21, 2026
 
