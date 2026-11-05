@@ -49,14 +49,14 @@ export default function DibcacInstructionsModal({ onClose }) {
           </section>
           <section>
             <h3>3. Keep Planned Asks short</h3>
-            <p>Use one quick ask per bullet, usually 10–18 words. Let comments shape the questions without repeating them. Keep lengthy explanations in separate notes.</p>
+            <p>Use short action-and-keyword cues. Keep complete observations in the checklist, with useful pivots underneath each ask. Keep lengthy explanations in separate notes.</p>
             <pre aria-label="Planned Ask formatting example">{example}</pre>
             <p>Type <code>- </code> to start a bullet. Use <kbd>Tab</kbd> to indent a follow-up and <kbd>Shift + Tab</kbd> to move it back. Leave a blank line between topics.</p>
           </section>
           <section>
             <h3>4. Connect topics and checklist items</h3>
-            <p>Type <code>!TOPIC NAME!</code> on its own line to create a Topic Anchor. Use the Topic Navigator for a broad subject jump.</p>
-            <p>Type <code>@</code> and choose a checklist item from the suggestions to create a clickable link. Search by its number or wording. Use links for exact evidence targets, including useful pivots into another group.</p>
+            <p>Click <strong>+ Topic</strong>, type the heading, then press <kbd>Enter</kbd> to start a bullet underneath. The <code>!TOPIC NAME!</code> shortcut still works. Use the Topic Navigator for a broad subject jump.</p>
+            <p>Type <code>@</code> and choose a checklist item to create a clickable link. Search by wording or use lowercase shorthand such as <code>@g1</code>, <code>@g1 1 1</code>, or <code>@g111</code>. If the numbers could match several items, choose the intended result. Explicit separators such as <code>@g1 11 11</code> help distinguish longer numbers.</p>
             <p>In <code>G1-1.1</code>, <strong>G1</strong> is the group and <strong>1.1</strong> is the checklist item under header 1. Numbers update when items move; saved links keep their destination. The example numbers above are illustrative—choose your actual items rather than pasting them as plain text.</p>
           </section>
           <section>

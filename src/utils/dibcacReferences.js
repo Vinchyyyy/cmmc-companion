@@ -93,7 +93,33 @@ export function resolveChecklistNavigationTarget(groups, referenceIndex, groupId
 }
 
 export function searchChecklistReferences(index, query, limit = 8) {
-  const term = String(query ?? '').trim().toLowerCase()
+  const term = String(query ?? '').trim().replace(/^@/, '').toLowerCase()
+  // Search forgiving numeric shorthand, but insert only a user-selected stable
+  // reference. Several checklist numbers can have the same compact spelling.
+  const numeric = /^g\s*(\d+)(?:[\s.-]+([\d\s.-]*))?$/.exec(term)
+  if (numeric) {
+    const group = numeric[1]
+    const local = (numeric[2] ?? '').trim()
+    const compact = term.replace(/[\s.-]/g, '')
+    const exactGroupExists = (index ?? []).some((entry) => entry.displayRef.toLowerCase().startsWith(`g${group}-`))
+    return (index ?? []).map((entry, order) => {
+      const ref = entry.displayRef.toLowerCase()
+      const [entryGroup, entryLocal = ''] = ref.split('-')
+      let rank = null
+      if (local) {
+        if (entryGroup !== `g${group}`) return null
+        const structured = local.split(/[\s.-]+/).join('.')
+        const digits = local.replace(/[\s.-]/g, '')
+        const candidate = entryLocal.replace(/\./g, '')
+        if (entryLocal === structured) rank = 0
+        else if (candidate === digits) rank = 1
+        else if (candidate.startsWith(digits)) rank = 2
+      } else if (exactGroupExists) {
+        if (entryGroup === `g${group}`) rank = 0
+      } else if (ref.replace(/[-.]/g, '').startsWith(compact)) rank = 2
+      return rank === null ? null : { entry, rank, order }
+    }).filter(Boolean).sort((a, b) => a.rank - b.rank || a.order - b.order).slice(0, limit).map(({ entry }) => entry)
+  }
   const words = term.split(/\s+/).filter(Boolean)
   return (index ?? []).filter((entry) => {
     if (words.length === 0) return true

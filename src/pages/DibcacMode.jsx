@@ -797,6 +797,37 @@ function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) 
     editorRef.current?.focus()
   }
 
+  const insertTopic = () => {
+    const editor = editorRef.current
+    const selection = window.getSelection()
+    if (!editor || !selection) return
+    if (!editor.contains(selection.anchorNode) && savedRangeRef.current && editor.contains(savedRangeRef.current.commonAncestorContainer)) {
+      selection.removeAllRanges()
+      selection.addRange(savedRangeRef.current.cloneRange())
+    }
+    const current = closestRichBlock(selection.anchorNode, editor)
+    const reuse = current && !current.textContent?.trim() && !current.querySelector('[data-pa-ref="true"]')
+    const topic = reuse ? current : document.createElement('div')
+    topic.dataset.paBlock = 'true'
+    topic.dataset.type = 'topic'
+    topic.dataset.indent = '0'
+    topic.dataset.topicAnchorId = globalThis.crypto.randomUUID()
+    topic.textContent = 'Topic name'
+    if (!reuse) {
+      if (current) current.after(topic)
+      else editor.append(topic)
+    }
+    editor.focus()
+    const range = document.createRange()
+    range.selectNodeContents(topic)
+    selection.removeAllRanges()
+    selection.addRange(range)
+    savedRangeRef.current = range.cloneRange()
+    setListActive(false)
+    setMention(null)
+    emitChange()
+  }
+
   const insertRichBlockBreak = () => {
     const editor = editorRef.current
     const selection = window.getSelection()
@@ -805,8 +836,8 @@ function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) 
     const block = closestRichBlock(caret.startContainer, editor)
     if (!block) return false
     const isEmpty = !block.textContent?.trim() && !block.querySelector('[data-pa-ref="true"]')
-    if (block.dataset.type === 'bullet' && isEmpty) {
-      block.dataset.type = 'paragraph'
+    if ((block.dataset.type === 'bullet' || block.dataset.type === 'topic') && isEmpty) {
+      block.dataset.type = block.dataset.type === 'topic' ? 'bullet' : 'paragraph'
       block.dataset.indent = '0'
       delete block.dataset.topicAnchorId
       if (!block.childNodes.length) block.append(document.createElement('br'))
@@ -815,7 +846,7 @@ function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) 
       paragraphCaret.collapse(true)
       selection.removeAllRanges()
       selection.addRange(paragraphCaret)
-      setListActive(false)
+      setListActive(block.dataset.type === 'bullet')
       emitChange()
       return true
     }
@@ -825,8 +856,8 @@ function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) 
     const trailingContent = tail.extractContents()
     const nextBlock = document.createElement('div')
     nextBlock.dataset.paBlock = 'true'
-    nextBlock.dataset.type = block.dataset.type === 'bullet' ? 'bullet' : 'paragraph'
-    nextBlock.dataset.indent = block.dataset.indent ?? '0'
+    nextBlock.dataset.type = ['bullet', 'topic'].includes(block.dataset.type) ? 'bullet' : 'paragraph'
+    nextBlock.dataset.indent = block.dataset.type === 'topic' ? '0' : block.dataset.indent ?? '0'
     nextBlock.append(trailingContent)
     if (!nextBlock.textContent && !nextBlock.querySelector('[data-pa-ref="true"]')) nextBlock.append(document.createElement('br'))
     if (!block.textContent && !block.querySelector('[data-pa-ref="true"]')) block.append(document.createElement('br'))
@@ -879,6 +910,7 @@ function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) 
   return (
     <div className="dibcac-planned-ask-editor">
       <div className="dibcac-rich-toolbar" aria-label="Planned Ask formatting">
+        <button type="button" title="Insert topic; type its name, then press Enter for a bullet" onMouseDown={(event) => event.preventDefault()} onClick={insertTopic}>+ Topic</button>
         <button type="button" title="Bold" onMouseDown={(event) => { event.preventDefault(); applyCommand('bold') }}><strong>B</strong></button>
         <button type="button" className={listActive ? 'dibcac-rich-toolbar-btn--active' : ''} aria-pressed={listActive} title="Bulleted list" onMouseDown={(event) => { event.preventDefault(); updateCurrentBlock((block) => {
           const exitingList = block.dataset.type === 'bullet'
@@ -906,12 +938,13 @@ function PlannedAskEditor({ document: richDocument, onChange, referenceIndex }) 
         role="textbox"
         aria-multiline="true"
         aria-label="Planned Ask"
-        data-placeholder="Describe what you plan to ask or review during this session… Type @ to reference a checklist item."
+        data-placeholder="Use + Topic for a heading. Type @g1 or @g1 1 1 to find a checklist item."
         onInput={() => { normalizeDashShortcut(); normalizeTopicShortcut(); emitChange(); detectMention() }}
         onKeyDown={handleKeyDown}
         aria-autocomplete="list"
         aria-expanded={!!mention}
       />
+      <p className="dibcac-planned-ask-editor-hint">+ Topic → type a heading → Enter for bullets. Links: @g1, @g1 1 1, or @g111; choose the matching item.</p>
       {mention && (
         <div className="dibcac-planned-ask-suggestions" role="listbox" aria-label="Checklist references">
           {suggestions.length === 0 ? (

@@ -17,6 +17,13 @@ function Changelog() {
       </p>
 
       <details open>
+        <ReleaseSummary version="v4.19.0" title="Easier Planned Ask Authoring" date="November 4, 2026" />
+        <ul>
+          <li>Click + Topic, type a heading, and press Enter to start a bullet.</li>
+          <li>Find checklist links with lowercase shorthand such as @g1 1 1 or @g111, then choose the intended item.</li>
+        </ul>
+      </details>
+      <details>
         <ReleaseSummary version="v4.18.0" title="Date Assessed Filter" date="October 21, 2026" />
         <ul><li>Filter controls by whether Date Assessed is set or by an inclusive date range. Supports single-day and open-ended ranges, saved filters, and removable filter chips.</li></ul>
       </details>

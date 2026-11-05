@@ -1,3 +1,11 @@
+## Version 4.19.0 — Easier Planned Ask Authoring
+Date: November 4, 2026
+
+- Added + Topic to the Planned Ask toolbar: type a heading directly and press Enter to start a bullet underneath. Existing exclamation-mark topic shortcuts remain supported.
+- Checklist-link suggestions accept lowercase and numeric shorthand, including @g1, @g1 1 1, and @g111. Explicit separated numbers rank first; ambiguous compact matches remain selectable.
+- Links continue to store stable group/item IDs and retain existing navigation behavior. Updated editor hints and in-app instructions.
+- Checked topic insertion, consecutive bullets, preserved content, and shorthand link insertion in a browser; added numeric-search regression checks.
+
 ## Version 4.18.0 — Date Assessed Filter
 Date: October 21, 2026
 
